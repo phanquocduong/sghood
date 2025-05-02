@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('name', 100);
+            $table->string('phone', 15)->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('password');
-            $table->rememberToken();
+            $table->date('birthdate');
+            $table->string('avatar')->nullable();
+            $table->string('front_id_card_image', 255)->nullable();
+            $table->string('back_id_card_image', 255)->nullable();
+            $table->enum('role', ['Người đăng ký', 'Người thuê', 'Quản trị viên'])->default('Người đăng ký');
+            $table->enum('status', ['Hoạt động', 'Khoá'])->default('Hoạt động');
             $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->softDeletes();
         });
 
         Schema::create('sessions', function (Blueprint $table) {
@@ -43,7 +43,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };
