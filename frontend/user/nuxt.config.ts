@@ -1,5 +1,10 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
-  devtools: { enabled: true }
-})
+    compatibilityDate: '2024-11-01',
+    devtools: { enabled: true },
+    css: ['public/css/style.css', 'public/css/main-color.css'],
+    plugins: ['~/plugins/firebase.js', '~/plugins/api.js', '~/plugins/toast.js'],
+    devServer: {
+        host: '0.0.0.0',
+        port: 3000
+    }
+});
