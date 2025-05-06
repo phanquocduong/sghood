@@ -1,53 +1,42 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBookmarkRequest;
+use App\Http\Requests\UpdateBookmarkRequest;
+use App\Models\Bookmark;
 use App\Models\Bookmarks;
+use App\Services\BookmarkService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BookmarkController extends Controller
 {
+    protected $bookmarkService;
+
+    public function __construct(BookmarkService $bookmarkService)
+    {
+        $this->bookmarkService = $bookmarkService;
+    }
+
     public function index(Request $request)
     {
         $userId = Auth::id() ?? $request->user_id;
-        $bookmarks = Bookmarks::where('user_id', $userId)->with('motel')->get();
+        $bookmarks = $this->bookmarkService->getUserBookmarks($userId);
 
         return response()->json($bookmarks);
     }
 
-    public function store(Request $request)
+    public function store(StoreBookmarkRequest $request)
     {
-        $validated = $request->validate([
-            'motel_id' => 'required|exists:motels,id',
-        ]);
+        $data = $request->validated();
+        $data['user_id'] = Auth::id() ?? $request->user_id;
 
-        $bookmark = Bookmarks::create([
-            'user_id' => Auth::id() ?? $request->user_id,
-            'motel_id' => $validated['motel_id'],
-        ]);
+        $bookmark = $this->bookmarkService->createBookmark($data);
 
         return response()->json($bookmark, 201);
     }
-    public function update(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'motel_id' => 'required|exists:motels,id',
-        ]);
-
-        $bookmark = Bookmarks::findOrFail($id);
-
-        // Kiểm tra quyền (nếu có Auth)
-        if ($bookmark->user_id !== (Auth::id() ?? $request->user_id)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $bookmark->motel_id = $validated['motel_id'];
-        $bookmark->save();
-
-        return response()->json(['message' => 'Bookmark updated successfully', 'bookmark' => $bookmark]);
-    }
-
 
     public function destroy($id)
     {
@@ -57,9 +46,10 @@ class BookmarkController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $bookmark->delete();
+        $this->bookmarkService->deleteBookmark($bookmark);
 
         return response()->json(['message' => 'Bookmark deleted successfully']);
     }
 }
+
 

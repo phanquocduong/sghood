@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreBookmarkRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'motel_id' => 'required|exists:motels,id',
+        ];
+    }
+    public function messages(): array
+    {
+        return [
+            'motel_id.required' => 'Vui lòng cung cấp ID của motel.',
+            'motel_id.exists' => 'Motel không tồn tại.',
+        ];
+    }
+}
