@@ -56,14 +56,14 @@ class UpdateRoomRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $room = $this->route('room');
+            $roomId = $this->route('id');
+            $room = Rooms::find($roomId);
 
             if (!$room) {
                 $validator->errors()->add('room', 'Phòng không tồn tại.');
                 return;
             }
 
-            $roomId = $room->id;
             $motelId = $this->input('motel_id', $room->motel_id);
             $name = $this->input('name');
 

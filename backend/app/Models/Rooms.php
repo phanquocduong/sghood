@@ -19,11 +19,15 @@ class Rooms extends Model
         'updated_at',
         'deleted_at',
     ];
-    protected $casts = [
-        'status' => 'string',
-    ];
+    // protected $casts = [
+    //     'status' => 'string',
+    // ];
     public function motel()
     {
         return $this->belongsTo(Motels::class, 'motel_id');
+    }
+    public function images()
+    {
+        return $this->hasMany(RoomImages::class, 'room_id', 'id');
     }
 }
