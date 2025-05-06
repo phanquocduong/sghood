@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\FirebaseAuthController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:60,1')->post('/firebase-auth', [FirebaseAuthController::class, 'auth']);
@@ -14,3 +16,8 @@ Route::middleware('firebase')->group(function () {
     });
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+    Route::post('/bookmarks', [BookmarkController::class, 'store']);
+    Route::delete('/bookmarks/{id}', [BookmarkController::class, 'destroy']);
+});
