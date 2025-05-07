@@ -2,23 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\Rooms;
-use Illuminate\Http\Request;
+use App\Models\Amenity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class RoomService
+class AmenityService
 {
-    public function getAllRooms($querySearch = '', $status = '', $sortOption = 'name_asc', $perPage = 10)
+    public function getAllAmenities($querySearch = '', $sortOption = 'name_asc', $perPage = 10)
     {
-        $query = Rooms::query()->with('motel');
+        $query = Amenity::query();
 
         if ($querySearch != '') {
-            $query->where('name', 'LIKE', '%' . $querySearch . '%');
-        }
-
-        if ($status != '') {
-            $query->where('status', $status);
+            $query->where(function ($q) use ($querySearch) {
+                $q->where('name', 'LIKE', '%' . $querySearch . '%')
+                  ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
+            });
         }
 
         switch ($sortOption) {
@@ -45,32 +43,33 @@ class RoomService
 
         $query->orderBy($sortField, $sortOrder);
 
-        $rooms = $query->paginate($perPage);
-        return $rooms;
+        $amenities = $query->paginate($perPage);
+        return $amenities;
     }
 
-    public function getRoom($id, $withTrashed = false)
+    public function getAmenity($id, $withTrashed = false)
     {
-        $query = Rooms::query()->with(['motel', 'images', 'amenities']);
+        $query = Amenity::query();
 
         if ($withTrashed) {
             $query->withTrashed();
         }
-        $room = $query->findOrFail($id);
-        return $room;
+
+        $amenity = $query->findOrFail($id);
+        return $amenity;
     }
 
     public function create($validatedRequest)
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::create($validatedRequest);
+            $amenity = Amenity::create($validatedRequest);
 
             DB::commit();
-            return $room;
+            return $amenity;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Tạo phòng thất bại: ' . $e->getMessage());
+            Log::error('Tạo tiện nghi thất bại: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -79,14 +78,14 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($id);
-            $room->update($validatedRequest);
+            $amenity = Amenity::findOrFail($id);
+            $amenity->update($validatedRequest);
 
             DB::commit();
-            return $room;
+            return $amenity;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Cập nhật phòng thất bại: ' . $e->getMessage());
+            Log::error('Cập nhật tiện nghi thất bại: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -95,14 +94,14 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($id);
-            $room->delete();
+            $amenity = Amenity::findOrFail($id);
+            $amenity->delete();
 
             DB::commit();
-            return $room;
+            return $amenity;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Xóa phòng thất bại: ' . $e->getMessage());
+            Log::error('Xóa tiện nghi thất bại: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -111,17 +110,17 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::withTrashed()->findOrFail($id);
-            if (!$room->trashed()) {
-                throw new \Exception('Phòng phải bị xóa mềm trước khi xóa vĩnh viễn.');
+            $amenity = Amenity::withTrashed()->findOrFail($id);
+            if (!$amenity->trashed()) {
+                throw new \Exception('Tiện nghi phải bị xóa mềm trước khi xóa vĩnh viễn.');
             }
-            $room->forceDelete();
+            $amenity->forceDelete();
 
             DB::commit();
-            return $room;
+            return $amenity;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Xóa vĩnh viễn phòng thất bại: ' . $e->getMessage());
+            Log::error('Xóa vĩnh viễn tiện nghi thất bại: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -130,14 +129,14 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::withTrashed()->findOrFail($id);
-            $room->restore();
+            $amenity = Amenity::withTrashed()->findOrFail($id);
+            $amenity->restore();
 
             DB::commit();
-            return $room;
+            return $amenity;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Khôi phục phòng thất bại: ' . $e->getMessage());
+            Log::error('Khôi phục tiện nghi thất bại: ' . $e->getMessage());
             throw $e;
         }
     }

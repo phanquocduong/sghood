@@ -4,19 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-class Motels extends Model
+
+class Amenity extends Model
 {
     use SoftDeletes;
-    protected $table = 'motels';
+
+    protected $table = 'amenities';
+
     protected $fillable = [
-        'address',
-        'price',
-        'map_embed_url',
-        'status',
-        'description',
-        'status',
+        'name',
+        'type',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
-}
+};

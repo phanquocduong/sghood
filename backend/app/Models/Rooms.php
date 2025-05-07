@@ -24,10 +24,14 @@ class Rooms extends Model
     // ];
     public function motel()
     {
-        return $this->belongsTo(Motels::class, 'motel_id');
+        return $this->belongsTo(Motel::class, 'motel_id');
     }
     public function images()
     {
         return $this->hasMany(RoomImages::class, 'room_id', 'id');
+    }
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'room_amenities', 'room_id', 'amenity_id');
     }
 }
