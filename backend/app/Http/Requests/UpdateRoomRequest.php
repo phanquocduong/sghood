@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Models\Rooms;
+use App\Models\Room;
 
 class UpdateRoomRequest extends FormRequest
 {
@@ -57,7 +57,7 @@ class UpdateRoomRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $roomId = $this->route('id');
-            $room = Rooms::find($roomId);
+            $room = Room::find($roomId);
 
             if (!$room) {
                 $validator->errors()->add('room', 'Phòng không tồn tại.');
@@ -68,7 +68,7 @@ class UpdateRoomRequest extends FormRequest
             $name = $this->input('name');
 
             if ($name) {
-                $exists = Rooms::where('name', $name)
+                $exists = Room::where('name', $name)
                     ->where('motel_id', $motelId)
                     ->where('id', '!=', $roomId)
                     ->exists();

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Rooms extends Model
+class Room extends Model
 {
     use SoftDeletes;
     protected $table = 'rooms';
@@ -28,7 +28,7 @@ class Rooms extends Model
     }
     public function images()
     {
-        return $this->hasMany(RoomImages::class, 'room_id', 'id');
+        return $this->hasMany(RoomImage::class, 'room_id', 'id');
     }
     public function amenities()
     {

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Rooms;
+use App\Models\Room;
 use App\Models\Amenity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +11,7 @@ class RoomAmenityService
 {
     public function getAmenitiesForRoom(string $roomId)
     {
-        $room = Rooms::findOrFail($roomId);
+        $room = Room::findOrFail($roomId);
 
         $amenities = $room->amenities()->get()->map(function ($amenity) use ($roomId) {
             $amenity->pivot = (object) [
@@ -29,7 +29,7 @@ class RoomAmenityService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($roomId);
+            $room = Room::findOrFail($roomId);
             $amenity = Amenity::findOrFail($amenityId);
 
             // Thêm tiện nghi vào phòng và gán giá trị created_at, updated_at
@@ -58,7 +58,7 @@ class RoomAmenityService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($roomId);
+            $room = Room::findOrFail($roomId);
             $amenity = Amenity::findOrFail($amenityId);
 
             $exists = $room->amenities()->where('amenity_id', $amenityId)->exists();

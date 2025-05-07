@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RoomImages extends Model
+class RoomImage extends Model
 {
     protected $table = 'room_images';
     protected $fillable = [
@@ -16,6 +16,6 @@ class RoomImages extends Model
 
     public function room()
     {
-        return $this->belongsTo(Rooms::class, 'room_id', 'id');
+        return $this->belongsTo(Room::class, 'room_id', 'id');
     }
 }

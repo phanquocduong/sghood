@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Rooms;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +11,7 @@ class RoomService
 {
     public function getAllRooms($querySearch = '', $status = '', $sortOption = 'name_asc', $perPage = 10)
     {
-        $query = Rooms::query()->with('motel');
+        $query = Room::query()->with('motel');
 
         if ($querySearch != '') {
             $query->where('name', 'LIKE', '%' . $querySearch . '%');
@@ -51,7 +51,7 @@ class RoomService
 
     public function getRoom($id, $withTrashed = false)
     {
-        $query = Rooms::query()->with(['motel', 'images', 'amenities']);
+        $query = Room::query()->with(['motel', 'images', 'amenities']);
 
         if ($withTrashed) {
             $query->withTrashed();
@@ -64,7 +64,7 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::create($validatedRequest);
+            $room = Room::create($validatedRequest);
 
             DB::commit();
             return $room;
@@ -79,7 +79,7 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($id);
+            $room = Room::findOrFail($id);
             $room->update($validatedRequest);
 
             DB::commit();
@@ -95,7 +95,7 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($id);
+            $room = Room::findOrFail($id);
             $room->delete();
 
             DB::commit();
@@ -111,7 +111,7 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::withTrashed()->findOrFail($id);
+            $room = Room::withTrashed()->findOrFail($id);
             if (!$room->trashed()) {
                 throw new \Exception('Phòng phải bị xóa mềm trước khi xóa vĩnh viễn.');
             }
@@ -130,7 +130,7 @@ class RoomService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::withTrashed()->findOrFail($id);
+            $room = Room::withTrashed()->findOrFail($id);
             $room->restore();
 
             DB::commit();

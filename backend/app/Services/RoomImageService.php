@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\RoomImages;
-use App\Models\Rooms;
+use App\Models\RoomImage;
+use App\Models\Room;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +12,7 @@ class RoomImageService
 {
     public function getAllImages($roomId, $perPage = 10)
     {
-        $query = RoomImages::query()->where('room_id', $roomId);
+        $query = RoomImage::query()->where('room_id', $roomId);
 
         $images = $query->paginate($perPage);
         return $images;
@@ -22,10 +22,10 @@ class RoomImageService
     {
         DB::beginTransaction();
         try {
-            $room = Rooms::findOrFail($roomId);
+            $room = Room::findOrFail($roomId);
 
             $validatedRequest['room_id'] = $roomId;
-            $image = RoomImages::create($validatedRequest);
+            $image = RoomImage::create($validatedRequest);
 
             DB::commit();
             return $image;
@@ -40,7 +40,7 @@ class RoomImageService
     {
         DB::beginTransaction();
         try {
-            $image = RoomImages::where('room_id', $roomId)->findOrFail($id);
+            $image = RoomImage::where('room_id', $roomId)->findOrFail($id);
 
             if ($image->image_url) {
                 $path = str_replace(Storage::url(''), '', $image->image_url);
@@ -62,7 +62,7 @@ class RoomImageService
     {
         DB::beginTransaction();
         try {
-            $image = RoomImages::where('room_id', $roomId)->findOrFail($id);
+            $image = RoomImage::where('room_id', $roomId)->findOrFail($id);
 
             if ($image->image_url) {
                 $path = str_replace(Storage::url(''), '', $image->image_url);
