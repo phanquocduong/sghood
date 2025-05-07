@@ -40,7 +40,15 @@ class MotelImageController extends Controller
     public function store(MotelImageRequest $request)
     {
         try {
-            $image = $this->motelImageService->create($request->validated());
+            $data = $request->validated();
+            $imageFile = $request->file('image');
+            if ($imageFile) {
+                $imagePath = $this->motelImageService->handleImage($imageFile);
+                if ($imagePath) {
+                    $data['image'] = $imagePath;
+                }
+            }
+            $image = $this->motelImageService->create($data);
             return response()->json([
                 'message' => 'Thêm mới thành công!',
                 'data' => $image
@@ -53,7 +61,16 @@ class MotelImageController extends Controller
     public function update(MotelImageRequest $request, $id)
     {
         try {
-            $image = $this->motelImageService->update($id, $request->validated());
+
+            $data = $request->validated();
+            $imageFile = $request->file('image');
+            if ($imageFile) {
+                $imagePath = $this->motelImageService->handleImage($imageFile);
+                if ($imagePath) {
+                    $data['image'] = $imagePath;
+                }
+            }
+            $image = $this->motelImageService->update($id, $data);
             if (!$image)
                 return response()->json(['message' => 'Not found'], 404);
 

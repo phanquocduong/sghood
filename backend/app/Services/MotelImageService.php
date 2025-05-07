@@ -30,6 +30,16 @@ class MotelImageService
         return $image;
     }
 
+    public function handleImage($imageFile)
+    {
+        if ($imageFile && $imageFile->isValid()) {
+            $filename = time() . '_' . $imageFile->getClientOriginalName();
+            $path = $imageFile->storeAs('motel', $filename, 'public');
+            return 'storage/' . $path; // php artisan storage:link
+        }
+        return null;
+    }
+
     public function delete($id)
     {
         $image = MotelImage::find($id);

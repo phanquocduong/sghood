@@ -42,15 +42,17 @@ class DistrictService
     public function handleDistrictImage($imageFile)
     {
         if ($imageFile && $imageFile->isValid()) {
-            // Lưu file vào thư mục 'public/districts_img' và trả về đường dẫn tương đối
             $filename = time() . '_' . $imageFile->getClientOriginalName();
-            $path = $imageFile->storeAs('districts_img', $filename, 'public');
 
-            return 'storage/' . $path; // Đường dẫn để hiển thị ảnh (nếu đã chạy php artisan storage:link)
+            $path = $imageFile->storeAs('district_images', $filename, 'public');
+
+            
+            return 'storage/' . $path; // php artisan storage:link
         }
 
-        return null; // Trường hợp không có file hợp lệ
+        return null;
     }
+
 
     public function deleteDistrictImage($imagePath)
     {
