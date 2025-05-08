@@ -79,7 +79,7 @@ class MotelController extends Controller
         }
     }
 
-   public function restore($id)
+    public function restore($id)
     {
         try {
             $restored = $this->motelService->restore($id);
@@ -89,6 +89,18 @@ class MotelController extends Controller
             return response()->json(['message' => 'Khôi phục thành công'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Lỗi trong quá trình khôi phục dữ liệu: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $filters = $request->only(['address', 'district_id', 'status']);
+            $motels = $this->motelService->search($filters);
+
+            return response()->json($motels);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Lỗi trong quá trình tìm kiếm dữ liệu: ' . $e->getMessage()], 500);
         }
     }
 }

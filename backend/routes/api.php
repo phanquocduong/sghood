@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\MotelController;
-use App\Http\Controllers\MotelFeeController;
 use App\Http\Controllers\MotelImageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FirebaseAuthController;
@@ -28,6 +27,7 @@ Route::middleware('api')->group(function () {
     Route::delete('/districts/{id}', [DistrictsController::class, 'destroy']);
 
     // motels
+    Route::get('/motels/search', [MotelController::class, 'search']);
     Route::get('/motels', [MotelController::class, 'index']);
     Route::post('/motels', [MotelController::class, 'store']);
     Route::get('/motels/{id}', [MotelController::class, 'show']);
@@ -42,10 +42,5 @@ Route::middleware('api')->group(function () {
     Route::put('/motel-images/{id}', [MotelImageController::class, 'update']);
     Route::delete('/motel-images/{id}', [MotelImageController::class, 'destroy']);
 
-    // motel fees
-    Route::get('/motel-fees/{motelId}', [MotelFeeController::class, 'index']);
-    Route::post('/motel-fees', [MotelFeeController::class, 'store']);
-    Route::put('/motel-fees/{motelFee}', [MotelFeeController::class, 'update']);
-    Route::delete('/motel-fees/{motelFee}', [MotelFeeController::class, 'destroy']);
 });
 

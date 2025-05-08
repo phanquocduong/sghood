@@ -15,6 +15,12 @@ class Motel extends Model
         'district_id',
         'map_embed_url',
         'description',
+        'electricity_fee',
+        'water_fee',
+        'parking_fee',
+        'junk_fee',
+        'internet_fee',
+        'service_fee',
         'status',
     ];
 

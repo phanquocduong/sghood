@@ -54,4 +54,19 @@ class MotelService
         $motel->restore();
         return true;
     }
+
+    public function search($filters = [])
+    {
+        $query = Motel::query();
+
+        if (!empty($filters['address'])) {
+            $query->where('address', 'like', '%' . $filters['address'] . '%'); // Dùng cho form tìm kiếm với name = address
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']); // Dùng cho bộ lọc trạng thái với name = status
+        }
+
+        return $query->paginate(10);
+    }
 }
