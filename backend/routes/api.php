@@ -16,8 +16,8 @@ Route::middleware('firebase')->group(function () {
     });
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/bookmarks', [BookmarkController::class, 'index']);
-    Route::post('/bookmarks', [BookmarkController::class, 'store']);
-    Route::delete('/bookmarks/{id}', [BookmarkController::class, 'destroy']);
+Route::prefix('bookmarks')->group(function () {
+    Route::get('/', [BookmarkController::class, 'index']);
+    Route::post('/', [BookmarkController::class, 'store']);
+    Route::delete('/{id}', [BookmarkController::class, 'destroy']);
 });

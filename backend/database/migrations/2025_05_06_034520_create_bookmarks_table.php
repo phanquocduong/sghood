@@ -16,6 +16,9 @@ return new class extends Migration
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->foreignId('motel_id')->constrained()->onDelete('cascade');
         $table->timestamp('created_at')->useCurrent();
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        $table->foreign('motel_id')->references('id')->on('motels')->onDelete('cascade');
+
     });
 }
 

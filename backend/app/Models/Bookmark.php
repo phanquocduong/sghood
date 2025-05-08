@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Bookmarks extends Model
+class Bookmark extends Model
+
 {
+    protected $table = 'bookmarks';
     protected $fillable = ['user_id', 'motel_id'];
     public $timestamps = false;
 
@@ -16,7 +18,7 @@ class Bookmarks extends Model
 
     public function motel()
     {
-        return $this->belongsTo(Motels::class);
+        return $this->belongsTo(Motel::class);
     }
 }
 

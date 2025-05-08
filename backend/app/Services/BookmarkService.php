@@ -1,23 +1,29 @@
 <?php
 namespace App\Services;
 
-use App\Models\Bookmarks;
+use App\Models\Bookmark;
 
 class BookmarkService
 {
-    public function getUserBookmarks($userId)
-    {
-        return Bookmarks::where('user_id', $userId)
-                       ->with('motel')
-                       ->get();
-    }
+   // BookmarkService.php
+public function getUserBookmarks($userId)
+{
+    return Bookmark::all();
+}
 
     public function createBookmark(array $data)
-    {
-        return Bookmarks::create($data);
-    }
+{
+    // Chỉ lấy các trường được phép (bỏ updated_at và created_at)
+    $bookmarkData = [
+        'user_id' => $data['user_id'],
+        'motel_id' => $data['motel_id'],
+    ];
 
-    public function deleteBookmark(Bookmarks $bookmark)
+    return Bookmark::create($bookmarkData);
+}
+
+
+    public function deleteBookmark(Bookmark $bookmark)
     {
         $bookmark->delete();
         return true;
