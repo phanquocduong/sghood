@@ -6,6 +6,7 @@ use App\Http\Controllers\RoomImageController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\RoomAmenityController;
 use App\Http\Controllers\MotelAmenityController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:60,1')->post('/firebase-auth', [FirebaseAuthController::class, 'auth']);
@@ -59,4 +60,11 @@ Route::prefix('amenities')->group(function () {
     Route::delete('/{id}', [AmenityController::class, 'destroy']);
     Route::delete('/{id}/force', [AmenityController::class, 'forceDelete']);
     Route::post('/{id}/restore', [AmenityController::class, 'restore']);
+});
+
+Route::prefix('users')->group(function () {
+    // Route cho quản lý User
+    Route::get('/', [UserController::class, 'index']);
+    Route::get('/{id}', [UserController::class, 'show']);
+    Route::patch('/{id}', [UserController::class, 'update']);
 });
