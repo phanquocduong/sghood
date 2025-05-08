@@ -18,29 +18,32 @@ Route::middleware('firebase')->group(function () {
 });
 
 
-Route::middleware('api')->group(function () {
-    // districts
-    Route::get('/districts', [DistrictsController::class, 'index']);
-    Route::post('/districts', [DistrictsController::class, 'store']);
-    Route::get('/districts/{id}', [DistrictsController::class, 'show']);
-    Route::put('/districts/{id}', [DistrictsController::class, 'update']);
-    Route::delete('/districts/{id}', [DistrictsController::class, 'destroy']);
+// District
+Route::prefix('districts')->group(function () {
+    Route::get('/', [DistrictsController::class, 'index']);
+    Route::post('/', [DistrictsController::class, 'store']);
+    Route::get('/{id}', [DistrictsController::class, 'show']);
+    Route::put('/{id}', [DistrictsController::class, 'update']);
+    Route::delete('/{id}', [DistrictsController::class, 'destroy']);
+});
 
-    // motels
-    Route::get('/motels/search', [MotelController::class, 'search']);
-    Route::get('/motels', [MotelController::class, 'index']);
-    Route::post('/motels', [MotelController::class, 'store']);
-    Route::get('/motels/{id}', [MotelController::class, 'show']);
-    Route::put('/motels/{id}', [MotelController::class, 'update']);
-    Route::delete('/motels/{id}', [MotelController::class, 'destroy']);
-    Route::post('/motels/restore/{id}', [MotelController::class, 'restore']);
+// Motels
+Route::prefix('motels')->group(function () {
+    Route::get('/search', [MotelController::class, 'search']);
+    Route::get('/', [MotelController::class, 'index']);
+    Route::post('/', [MotelController::class, 'store']);
+    Route::get('/{id}', [MotelController::class, 'show']);
+    Route::put('/{id}', [MotelController::class, 'update']);
+    Route::delete('/{id}', [MotelController::class, 'destroy']);
+    Route::post('/restore/{id}', [MotelController::class, 'restore']);
+});
 
-    // motel images
-    Route::get('/motel-images', [MotelImageController::class, 'index']);
-    Route::post('/motel-images', [MotelImageController::class, 'store']);
-    Route::get('/motel-images/{id}', [MotelImageController::class, 'show']);
-    Route::put('/motel-images/{id}', [MotelImageController::class, 'update']);
-    Route::delete('/motel-images/{id}', [MotelImageController::class, 'destroy']);
-
+// Motel images
+Route::prefix('motel-images')->group(function () {
+    Route::get('/', [MotelImageController::class, 'index']);
+    Route::post('/', [MotelImageController::class, 'store']);
+    Route::get('/{id}', [MotelImageController::class, 'show']);
+    Route::put('/{id}', [MotelImageController::class, 'update']);
+    Route::delete('/{id}', [MotelImageController::class, 'destroy']);
 });
 
