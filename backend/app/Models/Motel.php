@@ -11,6 +11,7 @@ class Motel extends Model
     use SoftDeletes;
     protected $table = 'motels';
     protected $fillable = [
+        'slug',
         'address',
         'district_id',
         'map_embed_url',

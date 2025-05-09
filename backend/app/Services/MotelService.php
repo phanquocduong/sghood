@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Motel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MotelService
 {
@@ -19,6 +20,9 @@ class MotelService
 
     public function create(array $data)
     {
+        if (isset($data['address'])) {
+            $data['slug'] = Str::slug($data['address']);
+        }
         return Motel::create($data);
     }
 
@@ -28,6 +32,10 @@ class MotelService
         if (!$motel)
             return null;
 
+        // tạo slug mới nếu địa chỉ đã thay đổi
+        if (isset($data['address']) && $data['address'] !== $motel->address) {
+            $data['slug'] = Str::slug($data['address']);
+        }
         $motel->update($data);
         return $motel;
     }
