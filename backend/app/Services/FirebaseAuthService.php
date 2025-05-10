@@ -1,9 +1,7 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Kreait\Firebase\Auth as FirebaseAuth;
 
 class FirebaseAuthService
@@ -17,6 +15,10 @@ class FirebaseAuthService
 
     public function verifyToken(string $idToken)
     {
+        if (empty($idToken)) {
+            throw new \InvalidArgumentException('ID Token không được để trống');
+        }
+
         try {
             $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
             return $verifiedToken->claims()->get('phone_number');
@@ -32,13 +34,12 @@ class FirebaseAuthService
             $user = User::where('phone', $phone)->first();
 
             if (!$user) {
-                return response()->json(['message' => 'Người dùng chưa tồn tại'], 200);
+                return ['error' => 'Người dùng chưa tồn tại', 'status' => 200];
             }
 
-            return response()->json(['message' => 'Đăng nhập thành công'])
-                ->cookie('firebase_token', $idToken, 60, null, null, true, true, false, 'Strict');
+            return ['data' => $user];
         } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 401);
+            return ['error' => $e->getMessage(), 'status' => 401];
         }
     }
 
@@ -49,7 +50,7 @@ class FirebaseAuthService
             $user = User::where('phone', $phone)->first();
 
             if ($user) {
-                return response()->json(['error' => 'Số điện thoại đã được sử dụng.'], 400);
+                return ['error' => 'Số điện thoại đã được sử dụng.', 'status' => 400];
             }
 
             $user = User::create([
@@ -59,16 +60,9 @@ class FirebaseAuthService
                 'birthdate' => $data['birthdate'],
             ]);
 
-            return response()->json(['message' => 'Đăng ký thành công'])
-                ->cookie('firebase_token', $idToken, 60, null, null, true, true, false, 'Strict');
+            return ['data' => $user];
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Đăng ký thất bại: ' . $e->getMessage()], 401);
+            return ['error' => 'Đăng ký thất bại: ' . $e->getMessage(), 'status' => 401];
         }
-    }
-
-    public function logout()
-    {
-        return response()->json(['message' => 'Đăng xuất thành công'])
-            ->cookie('firebase_token', '', -1);
     }
 }
