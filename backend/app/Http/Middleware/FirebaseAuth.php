@@ -6,7 +6,6 @@ use App\Models\User;
 use Closure;
 use Kreait\Firebase\Auth as FirebaseAuthentication;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FirebaseAuth
 {
@@ -38,9 +37,6 @@ class FirebaseAuth
             if (!$user) {
                 return response()->json(['error' => 'Người dùng không tồn tại'], 401);
             }
-
-            // Đăng nhập user vào session của Laravel
-            Auth::login($user);
 
             // Lưu thông tin user vào request
             $request->attributes->set('firebase_user', $user);
