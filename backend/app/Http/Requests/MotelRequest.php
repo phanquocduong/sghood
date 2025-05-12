@@ -17,7 +17,7 @@ class MotelRequest extends FormRequest
 
         return [
             'address' => $isUpdate ? 'sometimes|required|string|max:100' : 'required|string|max:100',
-            'district_id' => $isUpdate ? 'sometimes|required|integer' : 'required|integer',
+            'district_id' => $isUpdate ? 'sometimes|required|integer|exists:districts,id' : 'required|integer|exists:districts,id',
             'map_embed_url' => $isUpdate ? 'sometimes|required|string|max:1000' : 'required|string|max:1000',
             'description' => $isUpdate ? 'sometimes|required|string' : 'required|string',
             'electricity_fee' => $isUpdate ? 'sometimes|required|integer|min:0' : 'required|integer|min:0',
@@ -27,6 +27,10 @@ class MotelRequest extends FormRequest
             'internet_fee' => $isUpdate ? 'sometimes|required|integer|min:0' : 'required|integer|min:0',
             'service_fee' => $isUpdate ? 'sometimes|required|integer|min:0' : 'required|integer|min:0',
             'status' => $isUpdate ? 'sometimes|required|in:Hoạt động,Không hoạt động' : 'required|in:Hoạt động,Không hoạt động',
+            'images' => $isUpdate ? 'sometimes|required|array|max:20' : 'required|array|max:20',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048|min:1',
+            'amenities' => $isUpdate ? 'sometimes|required|array' : 'required|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ];
     }
     public function messages()
@@ -37,6 +41,7 @@ class MotelRequest extends FormRequest
             'address.max' => 'Địa chỉ không được vượt quá 100 ký tự.',
             'district_id.required' => 'Vui lòng chọn quận/huyện.',
             'district_id.integer' => 'ID quận/huyện phải là một số nguyên.',
+            'district_id.exists' => 'khu vực không tồn tại.',
             'map_embed_url.required' => 'Vui lòng nhập URL nhúng bản đồ.',
             'map_embed_url.string' => 'URL nhúng bản đồ phải là một chuỗi.',
             'map_embed_url.max' => 'URL nhúng bản đồ không được vượt quá 1000 ký tự.',
@@ -62,6 +67,17 @@ class MotelRequest extends FormRequest
             'service_fee.min' => 'Phí dịch vụ phải lớn hơn hoặc bằng 0.',
             'status.required' => 'Vui lòng chọn trạng thái.',
             'status.in' => 'Trạng thái không hợp lệ. Chọn "Hoạt động" hoặc "Không hoạt động".',
+            'images.required' => 'Vui lòng chọn ít nhất một ảnh.',
+            'images.array' => 'Bộ sưu tập ảnh phải là một mảng.',
+            'images.max' => 'Giới hạn tối đa là 20 ảnh',
+            'images.*.image' => 'Ảnh phải là các file ảnh hợp lệ.',
+            'images.*.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg, gif hoặc webp.',
+            'images.*.max' => 'Ảnh không được vượt quá 2MB.',
+            'images.*.min' => 'Ảnh không được là file rỗng.',
+            'amenities.required' => 'Vui lòng chọn ít nhất một tiện ích.',
+            'amenities.array' => 'Danh sách tiện ích phải là một mảng.',
+            'amenities.*.integer' => 'ID tiện ích phải là một số nguyên.',
+            'amenities.*.exists' => 'Tiện ích không tồn tại.',
         ];
     }
 }

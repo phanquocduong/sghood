@@ -6,7 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class DistrictRequest extends FormRequest
 {
-    // Cho phép gửi request (đặt true là đủ)
     public function authorize(): bool
     {
         return true;
@@ -15,9 +14,11 @@ class DistrictRequest extends FormRequest
     // Quy tắc validate
     public function rules(): array
     {
+        $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
+
         return [
-            'name' => 'required|string|max:100',
-            'image' => 'required|string|max:255',
+            'name' => $isUpdate ? 'sometimes|required|string|max:100' : 'required|string|max:100',
+            'image' => $isUpdate ? 'sometimes|required|image|mimes:jpeg,png,jpg,webp|max:2048' : 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
     }
 
@@ -25,10 +26,13 @@ class DistrictRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Vui lòng nhập tên quận/huyện.',
-            'name.max' => 'Tên không được vượt quá 100 ký tự.',
-            'image.required' => 'Vui lòng nhập đường dẫn hình ảnh.',
-            'image.max' => 'Đường dẫn hình ảnh không được vượt quá 255 ký tự.',
+            'name.required' => 'Tên quận/huyện là bắt buộc.',
+            'name.string' => 'Tên quận/huyện phải là chuỗi ký tự.',
+            'name.max' => 'Tên quận/huyện không được vượt quá 100 ký tự.',
+            'image.required' => 'Hình ảnh là bắt buộc.',
+            'image.image' => 'Tệp phải là một hình ảnh.',
+            'image.mimes' => 'Hình ảnh chỉ chấp nhận các định dạng: jpeg, png, jpg, webp.',
+            'image.max' => 'Kích thước hình ảnh không được vượt quá 2MB.',
         ];
     }
 }

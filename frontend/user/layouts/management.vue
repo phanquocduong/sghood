@@ -1,14 +1,15 @@
 <template>
     <div id="wrapper">
-        <!-- Header -->
-        <header id="header-container">
-            <div id="header">
+        <!-- Header Container -->
+        <header id="header-container" class="fixed fullwidth dashboard">
+            <!-- Header -->
+            <div id="header" class="not-sticky">
                 <div class="container">
                     <!-- Left Side Content -->
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/"><img src="/images/troviet_logo1.png" alt="" /></NuxtLink>
+                            <NuxtLink to="/" class="dashboard-logo"><img src="/images/troviet_logo2.png" alt="" /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -36,27 +37,41 @@
                         </nav>
                     </div>
 
+                    <!-- Right Side Content -->
                     <HeaderRightSide />
-
-                    <AuthForm />
                 </div>
             </div>
         </header>
-
-        <!-- Thêm component Loading -->
-        <Loading />
-
-        <NuxtPage />
-
-        <AppFooter />
-
-        <!-- Back To Top Button -->
-        <div id="backtotop"><a href="#"></a></div>
+        <!-- Dashboard -->
+        <div id="dashboard">
+            <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i></a>
+            <DashboardNav />
+            <!-- Thêm component Loading -->
+            <Loading />
+            <!-- Content -->
+            <div class="dashboard-content">
+                <NuxtPage />
+                <!-- Copyrights -->
+                <div class="col-md-12">
+                    <div class="copyrights">© 2025 Trọ Việt.</div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup></script>
 
 <style scoped>
-/* Giữ nguyên các style hiện có nếu cần */
+#logo {
+    text-align: center;
+}
+
+#logo a {
+    margin: 0;
+}
+
+#logo img {
+    max-height: 55px;
+}
 </style>

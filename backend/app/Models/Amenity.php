@@ -5,19 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class District extends Model
+class Amenity extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'districts';
+    protected $table = 'amenities';
 
     protected $fillable = [
         'name',
-        'image',
+        'type',
     ];
-
-    public function motels() {
-        return $this->hasMany(Motel::class, 'district_id');
-    }
-
-}
+};

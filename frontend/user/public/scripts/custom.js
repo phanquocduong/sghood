@@ -83,30 +83,30 @@
         /*----------------------------------------------------*/
         /*  Sticky Header
 	/*----------------------------------------------------*/
-        $('#header').not('#header.not-sticky').clone(true).addClass('cloned unsticky').insertAfter('#header');
-        $('#header.cloned #sign-in-dialog').remove();
-        $('#navigation.style-2').clone(true).addClass('cloned unsticky').insertAfter('#navigation.style-2');
+        // $('#header').not('#header.not-sticky').clone(true).addClass('cloned unsticky').insertAfter('#header');
+        // $('#header.cloned #sign-in-dialog').remove();
+        // $('#navigation.style-2').clone(true).addClass('cloned unsticky').insertAfter('#navigation.style-2');
 
-        // Logo for header style 2
-        $('#logo .sticky-logo').clone(true).prependTo('#navigation.style-2.cloned ul#responsive');
+        // // Logo for header style 2
+        // $('#logo .sticky-logo').clone(true).prependTo('#navigation.style-2.cloned ul#responsive');
 
-        // sticky header script
-        var headerOffset = 140; // height on which the sticky header will shows
+        // // sticky header script
+        // var headerOffset = 140; // height on which the sticky header will shows
 
-        $(window).scroll(function () {
-            if ($(window).scrollTop() >= headerOffset) {
-                $('#header.cloned').addClass('sticky').removeClass('unsticky');
-                $('#navigation.style-2.cloned').addClass('sticky').removeClass('unsticky');
-            } else {
-                $('#header.cloned').addClass('unsticky').removeClass('sticky');
-                $('#navigation.style-2.cloned').addClass('unsticky').removeClass('sticky');
-            }
-        });
+        // $(window).scroll(function () {
+        //     if ($(window).scrollTop() >= headerOffset) {
+        //         $('#header.cloned').addClass('sticky').removeClass('unsticky');
+        //         $('#navigation.style-2.cloned').addClass('sticky').removeClass('unsticky');
+        //     } else {
+        //         $('#header.cloned').addClass('unsticky').removeClass('sticky');
+        //         $('#navigation.style-2.cloned').addClass('unsticky').removeClass('sticky');
+        //     }
+        // });
 
-        // Sticky Logo
-        $(window).on('scroll load', function () {
-            $('#header.cloned #logo img').attr('src', $('#header #logo img').attr('data-sticky-logo'));
-        });
+        // // Sticky Logo
+        // $(window).on('scroll load', function () {
+        //     $('#header.cloned #logo img').attr('src', $('#header #logo img').attr('data-sticky-logo'));
+        // });
 
         /*----------------------------------------------------*/
         /*  Back to Top

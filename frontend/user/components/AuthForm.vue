@@ -8,7 +8,7 @@
         <div class="sign-in-form style-1">
             <form class="auth-form" @submit.prevent>
                 <!-- Sign-in with Phone Number -->
-                <div v-if="!showRegisterFields">
+                <div v-show="!showRegisterFields">
                     <!-- Phone Input -->
                     <div class="form-row form-row-wide">
                         <label for="phone">
@@ -44,10 +44,10 @@
                 </div>
 
                 <!-- Registration Fields (shown if user doesn't exist) -->
-                <div v-else>
+                <div v-show="showRegisterFields">
                     <div class="form-row form-row-wide">
                         <label for="name">
-                            Họ tên:
+                            Họ và tên:
                             <i class="im im-icon-Male"></i>
                             <input type="text" class="input-text" id="name" v-model="name" />
                         </label>

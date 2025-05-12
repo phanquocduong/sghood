@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { signInWithPhoneNumber, RecaptchaVerifier, updateProfile, onAuthStateChanged } from 'firebase/auth';
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
 
@@ -17,7 +17,13 @@ export function useAuth() {
     const email = ref('');
     const birthdate = ref('');
     const loading = ref(false);
+    const user = ref(null);
     let confirmationResult = null;
+
+    // Theo dõi trạng thái đăng nhập
+    onAuthStateChanged($firebaseAuth, currentUser => {
+        user.value = currentUser ? { ...currentUser } : null;
+    });
 
     // Methods
     const closePopup = () => {
@@ -101,6 +107,7 @@ export function useAuth() {
 
             const result = await confirmationResult.confirm(otp.value);
             const idToken = await result.user.getIdToken();
+            console.log(idToken);
 
             const response = await $api('/firebase-auth', {
                 method: 'POST',
@@ -108,10 +115,16 @@ export function useAuth() {
             });
 
             if (response.message === 'Đăng nhập thành công') {
-                toast.success(response.message);
                 resetForm();
                 closePopup();
-            } else if (response.message === 'Người dùng chưa tồn tại') {
+                toast.success(response.message);
+                if (response.data?.name) {
+                    await updateProfile($firebaseAuth.currentUser, {
+                        displayName: response.data.name
+                    });
+                    user.value = { ...$firebaseAuth.currentUser };
+                }
+            } else if (response.error === 'Người dùng chưa tồn tại') {
                 showRegisterFields.value = true;
             }
         } catch (error) {
@@ -141,9 +154,22 @@ export function useAuth() {
                 }
             });
 
+            user.value = { ...$firebaseAuth.currentUser };
+
             toast.success(response.message);
-            resetForm();
+            if (response.data?.name) {
+                await updateProfile($firebaseAuth.currentUser, {
+                    displayName: response.data.name
+                });
+                user.value = { ...$firebaseAuth.currentUser };
+            }
+
             closePopup();
+
+            if (typeof window !== 'undefined') {
+                window.location.reload();
+                resetForm();
+            }
         } catch (error) {
             handleBackendError(error);
         } finally {
@@ -153,10 +179,12 @@ export function useAuth() {
 
     const logout = async () => {
         try {
+            loading.value = true;
             await $firebaseAuth.signOut();
             await $api('/logout', { method: 'POST' });
-            toast.success('Đăng xuất thành công!');
             router.push('/');
+            toast.success('Đăng xuất thành công!');
+            resetForm();
         } catch (error) {
             toast.error('Lỗi đăng xuất. Vui lòng thử lại.');
         }
@@ -181,8 +209,10 @@ export function useAuth() {
         email,
         birthdate,
         loading,
+        user,
         sendOTP,
         verifyOTP,
-        registerUser
+        registerUser,
+        logout
     };
 }

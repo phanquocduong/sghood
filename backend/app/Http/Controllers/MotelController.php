@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/MotelController.php
 namespace App\Http\Controllers;
 
 use App\Services\MotelService;
@@ -15,92 +14,104 @@ class MotelController extends Controller
         $this->motelService = $motelService;
     }
 
-    public function index()
-    {
-        try {
-            return response()->json($this->motelService->getAll());
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình lấy dữ liệu: ' . $e->getMessage()], 500);
+   public function index(Request $request) {
+        $querySearch = $request->get('query', '');
+        $status = $request->get('status', '');
+        $sortOption = $request->get('sortOption', '');
+        $perPage = $request->get('perPage', 25);
+
+        $result = $this->motelService->getAllMotels($querySearch, $status, $sortOption, $perPage);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
-    public function show($id)
-    {
-        try {
-            $motel = $this->motelService->getById($id);
-            if (!$motel)
-                return response()->json(['message' => 'Not found'], 404);
-
-            return response()->json($motel);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình lấy dữ liệu: ' . $e->getMessage()], 500);
+    public function show(int $id) {
+        $result = $this->motelService->getMotelById($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
-    public function store(MotelRequest $request)
-    {
-        try {
-            $motel = $this->motelService->create($request->validated());
-            return response()->json([
-                'message' => 'Tạo mới thành công',
-                'data' => $motel
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình tạo dữ liệu: ' . $e->getMessage()], 500);
+    public function store(MotelRequest $request) {
+        $result = $this->motelService->createMotel($request->validated(), $request->file('images'));
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        $response = [
+            'message' => 'Nhà trọ đã được tạo thành công!',
+            'data' => $result['data']
+        ];
+
+        if (isset($result['warnings'])) {
+            $response['warnings'] = $result['warnings'];
+            $response['message'] .= ' Tuy nhiên, một số ảnh không được upload thành công.';
+        }
+
+        return response()->json($response, 201);
     }
 
-    public function update(MotelRequest $request, $id)
-    {
-        try {
-            $motel = $this->motelService->update($id, $request->validated());
-            if (!$motel)
-                return response()->json(['message' => 'Not found'], 404);
+    public function update(MotelRequest $request, int $id) {
+        $result = $this->motelService->updateMotel($id, $request->validated(), $request->file('images'));
 
-            return response()->json([
-                'message' => 'Cập nhật thành công',
-                'data' => $motel
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình cập nhật dữ liệu: ' . $e->getMessage()], 500);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+
+        $response = [
+            'message' => 'Nhà trọ đã được cập nhật thành công!',
+            'data' => $result['data']
+        ];
+
+        if (isset($result['warnings'])) {
+            $response['warnings'] = $result['warnings'];
+            $response['message'] .= ' Tuy nhiên, một số ảnh không được upload thành công.';
+        }
+
+        return response()->json($response, 200);
     }
 
-    public function destroy($id)
-    {
-        try {
-            $deleted = $this->motelService->delete($id);
-            if (!$deleted)
-                return response()->json(['message' => 'Not found'], 404);
+    public function destroy(int $id) {
+        $result = $this->motelService->deleteMotel($id);
 
-            return response()->json(['message' => 'Xoá thành công'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình xóa dữ liệu: ' . $e->getMessage()], 500);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+
+        return response()->json(['message' => 'Nhà trọ được xoá thành công'], 200);
     }
 
-    public function restore($id)
-    {
-        try {
-            $restored = $this->motelService->restore($id);
-            if (!$restored)
-                return response()->json(['message' => 'Not found'], 404);
+    public function trash(Request $request) {
+        $querySearch = $request->get('query', '');
+        $status = $request->get('status', '');
+        $sortOption = $request->get('sortOption', '');
+        $perPage = $request->get('perPage', 25);
 
-            return response()->json(['message' => 'Khôi phục thành công'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình khôi phục dữ liệu: ' . $e->getMessage()], 500);
+        $result = $this->motelService->getTrashedMotels($querySearch, $status, $sortOption, $perPage);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
-    public function search(Request $request)
-    {
-        try {
-            $filters = $request->only(['address', 'district_id', 'status']);
-            $motels = $this->motelService->search($filters);
-
-            return response()->json($motels);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi trong quá trình tìm kiếm dữ liệu: ' . $e->getMessage()], 500);
+    public function restore(int $id) {
+        $result = $this->motelService->restoreMotel($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json([
+            'message' => 'Nhà trọ đã được khôi phục thành công!',
+            'data' => $result['data']
+        ], 200);
+    }
+
+    public function forceDestroy(int $id) {
+        $result = $this->motelService->forceDeleteMotel($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
+        }
+        return response()->json(['message' => 'Nhà trọ đã được xóa vĩnh viễn!'], 200);
     }
 }
