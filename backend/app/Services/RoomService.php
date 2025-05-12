@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Room;
@@ -8,25 +7,16 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class RoomService
 {
-    public function fetchRooms(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, string $perPage)
+    public function fetchRooms(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, string $perPage): array
     {
         try {
             $query = $onlyTrashed ? Room::onlyTrashed() : Room::query();
 
-            if ($querySearch !== '') {
-                $query->where('name', 'LIKE', '%' . $querySearch . '%');
-            }
-
-            if (!empty($status)) {
-                $query->where('status', $status);
-            }
-
-            $sort = $this->handleSortOption($sortOption);
-            $query->orderBy($sort['field'], $sort['order']);
+            $this->applyFilters($query, $querySearch, $status);
+            $this->applySorting($query, $sortOption);
 
             $rooms = $query->paginate($perPage);
 
@@ -37,41 +27,45 @@ class RoomService
         }
     }
 
-    public function handleSortOption(string $sortOption)
+    private function applyFilters($query, string $querySearch, string $status): void
+    {
+        if ($querySearch !== '') {
+            $query->where('name', 'LIKE', '%' . $querySearch . '%');
+        }
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+    }
+
+    private function applySorting($query, string $sortOption): void
+    {
+        $sort = $this->handleSortOption($sortOption);
+        $query->orderBy($sort['field'], $sort['order']);
+    }
+
+    public function handleSortOption(string $sortOption): array
     {
         switch ($sortOption) {
             case 'name_asc':
-                $sortField = 'name';
-                $sortOrder = 'asc';
-                break;
+                return ['field' => 'name', 'order' => 'asc'];
             case 'name_desc':
-                $sortField = 'name';
-                $sortOrder = 'desc';
-                break;
+                return ['field' => 'name', 'order' => 'desc'];
             case 'created_at_asc':
-                $sortField = 'created_at';
-                $sortOrder = 'asc';
-                break;
+                return ['field' => 'created_at', 'order' => 'asc'];
             case 'created_at_desc':
-                $sortField = 'created_at';
-                $sortOrder = 'desc';
-                break;
+                return ['field' => 'created_at', 'order' => 'desc'];
             default:
-                $sortField = 'created_at';
-                $sortOrder = 'desc';
+                return ['field' => 'created_at', 'order' => 'desc'];
         }
-        return [
-            'field' => $sortField,
-            'order' => $sortOrder
-        ];
     }
 
-    public function getAllRooms(string $querySearch, string $status, string $sortOption, string $perPage)
+    public function getAllRooms(string $querySearch, string $status, string $sortOption, string $perPage): array
     {
         return $this->fetchRooms(false, $querySearch, $status, $sortOption, $perPage);
     }
 
-    public function getRoom(string $id, bool $withTrashed = false)
+    public function getRoom(string $id, bool $withTrashed = false): array
     {
         try {
             $query = Room::query()->with(['motel', 'images', 'amenities']);
@@ -86,31 +80,14 @@ class RoomService
         }
     }
 
-    public function create(array $data, ?array $imageFiles = [])
+    public function create(array $data, ?array $imageFiles = []): array
     {
         DB::beginTransaction();
         try {
             $room = Room::create($data);
 
-            $failedUploads = [];
-            if (!empty($imageFiles)) {
-                foreach ($imageFiles as $file) {
-                    $imagePath = $this->uploadRoomImage($file);
-                    if ($imagePath) {
-                        RoomImage::create([
-                            'room_id' => $room->id,
-                            'image_url' => $imagePath
-                        ]);
-                    } else {
-                        $failedUploads[] = $file->getClientOriginalName();
-                    }
-                }
-            }
-
-            // Xử lý amenities
-            if (isset($data['amenities']) && !empty($data['amenities'])) {
-                $room->amenities()->sync($data['amenities']);
-            }
+            $failedUploads = $this->processRoomImages($room->id, $imageFiles);
+            $this->syncAmenities($room, $data['amenities'] ?? []);
 
             DB::commit();
 
@@ -126,7 +103,7 @@ class RoomService
         }
     }
 
-    public function update(string $id, array $data, ?array $imageFiles = [])
+    public function update(string $id, array $data, ?array $imageFiles = []): array
     {
         DB::beginTransaction();
         try {
@@ -134,30 +111,8 @@ class RoomService
 
             $room->update($data);
 
-            $failedUploads = [];
-            if (!empty($imageFiles)) {
-                $oldImages = $room->images()->get();
-                $room->images()->delete();
-                foreach ($oldImages as $image) {
-                    $this->deleteRoomImage($image->image_url);
-                }
-
-                foreach ($imageFiles as $file) {
-                    $imagePath = $this->uploadRoomImage($file);
-                    if ($imagePath) {
-                        RoomImage::create([
-                            'room_id' => $room->id,
-                            'image_url' => $imagePath
-                        ]);
-                    } else {
-                        $failedUploads[] = $file->getClientOriginalName();
-                    }
-                }
-            }
-
-            if (isset($data['amenities'])) {
-                $room->amenities()->sync($data['amenities']);
-            }
+            $failedUploads = $this->processRoomImages($room->id, $imageFiles, true);
+            $this->syncAmenities($room, $data['amenities'] ?? []);
 
             DB::commit();
 
@@ -173,7 +128,7 @@ class RoomService
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(string $id): array
     {
         DB::beginTransaction();
         try {
@@ -189,17 +144,17 @@ class RoomService
         }
     }
 
-    public function getTrashedRooms(string $querySearch, string $status, string $sortOption, string $perPage)
-    {
+    public function getTrashedRooms(string $querySearch, string $status, string $sortOption, int $perPage) {
         return $this->fetchRooms(true, $querySearch, $status, $sortOption, $perPage);
     }
 
-    public function restore(string $id)
+    public function restore(string $id): array
     {
         DB::beginTransaction();
         try {
             $room = Room::onlyTrashed()->findOrFail($id);
             $room->restore();
+
             DB::commit();
             return ['data' => $room->load(['motel', 'images', 'amenities'])];
         } catch (\Throwable $e) {
@@ -209,7 +164,7 @@ class RoomService
         }
     }
 
-    public function forceDelete(string $id)
+    public function forceDelete(string $id): array
     {
         DB::beginTransaction();
         try {
@@ -221,7 +176,6 @@ class RoomService
             $room->images()->forceDelete();
 
             $room->amenities()->detach();
-
             $room->forceDelete();
 
             DB::commit();
@@ -233,7 +187,46 @@ class RoomService
         }
     }
 
-    private function uploadRoomImage(UploadedFile $imageFile)
+    private function processRoomImages(int $roomId, ?array $imageFiles = [], bool $deleteOld = false): array
+    {
+        $failedUploads = [];
+        if ($deleteOld) {
+            $this->deleteOldImages($roomId);
+        }
+
+        if (!empty($imageFiles)) {
+            foreach ($imageFiles as $file) {
+                $imagePath = $this->uploadRoomImage($file);
+                if ($imagePath) {
+                    RoomImage::create([
+                        'room_id' => $roomId,
+                        'image_url' => $imagePath
+                    ]);
+                } else {
+                    $failedUploads[] = $file->getClientOriginalName();
+                }
+            }
+        }
+        return $failedUploads;
+    }
+
+    private function deleteOldImages(int $roomId): void
+    {
+        $oldImages = RoomImage::where('room_id', $roomId)->get();
+        foreach ($oldImages as $image) {
+            $this->deleteRoomImage($image->image_url);
+        }
+        RoomImage::where('room_id', $roomId)->delete();
+    }
+
+    private function syncAmenities(Room $room, array $amenities): void
+    {
+        if (!empty($amenities)) {
+            $room->amenities()->sync($amenities);
+        }
+    }
+
+    private function uploadRoomImage(UploadedFile $imageFile): string|false
     {
         try {
             $imageName = 'room-' . time() . '-' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
@@ -245,7 +238,7 @@ class RoomService
         }
     }
 
-    private function deleteRoomImage(string $imagePath)
+    private function deleteRoomImage(string $imagePath): void
     {
         try {
             if ($imagePath) {

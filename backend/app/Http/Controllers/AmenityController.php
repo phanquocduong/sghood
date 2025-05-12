@@ -2,106 +2,111 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAmenityRequest;
 use App\Services\AmenityService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AmenityController extends Controller
 {
-    protected $amenityService;
+    protected AmenityService $amenityService;
 
     public function __construct(AmenityService $amenityService)
     {
         $this->amenityService = $amenityService;
     }
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $querySearch = $request->get('query', '');
-        $sortOption = $request->get('sortOption', '');
-        $perPage = $request->get('perPage', 25);
+        $querySearch = $request->query('query', '');
+        $sortOption = $request->query('sortOption', '');
+        $perPage = $request->query('perPage', 25);
 
         $result = $this->amenityService->getAllAmenities($querySearch, $sortOption, $perPage);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json(['data' => $result['data']], 200);
+
+        return $this->handleResponse($result);
     }
 
-    public function show(string $id)
+    public function show(string $id): JsonResponse
     {
         $result = $this->amenityService->getAmenity($id);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json(['data' => $result['data']], 200);
+
+        return $this->handleResponse($result);
     }
 
-    public function store(StoreAmenityRequest $request)
+    public function store(StoreAmenityRequest $request): JsonResponse
     {
         $result = $this->amenityService->create($request->validated());
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json([
-            'message' => 'Tiện nghi đã được tạo thành công!',
-            'data' => $result['data']
-        ], 201);
+
+        return $this->handleResponse(
+            $result,
+            'Tiện nghi đã được tạo thành công!',
+            201
+        );
     }
 
-    public function update(StoreAmenityRequest $request, string $id)
+    public function update(StoreAmenityRequest $request, string $id): JsonResponse
     {
         $result = $this->amenityService->update($id, $request->validated());
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json([
-            'message' => 'Tiện nghi đã được cập nhật thành công!',
-            'data' => $result['data']
-        ], 200);
+
+        return $this->handleResponse(
+            $result,
+            'Tiện nghi đã được cập nhật thành công!'
+        );
     }
 
-    public function destroy(string $id)
+    public function destroy(string $id): JsonResponse
     {
         $result = $this->amenityService->destroy($id);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json(['message' => 'Tiện nghi được xoá thành công'], 200);
+
+        return $this->handleResponse(
+            $result,
+            'Tiện nghi đã được xoá thành công!'
+        );
     }
 
-    public function trash(Request $request)
+    public function trash(Request $request): JsonResponse
     {
-        $querySearch = $request->get('query', '');
-        $sortOption = $request->get('sortOption', '');
-        $perPage = $request->get('perPage', 25);
+        $querySearch = $request->query('query', '');
+        $sortOption = $request->query('sortOption', '');
+        $perPage = $request->query('perPage', 25);
 
         $result = $this->amenityService->getTrashedAmenities($querySearch, $sortOption, $perPage);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json(['data' => $result['data']], 200);
+
+        return $this->handleResponse($result);
     }
 
-    public function restore(string $id)
+    public function restore(string $id): JsonResponse
     {
         $result = $this->amenityService->restore($id);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
-        return response()->json([
-            'message' => 'Tiện nghi đã được khôi phục thành công!',
-            'data' => $result['data']
-        ], 200);
+
+        return $this->handleResponse(
+            $result,
+            'Tiện nghi đã được khôi phục thành công!'
+        );
     }
 
-    public function forceDestroy(string $id)
+    public function forceDestroy(string $id): JsonResponse
     {
         $result = $this->amenityService->forceDelete($id);
+
+        return $this->handleResponse(
+            $result,
+            'Tiện nghi đã được xóa vĩnh viễn!'
+        );
+    }
+
+    private function handleResponse(array $result, string $successMessage = '', int $successStatus = 200): JsonResponse
+    {
         if (isset($result['error'])) {
             return response()->json(['error' => $result['error']], $result['status']);
         }
-        return response()->json(['message' => 'Tiện nghi đã được xóa vĩnh viễn!'], 200);
+
+        $response = ['data' => $result['data']];
+        if ($successMessage) {
+            $response['message'] = $successMessage;
+        }
+
+        return response()->json($response, $successStatus);
     }
 }

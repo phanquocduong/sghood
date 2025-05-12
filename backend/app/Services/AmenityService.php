@@ -8,20 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 class AmenityService
 {
-    public function fetchAmenities(bool $onlyTrashed, string $querySearch, string $sortOption, string $perPage)
+    public function fetchAmenities(bool $onlyTrashed, string $querySearch, string $sortOption, string $perPage): array
     {
         try {
             $query = $onlyTrashed ? Amenity::onlyTrashed() : Amenity::query();
 
-            if ($querySearch !== '') {
-                $query->where(function ($q) use ($querySearch) {
-                    $q->where('name', 'LIKE', '%' . $querySearch . '%')
-                      ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
-                });
-            }
-
-            $sort = $this->handleSortOption($sortOption);
-            $query->orderBy($sort['field'], $sort['order']);
+            $this->applyFilters($query, $querySearch);
+            $this->applySorting($query, $sortOption);
 
             $amenities = $query->paginate($perPage);
 
@@ -32,44 +25,51 @@ class AmenityService
         }
     }
 
-    public function handleSortOption(string $sortOption)
+    private function applyFilters($query, string $querySearch): void
+    {
+        if ($querySearch !== '') {
+                $query->where(function ($q) use ($querySearch) {
+                    $q->where('name', 'LIKE', '%' . $querySearch . '%')
+                      ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
+            });
+        }
+    }
+
+    private function applySorting($query, string $sortOption): void
+    {
+        $sort = $this->handleSortOption($sortOption);
+        $query->orderBy($sort['field'], $sort['order']);
+    }
+
+    public function handleSortOption(string $sortOption): array
     {
         switch ($sortOption) {
             case 'name_asc':
-                $sortField = 'name';
-                $sortOrder = 'asc';
-                break;
+                return ['field' => 'name', 'order' => 'asc'];
             case 'name_desc':
-                $sortField = 'name';
-                $sortOrder = 'desc';
-                break;
+                return ['field' => 'name', 'order' => 'desc'];
             case 'created_at_asc':
-                $sortField = 'created_at';
-                $sortOrder = 'asc';
-                break;
+                return ['field' => 'created_at', 'order' => 'asc'];
             case 'created_at_desc':
-                $sortField = 'created_at';
-                $sortOrder = 'desc';
-                break;
+                return ['field' => 'created_at', 'order' => 'desc'];
             default:
-                $sortField = 'created_at';
-                $sortOrder = 'desc';
+                return ['field' => 'created_at', 'order' => 'desc'];
         }
-        return [
-            'field' => $sortField,
-            'order' => $sortOrder
-        ];
     }
 
-    public function getAllAmenities(string $querySearch, string $sortOption, string $perPage)
+    public function getAllAmenities(string $querySearch, string $sortOption, string $perPage): array
     {
         return $this->fetchAmenities(false, $querySearch, $sortOption, $perPage);
     }
 
-    public function getAmenity(string $id)
+    public function getAmenity(int $id, bool $withTrashed = false): array
     {
         try {
-            $amenity = Amenity::findOrFail($id);
+            $query = Amenity::query();
+            if ($withTrashed) {
+                $query->withTrashed();
+            }
+            $amenity = $query->findOrFail($id);
             return ['data' => $amenity];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
@@ -77,7 +77,7 @@ class AmenityService
         }
     }
 
-    public function create(array $data)
+    public function create(array $data): array
     {
         DB::beginTransaction();
         try {
@@ -92,7 +92,7 @@ class AmenityService
         }
     }
 
-    public function update(string $id, array $data)
+    public function update(string $id, array $data): array
     {
         DB::beginTransaction();
         try {
@@ -108,7 +108,7 @@ class AmenityService
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(string $id): array
     {
         DB::beginTransaction();
         try {
@@ -124,12 +124,12 @@ class AmenityService
         }
     }
 
-    public function getTrashedAmenities(string $querySearch, string $sortOption, string $perPage)
+    public function getTrashedAmenities(string $querySearch, string $sortOption, string $perPage): array
     {
         return $this->fetchAmenities(true, $querySearch, $sortOption, $perPage);
     }
 
-    public function restore(string $id)
+    public function restore(string $id): array
     {
         DB::beginTransaction();
         try {
@@ -144,7 +144,7 @@ class AmenityService
         }
     }
 
-    public function forceDelete(string $id)
+    public function forceDelete(string $id): array
     {
         DB::beginTransaction();
         try {
