@@ -1,8 +1,8 @@
 <template>
     <div id="wrapper">
         <!-- Header -->
-        <header id="header-container">
-            <div id="header">
+        <header id="header-container" class="fixed">
+            <div id="header" class="not-sticky">
                 <div class="container">
                     <!-- Left Side Content -->
                     <div class="left-side">
@@ -43,7 +43,6 @@
             </div>
         </header>
 
-        <!-- Thêm component Loading -->
         <Loading />
 
         <NuxtPage />
@@ -56,7 +55,3 @@
 </template>
 
 <script setup></script>
-
-<style scoped>
-/* Giữ nguyên các style hiện có nếu cần */
-</style>

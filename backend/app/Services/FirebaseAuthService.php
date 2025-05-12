@@ -8,13 +8,11 @@ class FirebaseAuthService
 {
     protected $firebaseAuth;
 
-    public function __construct(FirebaseAuth $firebaseAuth)
-    {
+    public function __construct(FirebaseAuth $firebaseAuth) {
         $this->firebaseAuth = $firebaseAuth;
     }
 
-    public function verifyToken(string $idToken)
-    {
+    public function verifyToken(string $idToken) {
         if (empty($idToken)) {
             throw new \InvalidArgumentException('ID Token không được để trống');
         }
@@ -27,8 +25,7 @@ class FirebaseAuthService
         }
     }
 
-    public function authenticate(string $idToken)
-    {
+    public function authenticate(string $idToken) {
         try {
             $phone = $this->verifyToken($idToken);
             $user = User::where('phone', $phone)->first();
@@ -43,8 +40,7 @@ class FirebaseAuthService
         }
     }
 
-    public function register(string $idToken, array $data)
-    {
+    public function register(string $idToken, array $data) {
         try {
             $phone = $this->verifyToken($idToken);
             $user = User::where('phone', $phone)->first();

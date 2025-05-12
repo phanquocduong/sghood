@@ -9,13 +9,11 @@ class FirebaseAuthController extends Controller
 {
     protected $authService;
 
-    public function __construct(FirebaseAuthService $authService)
-    {
+    public function __construct(FirebaseAuthService $authService) {
         $this->authService = $authService;
     }
 
-    public function auth(AuthRequest $request)
-    {
+    public function auth(AuthRequest $request) {
         $result = $this->authService->authenticate($request->id_token);
 
         if (isset($result['error'])) {
@@ -28,8 +26,7 @@ class FirebaseAuthController extends Controller
         ])->cookie('firebase_token', $request->id_token, 60, null, null, true, true, false, 'Strict');
     }
 
-    public function register(RegisterRequest $request)
-    {
+    public function register(RegisterRequest $request) {
         $result = $this->authService->register($request->id_token, $request->validated());
 
         if (isset($result['error'])) {
@@ -42,8 +39,7 @@ class FirebaseAuthController extends Controller
         ])->cookie('firebase_token', $request->id_token, 60, null, null, true, true, false, 'Strict');
     }
 
-    public function logout()
-    {
+    public function logout() {
         return response()->json(['message' => 'Đăng xuất thành công'])
             ->cookie('firebase_token', '', -1);
     }

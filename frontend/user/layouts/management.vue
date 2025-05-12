@@ -2,7 +2,6 @@
     <div id="wrapper">
         <!-- Header Container -->
         <header id="header-container" class="fixed fullwidth dashboard">
-            <!-- Header -->
             <div id="header" class="not-sticky">
                 <div class="container">
                     <!-- Left Side Content -->
@@ -46,7 +45,6 @@
         <div id="dashboard">
             <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i></a>
             <DashboardNav />
-            <!-- Thêm component Loading -->
             <Loading />
             <!-- Content -->
             <div class="dashboard-content">

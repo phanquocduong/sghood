@@ -1,4 +1,3 @@
-<!-- pages/quan-ly/ho-so-ca-nhan.vue -->
 <template>
     <!-- Titlebar -->
     <div id="titlebar">

@@ -14,7 +14,7 @@
                         <label for="phone">
                             Số điện thoại:
                             <i class="im im-icon-Phone-2"></i>
-                            <input type="text" class="input-text" id="phone" v-model="phone" />
+                            <input type="tel" class="input-text" id="phone" v-model="phone" required placeholder="+84..." />
                         </label>
                     </div>
 
@@ -49,7 +49,7 @@
                         <label for="name">
                             Họ và tên:
                             <i class="im im-icon-Male"></i>
-                            <input type="text" class="input-text" id="name" v-model="name" />
+                            <input type="text" class="input-text" id="name" v-model="name" required />
                         </label>
                     </div>
 
@@ -57,7 +57,7 @@
                         <label for="birthdate">
                             Ngày sinh:
                             <i class="im im-icon-Birthday-Cake"></i>
-                            <input class="input-text" type="date" id="birthdate" v-model="birthdate" />
+                            <input class="input-text" type="date" id="birthdate" v-model="birthdate" required />
                         </label>
                     </div>
 
@@ -65,7 +65,14 @@
                         <label for="email">
                             Email:
                             <i class="im im-icon-Mail"></i>
-                            <input type="email" class="input-text" id="email" v-model="email" />
+                            <input
+                                type="email"
+                                class="input-text"
+                                id="email"
+                                v-model="email"
+                                required
+                                pattern="^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$"
+                            />
                         </label>
                     </div>
 

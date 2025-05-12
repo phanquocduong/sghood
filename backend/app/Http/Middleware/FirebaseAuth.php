@@ -18,7 +18,6 @@ class FirebaseAuth
 
     public function handle(Request $request, Closure $next)
     {
-
         // Lấy token từ cookie
         $idToken = $request->cookie('firebase_token');
 

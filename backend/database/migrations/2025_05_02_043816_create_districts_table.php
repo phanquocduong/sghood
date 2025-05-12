@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
+            $table->string('name', 100)->unique();
             $table->string('image');
             $table->timestamps();
             $table->softDeletes(); // Tạo cột deleted_at dạng timestamp nullable

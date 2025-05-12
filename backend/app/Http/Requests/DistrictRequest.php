@@ -15,10 +15,16 @@ class DistrictRequest extends FormRequest
     public function rules(): array
     {
         $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
+        $districtId = $this->route('id');
 
         return [
-            'name' => $isUpdate ? 'sometimes|required|string|max:100' : 'required|string|max:100',
-            'image' => $isUpdate ? 'sometimes|required|image|mimes:jpeg,png,jpg,webp|max:2048' : 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'name' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'max:100',
+                $isUpdate ? "unique:districts,name,{$districtId}" : 'unique:districts,name',
+            ],
+            'image' => $isUpdate ? 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048' : 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
     }
 
@@ -29,6 +35,7 @@ class DistrictRequest extends FormRequest
             'name.required' => 'Tên quận/huyện là bắt buộc.',
             'name.string' => 'Tên quận/huyện phải là chuỗi ký tự.',
             'name.max' => 'Tên quận/huyện không được vượt quá 100 ký tự.',
+            'name.unique' => 'Tên quận/huyện đã tồn tại.',
             'image.required' => 'Hình ảnh là bắt buộc.',
             'image.image' => 'Tệp phải là một hình ảnh.',
             'image.mimes' => 'Hình ảnh chỉ chấp nhận các định dạng: jpeg, png, jpg, webp.',
