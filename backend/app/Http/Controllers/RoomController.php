@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRoomRequest;
-use App\Http\Requests\UpdateRoomRequest;
 use App\Services\RoomService;
 use Illuminate\Http\Request;
 
@@ -19,148 +18,110 @@ class RoomController extends Controller
 
     public function index(Request $request)
     {
-        try {
-            $querySearch = $request->get('query');
-            $status = $request->get('status');
-            $sortOption = $request->get('sortOption');
-            $perPage = $request->get('per_page', 10);
+        $querySearch = $request->get('query', '');
+        $status = $request->get('status', '');
+        $sortOption = $request->get('sortOption', '');
+        $perPage = $request->get('perPage', 25);
 
-            $rooms = $this->roomService->getAllRooms(querySearch: $querySearch, status: $status, sortOption: $sortOption, perPage: $perPage);
-
-            return response()->json([
-                'data' => $rooms->items(),
-                'current_page' => $rooms->currentPage(),
-                'per_page' => $rooms->perPage(),
-                'total' => $rooms->total(),
-                'last_page' => $rooms->lastPage(),
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Đã có lỗi xảy ra',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->roomService->getAllRooms($querySearch, $status, $sortOption, $perPage);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
     public function show(string $id)
     {
-        try {
-            $withTrashed = request()->query('with_trashed', false);
-            $room = $this->roomService->getRoom($id, $withTrashed);
-
-            return response()->json([
-                'data' => $room
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Đã có lỗi xảy ra',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->roomService->getRoom($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
     public function store(StoreRoomRequest $request)
     {
-        try {
-            $validatedRequest = $request->validated();
-            $room = $this->roomService->create($validatedRequest);
-
-            return response()->json([
-                'message' => 'Tạo phòng thành công',
-                'data' => $room,
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->roomService->create($request->validated(), $request->file('images'));
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        $response = [
+            'message' => 'Phòng đã được tạo thành công!',
+            'data' => $result['data']
+        ];
+
+        if (isset($result['warnings'])) {
+            $response['warnings'] = $result['warnings'];
+            $response['message'] .= ' Tuy nhiên, một số ảnh không được upload thành công.';
+        }
+
+        return response()->json($response, 201);
     }
 
-    public function update(UpdateRoomRequest $request, string $id)
+    public function update(StoreRoomRequest $request, string $id)
     {
-        try {
-            $validatedRequest = $request->validated();
-            $room = $this->roomService->update($id, $validatedRequest);
+        $result = $this->roomService->update($id, $request->validated(), $request->file('images'));
 
-            return response()->json([
-                'message' => 'Cập nhật phòng thành công',
-                'data' => $room,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+
+        $response = [
+            'message' => 'Phòng đã được cập nhật thành công!',
+            'data' => $result['data']
+        ];
+
+        if (isset($result['warnings'])) {
+            $response['warnings'] = $result['warnings'];
+            $response['message'] .= ' Tuy nhiên, một số ảnh không được upload thành công.';
+        }
+
+        return response()->json($response, 200);
     }
 
     public function destroy(string $id)
     {
-        try {
-            $room = $this->roomService->destroy($id);
+        $result = $this->roomService->destroy($id);
 
-            if ($room) {
-                return response()->json([
-                    'message' => 'Xóa phòng thành công',
-                    'data' => ['id' => $id],
-                ], 200);
-            }
-
-            return response()->json([
-                'message' => 'Phòng không tìm thấy hoặc xóa thất bại',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+
+        return response()->json(['message' => 'Phòng được xoá thành công'], 200);
     }
 
-    public function forceDelete(string $id)
+    public function trash(Request $request)
     {
-        try {
-            $room = $this->roomService->forceDelete($id);
+        $querySearch = $request->get('query', '');
+        $status = $request->get('status', '');
+        $sortOption = $request->get('sortOption', '');
+        $perPage = $request->get('perPage', 25);
 
-            if ($room) {
-                return response()->json([
-                    'message' => 'Xóa vĩnh viễn phòng thành công',
-                    'data' => ['id' => $id],
-                ], 200);
-            }
-
-            return response()->json([
-                'message' => 'Phòng không tìm thấy hoặc chưa bị xóa mềm',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->roomService->getTrashedRooms($querySearch, $status, $sortOption, $perPage);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
     public function restore(string $id)
     {
-        try {
-            $room = $this->roomService->restore($id);
-
-            if ($room) {
-                return response()->json([
-                    'message' => 'Khôi phục phòng thành công',
-                    'data' => $room,
-                ], 200);
-            }
-
-            return response()->json([
-                'message' => 'Phòng không tìm thấy hoặc chưa bị xóa mềm',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->roomService->restore($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json([
+            'message' => 'Phòng đã được khôi phục thành công!',
+            'data' => $result['data']
+        ], 200);
+    }
+
+    public function forceDelete(string $id)
+    {
+        $result = $this->roomService->forceDelete($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
+        }
+        return response()->json(['message' => 'Phòng đã được xóa vĩnh viễn!'], 200);
     }
 }

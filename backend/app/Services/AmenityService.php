@@ -8,17 +8,32 @@ use Illuminate\Support\Facades\Log;
 
 class AmenityService
 {
-    public function getAllAmenities($querySearch = '', $sortOption = 'name_asc', $perPage = 10)
+    public function fetchAmenities(bool $onlyTrashed, string $querySearch, string $sortOption, string $perPage)
     {
-        $query = Amenity::query();
+        try {
+            $query = $onlyTrashed ? Amenity::onlyTrashed() : Amenity::query();
 
-        if ($querySearch != '') {
-            $query->where(function ($q) use ($querySearch) {
-                $q->where('name', 'LIKE', '%' . $querySearch . '%')
-                  ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
-            });
+            if ($querySearch !== '') {
+                $query->where(function ($q) use ($querySearch) {
+                    $q->where('name', 'LIKE', '%' . $querySearch . '%')
+                      ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
+                });
+            }
+
+            $sort = $this->handleSortOption($sortOption);
+            $query->orderBy($sort['field'], $sort['order']);
+
+            $amenities = $query->paginate($perPage);
+
+            return ['data' => $amenities];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => $e->getMessage(), 'status' => 500];
         }
+    }
 
+    public function handleSortOption(string $sortOption)
+    {
         switch ($sortOption) {
             case 'name_asc':
                 $sortField = 'name';
@@ -40,57 +55,60 @@ class AmenityService
                 $sortField = 'created_at';
                 $sortOrder = 'desc';
         }
-
-        $query->orderBy($sortField, $sortOrder);
-
-        $amenities = $query->paginate($perPage);
-        return $amenities;
+        return [
+            'field' => $sortField,
+            'order' => $sortOrder
+        ];
     }
 
-    public function getAmenity($id, $withTrashed = false)
+    public function getAllAmenities(string $querySearch, string $sortOption, string $perPage)
     {
-        $query = Amenity::query();
-
-        if ($withTrashed) {
-            $query->withTrashed();
-        }
-
-        $amenity = $query->findOrFail($id);
-        return $amenity;
+        return $this->fetchAmenities(false, $querySearch, $sortOption, $perPage);
     }
 
-    public function create($validatedRequest)
+    public function getAmenity(string $id)
+    {
+        try {
+            $amenity = Amenity::findOrFail($id);
+            return ['data' => $amenity];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => $e->getMessage(), 'status' => 500];
+        }
+    }
+
+    public function create(array $data)
     {
         DB::beginTransaction();
         try {
-            $amenity = Amenity::create($validatedRequest);
+            $amenity = Amenity::create($data);
 
             DB::commit();
-            return $amenity;
-        } catch (\Exception $e) {
+            return ['data' => $amenity];
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Tạo tiện nghi thất bại: ' . $e->getMessage());
-            throw $e;
+            return ['error' => $e->getMessage(), 'status' => 500];
         }
     }
 
-    public function update($id, $validatedRequest)
+    public function update(string $id, array $data)
     {
         DB::beginTransaction();
         try {
             $amenity = Amenity::findOrFail($id);
-            $amenity->update($validatedRequest);
+            $amenity->update($data);
 
             DB::commit();
-            return $amenity;
-        } catch (\Exception $e) {
+            return ['data' => $amenity];
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Cập nhật tiện nghi thất bại: ' . $e->getMessage());
-            throw $e;
+            return ['error' => $e->getMessage(), 'status' => 500];
         }
     }
 
-    public function destroy($id)
+    public function destroy(string $id)
     {
         DB::beginTransaction();
         try {
@@ -98,46 +116,47 @@ class AmenityService
             $amenity->delete();
 
             DB::commit();
-            return $amenity;
-        } catch (\Exception $e) {
+            return ['success' => true];
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Xóa tiện nghi thất bại: ' . $e->getMessage());
-            throw $e;
+            return ['error' => $e->getMessage(), 'status' => 500];
         }
     }
 
-    public function forceDelete($id)
+    public function getTrashedAmenities(string $querySearch, string $sortOption, string $perPage)
+    {
+        return $this->fetchAmenities(true, $querySearch, $sortOption, $perPage);
+    }
+
+    public function restore(string $id)
+    {
+        DB::beginTransaction();
+        try {
+            $amenity = Amenity::onlyTrashed()->findOrFail($id);
+            $amenity->restore();
+            DB::commit();
+            return ['data' => $amenity];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Khôi phục tiện nghi thất bại: ' . $e->getMessage());
+            return ['error' => $e->getMessage(), 'status' => 500];
+        }
+    }
+
+    public function forceDelete(string $id)
     {
         DB::beginTransaction();
         try {
             $amenity = Amenity::withTrashed()->findOrFail($id);
-            if (!$amenity->trashed()) {
-                throw new \Exception('Tiện nghi phải bị xóa mềm trước khi xóa vĩnh viễn.');
-            }
             $amenity->forceDelete();
 
             DB::commit();
-            return $amenity;
-        } catch (\Exception $e) {
+            return ['success' => true];
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Xóa vĩnh viễn tiện nghi thất bại: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    public function restore($id)
-    {
-        DB::beginTransaction();
-        try {
-            $amenity = Amenity::withTrashed()->findOrFail($id);
-            $amenity->restore();
-
-            DB::commit();
-            return $amenity;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Khôi phục tiện nghi thất bại: ' . $e->getMessage());
-            throw $e;
+            return ['error' => $e->getMessage(), 'status' => 500];
         }
     }
 }

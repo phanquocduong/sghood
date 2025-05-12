@@ -18,59 +18,35 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        try {
-            $querySearch = $request->get('query');
-            $sortOption = $request->get('sortOption');
-            $perPage = $request->get('per_page', 10);
+        $querySearch = $request->get('query', '');
+        $sortOption = $request->get('sortOption', '');
+        $perPage = $request->get('perPage', 25);
 
-            $users = $this->userService->getAllUsers($querySearch, $sortOption, $perPage);
-
-            return response()->json([
-                'data' => $users->items(),
-                'current_page' => $users->currentPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
-                'last_page' => $users->lastPage(),
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Đã có lỗi xảy ra',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->userService->getAllUsers($querySearch, $sortOption, $perPage);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
     public function show(string $id)
     {
-        try {
-            $user = $this->userService->getUser($id);
-
-            return response()->json([
-                'data' => $user
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Đã có lỗi xảy ra',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->userService->getUser($id);
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json(['data' => $result['data']], 200);
     }
 
     public function update(UpdateUserRequest $request, string $id)
     {
-        try {
-            $validatedRequest = $request->validated();
-            $user = $this->userService->update($id, $validatedRequest);
-
-            return response()->json([
-                'message' => 'Cập nhật người dùng thành công',
-                'data' => $user,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại!',
-                'error' => $e->getMessage(),
-            ], 500);
+        $result = $this->userService->update($id, $request->validated());
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
+        return response()->json([
+            'message' => 'Cập nhật người dùng thành công!',
+            'data' => $result['data']
+        ], 200);
     }
 }

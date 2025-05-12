@@ -8,28 +8,30 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreAmenityRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
+        $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
+
         return [
-            'name' => 'required|string|max:100|unique:amenities,name',
-            'type' => 'required|in:Nhà trọ,Phòng trọ',
+            'name' => $isUpdate ? 'sometimes|required|string|max:100|unique:amenities,name' : 'required|string|max:100|unique:amenities,name',
+            'type' => $isUpdate ? 'sometimes|required|in:Nhà trọ,Phòng trọ' : 'required|in:Nhà trọ,Phòng trọ',
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
-            'name.required' => 'Tên tiện nghi là bắt buộc.',
-            'name.string' => 'Tên tiện nghi phải là chuỗi ký tự.',
+            'name.required' => 'Vui lòng nhập tên tiện nghi.',
+            'name.string' => 'Tên tiện nghi phải là một chuỗi.',
             'name.max' => 'Tên tiện nghi không được vượt quá 100 ký tự.',
             'name.unique' => 'Tên tiện nghi đã tồn tại. Vui lòng chọn tên khác.',
-            'type.required' => 'Trạng thái phòng không được để trống',
-            'type.in' => 'Trạng thái phải là "Nhà trọ", "Phòng trọ"',
+            'type.required' => 'Vui lòng chọn loại tiện nghi.',
+            'type.in' => 'Loại tiện nghi phải là "Nhà trọ" hoặc "Phòng trọ".',
         ];
     }
 
