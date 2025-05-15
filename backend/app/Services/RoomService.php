@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Room;
@@ -7,6 +8,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class RoomService
 {
@@ -144,7 +147,8 @@ class RoomService
         }
     }
 
-    public function getTrashedRooms(string $querySearch, string $status, string $sortOption, int $perPage) {
+    public function getTrashedRooms(string $querySearch, string $status, string $sortOption, int $perPage): array
+    {
         return $this->fetchRooms(true, $querySearch, $status, $sortOption, $perPage);
     }
 
@@ -229,9 +233,14 @@ class RoomService
     private function uploadRoomImage(UploadedFile $imageFile): string|false
     {
         try {
-            $imageName = 'room-' . time() . '-' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = $imageFile->storeAs('images/rooms', $imageName, 'public');
-            return Storage::url($imagePath);
+            $manager = new ImageManager(new Driver());
+            $filename = 'images/rooms/room-' . time() . '-' . uniqid() . '.webp';
+
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+
+            return Storage::url($filename);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;
