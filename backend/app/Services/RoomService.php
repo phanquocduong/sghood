@@ -121,11 +121,17 @@ class RoomService {
         return $failedUploads;
     }
 
-    private function uploadRoomImage(UploadedFile $imageFile): string|false {
+    private function uploadRoomImage(UploadedFile $imageFile): string|false
+    {
         try {
-            $imageName = 'room-' . time() . '-' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = $imageFile->storeAs('images/rooms', $imageName, 'public');
-            return Storage::url($imagePath);
+            $manager = new ImageManager(new Driver());
+            $filename = 'images/rooms/room-' . time() . '-' . uniqid() . '.webp';
+
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+
+            return Storage::url($filename);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;

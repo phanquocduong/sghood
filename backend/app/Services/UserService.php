@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use Illuminate\Support\Str;
+
 class UserService
 {
     public function fetchUsers(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
