@@ -3,10 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreAmenityRequest extends FormRequest
+class AmenityRequest extends FormRequest
 {
     public function authorize()
     {
@@ -33,13 +31,5 @@ class StoreAmenityRequest extends FormRequest
             'type.required' => 'Vui lòng chọn loại tiện nghi.',
             'type.in' => 'Loại tiện nghi phải là "Nhà trọ" hoặc "Phòng trọ".',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'message' => 'Dữ liệu không hợp lệ.',
-            'errors' => $validator->errors(),
-        ], 422));
     }
 }

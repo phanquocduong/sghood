@@ -2,7 +2,9 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Auth as FirebaseAuth;
+use Kreait\Firebase\Exception\FirebaseException;
 
 class FirebaseAuthService
 {
@@ -25,7 +27,17 @@ class FirebaseAuthService
         }
     }
 
-    public function authenticate(string $idToken) {
+    protected function setCustomClaims(string $uid, array $claims) {
+        try {
+            $this->firebaseAuth->setCustomUserClaims($uid, $claims);
+            Log::info("Custom claims set for user {$uid}: ", $claims);
+        } catch (FirebaseException $e) {
+            Log::error("Failed to set custom claims for user {$uid}: " . $e->getMessage());
+            throw new \Exception('Không thể thiết lập vai trò người dùng: ' . $e->getMessage());
+        }
+    }
+
+    public function authenticate(string $idToken, string $type) {
         try {
             $phone = $this->verifyToken($idToken);
             $user = User::where('phone', $phone)->first();
@@ -34,8 +46,26 @@ class FirebaseAuthService
                 return ['error' => 'Người dùng chưa tồn tại', 'status' => 200];
             }
 
-            return ['data' => $user];
+            if ($type === 'admin' && $user->role !== 'Quản trị viên') {
+                return ['error' => 'Chỉ Quản trị viên được phép đăng nhập', 'status' => 403];
+            }
+
+            // Lấy UID từ token
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+
+            // Thêm role vào Custom Claims
+            $this->setCustomClaims($uid, ['role' => $user->role]);
+
+            return [
+                'data' => [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'role' => $user->role
+                ]
+            ];
         } catch (\Throwable $e) {
+            Log::error('Authentication failed: ' . $e->getMessage());
             return ['error' => $e->getMessage(), 'status' => 401];
         }
     }
@@ -56,8 +86,20 @@ class FirebaseAuthService
                 'birthdate' => $data['birthdate'],
             ]);
 
-            return ['data' => $user];
+            // Lấy UID từ token
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+
+            // Thêm role vào Custom Claims
+            $this->setCustomClaims($uid, ['role' => $user->role]);
+
+            return ['data' => [
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'role' => $user->role
+            ]];
         } catch (\Throwable $e) {
+            Log::error('Registration failed: ' . $e->getMessage());
             return ['error' => 'Đăng ký thất bại: ' . $e->getMessage(), 'status' => 401];
         }
     }

@@ -3,10 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreRoomRequest extends FormRequest
+class RoomRequest extends FormRequest
 {
     public function authorize()
     {
@@ -56,13 +54,5 @@ class StoreRoomRequest extends FormRequest
             'amenities.array' => 'Danh sách tiện nghi phải là một mảng.',
             'amenities.*.exists' => 'Tiện nghi không tồn tại.',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'message' => 'Dữ liệu không hợp lệ.',
-            'errors' => $validator->errors(),
-        ], 422));
     }
 }

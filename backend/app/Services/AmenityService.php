@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class AmenityService
 {
-    public function fetchAmenities(bool $onlyTrashed, string $querySearch, string $sortOption, string $perPage): array
-    {
+    public function fetchAmenities(bool $onlyTrashed, string $querySearch, string $sortOption, string $perPage): array {
         try {
             $query = $onlyTrashed ? Amenity::onlyTrashed() : Amenity::query();
 
@@ -21,28 +20,22 @@ class AmenityService
             return ['data' => $amenities];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách tiện ích', 'status' => 500];
         }
     }
 
-    private function applyFilters($query, string $querySearch): void
-    {
+     private function applyFilters($query, string $querySearch): void {
         if ($querySearch !== '') {
-                $query->where(function ($q) use ($querySearch) {
-                    $q->where('name', 'LIKE', '%' . $querySearch . '%')
-                      ->orWhere('description', 'LIKE', '%' . $querySearch . '%');
-            });
+            $query->where('name', 'LIKE', '%' . $querySearch . '%');
         }
     }
 
-    private function applySorting($query, string $sortOption): void
-    {
+    private function applySorting($query, string $sortOption): void {
         $sort = $this->handleSortOption($sortOption);
         $query->orderBy($sort['field'], $sort['order']);
     }
 
-    public function handleSortOption(string $sortOption): array
-    {
+    public function handleSortOption(string $sortOption): array {
         switch ($sortOption) {
             case 'name_asc':
                 return ['field' => 'name', 'order' => 'asc'];
@@ -57,28 +50,29 @@ class AmenityService
         }
     }
 
-    public function getAllAmenities(string $querySearch, string $sortOption, string $perPage): array
-    {
+    public function getAvailableAmenities(string $querySearch, string $sortOption, string $perPage): array {
         return $this->fetchAmenities(false, $querySearch, $sortOption, $perPage);
     }
 
-    public function getAmenity(int $id, bool $withTrashed = false): array
-    {
+    public function getTrashedAmenities(string $querySearch, string $sortOption, string $perPage): array {
+        return $this->fetchAmenities(true, $querySearch, $sortOption, $perPage);
+    }
+
+    public function getAmenity(int $id): array {
         try {
-            $query = Amenity::query();
-            if ($withTrashed) {
-                $query->withTrashed();
+            $amenity = Amenity::find($id);
+            if (!$amenity) {
+                return ['error' => 'Tiện ích không tìm thấy', 'status' => 404];
             }
-            $amenity = $query->findOrFail($id);
+
             return ['data' => $amenity];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi lấy tiện ích', 'status' => 500];
         }
     }
 
-    public function create(array $data): array
-    {
+    public function createAmenity(array $data): array {
         DB::beginTransaction();
         try {
             $amenity = Amenity::create($data);
@@ -87,76 +81,81 @@ class AmenityService
             return ['data' => $amenity];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Tạo tiện nghi thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi tạo tiện ích', 'status' => 500];
         }
     }
 
-    public function update(string $id, array $data): array
+    public function updateAmenity(int $id, array $data): array
     {
         DB::beginTransaction();
         try {
-            $amenity = Amenity::findOrFail($id);
+            $amenity = Amenity::find($id);
+            if (!$amenity) {
+                return ['error' => 'Tiện ích không tìm thấy', 'status' => 404];
+            }
             $amenity->update($data);
 
             DB::commit();
             return ['data' => $amenity];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Cập nhật tiện nghi thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi cập nhật tiện ích', 'status' => 500];
         }
     }
 
-    public function destroy(string $id): array
-    {
+    public function deleteAmenity(int $id): array {
         DB::beginTransaction();
         try {
-            $amenity = Amenity::findOrFail($id);
+            $amenity = Amenity::find($id);
+            if (!$amenity) {
+                return ['error' => 'Tiện ích không tìm thấy', 'status' => 404];
+            }
             $amenity->delete();
 
             DB::commit();
             return ['success' => true];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Xóa tiện nghi thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi xóa tiện ích', 'status' => 500];
         }
     }
 
-    public function getTrashedAmenities(string $querySearch, string $sortOption, string $perPage): array
-    {
-        return $this->fetchAmenities(true, $querySearch, $sortOption, $perPage);
-    }
-
-    public function restore(string $id): array
-    {
+    public function restoreAmenity(int $id): array {
         DB::beginTransaction();
         try {
-            $amenity = Amenity::onlyTrashed()->findOrFail($id);
+            $amenity = Amenity::onlyTrashed()->find($id);
+            if (!$amenity) {
+                return ['error' => 'Tiện ích không tìm thấy trong thùng rác', 'status' => 404];
+            }
             $amenity->restore();
+
             DB::commit();
             return ['data' => $amenity];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Khôi phục tiện nghi thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi khôi phục tiện ích', 'status' => 500];
         }
     }
 
-    public function forceDelete(string $id): array
-    {
+    public function forceDeleteAmenity(int $id): array {
         DB::beginTransaction();
         try {
-            $amenity = Amenity::withTrashed()->findOrFail($id);
+            $amenity = Amenity::onlyTrashed()->find($id);
+            if (!$amenity) {
+                return ['error' => 'Tiện ích không tìm thấy trong thùng rác', 'status' => 404];
+            }
             $amenity->forceDelete();
 
             DB::commit();
             return ['success' => true];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Xóa vĩnh viễn tiện nghi thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi khôi phục tiện ích', 'status' => 500];
         }
     }
 }

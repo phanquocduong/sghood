@@ -34,8 +34,7 @@ class UserController extends Controller
         return $this->handleResponse($result);
     }
 
-    public function update(UpdateUserRequest $request, string $id): JsonResponse
-    {
+    public function update(UpdateUserRequest $request, string $id): JsonResponse {
         $result = $this->userService->update($id, $request->validated());
 
         return $this->handleResponse($result, 'Cập nhật người dùng thành công!');
@@ -47,7 +46,11 @@ class UserController extends Controller
             return response()->json(['error' => $result['error']], $result['status']);
         }
 
-        $response = ['data' => $result['data']];
+        if (isset($result['data'])) {
+            $response = ['data' => $result['data']];
+        } else {
+            $response = ['success' => $result['success']];
+        };
         if ($successMessage) {
             $response['message'] = $successMessage;
         }

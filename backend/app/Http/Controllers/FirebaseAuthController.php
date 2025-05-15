@@ -14,7 +14,8 @@ class FirebaseAuthController extends Controller
     }
 
     public function auth(AuthRequest $request) {
-        $result = $this->authService->authenticate($request->id_token);
+        $type = $request->type ?? 'user';
+        $result = $this->authService->authenticate($request->id_token, $type);
 
         if (isset($result['error'])) {
             return response()->json(['error' => $result['error']], $result['status']);

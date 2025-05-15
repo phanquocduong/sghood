@@ -2,41 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreAmenityRequest;
+use App\Http\Requests\AmenityRequest;
 use App\Services\AmenityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AmenityController extends Controller
 {
-    protected AmenityService $amenityService;
+    protected $amenityService;
 
-    public function __construct(AmenityService $amenityService)
-    {
+    public function __construct(AmenityService $amenityService) {
         $this->amenityService = $amenityService;
     }
 
-    public function index(Request $request): JsonResponse
-    {
+    public function index(Request $request): JsonResponse {
         $querySearch = $request->query('query', '');
         $sortOption = $request->query('sortOption', '');
         $perPage = $request->query('perPage', 25);
 
-        $result = $this->amenityService->getAllAmenities($querySearch, $sortOption, $perPage);
-
+        $result = $this->amenityService->getAvailableAmenities($querySearch, $sortOption, $perPage);
         return $this->handleResponse($result);
     }
 
-    public function show(string $id): JsonResponse
-    {
+    public function show(string $id): JsonResponse {
         $result = $this->amenityService->getAmenity($id);
-
         return $this->handleResponse($result);
     }
 
-    public function store(StoreAmenityRequest $request): JsonResponse
-    {
-        $result = $this->amenityService->create($request->validated());
+    public function store(AmenityRequest $request): JsonResponse {
+        $result = $this->amenityService->createAmenity($request->validated());
 
         return $this->handleResponse(
             $result,
@@ -45,9 +39,8 @@ class AmenityController extends Controller
         );
     }
 
-    public function update(StoreAmenityRequest $request, string $id): JsonResponse
-    {
-        $result = $this->amenityService->update($id, $request->validated());
+    public function update(AmenityRequest $request, int $id): JsonResponse {
+        $result = $this->amenityService->updateAmenity($id, $request->validated());
 
         return $this->handleResponse(
             $result,
@@ -55,9 +48,8 @@ class AmenityController extends Controller
         );
     }
 
-    public function destroy(string $id): JsonResponse
-    {
-        $result = $this->amenityService->destroy($id);
+    public function destroy(string $id): JsonResponse {
+        $result = $this->amenityService->deleteAmenity($id);
 
         return $this->handleResponse(
             $result,
@@ -65,8 +57,7 @@ class AmenityController extends Controller
         );
     }
 
-    public function trash(Request $request): JsonResponse
-    {
+    public function trash(Request $request): JsonResponse {
         $querySearch = $request->query('query', '');
         $sortOption = $request->query('sortOption', '');
         $perPage = $request->query('perPage', 25);
@@ -76,9 +67,8 @@ class AmenityController extends Controller
         return $this->handleResponse($result);
     }
 
-    public function restore(string $id): JsonResponse
-    {
-        $result = $this->amenityService->restore($id);
+    public function restore(string $id): JsonResponse {
+        $result = $this->amenityService->restoreAmenity($id);
 
         return $this->handleResponse(
             $result,
@@ -86,9 +76,9 @@ class AmenityController extends Controller
         );
     }
 
-    public function forceDestroy(string $id): JsonResponse
+    public function forceDelete(string $id): JsonResponse
     {
-        $result = $this->amenityService->forceDelete($id);
+        $result = $this->amenityService->forceDeleteAmenity($id);
 
         return $this->handleResponse(
             $result,
@@ -102,7 +92,11 @@ class AmenityController extends Controller
             return response()->json(['error' => $result['error']], $result['status']);
         }
 
-        $response = ['data' => $result['data']];
+        if (isset($result['data'])) {
+            $response = ['data' => $result['data']];
+        } else {
+            $response = ['success' => $result['success']];
+        }
         if ($successMessage) {
             $response['message'] = $successMessage;
         }

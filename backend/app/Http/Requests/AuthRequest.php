@@ -23,6 +23,7 @@ class AuthRequest extends FormRequest
     {
         return [
             'id_token' => 'required|string',
+            'type' => 'nullable|string|in:user,admin'
         ];
     }
 
@@ -36,6 +37,7 @@ class AuthRequest extends FormRequest
         return [
             'id_token.required' => 'Vui lòng cung cấp token xác thực.',
             'id_token.string' => 'Token xác thực phải là một chuỗi ký tự.',
+            'type.in' => 'Loại đăng nhập phải là user hoặc admin'
         ];
     }
 }

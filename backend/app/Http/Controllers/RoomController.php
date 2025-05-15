@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreRoomRequest;
+use App\Http\Requests\RoomRequest;
 use App\Services\RoomService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {
-    protected RoomService $roomService;
+    protected $roomService;
 
-    public function __construct(RoomService $roomService)
-    {
+    public function __construct(RoomService $roomService) {
         $this->roomService = $roomService;
     }
 
-    public function index(Request $request): JsonResponse
-    {
+    public function index(Request $request): JsonResponse {
         $querySearch = $request->query('query', '');
         $status = $request->query('status', '');
         $sortOption = $request->query('sortOption', '');
@@ -28,16 +26,13 @@ class RoomController extends Controller
         return $this->handleResponse($result);
     }
 
-    public function show(string $id): JsonResponse
-    {
+    public function show(int $id): JsonResponse {
         $result = $this->roomService->getRoom($id);
-
         return $this->handleResponse($result);
     }
 
-    public function store(StoreRoomRequest $request): JsonResponse
-    {
-        $result = $this->roomService->create($request->validated(), $request->file('images'));
+    public function store(RoomRequest $request): JsonResponse {
+        $result = $this->roomService->createRoom($request->validated(), $request->file('images'));
 
         return $this->handleResponse(
             $result,
@@ -46,9 +41,12 @@ class RoomController extends Controller
         );
     }
 
-    public function update(StoreRoomRequest $request, string $id): JsonResponse
-    {
-        $result = $this->roomService->update($id, $request->validated(), $request->file('images'));
+    public function update(RoomRequest $request, int $id): JsonResponse {
+        $imageFiles = [];
+        if ($request->hasFile('images')) {
+            $imageFiles = $request->file('images');
+        }
+        $result = $this->roomService->updateMotel($id, $request->validated(), $imageFiles);
 
         return $this->handleResponse(
             $result,
@@ -56,9 +54,8 @@ class RoomController extends Controller
         );
     }
 
-    public function destroy(string $id): JsonResponse
-    {
-        $result = $this->roomService->destroy($id);
+    public function destroy(int $id): JsonResponse {
+        $result = $this->roomService->deleteRoom($id);
 
         return $this->handleResponse(
             $result,
@@ -66,8 +63,7 @@ class RoomController extends Controller
         );
     }
 
-    public function trash(Request $request): JsonResponse
-    {
+    public function trash(Request $request): JsonResponse {
         $querySearch = $request->query('query', '');
         $status = $request->query('status', '');
         $sortOption = $request->query('sortOption', '');
@@ -78,9 +74,13 @@ class RoomController extends Controller
         return $this->handleResponse($result);
     }
 
-    public function restore(string $id): JsonResponse
-    {
-        $result = $this->roomService->restore($id);
+    public function showTrashed(int $id): JsonResponse {
+        $result = $this->roomService->getRoom($id, true);
+        return $this->handleResponse($result);
+    }
+
+    public function restore(string $id): JsonResponse {
+        $result = $this->roomService->restoreRoom($id);
 
         return $this->handleResponse(
             $result,
@@ -88,9 +88,8 @@ class RoomController extends Controller
         );
     }
 
-    public function forceDelete(string $id): JsonResponse
-    {
-        $result = $this->roomService->forceDelete($id);
+    public function forceDelete(string $id): JsonResponse {
+        $result = $this->roomService->forceDeleteRoom($id);
 
         return $this->handleResponse(
             $result,
@@ -98,19 +97,23 @@ class RoomController extends Controller
         );
     }
 
-    private function handleResponse(array $result, string $successMessage = '', int $successStatus = 200): JsonResponse
-    {
+    private function handleResponse(array $result, string $successMessage = '', int $successStatus = 200): JsonResponse {
         if (isset($result['error'])) {
             return response()->json(['error' => $result['error']], $result['status']);
         }
 
-        $response = ['data' => $result['data']];
+        if (isset($result['data'])) {
+            $response = ['data' => $result['data']];
+        } else {
+            $response = ['success' => $result['success']];
+        }
         if ($successMessage) {
             $response['message'] = $successMessage;
         }
 
         if (isset($result['warnings'])) {
             $response['warnings'] = $result['warnings'];
+            $response['message'] .= ' Tuy nhiên, một số ảnh không được upload thành công.';
         }
 
         return response()->json($response, $successStatus);

@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
-    public function fetchUsers(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array
-    {
+    public function fetchUsers(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
         try {
             $query = $onlyTrashed ? User::onlyTrashed() : User::query();
 
@@ -23,26 +22,23 @@ class UserService
             return ['data' => $users];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách người dùng', 'status' => 500];
         }
     }
 
-    private function applyFilters($query, string $querySearch): void
-    {
+    private function applyFilters($query, string $querySearch): void {
         if ($querySearch !== '') {
             $query->where('name', 'like', '%' . $querySearch . '%')
                   ->orWhere('email', 'like', '%' . $querySearch . '%');
         }
     }
 
-    private function applySorting($query, string $sortOption): void
-    {
+    private function applySorting($query, string $sortOption): void {
         $sort = $this->handleSortOption($sortOption);
         $query->orderBy($sort['field'], $sort['order']);
     }
 
-    public function handleSortOption(string $sortOption): array
-    {
+    public function handleSortOption(string $sortOption): array {
         switch ($sortOption) {
             case 'name_asc':
                 return ['field' => 'name', 'order' => 'asc'];
@@ -57,23 +53,21 @@ class UserService
         }
     }
 
-    public function getAllUsers(string $querySearch, string $sortOption, int $perPage): array
-    {
+    public function getAllUsers(string $querySearch, string $sortOption, int $perPage): array {
         return $this->fetchUsers(false, $querySearch, $sortOption, $perPage);
     }
 
-    public function getUser(string $id, bool $withTrashed = false): array
-    {
+    public function getUser(string $id): array {
         try {
-            $query = User::query();
-            if ($withTrashed) {
-                $query->withTrashed();
+            $user = User::find($id);
+            if (!$user) {
+                return ['error' => 'Người dùng không tìm thấy', 'status' => 404];
             }
-            $user = $query->findOrFail($id);
+
             return ['data' => $user];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi lấy người dùng', 'status' => 500];
         }
     }
 
@@ -168,7 +162,7 @@ class UserService
                 if ($user->$field) {
                     $this->deleteUserImage($user->$field);
                 }
-                $imagePath = $this->uploadUserImage($data[$field], $folder);
+                $imagePath = $this->uploadUserImage($data[$field], $folder, $user->name);
                 if ($imagePath) {
                     $data[$field] = $imagePath;
                 } else {

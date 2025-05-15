@@ -22,46 +22,62 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
         Route::patch('/{id}', [DistrictController::class, 'update'])->where('id', '[0-9]+');
         Route::delete('/{id}', [DistrictController::class, 'destroy'])->where('id', '[0-9]+');
         Route::get('/trash', [DistrictController::class, 'trash']);
-        Route::post('/{id}/restore', [DistrictController::class, 'restore'])->where('id', '[0-9]+');
-        Route::delete('/{id}/force', [DistrictController::class, 'forceDestroy'])->where('id', '[0-9]+');
+        Route::get('/trash/{id}', [DistrictController::class, 'showTrashed'])->where('id', '[0-9]+');
+        Route::post('/trash/{id}/restore', [DistrictController::class, 'restore'])->where('id', '[0-9]+');
+        Route::delete('/trash/{id}/force', [DistrictController::class, 'forceDestroy'])->where('id', '[0-9]+');
     });
 });
 
 // Motel Routes
 Route::prefix('motels')->group(function () {
     Route::get('/', [MotelController::class, 'index']);
-    Route::get('/{id}', [MotelController::class, 'show']);
+    Route::get('/{id}', [MotelController::class, 'show'])->where('id', '[0-9]+');
 });
 Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
     Route::prefix('motels')->group(function () {
         Route::post('/', [MotelController::class, 'store']);
-        Route::put('/{id}', [MotelController::class, 'update'])->where('id', '[0-9]+');
+        Route::patch('/{id}', [MotelController::class, 'update'])->where('id', '[0-9]+');
         Route::delete('/{id}', [MotelController::class, 'destroy'])->where('id', '[0-9]+');
         Route::get('/trash', [MotelController::class, 'trash']);
-        Route::post('/{id}/restore', [MotelController::class, 'restore'])->where('id', '[0-9]+');
-        Route::delete('/{id}/force', [MotelController::class, 'forceDestroy'])->where('id', '[0-9]+');
+        Route::get('/trash/{id}', [MotelController::class, 'showTrashed'])->where('id', '[0-9]+');
+        Route::post('/trash/{id}/restore', [MotelController::class, 'restore'])->where('id', '[0-9]+');
+        Route::delete('/trash/{id}/force', [MotelController::class, 'forceDestroy'])->where('id', '[0-9]+');
     });
 });
 
+// Room Routes
 Route::prefix('rooms')->group(function () {
     Route::get('/', [RoomController::class, 'index']);
-    Route::post('/', [RoomController::class, 'store']);
-    Route::get('/{id}', [RoomController::class, 'show']);
-    Route::patch('/{id}', [RoomController::class, 'update']);
-    Route::delete('/{id}', [RoomController::class, 'destroy']);
-    Route::delete('/{id}/force', [RoomController::class, 'forceDelete']);
-    Route::post('/{id}/restore', [RoomController::class, 'restore']);
+    Route::get('/{id}', [RoomController::class, 'show'])->where('id', '[0-9]+');
 });
+Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
+    Route::prefix('rooms')->group(function () {
+        Route::post('/', [RoomController::class, 'store']);
+        Route::patch('/{id}', [RoomController::class, 'update'])->where('id', '[0-9]+');
+        Route::delete('/{id}', [RoomController::class, 'destroy'])->where('id', '[0-9]+');
+        Route::get('/trash', [RoomController::class, 'trash']);
+        Route::get('/trash/{id}', [RoomController::class, 'showTrashed'])->where('id', '[0-9]+');
+        Route::post('/trash/{id}/restore', [RoomController::class, 'restore'])->where('id', '[0-9]+');
+        Route::delete('/trash/{id}/force', [RoomController::class, 'forceDelete'])->where('id', '[0-9]+');
+    });
+});
+
 
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
-    Route::post('/', [AmenityController::class, 'store']);
-    Route::get('/{id}', [AmenityController::class, 'show']);
-    Route::patch('/{id}', [AmenityController::class, 'update']);
-    Route::delete('/{id}', [AmenityController::class, 'destroy']);
-    Route::delete('/{id}/force', [AmenityController::class, 'forceDelete']);
-    Route::post('/{id}/restore', [AmenityController::class, 'restore']);
+    Route::get('/{id}', [AmenityController::class, 'show'])->where('id', '[0-9]+');
 });
+Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
+    Route::prefix('amenities')->group(function () {
+        Route::post('/', [AmenityController::class, 'store']);
+        Route::patch('/{id}', [AmenityController::class, 'update'])->where('id', '[0-9]+');
+        Route::delete('/{id}', [AmenityController::class, 'destroy'])->where('id', '[0-9]+');
+        Route::get('/trash', [AmenityController::class, 'trash']);
+        Route::post('/trash/{id}/restore', [AmenityController::class, 'restore'])->where('id', '[0-9]+');
+        Route::delete('/trash/{id}/force', [AmenityController::class, 'forceDelete'])->where('id', '[0-9]+');
+    });
+});
+
 
 Route::prefix('users')->group(function () {
     // Route cho quản lý User
