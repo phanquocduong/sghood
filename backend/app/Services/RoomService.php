@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Room;
@@ -7,6 +8,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class RoomService {
     public function fetchRooms(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, string $perPage): array {

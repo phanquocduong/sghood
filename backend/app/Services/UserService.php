@@ -7,7 +7,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 class UserService
 {
     public function fetchUsers(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
@@ -175,12 +177,19 @@ class UserService
         return $failedUploads;
     }
 
-    private function uploadUserImage(UploadedFile $imageFile, string $folder): string|false
+    private function uploadUserImage(UploadedFile $imageFile, string $folder, string $userName): string|false
     {
         try {
-            $imageName = 'user-' . time() . '-' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = $imageFile->storeAs('images/' . $folder, $imageName, 'public');
-            return Storage::url($imagePath);
+            $manager = new ImageManager(new Driver());
+            $baseName = Str::slug($userName, '_') . '-' . time() . '-' . uniqid();
+            $filename = "images/users/$folder/$baseName.webp";
+
+            // Đọc ảnh từ file và encode sang WebP
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+
+            return Storage::url($filename);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;
