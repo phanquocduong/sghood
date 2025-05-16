@@ -4,9 +4,11 @@ use App\Http\Controllers\MotelController;
 use App\Http\Controllers\FirebaseAuthController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AmenityController;
+use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Authentication Routes
 Route::post('/firebase-auth', [FirebaseAuthController::class, 'auth']);
 Route::post('/firebase-register', [FirebaseAuthController::class, 'register']);
 Route::post('/logout', [FirebaseAuthController::class, 'logout']);
@@ -62,7 +64,7 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
     });
 });
 
-
+// Amenities Routes
 Route::prefix('amenities')->group(function () {
     Route::get('/', [AmenityController::class, 'index']);
     Route::get('/{id}', [AmenityController::class, 'show'])->where('id', '[0-9]+');
@@ -78,10 +80,27 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
     });
 });
 
-
-Route::prefix('users')->group(function () {
-    // Route cho quản lý User
-    Route::get('/', [UserController::class, 'index']);
-    Route::get('/{id}', [UserController::class, 'show']);
-    Route::patch('/{id}', [UserController::class, 'update']);
+// User Routes
+Route::middleware(['firebase'])->group(function () {
+    Route::prefix('users')->group(function () {
+        Route::patch('/{id}', [UserController::class, 'update']);
+    });
 });
+Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::get('/{id}', [UserController::class, 'show']);
+    });
+});
+
+// Bookmark Routes
+Route::middleware(['firebase'])->group(function () {
+    Route::prefix('bookmarks')->group(function () {
+        Route::get('/', [BookmarkController::class, 'index']);
+        Route::get('/{id}', [BookmarkController::class, 'show']);
+        Route::post('/', [BookmarkController::class, 'store']);
+        Route::delete('/{id}', [BookmarkController::class, 'destroy']);
+    });
+});
+
+

@@ -13,11 +13,11 @@ use Illuminate\Support\Str;
 
 class UserService
 {
-    public function fetchUsers(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
+    public function fetchUsers(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, int $perPage): array {
         try {
             $query = $onlyTrashed ? User::onlyTrashed() : User::query();
 
-            $this->applyFilters($query, $querySearch);
+            $this->applyFilters($query, $querySearch, $status);
             $this->applySorting($query, $sortOption);
 
             $users = $query->paginate($perPage);
@@ -34,6 +34,10 @@ class UserService
             $query->where('name', 'like', '%' . $querySearch . '%')
                   ->orWhere('email', 'like', '%' . $querySearch . '%');
         }
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
     }
 
     private function applySorting($query, string $sortOption): void {
@@ -47,20 +51,20 @@ class UserService
                 return ['field' => 'name', 'order' => 'asc'];
             case 'name_desc':
                 return ['field' => 'name', 'order' => 'desc'];
-            case 'email_asc':
-                return ['field' => 'email', 'order' => 'asc'];
-            case 'email_desc':
-                return ['field' => 'email', 'order' => 'desc'];
+            case 'created_at_asc':
+                return ['field' => 'created_at', 'order' => 'asc'];
+            case 'created_at_desc':
+                return ['field' => 'created_at', 'order' => 'desc'];
             default:
                 return ['field' => 'created_at', 'order' => 'desc'];
         }
     }
 
-    public function getAllUsers(string $querySearch, string $sortOption, int $perPage): array {
-        return $this->fetchUsers(false, $querySearch, $sortOption, $perPage);
+    public function getAllUsers(string $querySearch, $status, string $sortOption, int $perPage): array {
+        return $this->fetchUsers(false, $querySearch, $status, $sortOption, $perPage);
     }
 
-    public function getUser(string $id): array {
+    public function getUser(int $id): array {
         try {
             $user = User::find($id);
             if (!$user) {
@@ -74,11 +78,13 @@ class UserService
         }
     }
 
-    public function update(string $id, array $data, ?array $imageFiles = []): array
-    {
+    public function update(string $id, array $data, array $imageFiles): array {
         DB::beginTransaction();
         try {
-            $user = User::findOrFail($id);
+            $user = User::find($id);
+            if (!$user) {
+                return ['error' => 'Người dùng không tìm thấy', 'status' => 404];
+            }
 
             $failedUploads = $this->processUserImages($user, $data, $imageFiles);
 
@@ -93,66 +99,12 @@ class UserService
             return $result;
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Cập nhật người dùng thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi cập nhật người dùng', 'status' => 500];
         }
     }
 
-    public function destroy(string $id): array
-    {
-        DB::beginTransaction();
-        try {
-            $user = User::findOrFail($id);
-            $user->delete();
-
-            DB::commit();
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Xóa người dùng thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
-        }
-    }
-
-    public function restore(string $id): array
-    {
-        DB::beginTransaction();
-        try {
-            $user = User::onlyTrashed()->findOrFail($id);
-            $user->restore();
-
-            DB::commit();
-            return ['data' => $user];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Khôi phục người dùng thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
-        }
-    }
-
-    public function forceDelete(string $id): array
-    {
-        DB::beginTransaction();
-        try {
-            $user = User::withTrashed()->findOrFail($id);
-
-            $this->deleteUserImage($user->avatar);
-            $this->deleteUserImage($user->front_id_card_image);
-            $this->deleteUserImage($user->back_id_card_image);
-
-            $user->forceDelete();
-
-            DB::commit();
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Xóa vĩnh viễn người dùng thất bại: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
-        }
-    }
-
-    private function processUserImages(User $user, array &$data, ?array $imageFiles = []): array
-    {
+    private function processUserImages(User $user, array &$data, array $imageFiles): array {
         $failedUploads = [];
         $fields = [
             'avatar' => 'avatars',
@@ -161,16 +113,15 @@ class UserService
         ];
 
         foreach ($fields as $field => $folder) {
-            if (isset($data[$field]) && $data[$field] instanceof UploadedFile) {
+            if (isset($imageFiles[$field]) && $imageFiles[$field] instanceof UploadedFile) {
                 if ($user->$field) {
                     $this->deleteUserImage($user->$field);
                 }
-                $imagePath = $this->uploadUserImage($data[$field], $folder, $user->name);
+                $imagePath = $this->uploadUserImage($imageFiles[$field], $folder, $user->name);
                 if ($imagePath) {
                     $data[$field] = $imagePath;
                 } else {
-                    $failedUploads[] = $data[$field]->getClientOriginalName();
-                    unset($data[$field]);
+                    $failedUploads[] = $imageFiles[$field]->getClientOriginalName();
                 }
             }
         }
@@ -178,14 +129,12 @@ class UserService
         return $failedUploads;
     }
 
-    private function uploadUserImage(UploadedFile $imageFile, string $folder, string $userName): string|false
-    {
+    private function uploadUserImage(UploadedFile $imageFile, string $folder, string $userName): string|false {
         try {
             $manager = new ImageManager(new Driver());
             $baseName = Str::slug($userName, '_') . '-' . time() . '-' . uniqid();
             $filename = "images/users/$folder/$baseName.webp";
 
-            // Đọc ảnh từ file và encode sang WebP
             $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
 
             Storage::disk('public')->put($filename, $image);
@@ -197,8 +146,7 @@ class UserService
         }
     }
 
-    private function deleteUserImage(?string $imagePath): void
-    {
+    private function deleteUserImage(string $imagePath): void {
         try {
             if ($imagePath) {
                 $filePath = str_replace('/storage/', '', $imagePath);

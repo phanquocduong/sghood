@@ -7,6 +7,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class DistrictService {
     private function fetchDistricts(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
@@ -101,9 +103,12 @@ class DistrictService {
 
     private function uploadDistrictImage(UploadedFile $imageFile): string|false {
         try {
-            $imageName = 'district-' . time() . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = $imageFile->storeAs('images/districts', $imageName, 'public');
-            return Storage::url($imagePath);
+            $manager = new ImageManager(new Driver());
+            $filename = 'images/districts/district-' . time() . '.' . 'webp';
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+            return Storage::url($filename);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;

@@ -7,6 +7,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use Illuminate\Support\Str;
 
 class MotelService {
@@ -131,9 +133,14 @@ class MotelService {
 
     private function uploadMotelImage(UploadedFile $imageFile): string|false {
         try {
-            $imageName = 'motel-' . time() . '-' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = $imageFile->storeAs('images/motels', $imageName, 'public');
-            return Storage::url($imagePath);
+            $manager = new ImageManager(new Driver());
+            $filename = 'images/motels/motel-' . time() . '-' . uniqid() . '.' . 'webp';
+
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+
+            return Storage::url($filename);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;

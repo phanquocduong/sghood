@@ -103,4 +103,34 @@ class FirebaseAuthService
             return ['error' => 'Đăng ký thất bại: ' . $e->getMessage(), 'status' => 401];
         }
     }
+
+    public function getCurrentUserFromToken(string $idToken): array {
+        try {
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+            $phone = $verifiedToken->claims()->get('phone_number');
+            $claims = $verifiedToken->claims()->all();
+            $role = $claims['role'] ?? null;
+
+            if (!$role) {
+                throw new \Exception('Vai trò người dùng không được thiết lập');
+            }
+
+            $user = User::where('phone', $phone)->first();
+
+            if (!$user) {
+                throw new \Exception('Người dùng không tồn tại trong hệ thống');
+            }
+
+            return [
+                'uid' => $uid,
+                'phone' => $phone,
+                'role' => $role,
+                'user' => $user,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to verify current user: ' . $e->getMessage());
+            throw new \Exception('Xác thực người dùng thất bại: ' . $e->getMessage());
+        }
+    }
 }

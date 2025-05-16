@@ -24,7 +24,7 @@ class DistrictRequest extends FormRequest
                 'max:100',
                 $isUpdate ? "unique:districts,name,{$districtId}" : 'unique:districts,name',
             ],
-            'image' => $isUpdate ? 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048' : 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => $isUpdate ? 'sometimes|required|mimes:jpeg,png,jpg,webp|max:2048' : 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
     }
 

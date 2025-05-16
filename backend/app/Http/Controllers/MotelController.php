@@ -44,6 +44,7 @@ class MotelController extends Controller
         if ($request->hasFile('images')) {
             $imageFiles = $request->file('images');
         }
+        dd($request->validated());
         $result = $this->motelService->updateMotel($id, $request->validated(), $imageFiles);
 
         return $this->handleResponse(
