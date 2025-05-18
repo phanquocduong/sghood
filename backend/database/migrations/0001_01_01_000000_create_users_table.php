@@ -13,17 +13,34 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->string('phone', 15)->unique();
+            $table->string('name');
+            $table->string('phone')->unique();
             $table->string('email')->unique();
-            $table->date('birthdate');
+            $table->string('password');
+            $table->enum('gender', ['Nam', 'Nữ', 'Khác'])->nullable();
+            $table->date('birthdate')->nullable();
+            $table->string('address')->nullable();
             $table->string('avatar')->nullable();
-            $table->string('front_id_card_image', 255)->nullable();
-            $table->string('back_id_card_image', 255)->nullable();
+            $table->string('identity_document')->nullable();
             $table->enum('role', ['Người đăng ký', 'Người thuê', 'Quản trị viên'])->default('Người đăng ký');
             $table->enum('status', ['Hoạt động', 'Khoá'])->default('Hoạt động');
+            $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
-            $table->softDeletes();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
         });
     }
 

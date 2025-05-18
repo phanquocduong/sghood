@@ -1,11 +1,11 @@
 <?php
-use App\Http\Controllers\DistrictController;
-use App\Http\Controllers\MotelController;
-use App\Http\Controllers\FirebaseAuthController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\AmenityController;
-use App\Http\Controllers\BookmarkController;
-use App\Http\Controllers\UserController;
+
+use App\Http\Controllers\Apis\AmenityController;
+use App\Http\Controllers\Apis\DistrictController;
+use App\Http\Controllers\Apis\FirebaseAuthController;
+use App\Http\Controllers\Apis\MotelController;
+use App\Http\Controllers\Apis\RoomController;
+use App\Http\Controllers\Apis\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -90,16 +90,6 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::get('/{id}', [UserController::class, 'show']);
-    });
-});
-
-// Bookmark Routes
-Route::middleware(['firebase'])->group(function () {
-    Route::prefix('bookmarks')->group(function () {
-        Route::get('/', [BookmarkController::class, 'index']);
-        Route::get('/{id}', [BookmarkController::class, 'show']);
-        Route::post('/', [BookmarkController::class, 'store']);
-        Route::delete('/{id}', [BookmarkController::class, 'destroy']);
     });
 });
 

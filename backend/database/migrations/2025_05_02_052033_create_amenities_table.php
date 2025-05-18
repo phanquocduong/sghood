@@ -16,6 +16,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->enum('type', ['Nhà trọ', 'Phòng trọ']);
+            $table->integer('order')->nullable();
+            $table->enum('status', ['Hoạt động', 'Không hoạt động'])->default('Hoạt động');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -24,7 +26,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('motel_id');
             $table->unsignedBigInteger('amenity_id');
-            $table->datetime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamps();
 
             $table->foreign('motel_id')->references('id')->on('motels')->onDelete('cascade');
             $table->foreign('amenity_id')->references('id')->on('amenities')->onDelete('cascade');
@@ -34,7 +36,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('room_id');
             $table->unsignedBigInteger('amenity_id');
-            $table->datetime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamps();
 
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
             $table->foreign('amenity_id')->references('id')->on('amenities')->onDelete('cascade');
