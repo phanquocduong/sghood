@@ -40,7 +40,7 @@ class DistrictService {
         switch ($sortOption) {
             case 'name_asc':
                 return ['field' => 'name', 'order' => 'asc'];
-            case 'name_asc':
+            case 'name_dsc':
                 return ['field' => 'name', 'order' => 'desc'];
             case 'created_at_asc':
                 return ['field' => 'created_at', 'order' => 'asc'];
