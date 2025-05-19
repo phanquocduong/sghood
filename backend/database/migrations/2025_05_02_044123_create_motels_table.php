@@ -13,10 +13,18 @@ return new class extends Migration
     {
         Schema::create('motels', function (Blueprint $table) {
             $table->id();
-            $table->string('address', 100);
             $table->unsignedBigInteger('district_id');
+            $table->string('slug')->unique();
+            $table->string('name');
+            $table->string('address');
             $table->string('map_embed_url', 1000);
             $table->text('description')->nullable();
+            $table->unsignedInteger('electricity_fee');
+            $table->unsignedInteger('water_fee');
+            $table->unsignedInteger('parking_fee');
+            $table->unsignedInteger('junk_fee');
+            $table->unsignedInteger('internet_fee');
+            $table->unsignedInteger('service_fee');
             $table->enum('status', ['Hoạt động', 'Không hoạt động'])->default('Hoạt động');
             $table->timestamps();
             $table->softDeletes();
@@ -27,17 +35,8 @@ return new class extends Migration
         Schema::create('motel_images', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('motel_id');
-            $table->string('image_url', 255);
-            $table->timestamps();
-
-            $table->foreign('motel_id')->references('id')->on('motels')->onDelete('cascade');
-        });
-
-        Schema::create('motel_fees', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('motel_id');
-            $table->enum('fee_type', ['Điện', 'Nước', 'Giữ xe', 'Rác', 'Internet', 'Dịch vụ']);
-            $table->integer('fee_amount');
+            $table->string('image_url');
+            $table->boolean('is_main')->default(false);
             $table->timestamps();
 
             $table->foreign('motel_id')->references('id')->on('motels')->onDelete('cascade');
@@ -49,7 +48,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('motel_fees');
         Schema::dropIfExists('motel_images');
         Schema::dropIfExists('motels');
     }

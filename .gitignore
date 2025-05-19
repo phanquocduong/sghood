@@ -13,13 +13,13 @@
 /backend/yarn-error.log
 
 # Nuxt
-/frontend/*/node_modules/
-/frontend/*/.nuxt/
-/frontend/*/dist/
-/frontend/*/.env
-/frontend/*/nuxt.config.local.js
-/frontend/*/yarn-error.log
-/frontend/*/npm-debug.log
+/frontend/node_modules/
+/frontend/.nuxt/
+/frontend/dist/
+/frontend/.env
+/frontend/nuxt.config.local.js
+/frontend/yarn-error.log
+/frontend/npm-debug.log
 
 # General
 *.log

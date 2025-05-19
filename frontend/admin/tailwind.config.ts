@@ -1,3 +1,0 @@
-// admin/tailwind.config.ts
-
-  
