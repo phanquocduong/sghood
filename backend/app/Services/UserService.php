@@ -29,7 +29,7 @@ class UserService
         }
     }
 
-    private function applyFilters($query, string $querySearch): void {
+    private function applyFilters($query, string $querySearch, string $status): void {
         if ($querySearch !== '') {
             $query->where('name', 'like', '%' . $querySearch . '%')
                   ->orWhere('email', 'like', '%' . $querySearch . '%');

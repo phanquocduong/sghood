@@ -20,7 +20,8 @@
 /frontend/nuxt.config.local.js
 /frontend/yarn-error.log
 /frontend/npm-debug.log
-
+/frontend/admin/node_modules/
+/frontend/admin/.nuxt/
 # General
 *.log
 .DS_Store
