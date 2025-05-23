@@ -21,6 +21,11 @@
 /frontend/yarn-error.log
 /frontend/npm-debug.log
 
+/frontend/admin/node_modules/
+/frontend/admin/.nuxt/
+/frontend/user/node_modules/
+/frontend/user/.nuxt/
+
 # General
 *.log
 .DS_Store

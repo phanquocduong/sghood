@@ -24,6 +24,16 @@ class AmenityService
         }
     }
 
+    public function getAllAmenities(): array {
+        try {
+            $amenities = Amenity::all();
+            return ['data' => $amenities];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách tiện ích', 'status' => 500];
+        }
+    }
+
      private function applyFilters($query, string $querySearch): void {
         if ($querySearch !== '') {
             $query->where('name', 'LIKE', '%' . $querySearch . '%');

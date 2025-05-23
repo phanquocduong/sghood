@@ -31,6 +31,16 @@ class DistrictService {
         }
     }
 
+    public function getAllDistricts(): array {
+        try {
+            $districts = District::all();
+            return ['data' => $districts];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách khu vực', 'status' => 500];
+        }
+    }
+
     private function applySorting($query, string $sortOption): void {
         $sort = $this->handleSortOption($sortOption);
         $query->orderBy($sort['field'], $sort['order']);

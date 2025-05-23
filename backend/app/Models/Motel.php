@@ -13,6 +13,7 @@ class Motel extends Model
 
     protected $fillable = [
         'slug',
+        'name',
         'address',
         'district_id',
         'map_embed_url',
@@ -31,7 +32,7 @@ class Motel extends Model
     }
 
     public function images() {
-        return $this->hasMany(MotelImage::class, 'motel_id');
+        return $this->hasMany(MotelImage::class);
     }
 
     public function amenities() {

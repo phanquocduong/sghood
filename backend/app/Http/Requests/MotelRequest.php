@@ -16,6 +16,7 @@ class MotelRequest extends FormRequest
         $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
 
         return [
+            'name' => $isUpdate ? 'sometimes|required|string|max:255' : 'required|string|max:255',
             'address' => $isUpdate ? 'sometimes|required|string|max:100' : 'required|string|max:100',
             'district_id' => $isUpdate ? 'sometimes|required|integer|exists:districts,id' : 'required|integer|exists:districts,id',
             'map_embed_url' => $isUpdate ? 'sometimes|required|string|max:1000' : 'required|string|max:1000',
