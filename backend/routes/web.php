@@ -3,6 +3,7 @@
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\AmenityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,4 +47,15 @@ Route::delete('/rooms/{id}', [RoomController::class, 'destroy'])->name('rooms.de
 Route::get('/rooms/trash/{id}', [RoomController::class, 'showTrashed'])->name('rooms.showTrashed');
 Route::post('/rooms/restore/{id}', [RoomController::class, 'restore'])->name('rooms.restore');
 Route::delete('/rooms/force-delete/{id}', [RoomController::class, 'forceDelete'])->name('rooms.forceDelete');
-// Route::get('/rooms/motel/{motelId}', [RoomController::class, 'roomsByMotel'])->name('rooms.byMotel');
+
+// Route for Amenities
+Route::get('/amenities', [AmenityController::class, 'index'])->name('amenities.index');
+Route::get('/amenities/create', [AmenityController::class, 'create'])->name('amenities.create');
+Route::post('/amenities', [AmenityController::class, 'store'])->name('amenities.store');
+Route::get('/amenities/trash', [AmenityController::class, 'trash'])->name('amenities.trash');
+Route::get('/amenities/{id}', [AmenityController::class, 'show'])->name('amenities.show');
+Route::get('/amenities/{id}/edit', [AmenityController::class, 'edit'])->name('amenities.edit');
+Route::match(['put', 'patch'], '/amenities/{id}', [AmenityController::class, 'update'])->name('amenities.update');
+Route::delete('/amenities/{id}', [AmenityController::class, 'destroy'])->name('amenities.destroy');
+Route::post('/amenities/restore/{id}', [AmenityController::class, 'restore'])->name('amenities.restore');
+Route::delete('/amenities/force-delete/{id}', [AmenityController::class, 'forceDelete'])->name('amenities.forceDelete');

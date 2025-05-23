@@ -3,71 +3,66 @@
 @section('title', 'Thêm phòng trọ')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
             <h6 class="mb-0 fw-bold">{{ __('Thêm phòng trọ') }}</h6>
         </div>
         <div class="card-body p-4">
-            @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__shakeX" role="alert">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
             <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data" id="roomForm" novalidate>
                 @csrf
                 <div class="row g-3">
                     <div class="col-12">
-                        <label for="motel_id" class="form-label fw-bold text-primary">Nhà trọ</label>
+                        <label for="motel_id" class="form-label fw-bold text-primary">Nhà trọ <span class="text-danger">*</span></label>
                         <input type="hidden" name="motel_id" value="{{ $motel->id }}">
                         <input type="text" class="form-control shadow-sm" value="{{ $motel->name }}" readonly>
                     </div>
                     <div class="col-12">
-                        <label for="name" class="form-label fw-bold text-primary">Tên phòng trọ</label>
-                        <input type="text" class="form-control shadow-sm" id="name" name="name" value="{{ old('name') }}" required>
+                        <label for="name" class="form-label fw-bold text-primary">Tên phòng trọ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control shadow-sm @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="price" class="form-label fw-bold text-primary">Giá phòng (VNĐ)</label>
-                        <input type="number" class="form-control shadow-sm" id="price" name="price" value="{{ old('price') }}" min="0" required>
+                        <label for="price" class="form-label fw-bold text-primary">Giá phòng (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control shadow-sm @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price') }}" min="0" required>
+                        @error('price')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="area" class="form-label fw-bold text-primary">Diện tích (m²)</label>
-                        <input type="number" class="form-control shadow-sm" id="area" name="area" value="{{ old('area') }}" step="0.01" min="0" required>
+                        <label for="area" class="form-label fw-bold text-primary">Diện tích (m²) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control shadow-sm @error('area') is-invalid @enderror" id="area" name="area" value="{{ old('area') }}" step="0.01" min="0" required>
+                        @error('price')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-12">
                         <label for="description" class="form-label fw-bold text-primary">Mô tả</label>
-                        <textarea class="form-control shadow-sm" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                        <textarea class="form-control shadow-sm @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="status" class="form-label fw-bold text-primary">Trạng thái</label>
-                        <select class="form-select shadow-sm" id="status" name="status" required>
+                        <label for="status" class="form-label fw-bold text-primary">Trạng thái <span class="text-danger">*</span></label>
+                        <select class="form-select shadow-sm @error('status') is-invalid @enderror" id="status" name="status" required>
                             <option value="Trống" {{ old('status') == 'Trống' ? 'selected' : '' }}>Trống</option>
                             <option value="Đã thuê" {{ old('status') == 'Đã thuê' ? 'selected' : '' }}>Đã thuê</option>
                             <option value="Sửa chữa" {{ old('status') == 'Sửa chữa' ? 'selected' : '' }}>Sửa chữa</option>
                             <option value="Ẩn" {{ old('status') == 'Ẩn' ? 'selected' : '' }}>Ẩn</option>
                         </select>
+                        @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
                         <label for="note" class="form-label fw-bold text-primary">Ghi chú</label>
-                        <input type="text" class="form-control shadow-sm" id="note" name="note" value="{{ old('note') }}">
+                        <input type="text" class="form-control shadow-sm @error('note') is-invalid @enderror" id="note" name="note" value="{{ old('note') }}">
+                        @error('note')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-12">
                         <label for="amenities" class="form-label fw-bold text-primary">Tiện nghi</label>
@@ -89,9 +84,12 @@
                         </div>
                     </div>
                     <div class="col-12">
-                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh</label>
-                        <input type="file" class="form-control shadow-sm" id="images" name="images[]" accept="image/*" multiple required>
+                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control shadow-sm @error('images') is-invalid @enderror" id="images" name="images[]" accept="image/*" multiple required>
                         <div id="image-preview" class="row g-2 mt-3"></div>
+                        @error('images')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-4 gap-2">
@@ -102,42 +100,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .card {
-        border-radius: 15px;
-    }
-
-    .card-header {
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    #image-preview img {
-        max-height: 150px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-right: 10px;
-        transition: transform 0.3s;
-    }
-
-    #image-preview img:hover {
-        transform: scale(1.1);
-    }
-
-    .alert-success, .alert-danger {
-        border-left: 5px solid #28a745;
-    }
-
-    .alert-danger {
-        border-left-color: #dc3545;
-    }
-</style>
-
-
 @endsection

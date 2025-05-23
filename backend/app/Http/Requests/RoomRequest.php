@@ -30,7 +30,6 @@ class RoomRequest extends FormRequest
             'motel_id' => $isUpdate ? 'sometimes|required|exists:motels,id' : 'required|exists:motels,id',
             'name' => $isUpdate ? 'sometimes|required|string|max:255|unique:rooms,name,' . $this->route('id') . ',id,motel_id,' . $this->input('motel_id') : 'required|string|max:255|unique:rooms,name,NULL,id,motel_id,' . $this->input('motel_id'),
             'price' => $isUpdate ? 'sometimes|required|integer|min:0' : 'required|integer|min:0',
-            // Cập nhật validation cho DECIMAL(5,2): tối đa 999.99
             'area' => $isUpdate ?
                 'sometimes|required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/' :
                 'required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/',

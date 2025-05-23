@@ -94,36 +94,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .card {
-        border-radius: 15px;
-    }
-
-    .card-header {
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .motel-image:hover {
-        transform: scale(1.1);
-    }
-
-    .alert-success, .alert-danger {
-        border-left: 5px solid #28a745;
-    }
-
-    .alert-danger {
-        border-left-color: #dc3545;
-    }
-
-    .text-primary:hover {
-        color: #007bff !important;
-    }
-</style>
 @endsection

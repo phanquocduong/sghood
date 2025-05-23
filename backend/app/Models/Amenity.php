@@ -13,6 +13,8 @@ class Amenity extends Model
 
     protected $fillable = [
         'name',
+        'order',
+        'status',
         'type',
     ];
 };

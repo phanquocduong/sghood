@@ -47,7 +47,7 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
                     <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') ? 'active' : '' }}">Nhà trọ</a>
-                   <a href="amenity.html" class="dropdown-item {{ request()->is('amenity.html') ? 'active' : '' }}">Tiện ích</a>
+                   <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Tiện ích</a>
                 </div>
             </div>
 

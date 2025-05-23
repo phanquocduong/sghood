@@ -3,32 +3,42 @@
 @section('title', 'Danh sách phòng trọ')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Danh sách phòng trọ (Nhà trọ ID: ') . $motelId . ')' }}</h6>
+            <div class="d-flex align-items-center">
+                <a href="{{ route('motels.index') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại danh sách nhà trọ">
+                    <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
+                </a>
+                <h6 class="mb-0 fw-bold">{{ __('Danh sách phòng trọ') }}
+                    <span class="badge bg-light text-primary ms-2">{{ $motel->name ?? 'ID: ' . $motelId }}</span>
+                </h6>
+            </div>
             <div>
                 <a href="{{ route('rooms.create', ['motel_id' => $motelId]) }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-plus me-1"></i> {{ __('Thêm phòng trọ') }}
                 </a>
-                <a href="{{ route('rooms.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
+                <a href="{{ route('rooms.trash', ['motel_id' => $motelId]) }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
                 </a>
             </div>
         </div>
         <div class="card-body p-4">
+            <!-- Breadcrumb navigation -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('motels.index') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Nhà trọ
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-door-open me-1"></i>Phòng trọ
+                    </li>
+                </ol>
+            </nav>
+
             <div class="mb-4">
                 <form action="{{ route('rooms.index') }}" method="GET" class="row g-3">
                     <input type="hidden" name="motel_id" value="{{ $motelId }}">
@@ -40,11 +50,11 @@
                     </div>
                     <div class="col-md-3">
                         <select class="form-select shadow-sm" name="status" onchange="this.form.submit()">
-                            <option value="">Trạng thái</option>
-                            <option value="empty" {{ $status == 'empty' ? 'selected' : '' }}>Trống</option>
-                            <option value="rented" {{ $status == 'rented' ? 'selected' : '' }}>Đã thuê</option>
-                            <option value="maintenance" {{ $status == 'maintenance' ? 'selected' : '' }}>Sửa chữa</option>
-                            <option value="hidden" {{ $status == 'hidden' ? 'selected' : '' }}>Ẩn</option>
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Trống" {{ $status == 'Trống' ? 'selected' : '' }}>Trống</option>
+                            <option value="Đã thuê" {{ $status == 'Đã thuê' ? 'selected' : '' }}>Đã thuê</option>
+                            <option value="Sửa chữa" {{ $status == 'Sửa chữa' ? 'selected' : '' }}>Sửa chữa</option>
+                            <option value="Ẩn" {{ $status == 'Ẩn' ? 'selected' : '' }}>Ẩn</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -58,7 +68,18 @@
                     </div>
                 </form>
             </div>
-
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center">
                     <thead class="table-dark">
@@ -145,34 +166,26 @@
 </div>
 
 <style>
-    .table-row:hover {
-        background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
-    }
+.breadcrumb {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
 
-    .motel-image:hover {
-        transform: scale(1.1);
-    }
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-weight: bold;
+    color: #6c757d;
+}
 
-    .action-btn:hover, .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
 
-    .alert-success, .alert-danger {
-        border-left: 5px solid #28a745;
-    }
-
-    .alert-danger {
-        border-left-color: #dc3545;
-    }
-
-    .text-primary:hover {
-        color: #007bff !important;
-    }
+.motel-image:hover {
+    transform: scale(1.05);
+}
 </style>
 
-@section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-@endsection
 @endsection

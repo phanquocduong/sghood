@@ -104,6 +104,10 @@ class RoomService
                 return ['field' => 'name', 'order' => 'asc'];
             case 'name_desc':
                 return ['field' => 'name', 'order' => 'desc'];
+            case 'status_asc':
+                return ['field' => 'status', 'order' => 'asc'];
+            case 'status_desc':
+                return ['field' => 'status', 'order' => 'desc'];
             case 'created_at_asc':
                 return ['field' => 'created_at', 'order' => 'asc'];
             case 'created_at_desc':
