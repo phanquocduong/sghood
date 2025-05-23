@@ -11,6 +11,17 @@ class RoomRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('area') && !empty($this->area)) {
+            $area = trim($this->area);
+
+            $area = str_replace(',', '.', $area);
+
+            $this->merge(['area' => $area]);
+        }
+    }
+
     public function rules()
     {
         $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
@@ -19,11 +30,14 @@ class RoomRequest extends FormRequest
             'motel_id' => $isUpdate ? 'sometimes|required|exists:motels,id' : 'required|exists:motels,id',
             'name' => $isUpdate ? 'sometimes|required|string|max:255|unique:rooms,name,' . $this->route('id') . ',id,motel_id,' . $this->input('motel_id') : 'required|string|max:255|unique:rooms,name,NULL,id,motel_id,' . $this->input('motel_id'),
             'price' => $isUpdate ? 'sometimes|required|integer|min:0' : 'required|integer|min:0',
-            'area' => $isUpdate ? 'sometimes|required|numeric|min:0' : 'required|numeric|min:0',
+            // Cập nhật validation cho DECIMAL(5,2): tối đa 999.99
+            'area' => $isUpdate ?
+                'sometimes|required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/' :
+                'required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/',
             'description' => 'nullable|string|max:1000',
             'status' => $isUpdate ? 'sometimes|required|in:Trống,Đã thuê,Sửa chữa,Ẩn' : 'required|in:Trống,Đã thuê,Sửa chữa,Ẩn',
             'note' => 'nullable|string|max:255',
-            'images' => $isUpdate ? 'sometimes|array' : 'nullable|array',
+            'images' => $isUpdate ? 'sometimes|array' : 'required|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'amenities' => $isUpdate ? 'sometimes|array' : 'nullable|array',
             'amenities.*' => 'exists:amenities,id',
@@ -45,6 +59,8 @@ class RoomRequest extends FormRequest
             'area.required' => 'Vui lòng nhập diện tích phòng.',
             'area.numeric' => 'Diện tích phòng phải là số.',
             'area.min' => 'Diện tích phòng phải lớn hơn hoặc bằng 0.',
+            'area.max' => 'Diện tích phòng không được vượt quá 999.99 m².',
+            'area.regex' => 'Diện tích phòng phải có định dạng: tối đa 3 chữ số trước dấu thập phân và 2 chữ số sau dấu thập phân (ví dụ: 123,45 hoặc 123.45).',
             'description.string' => 'Mô tả phải là một chuỗi.',
             'description.max' => 'Mô tả không được vượt quá 1000 ký tự.',
             'status.required' => 'Vui lòng chọn trạng thái phòng.',
@@ -52,6 +68,7 @@ class RoomRequest extends FormRequest
             'note.string' => 'Ghi chú phải là một chuỗi.',
             'note.max' => 'Ghi chú không được vượt quá 255 ký tự.',
             'images.array' => 'Bộ sưu tập ảnh phải là một mảng.',
+            'images.required' => 'Vui lòng tải lên ít nhất một ảnh.',
             'images.*.image' => 'Ảnh phải là các file ảnh hợp lệ.',
             'images.*.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg, gif, hoặc webp.',
             'images.*.max' => 'Ảnh không được vượt quá 2MB.',

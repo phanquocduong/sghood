@@ -21,19 +21,27 @@ class RoomController extends Controller
     }
 
     // Hiển thị danh sách phòng theo id của motel.
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $motelId = $request->query('motel_id', ''); // Lấy motel_id từ query string, mặc định rỗng
+        $motelId = $request->query('motel_id', '');
         $querySearch = $request->query('query', '');
         $status = $request->query('status', '');
         $sortOption = $request->query('sortOption', '');
-        $perPage = $request->query('perPage', 25);
+        $perPage = $request->query('perPage', 10);
 
-        if (empty($motelId)) {
-            return redirect()->route('motels.index')->with('error', 'Vui lòng chọn một nhà trọ để xem phòng.');
+        // Kiểm tra và lấy thông tin nhà trọ
+        $motelResult = $this->getAndValidateMotel($motelId);
+        if (isset($motelResult['error'])) {
+            return redirect()->route('motels.index')->with('error', $motelResult['error']);
         }
 
-        $result = $this->roomService->getRoomsByMotelId($motelId, $querySearch, $status, $sortOption, $perPage);
+        $result = $this->roomService->getRoomsByMotelId(
+            $motelId, $querySearch, $status, $sortOption, $perPage
+        );
+
+        if (isset($result['error'])) {
+            return redirect()->route('motels.index')->with('error', $result['error']);
+        }
 
         return view('rooms.index', [
             'rooms' => $result['data'],
@@ -42,63 +50,104 @@ class RoomController extends Controller
             'sortOption' => $sortOption,
             'perPage' => $perPage,
             'motelId' => $motelId,
+            'motel' => $motelResult['data']
         ]);
     }
 
+    // Xử lý lỗi từ service và chuyển hướng phù hợp
+    private function handleServiceError($result, $inputData = [])
+    {
+        if (isset($result['error'])) {
+            return redirect()->back()->withErrors(['error' => $result['error']])->withInput($inputData);
+        }
+        return null;
+    }
+
+    // Kiểm tra và lấy thông tin nhà trọ theo ID
+    private function getAndValidateMotel($motelId)
+    {
+        if (empty($motelId)) {
+            return ['error' => 'Vui lòng chọn một nhà trọ.'];
+        }
+
+        $motel = Motel::where('status', 'Hoạt động')->find($motelId);
+        if (!$motel) {
+            return ['error' => 'Nhà trọ không tồn tại hoặc không hoạt động.'];
+        }
+
+        return ['data' => $motel];
+    }
+
+    // Lấy danh sách tiện ích phòng đang hoạt động
+    private function getActiveRoomAmenities()
+    {
+        return Amenity::where('status', 'Hoạt động')
+                      ->where('type', 'Phòng trọ')
+                      ->get();
+    }
+
     // Hiển thị chi tiết phòng.
-    public function show(string $id): View
+    public function show(string $id): View|RedirectResponse
     {
         $result = $this->roomService->getRoom($id);
+
+        if (isset($result['error'])) {
+            return redirect()->route('motels.index')->with('error', $result['error']);
+        }
+
         return view('rooms.show', ['room' => $result['data']]);
     }
 
     // Hiển thị form tạo phòng mới.
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
-        // Lấy danh sách nhà trọ đang hoạt động
-        $motels = Motel::where('status', 'Hoạt động')->get();
-        $selectedMotelId = $request->query('motel_id', '');
+        $motelId = $request->query('motel_id');
 
-        $amenities = Amenity::where('status', 'Hoạt động')
-                            ->where('type', 'Phòng trọ')
-                            ->get();
+        // Kiểm tra và lấy thông tin nhà trọ
+        $motelResult = $this->getAndValidateMotel($motelId);
+        if (isset($motelResult['error'])) {
+            return redirect()->route('motels.index')->with('error', $motelResult['error']);
+        }
 
         return view('rooms.create', [
-            'motels' => $motels,
-            'selectedMotelId' => $selectedMotelId,
-            'amenities' => $amenities
+            'motel' => $motelResult['data'],
+            'amenities' => $this->getActiveRoomAmenities()
         ]);
     }
 
     // Tạo phòng mới.
     public function store(RoomRequest $request): RedirectResponse
     {
-        $motelId = $request->input('motel_id', ''); // Lấy motel_id từ form
-        $result = $this->roomService->createRoom($request->validated(), $request->file('images'));
+        $motelId = $request->input('motel_id', '');
+        $result = $this->roomService->createRoom(
+            $request->validated(),
+            $request->file('images')
+        );
 
-        if (isset($result['error'])) {
-            return redirect()->back()->withErrors(['error' => $result['error']])->withInput();
+        $errorResponse = $this->handleServiceError($result, $request->all());
+        if ($errorResponse) {
+            return $errorResponse;
         }
 
-        return redirect()->route('rooms.index', ['motel_id' => $motelId])->with('success', 'Phòng đã được tạo thành công!');
+        return redirect()
+            ->route('rooms.index', ['motel_id' => $motelId])
+            ->with('success', 'Phòng đã được tạo thành công!');
     }
 
     // Hiển thị form chỉnh sửa phòng.
-    public function edit(Request $request, string $id): View
+    public function edit(string $id): View|RedirectResponse
     {
-        $motels = Motel::where('status', 'Hoạt động')->get();
-                $selectedMotelId = $request->query('motel_id', '');
-
-        $amenities = Amenity::where('status', 'Hoạt động')
-                            ->where('type', 'Phòng trọ')
-                            ->get();
-
         $result = $this->roomService->getRoom($id);
+
+        if (isset($result['error'])) {
+            return redirect()->route('motels.index')->with('error', $result['error']);
+        }
+        // $room = $result['data'];
+        $motels = Motel::where('status', 'Hoạt động')->get();
         return view('rooms.edit', [
             'room' => $result['data'],
             'motels' => $motels,
-            'selectedMotelId' => $selectedMotelId,
-            'amenities' => $amenities
+            'amenities' => $this->getActiveRoomAmenities()
         ]);
     }
 
@@ -107,34 +156,48 @@ class RoomController extends Controller
     {
         $motelId = $request->input('motel_id', '');
         $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
-        $mainImageId = $request->input('is_main'); // Lấy ID của ảnh được chọn làm ảnh chính
+        $mainImageId = $request->input('is_main');
 
-        // Truyền mainImageId vào phương thức updateRoom
-        $result = $this->roomService->updateRoom($id, $request->validated(), $imageFiles, $mainImageId);
+        $result = $this->roomService->updateRoom(
+            $id,
+            $request->validated(),
+            $imageFiles,
+            $mainImageId
+        );
 
-        if (isset($result['error'])) {
-            return redirect()->back()->withErrors(['error' => $result['error']])->withInput();
+        $errorResponse = $this->handleServiceError($result, $request->all());
+        if ($errorResponse) {
+            return $errorResponse;
         }
 
-        return redirect()->route('rooms.index', ['motel_id' => $motelId])->with('success', 'Phòng đã được cập nhật thành công!');
+        return redirect()
+            ->route('rooms.index', ['motel_id' => $motelId])
+            ->with('success', 'Phòng đã được cập nhật thành công!');
     }
 
     // Xóa phòng.
     public function destroy(string $id): RedirectResponse
     {
-        $room = $this->roomService->getRoom($id)['data'];
-        $motelId = $room->motel_id ?? '';
-        $result = $this->roomService->deleteRoom($id);
-
-        if (isset($result['error'])) {
-            return redirect()->back()->withErrors(['error' => $result['error']]);
+        $roomResult = $this->roomService->getRoom($id);
+        if (isset($roomResult['error'])) {
+            return redirect()->back()->with('error', $roomResult['error']);
         }
 
-        return redirect()->route('rooms.index', ['motel_id' => $motelId])->with('success', 'Phòng đã được xoá thành công!');
+        $motelId = $roomResult['data']->motel_id;
+        $result = $this->roomService->deleteRoom($id);
+
+        $errorResponse = $this->handleServiceError($result);
+        if ($errorResponse) {
+            return $errorResponse;
+        }
+
+        return redirect()
+            ->route('rooms.index', ['motel_id' => $motelId])
+            ->with('success', 'Phòng đã được xóa thành công!');
     }
 
     // Hiển thị danh sách phòng đã xóa.
-    public function trash(Request $request): View
+    public function trash(Request $request): View|RedirectResponse
     {
         $motelId = $request->query('motel_id', '');
         $querySearch = $request->query('query', '');
@@ -142,11 +205,19 @@ class RoomController extends Controller
         $sortOption = $request->query('sortOption', '');
         $perPage = $request->query('perPage', 25);
 
-        if (empty($motelId)) {
-            return redirect()->route('motels.index')->with('error', 'Vui lòng chọn một nhà trọ để xem phòng đã xóa.');
+        // Kiểm tra và lấy thông tin nhà trọ
+        $motelResult = $this->getAndValidateMotel($motelId);
+        if (isset($motelResult['error'])) {
+            return redirect()->route('motels.index')->with('error', $motelResult['error']);
         }
 
-        $result = $this->roomService->getTrashedRoomsByMotelId($motelId, $querySearch, $status, $sortOption, $perPage);
+        $result = $this->roomService->getTrashedRoomsByMotelId(
+            $motelId, $querySearch, $status, $sortOption, $perPage
+        );
+
+        if (isset($result['error'])) {
+            return redirect()->route('motels.index')->with('error', $result['error']);
+        }
 
         return view('rooms.trash', [
             'rooms' => $result['data'],
@@ -155,42 +226,62 @@ class RoomController extends Controller
             'sortOption' => $sortOption,
             'perPage' => $perPage,
             'motelId' => $motelId,
+            'motel' => $motelResult['data']
         ]);
     }
 
     // Hiển thị chi tiết phòng đã xóa.
-    public function showTrashed(string $id): View
+    public function showTrashed(string $id): View|RedirectResponse
     {
         $result = $this->roomService->getRoom($id, true);
+
+        if (isset($result['error'])) {
+            return redirect()->route('motels.index')->with('error', $result['error']);
+        }
+
         return view('rooms.show-trashed', ['room' => $result['data']]);
     }
 
     // Khôi phục phòng đã xóa.
     public function restore(string $id): RedirectResponse
     {
-        $room = $this->roomService->getRoom($id, true)['data'];
-        $motelId = $room->motel_id ?? '';
-        $result = $this->roomService->restoreRoom($id);
-
-        if (isset($result['error'])) {
-            return redirect()->back()->withErrors(['error' => $result['error']]);
+        $roomResult = $this->roomService->getRoom($id, true);
+        if (isset($roomResult['error'])) {
+            return redirect()->back()->with('error', $roomResult['error']);
         }
 
-        return redirect()->route('rooms.trash', ['motel_id' => $motelId])->with('success', 'Phòng đã được khôi phục thành công!');
+        $motelId = $roomResult['data']->motel_id;
+        $result = $this->roomService->restoreRoom($id);
+
+        $errorResponse = $this->handleServiceError($result);
+        if ($errorResponse) {
+            return $errorResponse;
+        }
+
+        return redirect()
+            ->route('rooms.trash', ['motel_id' => $motelId])
+            ->with('success', 'Phòng đã được khôi phục thành công!');
     }
 
     // Xóa vĩnh viễn phòng đã xóa.
     public function forceDelete(string $id): RedirectResponse
     {
-        $room = $this->roomService->getRoom($id, true)['data'];
-        $motelId = $room->motel_id ?? '';
-        $result = $this->roomService->permanentlyDeleteRoom($id);
-
-        if (isset($result['error'])) {
-            return redirect()->back()->withErrors(['error' => $result['error']]);
+        $roomResult = $this->roomService->getRoom($id, true);
+        if (isset($roomResult['error'])) {
+            return redirect()->back()->with('error', $roomResult['error']);
         }
 
-        return redirect()->route('rooms.trash', ['motel_id' => $motelId])->with('success', 'Phòng đã được xóa vĩnh viễn!');
+        $motelId = $roomResult['data']->motel_id;
+        $result = $this->roomService->permanentlyDeleteRoom($id);
+
+        $errorResponse = $this->handleServiceError($result);
+        if ($errorResponse) {
+            return $errorResponse;
+        }
+
+        return redirect()
+            ->route('rooms.trash', ['motel_id' => $motelId])
+            ->with('success', 'Phòng đã được xóa vĩnh viễn!');
     }
 
     // Xóa hình ảnh phòng.

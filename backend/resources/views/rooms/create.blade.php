@@ -17,18 +17,12 @@
                 </div>
             @endif
 
-            <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('rooms.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="mb-3">
-                    <label for="motel_id" class="form-label">Chọn nhà trọ</label>
-                    <select class="form-control" id="motel_id" name="motel_id" required>
-                        <option value="">Chọn nhà trọ</option>
-                        @foreach ($motels as $motel)
-                            <option value="{{ $motel->id }}" {{ old('motel_id') == $motel->id ? 'selected' : '' }}>
-                                {{ $motel->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <label for="motel_id" class="form-label">Nhà trọ</label>
+                    <input type="hidden" name="motel_id" value="{{ $motel->id }}">
+                    <input type="text" class="form-control" value="{{ $motel->name }}" readonly>
                 </div>
                 <div class="mb-3">
                     <label for="name" class="form-label">Tên phòng trọ</label>
@@ -87,11 +81,11 @@
                 </div>
                 <div class="mb-3">
                     <label for="images" class="form-label">Hình ảnh</label>
-                    <input type="file" class="form-control" id="images" name="images[]" accept="image/*" multiple>
+                    <input type="file" class="form-control" id="images" name="images[]" accept="image/*" multiple required>
                     <div id="image-preview" class="row mt-3"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Thêm phòng trọ</button>
-                <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Hủy</a>
+                <a href="{{ route('rooms.index', ['motel_id' => $motel->id]) }}" class="btn btn-secondary">Hủy</a>
             </form>
         </div>
     </div>

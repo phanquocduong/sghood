@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data" id="roomEditForm">
+            <form action="{{ route('rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data" id="roomEditForm" novalidate>
                 @csrf
                 @method('PATCH')
                 <div class="mb-3">

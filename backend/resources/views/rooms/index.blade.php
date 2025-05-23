@@ -8,7 +8,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="mb-0">Danh sách phòng trọ (Nhà trọ ID: {{ $motelId }})</h6>
                 <div>
-                    <a href="{{ route('rooms.create') }}" class="btn btn-primary">Thêm phòng trọ</a>
+                    <a href="{{ route('rooms.create', ['motel_id' => $motelId]) }}" class="btn btn-primary">Thêm phòng trọ</a>
                 </div>
             </div>
 
