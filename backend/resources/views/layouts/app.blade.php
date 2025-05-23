@@ -66,5 +66,7 @@
     <!-- Template Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
     <script src="{{ asset('js/system.js') }}"></script>
+    <script src="{{ asset('js/room-edit.js') }}"></script>
+
 </body>
 </html>

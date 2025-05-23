@@ -25,7 +25,6 @@
 /frontend/admin/.nuxt/
 /frontend/user/node_modules/
 /frontend/user/.nuxt/
-
 # General
 *.log
 .DS_Store

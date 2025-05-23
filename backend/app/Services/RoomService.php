@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Room;
+use App\Models\Motel;
+use App\Models\Amenity;
 use App\Models\RoomImage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -11,25 +13,73 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
-class RoomService {
-    public function fetchRooms(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, string $perPage): array {
+class RoomService
+{
+    // Tiêu chuẩn hóa phản hồi thành công
+    protected function successResponse($data)
+    {
+        return ['data' => $data];
+    }
+
+    // Tiêu chuẩn hóa phản hồi lỗi
+    protected function errorResponse($message, $status = 400)
+    {
+        return ['error' => $message, 'status' => $status];
+    }
+
+    // Xác thực và lấy thông tin nhà trọ
+    public function validateMotel($motelId)
+    {
+        if (empty($motelId)) {
+            return $this->errorResponse('Vui lòng chọn một nhà trọ.', 400);
+        }
+
+        $motel = Motel::where('status', 'Hoạt động')->find($motelId);
+        if (!$motel) {
+            return $this->errorResponse('Nhà trọ không tồn tại hoặc không hoạt động.', 404);
+        }
+
+        return $this->successResponse($motel);
+    }
+
+    // Lấy danh sách tiện nghi của phòng trọ
+    public function getActiveRoomAmenities()
+    {
+        $amenities = Amenity::where('status', 'Hoạt động')
+                      ->where('type', 'Phòng trọ')
+                      ->get();
+        return $this->successResponse($amenities);
+    }
+
+    // Lấy danh sách phòng trọ theo các tiêu chí
+    public function fetchRooms(bool $onlyTrashed, string $motelId, string $querySearch, string $status, string $sortOption, string $perPage): array
+    {
         try {
+            // Kiểm tra nhà trọ trước
+            $motelResult = $this->validateMotel($motelId);
+            if (isset($motelResult['error'])) {
+                return $motelResult;
+            }
+
             $query = $onlyTrashed ? Room::onlyTrashed() : Room::query();
             $query->with(['motel', 'images', 'amenities']);
+            $query->where('motel_id', $motelId);
 
             $this->applyFilters($query, $querySearch, $status);
             $this->applySorting($query, $sortOption);
 
             $rooms = $query->paginate($perPage);
 
-            return ['data' => $rooms];
+            return $this->successResponse($rooms);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi lấy danh sách phòng trọ', 500);
         }
     }
 
-    private function applyFilters($query, string $querySearch, string $status): void {
+    // Áp dụng bộ lọc cho truy vấn
+    private function applyFilters($query, string $querySearch, string $status): void
+    {
         if ($querySearch !== '') {
             $query->where('name', 'LIKE', '%' . $querySearch . '%');
         }
@@ -39,12 +89,16 @@ class RoomService {
         }
     }
 
-    private function applySorting($query, string $sortOption): void {
+    // Áp dụng sắp xếp cho truy vấn
+    private function applySorting($query, string $sortOption): void
+    {
         $sort = $this->handleSortOption($sortOption);
         $query->orderBy($sort['field'], $sort['order']);
     }
 
-    public function handleSortOption(string $sortOption): array {
+    // Xử lý tùy chọn sắp xếp
+    public function handleSortOption(string $sortOption): array
+    {
         switch ($sortOption) {
             case 'name_asc':
                 return ['field' => 'name', 'order' => 'asc'];
@@ -59,41 +113,58 @@ class RoomService {
         }
     }
 
-    public function getAllRooms(string $querySearch, string $status, string $sortOption, string $perPage): array {
-        return $this->fetchRooms(false, $querySearch, $status, $sortOption, $perPage);
+    // Lấy danh sách phòng trọ theo các tiêu chí
+    public function getRoomsByMotelId(string $motelId, string $querySearch, string $status, string $sortOption, string $perPage): array
+    {
+        return $this->fetchRooms(false, $motelId, $querySearch, $status, $sortOption, $perPage);
     }
 
-    public function getTrashedRooms(string $querySearch, string $status, string $sortOption, int $perPage): array {
-        return $this->fetchRooms(true, $querySearch, $status, $sortOption, $perPage);
+    // Lấy danh sách phòng trọ đã xóa theo các tiêu chí
+    public function getTrashedRoomsByMotelId(string $motelId, string $querySearch, string $status, string $sortOption, string $perPage): array
+    {
+        return $this->fetchRooms(true, $motelId, $querySearch, $status, $sortOption, $perPage);
     }
 
-    public function getRoom(int $id, bool $onlyTrashed = false): array {
+    // Lấy thông tin phòng trọ theo ID
+    public function getRoom(string $id, bool $onlyTrashed = false): array
+    {
         try {
             $query = $onlyTrashed ? Room::onlyTrashed() : Room::query();
             $query->with(['motel', 'images', 'amenities']);
 
             $room = $query->find($id);
             if (!$room) {
-                return ['error' => 'Phòng trọ không tìm thấy', 'status' => 404];
+                return $this->errorResponse('Phòng trọ không tìm thấy', 404);
             }
-            return ['data' => $room];
+            return $this->successResponse($room);
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi tạo phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi tìm phòng trọ', 500);
         }
     }
 
-    public function createRoom(array $data, array $imageFiles): array {
+    // Tạo phòng trọ mới
+    public function createRoom(array $data, array $imageFiles): array
+    {
+        // Kiểm tra nhà trọ trước khi tạo phòng
+        $motelResult = $this->validateMotel($data['motel_id'] ?? null);
+        if (isset($motelResult['error'])) {
+            return $motelResult;
+        }
+
         DB::beginTransaction();
         try {
             $room = Room::create($data);
 
             $failedUploads = $this->processRoomImages($room->id, $imageFiles);
-            $room->amenities()->sync($data['amenities']);
+
+            if (isset($data['amenities'])) {
+                $room->amenities()->sync($data['amenities']);
+            }
 
             DB::commit();
 
-            $result = ['data' => $room->load(['motel', 'images', 'amenities'])];
+            $result = $this->successResponse($room->load(['motel', 'images', 'amenities']));
             if (!empty($failedUploads)) {
                 $result['warnings'] = ['failed_images' => $failedUploads];
             }
@@ -101,26 +172,78 @@ class RoomService {
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi tạo phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi tạo phòng trọ: ' . $e->getMessage(), 500);
         }
     }
 
-    private function processRoomImages(int $roomId, array $imageFiles): array {
-        $failedUploads = [];
-        foreach ($imageFiles as $file) {
-            $imagePath = $this->uploadRoomImage($file);
-            if ($imagePath) {
-                RoomImage::create([
-                    'room_id' => $roomId,
-                    'image_url' => $imagePath
-                ]);
+    // Xử lý hình ảnh chính
+    public function processMainImage($roomId, $mainImageId)
+    {
+        try {
+            // Đặt tất cả hình ảnh của phòng về is_main = 0
+            RoomImage::where('room_id', $roomId)->update(['is_main' => 0]);
+
+            // Đặt hình ảnh được chọn thành hình ảnh chính
+            if ($mainImageId) {
+                $image = RoomImage::where('id', $mainImageId)->where('room_id', $roomId)->first();
+                if (!$image) {
+                    return $this->errorResponse('Không tìm thấy hình ảnh được chọn làm hình ảnh chính');
+                }
+
+                $image->is_main = 1;
+                $image->save();
             } else {
+                // Nếu không có hình ảnh chính được chỉ định, đặt hình đầu tiên là hình chính
+                $firstImage = RoomImage::where('room_id', $roomId)->first();
+                if ($firstImage) {
+                    $firstImage->is_main = 1;
+                    $firstImage->save();
+                }
+            }
+
+            return $this->successResponse(true);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return $this->errorResponse('Đã xảy ra lỗi khi xử lý hình ảnh chính', 500);
+        }
+    }
+
+    // Xử lý hình ảnh phòng trọ
+    private function processRoomImages(int $roomId, array $imageFiles): array
+    {
+        $failedUploads = [];
+        $uploadedImages = [];
+
+        foreach ($imageFiles as $file) {
+            try {
+                $imagePath = $this->uploadRoomImage($file);
+                if ($imagePath) {
+                    $image = RoomImage::create([
+                        'room_id' => $roomId,
+                        'image_url' => $imagePath,
+                        'is_main' => 0 // Mặc định không phải hình ảnh chính
+                    ]);
+                    $uploadedImages[] = $image;
+                } else {
+                    $failedUploads[] = $file->getClientOriginalName();
+                }
+            } catch (\Throwable $e) {
+                Log::error($e->getMessage());
                 $failedUploads[] = $file->getClientOriginalName();
             }
         }
+
+        // Nếu chưa có hình ảnh chính, đặt hình đầu tiên là hình chính
+        if (!empty($uploadedImages) && RoomImage::where('room_id', $roomId)->where('is_main', 1)->count() === 0) {
+            $firstImage = $uploadedImages[0];
+            $firstImage->is_main = 1;
+            $firstImage->save();
+        }
+
         return $failedUploads;
     }
 
+    // Tải lên hình ảnh phòng trọ
     private function uploadRoomImage(UploadedFile $imageFile): string|false
     {
         try {
@@ -138,23 +261,51 @@ class RoomService {
         }
     }
 
-    public function updateMotel(int $id, array $data, array $imageFiles): array {
+    // Cập nhật thông tin phòng trọ
+    public function updateRoom(string $id, array $data, array $imageFiles, ?string $mainImageId = null): array
+    {
+        // Kiểm tra phòng tồn tại
+        $roomResult = $this->getRoom($id);
+        if (isset($roomResult['error'])) {
+            return $roomResult;
+        }
+
+        // Kiểm tra nhà trọ nếu thay đổi motel_id
+        if (isset($data['motel_id']) && $data['motel_id'] != $roomResult['data']->motel_id) {
+            $motelResult = $this->validateMotel($data['motel_id']);
+            if (isset($motelResult['error'])) {
+                return $motelResult;
+            }
+        }
+
         DB::beginTransaction();
         try {
             $room = Room::findOrFail($id);
-            if (!$room) {
-                return ['error' => 'Phòng trọ không tìm thấy', 'status' => 404];
-            }
 
             $room->update($data);
 
-            if (!empty($imageFiles)) {
-                foreach ($room->images()->get() as $image) {
-                    $this->deleteRoomImage($image->image_url);
+            // Xử lý xóa hình ảnh từ select box
+            if (isset($data['delete_images']) && is_array($data['delete_images'])) {
+                foreach ($data['delete_images'] as $imageId) {
+                    $image = RoomImage::where('id', $imageId)->where('room_id', $room->id)->first();
+                    if ($image) {
+                        $this->deleteRoomImage($image->image_url);
+                        $image->delete();
+                    }
                 }
-                $room->images()->delete();
+            }
 
+            // Xử lý thêm hình ảnh mới
+            $failedUploads = [];
+            if (!empty($imageFiles)) {
                 $failedUploads = $this->processRoomImages($room->id, $imageFiles);
+            }
+
+            // Xử lý cập nhật ảnh chính (is_main)
+            $mainImageResult = $this->processMainImage($room->id, $mainImageId);
+            if (isset($mainImageResult['error'])) {
+                DB::rollBack();
+                return $mainImageResult;
             }
 
             if (isset($data['amenities'])) {
@@ -163,7 +314,7 @@ class RoomService {
 
             DB::commit();
 
-            $result = ['data' => $room->load(['motel', 'images', 'amenities'])];
+            $result = $this->successResponse($room->load(['motel', 'images', 'amenities']));
             if (!empty($failedUploads)) {
                 $result['warnings'] = ['failed_images' => $failedUploads];
             }
@@ -171,52 +322,58 @@ class RoomService {
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi cập nhật phòng trọ: ' . $e->getMessage(), 500);
         }
     }
 
-    public function deleteRoom(int $id): array {
+    // Xóa phòng trọ
+    public function deleteRoom(string $id): array
+    {
         DB::beginTransaction();
         try {
             $room = Room::find($id);
             if (!$room) {
-                return ['error' => 'Phòng trọ không tìm thấy', 'status' => 404];
+                return $this->errorResponse('Phòng trọ không tìm thấy', 404);
             }
             $room->delete();
 
             DB::commit();
-            return ['success' => true];
+            return $this->successResponse(true);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi xóa phòng trọ', 500);
         }
     }
 
-    public function restoreRoom(string $id): array {
+    // Khôi phục phòng trọ từ thùng rác
+    public function restoreRoom(string $id): array
+    {
         DB::beginTransaction();
         try {
             $room = Room::onlyTrashed()->find($id);
             if (!$room) {
-                return ['error' => 'Phòng trọ không tìm thấy trong thùng rác', 'status' => 404];
+                return $this->errorResponse('Phòng trọ không tìm thấy trong thùng rác', 404);
             }
             $room->restore();
 
             DB::commit();
-            return ['data' => $room->load(['motel', 'images', 'amenities'])];
+            return $this->successResponse($room->load(['motel', 'images', 'amenities']));
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi khôi phục phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi khôi phục phòng trọ', 500);
         }
     }
 
-    public function forceDeleteRoom(int $id): array {
+    // Xóa vĩnh viễn phòng trọ
+    public function permanentlyDeleteRoom(string $id): array
+    {
         DB::beginTransaction();
         try {
             $room = Room::withTrashed()->find($id);
             if (!$room) {
-                return ['error' => 'Phòng trọ không tìm thấy trong thùng rác', 'status' => 404];
+                return $this->errorResponse('Phòng trọ không tìm thấy', 404);
             }
 
             foreach ($room->images as $image) {
@@ -228,24 +385,73 @@ class RoomService {
             $room->forceDelete();
 
             DB::commit();
-            return ['success' => true];
+            return $this->successResponse(true);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa vĩnh viễn phòng trọ', 'status' => 500];
+            return $this->errorResponse('Đã xảy ra lỗi khi xóa vĩnh viễn phòng trọ', 500);
         }
     }
 
-    private function deleteRoomImage(string $imagePath): void {
+    // Xóa hình ảnh phòng trọ
+    public function deleteSingleRoomImage(int $imageId, int $roomId): array
+    {
+        DB::beginTransaction();
         try {
-            if ($imagePath) {
-                $filePath = str_replace('/storage/', '', $imagePath);
-                if (Storage::disk('public')->exists($filePath)) {
-                    Storage::disk('public')->delete($filePath);
+            $image = RoomImage::where('id', $imageId)->where('room_id', $roomId)->first();
+            if (!$image) {
+                return $this->errorResponse('Hình ảnh không tìm thấy', 404);
+            }
+
+            $isMainImage = $image->is_main == 1;
+            $imageUrl = $image->image_url;
+
+            // Xóa record trong database trước
+            $image->delete();
+
+            // Xóa file vật lý sau (không ảnh hưởng đến kết quả)
+            $this->deleteRoomImage($imageUrl);
+
+            // Nếu xóa hình ảnh chính, đặt hình đầu tiên còn lại làm hình chính
+            if ($isMainImage) {
+                $firstRemainingImage = RoomImage::where('room_id', $roomId)->first();
+                if ($firstRemainingImage) {
+                    $firstRemainingImage->is_main = 1;
+                    $firstRemainingImage->save();
                 }
             }
+
+            DB::commit();
+            return $this->successResponse(['message' => 'Hình ảnh đã được xóa thành công']);
         } catch (\Throwable $e) {
-            Log::error($e->getMessage());
+            DB::rollBack();
+            Log::error('Error deleting single room image: ' . $e->getMessage());
+            return $this->errorResponse('Đã xảy ra lỗi khi xóa hình ảnh: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // Xóa hình ảnh phòng trọ
+    private function deleteRoomImage(string $imagePath): bool
+    {
+        try {
+            // Chuẩn hóa đường dẫn hình ảnh
+            $filePath = str_replace('/storage/', '', $imagePath);
+
+            // Luôn trả về true để xóa được record trong database
+            // bất kể có xóa được file thực hay không
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+                Log::info('File deleted successfully: ' . $filePath);
+            } else {
+                // File không tồn tại nhưng không cần báo lỗi
+                Log::warning('File not found but continuing: ' . $filePath);
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            // Ghi log lỗi nhưng vẫn trả về true để xóa được record
+            Log::error('Error deleting image (continuing anyway): ' . $e->getMessage());
+            return true;
         }
     }
 }
