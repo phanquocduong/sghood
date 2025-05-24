@@ -19,6 +19,9 @@ class MotelService
             $query = $onlyTrashed ? Motel::onlyTrashed() : Motel::query();
             $query->with(['district', 'images', 'amenities']);
 
+            // Thêm withCount để đếm số lượng phòng
+            $query->withCount('rooms');
+
             $this->applyFilters($query, $querySearch, $status, $area);
             $this->applySorting($query, $sortOption);
 

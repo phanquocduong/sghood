@@ -7,7 +7,7 @@
         <div class="card shadow-sm border-0" style="border-radius: 15px;">
             <div class="card-header d-flex justify-content-between align-items-center bg-gradient text-white"
                 style="background: linear-gradient(90deg, #ff6f61, #ff9a76); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-                <h3 class="card-title mb-0">{{ __('Thùng rác quận/huyện') }}</h3>
+                <h3 class="card-title mb-0">{{ __('Thùng rác') }}</h3>
                 <div class="card-tools">
                     <a href="{{ route('districts.index') }}" class="btn btn-sm btn-light text-dark shadow-sm"
                         style="transition: all 0.3s;">
@@ -22,7 +22,28 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-
+                    <!-- tìm kiếm và lọc -->
+                      <div class="mb-4">
+                <form action="{{ route('districts.trash') }}" method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control shadow-sm" name="query" placeholder="Tìm kiếm khu vực..." value="{{ request('query','') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm" style="transition: all 0.3s;">Tìm</button>
+                    </div>
+                    <!-- lọc -->
+                    <div class="col-md-2">
+                        <select name="sortOption" class="form-select shadow-sm" onchange="this.form.submit()">
+                            <option value="created_at_desc" {{ request('sortOption') == 'created_at_desc' ? 'selected' : '' }}>Sắp xếp theo</option>
+                            <option value="name_asc" {{ request('sortOption') == 'name_asc' ? 'selected' : '' }}>Tên A-Z</option>
+                            <option value="name_dsc" {{ request('sortOption') == 'name_dsc' ? 'selected' : '' }}>Tên Z-A</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped align-middle">
                         <thead class="table-dark">

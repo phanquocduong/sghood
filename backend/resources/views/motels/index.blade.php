@@ -97,7 +97,7 @@
                                 </td>
                                 <td class="text-muted">{{ Str::limit($motel->description ?? 'Không có mô tả', 50) }}</td>
                                 <td>
-                                    <a href="#" class="text-success text-decoration-none">{{ $motel->room_count ?? 0 }} phòng</a>
+                                      <a href="{{ route('rooms.index', ['motel_id'=> $motel->id]) }}" class="text-success text-decoration-none">{{ $motel->rooms_count ?? 0 }} phòng</a>
                                 </td>
                                 <td>
                                     <span class="badge {{ $motel->status == 'Hoạt động' ? 'bg-success' : 'bg-danger' }} py-2 px-3">

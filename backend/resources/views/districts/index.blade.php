@@ -34,11 +34,19 @@
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control shadow-sm" name="search" placeholder="Tìm kiếm khu vực..." value="{{ request('search') }}">
+                            <input type="text" class="form-control shadow-sm" name="query" placeholder="Tìm kiếm khu vực..." value="{{ request('query','') }}">
                         </div>
                     </div>
                     <div class="col-md-1">
                         <button type="submit" class="btn btn-primary w-100 shadow-sm" style="transition: all 0.3s;">Tìm</button>
+                    </div>
+                    <!-- lọc -->
+                    <div class="col-md-2">
+                        <select name="sortOption" class="form-select shadow-sm" onchange="this.form.submit()">
+                            <option value="created_at_desc" {{ request('sortOption') == 'created_at_desc' ? 'selected' : '' }}>Sắp xếp theo</option>
+                            <option value="name_asc" {{ request('sortOption') == 'name_asc' ? 'selected' : '' }}>Tên A-Z</option>
+                            <option value="name_dsc" {{ request('sortOption') == 'name_dsc' ? 'selected' : '' }}>Tên Z-A</option>
+                        </select>
                     </div>
                 </form>
             </div>
@@ -124,8 +132,4 @@
         color: #007bff !important;
     }
 </style>
-
-@section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-@endsection
 @endsection

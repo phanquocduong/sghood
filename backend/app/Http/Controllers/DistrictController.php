@@ -17,9 +17,14 @@ class DistrictController extends Controller
 
     public function index(Request $request)
     {
-        $querySearch = $request->get('query', '');
-        $sortOption = $request->get('sortOption', '');
-        $perPage = $request->get('perPage', 25);
+        // $querySearch = $request->get('query', '');
+        // $sortOption = $request->input('sortOption', '');
+        
+    $querySearch = (string) $request->input('query', '');
+    $sortOption = (string) $request->input('sortOption', '');
+    $perPage = (int) $request->get('perPage', 25);
+    
+    // $result = $this->districtService->getDistrictsList($query, $sortOption, $perPage);
 
         $result = $this->districtService->getAvailableDistricts($querySearch, $sortOption, $perPage);
 
@@ -94,9 +99,9 @@ class DistrictController extends Controller
 
     public function trash(Request $request)
     {
-        $querySearch = $request->get('query', '');
-        $sortOption = $request->get('sortOption', '');
-        $perPage = $request->get('perPage', 25);
+        $querySearch = (string) $request->get('query', '');
+        $sortOption = (string) $request->get('sortOption', '');
+        $perPage = (int) $request->get('perPage', 25);
 
         $result = $this->districtService->getTrashedDistricts($querySearch, $sortOption, $perPage);
 

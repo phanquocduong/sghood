@@ -27,15 +27,23 @@ class Motel extends Model
         'status',
     ];
 
-    public function district() {
+    public function district()
+    {
         return $this->belongsTo(District::class, 'district_id');
     }
 
-    public function images() {
+    public function images()
+    {
         return $this->hasMany(MotelImage::class);
     }
 
-    public function amenities() {
+    public function amenities()
+    {
         return $this->belongsToMany(Amenity::class, 'motel_amenities', 'motel_id', 'amenity_id');
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(Room::class);
     }
 }
