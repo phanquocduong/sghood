@@ -138,7 +138,7 @@
                             <input type="file" class="form-control shadow-sm" id="images" name="images[]" accept="image/*" multiple>
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Bạn có thể thêm hình ảnh mới hoặc giữ nguyên hình ảnh hiện tại. Định dạng hỗ trợ: JPG, PNG, GIF. Tối đa 5MB mỗi file.
+                                Bạn có thể thêm hình ảnh mới hoặc giữ nguyên hình ảnh hiện tại. Định dạng hỗ trợ: JPG, PNG, GIF, Webp. Tối đa 5MB mỗi file.
                             </small>
                             <div id="image-preview" class="row g-2 mt-3"></div>
                         </div>

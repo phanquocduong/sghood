@@ -86,6 +86,10 @@
                     <div class="col-12">
                         <label for="images" class="form-label fw-bold text-primary">Hình ảnh <span class="text-danger">*</span></label>
                         <input type="file" class="form-control shadow-sm @error('images') is-invalid @enderror" id="images" name="images[]" accept="image/*" multiple required>
+                        <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Bạn có thể thêm 1 hình hoặc nhiều hình. Định dạng hỗ trợ: JPG, PNG, GIF, Webp. Tối đa 5MB mỗi file.
+                            </small>
                         <div id="image-preview" class="row g-2 mt-3"></div>
                         @error('images')
                             <div class="invalid-feedback">{{ $message }}</div>
