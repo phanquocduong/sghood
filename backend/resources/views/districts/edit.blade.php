@@ -21,24 +21,18 @@
             <h6 class="mb-0 fw-bold">{{ __('Chỉnh sửa khu vực') }}</h6>
         </div>
         <div class="card-body p-4">
-            @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__shakeX" role="alert">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            <form action="{{ route('districts.update', $district->id) }}" method="POST" enctype="multipart/form-data" id="districtForm">
+            <form action="{{ route('districts.update', $district->id) }}" method="POST" enctype="multipart/form-data" id="districtForm" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="name" class="form-label fw-bold text-primary">Tên khu vực</label>
-                        <input type="text" class="form-control shadow-sm" id="name" name="name" value="{{ old('name', $district->name) }}" required>
+                        <input type="text" class="form-control shadow-sm {{ $errors->has('name') ? 'is-invalid' : '' }}" id="name" name="name" value="{{ old('name', $district->name) }}" required>
+                        @if ($errors->has('name'))
+                            <div class="invalid-feedback">
+                                {{ $errors->first('name') }}
+                            </div>
+                        @endif
                     </div>
                     <div class="col-12">
                         <label for="image" class="form-label fw-bold text-primary">Ảnh khu vực hiện tại</label>
@@ -50,7 +44,12 @@
                             @endif
                         </div>
                         <label for="image" class="form-label fw-bold text-primary">Thêm ảnh mới</label>
-                        <input type="file" class="form-control shadow-sm" id="images" name="image" accept="image/*">
+                        <input type="file" class="form-control shadow-sm {{ $errors->has('image') ? 'is-invalid' : '' }}" id="images" name="image" accept="image/*">
+                        @if ($errors->has('image'))
+                            <div class="invalid-feedback">
+                                {{ $errors->first('image') }}
+                            </div>
+                        @endif
                         <div id="image-preview" class="row g-2 mt-3"></div>
                     </div>
                 </div>
@@ -98,8 +97,4 @@
         border-left-color: #dc3545;
     }
 </style>
-
-@section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-@endsection
 @endsection

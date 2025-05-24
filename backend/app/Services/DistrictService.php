@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
-class DistrictService {
-    private function fetchDistricts(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array {
+class DistrictService
+{
+    private function fetchDistricts(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array
+    {
         try {
             $query = $onlyTrashed ? District::onlyTrashed() : District::query();
             $query->with(['motels']);
@@ -31,7 +33,10 @@ class DistrictService {
         }
     }
 
-    public function getAllDistricts(): array {
+   
+
+    public function getAllDistricts(): array
+    {
         try {
             $districts = District::all();
             return ['data' => $districts];
@@ -41,12 +46,14 @@ class DistrictService {
         }
     }
 
-    private function applySorting($query, string $sortOption): void {
+    private function applySorting($query, string $sortOption): void
+    {
         $sort = $this->handleSortOption($sortOption);
         $query->orderBy($sort['field'], $sort['order']);
     }
 
-    private function handleSortOption(string $sortOption): array {
+    private function handleSortOption(string $sortOption): array
+    {
         switch ($sortOption) {
             case 'name_asc':
                 return ['field' => 'name', 'order' => 'asc'];
@@ -61,15 +68,18 @@ class DistrictService {
         }
     }
 
-    public function getAvailableDistricts(string $querySearch, string $sortOption, int $perPage): array {
+    public function getAvailableDistricts(string $querySearch, string $sortOption, int $perPage): array
+    {
         return $this->fetchDistricts(false, $querySearch, $sortOption, $perPage);
     }
 
-    public function getTrashedDistricts(string $querySearch, string $sortOption, int $perPage): array {
+    public function getTrashedDistricts(string $querySearch, string $sortOption, int $perPage): array
+    {
         return $this->fetchDistricts(true, $querySearch, $sortOption, $perPage);
     }
 
-    public function getDistrict(int $id, bool $onlyTrashed = false): array {
+    public function getDistrict(int $id, bool $onlyTrashed = false): array
+    {
         try {
             $query = $onlyTrashed ? District::onlyTrashed() : District::query();
             $query->with(['motels']);
@@ -85,7 +95,8 @@ class DistrictService {
         }
     }
 
-    public function createDistrict(array $data, UploadedFile $imageFile): array {
+    public function createDistrict(array $data, UploadedFile $imageFile): array
+    {
         DB::beginTransaction();
         try {
             $failedUpload = false;
@@ -111,7 +122,8 @@ class DistrictService {
         }
     }
 
-    private function uploadDistrictImage(UploadedFile $imageFile): string|false {
+    private function uploadDistrictImage(UploadedFile $imageFile): string|false
+    {
         try {
             $manager = new ImageManager(new Driver());
             $filename = 'images/districts/district-' . time() . '.' . 'webp';
@@ -125,7 +137,8 @@ class DistrictService {
         }
     }
 
-    public function updateDistrict(int $id, array $data, ?UploadedFile $imageFile = null): array {
+    public function updateDistrict(int $id, array $data, ?UploadedFile $imageFile = null): array
+    {
         DB::beginTransaction();
         try {
             $district = District::find($id);
@@ -159,10 +172,15 @@ class DistrictService {
         }
     }
 
-    public function deleteDistrict(int $id): array {
+    public function deleteDistrict(int $id): array
+    {
         DB::beginTransaction();
         try {
             $district = District::find($id);
+            // kiểm tra khoá ngoại
+            if ($district->motels()->count() > 0) {
+                return ['error' => 'Không thể xóa khu vực này vì có nhà trọ liên quan', 'status' => 400];
+            }
             if (!$district) {
                 return ['error' => 'Khu vực không tìm thấy', 'status' => 404];
             }
@@ -177,7 +195,8 @@ class DistrictService {
         }
     }
 
-    public function restoreDistrict(int $id): array {
+    public function restoreDistrict(int $id): array
+    {
         DB::beginTransaction();
         try {
             $district = District::onlyTrashed()->find($id);
@@ -195,7 +214,8 @@ class DistrictService {
         }
     }
 
-    public function forceDeleteDistrict(int $id): array {
+    public function forceDeleteDistrict(int $id): array
+    {
         DB::beginTransaction();
         try {
             $district = District::onlyTrashed()->find($id);
@@ -214,7 +234,8 @@ class DistrictService {
         }
     }
 
-    private function deleteDistrictImage(string $imagePath): void {
+    private function deleteDistrictImage(string $imagePath): void
+    {
         try {
             if ($imagePath) {
                 $filePath = str_replace('/storage/', '', $imagePath);

@@ -21,7 +21,7 @@
             <h6 class="mb-0 fw-bold">{{ __('Thêm khu vực') }}</h6>
         </div>
         <div class="card-body p-4">
-            @if ($errors->any())
+            <!-- @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show animate__animated animate__shakeX" role="alert">
                     <ul class="mb-0">
                         @foreach ($errors->all() as $error)
@@ -30,18 +30,28 @@
                     </ul>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            @endif
+            @endif -->
 
-            <form action="{{ route('districts.store') }}" method="POST" enctype="multipart/form-data" id="districtForm">
+            <form action="{{ route('districts.store') }}" method="POST" enctype="multipart/form-data" id="districtForm" novalidate>
                 @csrf
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="name" class="form-label fw-bold text-primary">Tên khu vực</label>
-                        <input type="text" class="form-control shadow-sm" id="name" name="name" value="{{ old('name') }}" required>
+                        <input type="text" class="form-control shadow-sm {{ $errors->has('name') ? 'is-invalid' : '' }}" id="name" name="name" value="{{ old('name') }}" required>
+                        @if ($errors->has('name'))
+                            <div class="invalid-feedback">
+                                {{ $errors->first('name') }}
+                            </div>
+                        @endif
                     </div>
                     <div class="col-12">
                         <label for="image" class="form-label fw-bold text-primary">Ảnh khu vực</label>
-                        <input type="file" class="form-control shadow-sm" id="images" name="image" accept="image/*">
+                        <input type="file" class="form-control shadow-sm {{ $errors->has('image') ? 'is-invalid' : '' }}" id="images" name="image" accept="image/*">
+                        @if ($errors->has('image'))
+                            <div class="invalid-feedback">
+                                {{ $errors->first('image') }}
+                            </div>
+                        @endif
                         <div id="image-preview" class="row g-2 mt-3"></div>
                     </div>
                 </div>
