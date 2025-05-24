@@ -23,9 +23,9 @@ class RegisterRequest extends FormRequest
     {
         return [
             'id_token' => 'required|string',
-            'name' => 'required|string|max:100',
+            'name' => 'required|string|min:2|max:100',
             'email' => 'required|email|max:255|unique:users,email',
-            'birthdate' => 'required|date',
+            'birthdate' => 'required|date|before:today',
         ];
     }
 
@@ -39,15 +39,20 @@ class RegisterRequest extends FormRequest
         return [
             'id_token.required' => 'Vui lòng cung cấp token xác thực.',
             'id_token.string' => 'Token xác thực phải là một chuỗi ký tự.',
+
             'name.required' => 'Vui lòng nhập họ và tên.',
             'name.string' => 'Họ và tên phải là một chuỗi ký tự.',
+            'name.min' => 'Họ và tên phải có ít nhất 2 ký tự.',
             'name.max' => 'Họ và tên không được vượt quá 100 ký tự.',
+
             'email.required' => 'Vui lòng nhập địa chỉ email.',
             'email.email' => 'Địa chỉ email không hợp lệ.',
             'email.max' => 'Địa chỉ email không được vượt quá 255 ký tự.',
             'email.unique' => 'Địa chỉ email này đã được sử dụng.',
+
             'birthdate.required' => 'Vui lòng nhập ngày sinh.',
             'birthdate.date' => 'Ngày sinh không hợp lệ.',
+            'birthdate.before' => 'Ngày sinh phải trước ngày hôm nay.',
         ];
     }
 }

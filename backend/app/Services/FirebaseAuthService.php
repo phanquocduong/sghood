@@ -1,22 +1,24 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Auth as FirebaseAuth;
+use Kreait\Firebase\Exception\FirebaseException;
 
 class FirebaseAuthService
 {
     protected $firebaseAuth;
 
-    public function __construct(FirebaseAuth $firebaseAuth)
-    {
+    public function __construct(FirebaseAuth $firebaseAuth) {
         $this->firebaseAuth = $firebaseAuth;
     }
 
-    public function verifyToken(string $idToken)
-    {
+    public function verifyToken(string $idToken) {
+        if (empty($idToken)) {
+            throw new \InvalidArgumentException('ID Token không được để trống');
+        }
+
         try {
             $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
             return $verifiedToken->claims()->get('phone_number');
@@ -25,31 +27,56 @@ class FirebaseAuthService
         }
     }
 
-    public function authenticate(string $idToken)
-    {
+    protected function setCustomClaims(string $uid, array $claims) {
+        try {
+            $this->firebaseAuth->setCustomUserClaims($uid, $claims);
+            Log::info("Custom claims set for user {$uid}: ", $claims);
+        } catch (FirebaseException $e) {
+            Log::error("Failed to set custom claims for user {$uid}: " . $e->getMessage());
+            throw new \Exception('Không thể thiết lập vai trò người dùng: ' . $e->getMessage());
+        }
+    }
+
+    public function authenticate(string $idToken, string $type) {
         try {
             $phone = $this->verifyToken($idToken);
             $user = User::where('phone', $phone)->first();
 
             if (!$user) {
-                return response()->json(['message' => 'Người dùng chưa tồn tại'], 200);
+                return ['error' => 'Người dùng chưa tồn tại', 'status' => 200];
             }
 
-            return response()->json(['message' => 'Đăng nhập thành công'])
-                ->cookie('firebase_token', $idToken, 60, null, null, true, true, false, 'Strict');
+            if ($type === 'admin' && $user->role !== 'Quản trị viên') {
+                return ['error' => 'Chỉ Quản trị viên được phép đăng nhập', 'status' => 403];
+            }
+
+            // Lấy UID từ token
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+
+            // Thêm role vào Custom Claims
+            $this->setCustomClaims($uid, ['role' => $user->role]);
+
+            return [
+                'data' => [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'role' => $user->role
+                ]
+            ];
         } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 401);
+            Log::error('Authentication failed: ' . $e->getMessage());
+            return ['error' => $e->getMessage(), 'status' => 401];
         }
     }
 
-    public function register(string $idToken, array $data)
-    {
+    public function register(string $idToken, array $data) {
         try {
             $phone = $this->verifyToken($idToken);
             $user = User::where('phone', $phone)->first();
 
             if ($user) {
-                return response()->json(['error' => 'Số điện thoại đã được sử dụng.'], 400);
+                return ['error' => 'Số điện thoại đã được sử dụng.', 'status' => 400];
             }
 
             $user = User::create([
@@ -59,16 +86,51 @@ class FirebaseAuthService
                 'birthdate' => $data['birthdate'],
             ]);
 
-            return response()->json(['message' => 'Đăng ký thành công'])
-                ->cookie('firebase_token', $idToken, 60, null, null, true, true, false, 'Strict');
+            // Lấy UID từ token
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+
+            // Thêm role vào Custom Claims
+            $this->setCustomClaims($uid, ['role' => $user->role]);
+
+            return ['data' => [
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'role' => $user->role
+            ]];
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Đăng ký thất bại: ' . $e->getMessage()], 401);
+            Log::error('Registration failed: ' . $e->getMessage());
+            return ['error' => 'Đăng ký thất bại: ' . $e->getMessage(), 'status' => 401];
         }
     }
 
-    public function logout()
-    {
-        return response()->json(['message' => 'Đăng xuất thành công'])
-            ->cookie('firebase_token', '', -1);
+    public function getCurrentUserFromToken(string $idToken): array {
+        try {
+            $verifiedToken = $this->firebaseAuth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+            $phone = $verifiedToken->claims()->get('phone_number');
+            $claims = $verifiedToken->claims()->all();
+            $role = $claims['role'] ?? null;
+
+            if (!$role) {
+                throw new \Exception('Vai trò người dùng không được thiết lập');
+            }
+
+            $user = User::where('phone', $phone)->first();
+
+            if (!$user) {
+                throw new \Exception('Người dùng không tồn tại trong hệ thống');
+            }
+
+            return [
+                'uid' => $uid,
+                'phone' => $phone,
+                'role' => $role,
+                'user' => $user,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Failed to verify current user: ' . $e->getMessage());
+            throw new \Exception('Xác thực người dùng thất bại: ' . $e->getMessage());
+        }
     }
 }

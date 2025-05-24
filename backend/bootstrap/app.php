@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors; // Thêm dòng này
+use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,9 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'firebase' => \App\Http\Middleware\FirebaseAuth::class
+            'firebase' => \App\Http\Middleware\FirebaseAuth::class,
+            'role' => \App\Http\Middleware\CheckRole::class
         ]);
-        $middleware->append(HandleCors::class); // Thêm HandleCors vào global middleware
+        $middleware->append(HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

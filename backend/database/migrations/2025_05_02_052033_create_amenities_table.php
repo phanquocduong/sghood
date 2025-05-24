@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,6 +16,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->enum('type', ['Nhà trọ', 'Phòng trọ']);
+            $table->integer('order')->nullable();
+            $table->enum('status', ['Hoạt động', 'Không hoạt động'])->default('Hoạt động');
             $table->timestamps();
             $table->softDeletes();
         });
