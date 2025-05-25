@@ -7,19 +7,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Motel extends Model
 {
-<<<<<<< HEAD
-    //
-    use SoftDeletes;
-    protected $table = 'motels';
-    protected $fillable = [
-=======
     use SoftDeletes;
 
     protected $table = 'motels';
 
     protected $fillable = [
         'slug',
->>>>>>> c14dba2a2a1f22021302817e49c3de4d0139684f
         'address',
         'district_id',
         'map_embed_url',
@@ -33,16 +26,6 @@ class Motel extends Model
         'status',
     ];
 
-<<<<<<< HEAD
-    // public function district()
-    // {
-    //     return $this->belongsTo(District::class, 'district_id');
-    // }
-    // public function images()
-    // {
-    //     return $this->hasMany(MotelImage::class, 'motel_id');
-    // }
-=======
     public function district() {
         return $this->belongsTo(District::class, 'district_id');
     }
@@ -54,5 +37,4 @@ class Motel extends Model
     public function amenities() {
         return $this->belongsToMany(Amenity::class, 'motel_amenities', 'motel_id', 'amenity_id');
     }
->>>>>>> c14dba2a2a1f22021302817e49c3de4d0139684f
 }
