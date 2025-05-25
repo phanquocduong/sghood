@@ -15,13 +15,12 @@ class Room extends Model
         'area',
         'status',
         'motel_id',
+        'description',
+        'note',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
-    // protected $casts = [
-    //     'status' => 'string',
-    // ];
     public function motel()
     {
         return $this->belongsTo(Motel::class, 'motel_id');
@@ -33,5 +32,17 @@ class Room extends Model
     public function amenities()
     {
         return $this->belongsToMany(Amenity::class, 'room_amenities', 'room_id', 'amenity_id');
+    }
+    public function getMainImageAttribute()
+    {
+        // Tìm hình ảnh có is_main = 1
+        $mainImage = $this->images->firstWhere('is_main', 1);
+
+        // Nếu không tìm thấy, sử dụng hình đầu tiên (nếu có)
+        if (!$mainImage && $this->images->count() > 0) {
+            $mainImage = $this->images->first();
+        }
+
+        return $mainImage;
     }
 }

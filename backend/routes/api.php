@@ -20,6 +20,3 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])-
 Route::get('/xac-minh-email', function (Request $request) {
     return redirect()->to('/xac-minh-email?' . http_build_query($request->query()));
 })->name('verification.redirect');
-
-
-

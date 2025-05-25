@@ -13,6 +13,7 @@ class Motel extends Model
 
     protected $fillable = [
         'slug',
+        'name',
         'address',
         'district_id',
         'map_embed_url',
@@ -26,15 +27,23 @@ class Motel extends Model
         'status',
     ];
 
-    public function district() {
+    public function district()
+    {
         return $this->belongsTo(District::class, 'district_id');
     }
 
-    public function images() {
-        return $this->hasMany(MotelImage::class, 'motel_id');
+    public function images()
+    {
+        return $this->hasMany(MotelImage::class);
     }
 
-    public function amenities() {
+    public function amenities()
+    {
         return $this->belongsToMany(Amenity::class, 'motel_amenities', 'motel_id', 'amenity_id');
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(Room::class);
     }
 }
