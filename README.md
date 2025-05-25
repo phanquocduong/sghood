@@ -5,8 +5,7 @@ Website quản lý thuê trọ thông minh tại TP.HCM.
 ## Cấu trúc
 
 -   `backend/`: Laravel API cho user và admin.
--   `frontend/user/`: Nuxt app cho người thuê trọ.
--   `frontend/admin/`: Nuxt app cho chủ trọ.
+-   `frontend/`: Nuxt app cho người thuê trọ.
 
 ## Cài đặt
 
@@ -19,7 +18,7 @@ Website quản lý thuê trọ thông minh tại TP.HCM.
     - `php artisan migrate`
 3. Frontend:
 
-    - `cd frontend/user` hoặc `cd frontend/admin`
+    - `cd frontend`
     - `npm install`
     - `npm dev`
 
