@@ -9,8 +9,8 @@
             <!-- User Menu if user is logged in -->
             <div v-show="user" class="user-menu">
                 <div class="user-name">
-                    <span><img :src="user?.photoURL || '/images/dashboard-avatar.jpg'" alt="Avatar" /></span>
-                    Xin chào, {{ user?.displayName || 'Người dùng' }}!
+                    <span><img :src="user?.avatar || '/images/dashboard-avatar.jpg'" alt="Avatar" /></span>
+                    Xin chào, {{ user?.name || 'Người dùng' }}!
                 </div>
                 <ul>
                     <li>
@@ -23,7 +23,7 @@
                         <NuxtLink to="/dashboard-bookings"><i class="fa fa-calendar-check-o"></i> Đặt phòng</NuxtLink>
                     </li>
                     <li>
-                        <a href="#" @click.prevent="logout"><i class="sl sl-icon-power"></i> Đăng xuất</a>
+                        <a href="#" @click.prevent="authStore.logout"><i class="sl sl-icon-power"></i> Đăng xuất</a>
                     </li>
                 </ul>
             </div>
@@ -32,9 +32,10 @@
 </template>
 
 <script setup>
-import { useAuth } from '~/composables/useAuth';
+import { useAuthStore } from '~/stores/auth';
 
-const { user, logout } = useAuth();
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
 </script>
 
 <style lang="scss" scoped></style>

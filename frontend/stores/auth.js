@@ -1,0 +1,194 @@
+import { ref } from 'vue';
+import { defineStore } from 'pinia';
+import { useToast } from 'vue-toastification';
+import { useRouter } from 'vue-router';
+import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
+
+export const useAuthStore = defineStore('auth', () => {
+    const toast = useToast();
+    const router = useRouter();
+    const { $api } = useNuxtApp();
+    const { sendOTP, verifyOTP, getIdToken, signOut } = useFirebaseAuth();
+    const config = useRuntimeConfig();
+
+    // State
+    const username = ref('');
+    const password = ref('');
+    const confirmPassword = ref('');
+    const phone = ref('');
+    const otp = ref('');
+    const otpSent = ref(false);
+    const showRegisterFields = ref(false);
+    const name = ref('');
+    const email = ref('');
+    const loading = ref(false);
+    const user = ref(null);
+
+    // Methods
+    const handleBackendError = error => {
+        const data = error.response?._data;
+        if (data?.error) {
+            toast.error(data.error);
+            return;
+        }
+        if (data?.errors) {
+            Object.values(data.errors).forEach(err => toast.error(err[0]));
+            return;
+        }
+        toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
+    };
+
+    const closePopup = () => {
+        if (typeof window !== 'undefined' && window.$.magnificPopup) {
+            window.$.magnificPopup.close();
+        }
+    };
+
+    const resetForm = () => {
+        username.value = '';
+        password.value = '';
+        confirmPassword.value = '';
+        phone.value = '';
+        otp.value = '';
+        name.value = '';
+        email.value = '';
+        otpSent.value = false;
+        showRegisterFields.value = false;
+    };
+
+    const getCsrfCookie = async () => {
+        if (typeof window === 'undefined') return;
+        await $fetch(`${config.public.baseUrl}/sanctum/csrf-cookie`, { method: 'GET' });
+    };
+
+    const loginUser = async () => {
+        try {
+            loading.value = true;
+            await getCsrfCookie();
+            const response = await $api('/login', {
+                method: 'POST',
+                body: { username: username.value, password: password.value },
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+
+            user.value = response.data;
+            resetForm();
+            closePopup();
+            toast.success('Đăng nhập thành công!');
+        } catch (error) {
+            handleBackendError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const registerUser = async () => {
+        if (password.value !== confirmPassword.value) {
+            toast.error('Mật khẩu xác nhận không khớp!');
+            return;
+        }
+
+        try {
+            loading.value = true;
+            await getCsrfCookie();
+            const idToken = await getIdToken();
+            if (!idToken) {
+                toast.error('Không thể lấy token xác thực!');
+                return;
+            }
+
+            await $api('/register', {
+                method: 'POST',
+                body: {
+                    id_token: idToken,
+                    phone: phone.value,
+                    name: name.value,
+                    email: email.value,
+                    password: password.value,
+                    password_confirmation: confirmPassword.value
+                },
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+
+            resetForm();
+            closePopup();
+            await signOut();
+            toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.');
+        } catch (error) {
+            handleBackendError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const logout = async () => {
+        try {
+            loading.value = true;
+            await getCsrfCookie();
+            await $api('/logout', {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            user.value = null;
+            router.push('/');
+            toast.success('Đăng xuất thành công!');
+            resetForm();
+        } catch (error) {
+            toast.error('Lỗi đăng xuất. Vui lòng thử lại.');
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const fetchUser = async () => {
+        if (typeof window === 'undefined') return;
+
+        try {
+            const response = await $api('/user', { method: 'GET' });
+            user.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch user:', error);
+            user.value = null;
+        }
+    };
+
+    return {
+        username,
+        password,
+        confirmPassword,
+        phone,
+        otp,
+        otpSent,
+        showRegisterFields,
+        name,
+        email,
+        loading,
+        user,
+        sendOTP: async () => {
+            loading.value = true;
+            const success = await sendOTP(phone.value);
+            if (success) {
+                otpSent.value = true;
+            }
+            loading.value = false;
+        },
+        verifyOTP: async () => {
+            loading.value = true;
+            const success = await verifyOTP(otp.value);
+            if (success) {
+                showRegisterFields.value = true;
+            }
+            loading.value = false;
+        },
+        loginUser,
+        registerUser,
+        logout,
+        fetchUser
+    };
+});

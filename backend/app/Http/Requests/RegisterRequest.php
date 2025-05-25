@@ -22,10 +22,10 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_token' => 'required|string',
-            'name' => 'required|string|min:2|max:100',
-            'email' => 'required|email|max:255|unique:users,email',
-            'birthdate' => 'required|date|before:today',
+            'phone' => 'required|string|unique:users,phone',
+            'name' => 'required|string|min:2|max:255',
+            'email' => 'required|email|unique:users,email|max:255',
+            'password' => 'required|string|min:8|confirmed'
         ];
     }
 
@@ -37,22 +37,24 @@ class RegisterRequest extends FormRequest
     public function messages()
     {
         return [
-            'id_token.required' => 'Vui lòng cung cấp token xác thực.',
-            'id_token.string' => 'Token xác thực phải là một chuỗi ký tự.',
+            'phone.required' => 'Vui lòng nhập số điện thoại.',
+            'phone.string' => 'Số điện thoại phải là một chuỗi ký tự.',
+            'phone.unique' => 'Số điện thoại này đã được sử dụng.',
 
             'name.required' => 'Vui lòng nhập họ và tên.',
             'name.string' => 'Họ và tên phải là một chuỗi ký tự.',
             'name.min' => 'Họ và tên phải có ít nhất 2 ký tự.',
-            'name.max' => 'Họ và tên không được vượt quá 100 ký tự.',
+            'name.max' => 'Họ và tên không được vượt quá 255 ký tự.',
 
             'email.required' => 'Vui lòng nhập địa chỉ email.',
             'email.email' => 'Địa chỉ email không hợp lệ.',
-            'email.max' => 'Địa chỉ email không được vượt quá 255 ký tự.',
             'email.unique' => 'Địa chỉ email này đã được sử dụng.',
+            'email.max' => 'Địa chỉ email không được vượt quá 255 ký tự.',
 
-            'birthdate.required' => 'Vui lòng nhập ngày sinh.',
-            'birthdate.date' => 'Ngày sinh không hợp lệ.',
-            'birthdate.before' => 'Ngày sinh phải trước ngày hôm nay.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.string' => 'Mật khẩu phải là một chuỗi ký tự.',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự.',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp.'
         ];
     }
 }

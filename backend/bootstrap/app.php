@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,11 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias([
-            'firebase' => \App\Http\Middleware\FirebaseAuth::class,
-            'role' => \App\Http\Middleware\CheckRole::class
-        ]);
+        $middleware->statefulApi();
         $middleware->append(HandleCors::class);
+        $middleware->alias([
+            'admin' => EnsureIsAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
