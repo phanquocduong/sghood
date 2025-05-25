@@ -10,152 +10,55 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class UserService
 {
-    public function fetchUsers(bool $onlyTrashed, string $querySearch, string $status, string $sortOption, int $perPage): array {
-        try {
-            $query = $onlyTrashed ? User::onlyTrashed() : User::query();
+    public function getFilteredUsers(Request $request)
+    {
+        $query = User::query();
 
-            $this->applyFilters($query, $querySearch, $status);
-            $this->applySorting($query, $sortOption);
-
-            $users = $query->paginate($perPage);
-
-            return ['data' => $users];
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách người dùng', 'status' => 500];
-        }
-    }
-
-    private function applyFilters($query, string $querySearch, string $status): void {
-        if ($querySearch !== '') {
-            $query->where('name', 'like', '%' . $querySearch . '%')
-                  ->orWhere('email', 'like', '%' . $querySearch . '%');
+        // Lọc theo từ khóa (tên hoặc email)
+        if ($request->filled('keyword')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->keyword . '%')
+                  ->orWhere('email', 'like', '%' . $request->keyword . '%');
+            });
         }
 
-        if (!empty($status)) {
-            $query->where('status', $status);
+        // Lọc theo vai trò
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
         }
-    }
 
-    private function applySorting($query, string $sortOption): void {
-        $sort = $this->handleSortOption($sortOption);
-        $query->orderBy($sort['field'], $sort['order']);
-    }
-
-    public function handleSortOption(string $sortOption): array {
-        switch ($sortOption) {
-            case 'name_asc':
-                return ['field' => 'name', 'order' => 'asc'];
-            case 'name_desc':
-                return ['field' => 'name', 'order' => 'desc'];
-            case 'created_at_asc':
-                return ['field' => 'created_at', 'order' => 'asc'];
-            case 'created_at_desc':
-                return ['field' => 'created_at', 'order' => 'desc'];
-            default:
-                return ['field' => 'created_at', 'order' => 'desc'];
+        // Lọc theo trạng thái
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
-    }
-
-    public function getAllUsers(string $querySearch, $status, string $sortOption, int $perPage): array {
-        return $this->fetchUsers(false, $querySearch, $status, $sortOption, $perPage);
-    }
-
-    public function getUser(int $id): array {
-        try {
-            $user = User::find($id);
-            if (!$user) {
-                return ['error' => 'Người dùng không tìm thấy', 'status' => 404];
+        // Sắp xếp theo lựa chọn
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'name_asc':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'created_at_asc':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'created_at_desc':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                default:
+                    $query->orderBy('created_at', 'desc');
+                    break;
             }
-
-            return ['data' => $user];
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lấy người dùng', 'status' => 500];
-        }
-    }
-
-    public function update(string $id, array $data, array $imageFiles): array {
-        DB::beginTransaction();
-        try {
-            $user = User::find($id);
-            if (!$user) {
-                return ['error' => 'Người dùng không tìm thấy', 'status' => 404];
-            }
-
-            $failedUploads = $this->processUserImages($user, $data, $imageFiles);
-
-            $user->update($data);
-
-            DB::commit();
-
-            $result = ['data' => $user];
-            if (!empty($failedUploads)) {
-                $result['warnings'] = ['failed_images' => $failedUploads];
-            }
-            return $result;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật người dùng', 'status' => 500];
-        }
-    }
-
-    private function processUserImages(User $user, array &$data, array $imageFiles): array {
-        $failedUploads = [];
-        $fields = [
-            'avatar' => 'avatars',
-            'front_id_card_image' => 'id_cards',
-            'back_id_card_image' => 'id_cards',
-        ];
-
-        foreach ($fields as $field => $folder) {
-            if (isset($imageFiles[$field]) && $imageFiles[$field] instanceof UploadedFile) {
-                if ($user->$field) {
-                    $this->deleteUserImage($user->$field);
-                }
-                $imagePath = $this->uploadUserImage($imageFiles[$field], $folder, $user->name);
-                if ($imagePath) {
-                    $data[$field] = $imagePath;
-                } else {
-                    $failedUploads[] = $imageFiles[$field]->getClientOriginalName();
-                }
-            }
+        } else {
+            $query->orderBy('created_at', 'desc'); // Mặc định nếu không có sort
         }
 
-        return $failedUploads;
-    }
 
-    private function uploadUserImage(UploadedFile $imageFile, string $folder, string $userName): string|false {
-        try {
-            $manager = new ImageManager(new Driver());
-            $baseName = Str::slug($userName, '_') . '-' . time() . '-' . uniqid();
-            $filename = "images/users/$folder/$baseName.webp";
-
-            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
-
-            Storage::disk('public')->put($filename, $image);
-
-            return Storage::url($filename);
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
-            return false;
-        }
-    }
-
-    private function deleteUserImage(string $imagePath): void {
-        try {
-            if ($imagePath) {
-                $filePath = str_replace('/storage/', '', $imagePath);
-                if (Storage::disk('public')->exists($filePath)) {
-                    Storage::disk('public')->delete($filePath);
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
-        }
+        return $query->paginate(10)->withQueryString();
     }
 }

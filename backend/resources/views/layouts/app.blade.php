@@ -27,6 +27,10 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papAM6XubtQewKs1lW3K+ZPMg...=="
+crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="container-fluid position-relative bg-white d-flex p-0">
@@ -68,6 +72,5 @@
     <script src="{{ asset('js/system.js') }}"></script>
     <script src="{{ asset('js/room-edit.js') }}"></script>
     <script src="{{ asset('js/room.js') }}"></script>
-
 </body>
 </html>

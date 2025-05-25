@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
 use App\Http\Controllers\RoomController;
@@ -68,4 +69,11 @@ Route::prefix('amenities')->name('amenities.')->group(function () {
     Route::delete('/{id}', [AmenityController::class, 'destroy'])->name('destroy');
     Route::post('/restore/{id}', [AmenityController::class, 'restore'])->name('restore');
     Route::delete('/force-delete/{id}', [AmenityController::class, 'forceDelete'])->name('forceDelete');
+});
+
+// user routes
+Route::prefix('users')->name('users.')->group(function () {
+     Route::get('/', [UserController::class, 'index'])->name('user');
+    Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
+    Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
 });

@@ -14,19 +14,19 @@
                 <span>Admin</span>
             </div>
         </div>
-        <div class="navbar-nav w-100">
-            <!-- Quản lý tổng quan -->
-            <a href="index.html" class="nav-item nav-link {{ request()->is('/') || request()->is('index.html') ? 'active' : '' }}"><i class="fa fa-tachometer-alt me-2"></i>Tổng quan</a>
-            <a href="notification.html" class="nav-item nav-link {{ request()->is('notification.html') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
+<div class="navbar-nav w-100">
+    <!-- Quản lý tổng quan -->
+    <a href="index.html" class="nav-item nav-link {{ request()->is('/') || request()->is('index.html') ? 'active' : '' }}"><i class="fa fa-tachometer-alt me-2"></i>Tổng quan</a>
+    <a href="notification.html" class="nav-item nav-link {{ request()->is('notification.html') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
 
-            <!-- Quản lý đặt phòng & hợp đồng -->
-            <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->is('booking.html') || request()->is('contract.html') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
-                <div class="dropdown-menu bg-transparent border-0">
-                    <a href="booking.html" class="dropdown-item {{ request()->is('booking.html') ? 'active' : '' }}">Đặt phòng</a>
-                    <a href="contract.html" class="dropdown-item {{ request()->is('contract.html') ? 'active' : '' }}">Hợp đồng</a>
-                </div>
-            </div>
+    <!-- Quản lý đặt phòng & hợp đồng -->
+    <div class="nav-item dropdown">
+        <a href="#" class="nav-link dropdown-toggle {{ request()->is('booking.html') || request()->is('contract.html') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
+        <div class="dropdown-menu bg-transparent border-0">
+            <a href="booking.html" class="dropdown-item {{ request()->is('booking.html') ? 'active' : '' }}">Đặt phòng</a>
+            <a href="contract.html" class="dropdown-item {{ request()->is('contract.html') ? 'active' : '' }}">Hợp đồng</a>
+        </div>
+    </div>
 
             <!-- Quản lý tài chính -->
             <div class="nav-item dropdown">
@@ -52,7 +52,7 @@
             </div>
 
             <!-- Quản lý người dùng -->
-            <a href="user.html" class="nav-item nav-link {{ request()->is('user.html') ? 'active' : '' }}"><i class="fa fa-users me-2"></i>Người dùng</a>
+            <a href="{{ route('users.user') }}" class="nav-item nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"><i class="fa fa-users me-2"></i>Người dùng</a>
         </div>
     </nav>
 </div>

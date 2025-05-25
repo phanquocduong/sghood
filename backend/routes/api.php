@@ -92,5 +92,3 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
         Route::get('/{id}', [UserController::class, 'show']);
     });
 });
-
-
