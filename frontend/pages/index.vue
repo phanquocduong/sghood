@@ -12,6 +12,8 @@
     <SectionFeaturedRentals />
 
     <SectionRentalSteps />
+
+    <SectionRoomsAvailableSoon />
 </template>
 
 <script setup>

@@ -1,6 +1,6 @@
 <template>
     <!-- Footer -->
-    <div id="footer" class="margin-top-55">
+    <div id="footer">
         <div class="container">
             <div class="row">
                 <div class="col-md-5 col-sm-6">
