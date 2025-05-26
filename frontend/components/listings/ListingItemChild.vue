@@ -13,7 +13,6 @@
                 <h3>{{ item.name }}</h3>
                 <span>Giá {{ item.price }} / tháng</span>
             </div>
-            <span class="like-icon"></span>
         </div>
         <div class="star-rating">
             <div class="rating-counter">Diện tích: {{ item.area }}m<sup>2</sup></div>

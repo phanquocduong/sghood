@@ -15,6 +15,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -22,13 +23,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>
@@ -39,6 +39,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -46,13 +47,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>
@@ -63,6 +63,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -70,13 +71,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>
@@ -87,6 +87,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -94,13 +95,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>
@@ -111,6 +111,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -118,13 +119,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>
@@ -135,6 +135,7 @@
                             <a href="listings-single-page.html" class="listing-item-container">
                                 <div class="listing-item">
                                     <img src="public/images/listing-item-03.jpg" alt="" />
+                                    <div class="listing-badge now-open">Nổi bật</div>
                                     <div class="listing-item-details">
                                         <ul>
                                             <li>Còn 14 phòng trống</li>
@@ -142,13 +143,12 @@
                                     </div>
                                     <div class="listing-item-content">
                                         <span class="tag">Quận 12</span>
-                                        <h3>01 đường Lê Văn Khương...</h3>
-                                        <span>Giá từ 3.500.000đ / tháng</span>
+                                        <h3>Nhà trọ Phố Hiến</h3>
+                                        <span>01 đường Lê Văn Khương, phường Thới An</span>
                                     </div>
-                                    <span class="like-icon"></span>
                                 </div>
                                 <div class="star-rating">
-                                    <div class="rating-counter">Diện tích từ 25m<sup>2</sup></div>
+                                    <div class="rating-counter">Giá từ 3.500.000đ/tháng</div>
                                 </div>
                             </a>
                         </div>

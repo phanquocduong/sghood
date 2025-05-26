@@ -3,11 +3,7 @@
         <h3><i class="fa fa-envelope-o"></i> Đặt lịch xem phòng</h3>
         <div class="row with-forms margin-top-0">
             <div class="col-lg-12">
-                <input type="text" placeholder="Họ tên" v-model="formData.name" />
-                <input type="text" placeholder="Email" v-model="formData.email" />
-                <input type="text" placeholder="Số điện thoại" v-model="formData.phone" />
-                <input type="date" v-model="formData.date" />
-                <input type="time" v-model="formData.time" />
+                <input type="datetime-local" v-model="formData.datetime" />
                 <textarea name="" id="" cols="10" rows="2" placeholder="Lời nhắn (tuỳ chọn)" v-model="formData.message"></textarea>
             </div>
         </div>
@@ -19,11 +15,7 @@
 import { ref } from 'vue';
 
 const formData = ref({
-    name: '',
-    email: '',
-    phone: '',
-    date: '',
-    time: '',
+    datetime: '',
     message: ''
 });
 

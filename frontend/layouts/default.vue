@@ -1,8 +1,8 @@
 <template>
     <div id="wrapper">
         <!-- Header -->
-        <header id="header-container" class="fixed">
-            <div id="header" class="not-sticky">
+        <header id="header-container" class="no-shadow">
+            <div id="header">
                 <div class="container">
                     <!-- Left Side Content -->
                     <div class="left-side">

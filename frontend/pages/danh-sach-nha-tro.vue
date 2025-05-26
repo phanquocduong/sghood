@@ -63,54 +63,54 @@ const listings = ref([
         id: 1,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     },
     {
         id: 2,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     },
     {
         id: 3,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     },
     {
         id: 4,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     },
     {
         id: 5,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     },
     {
         id: 6,
         image: '/images/listing-item-03.jpg',
         district: 'Quận 12',
-        address: '01 đường Lê Văn Khương...',
+        name: 'Nhà trọ Phố Hiến',
+        address: '01 đường Lê Văn Khương, phường Thới An',
         price: '3.500.000đ',
-        area: 25,
         availableRooms: 14
     }
 ]);

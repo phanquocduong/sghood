@@ -10,13 +10,12 @@
             </div>
             <div class="listing-item-content">
                 <span class="tag">{{ item.district }}</span>
-                <h3>{{ item.address }}</h3>
-                <span>Giá từ {{ item.price }} / tháng</span>
+                <h3>{{ item.name }}</h3>
+                <span>{{ item.address }}</span>
             </div>
-            <span class="like-icon"></span>
         </div>
         <div class="star-rating">
-            <div class="rating-counter">Diện tích từ {{ item.area }}m<sup>2</sup></div>
+            <div class="rating-counter">Giá từ {{ item.price }} / tháng</div>
         </div>
     </NuxtLink>
 </template>
