@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Apis\AuthController;
+use App\Http\Controllers\Apis\DistrictController;
+use App\Http\Controllers\Apis\MotelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,3 +22,6 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])-
 Route::get('/xac-minh-email', function (Request $request) {
     return redirect()->to('/xac-minh-email?' . http_build_query($request->query()));
 })->name('verification.redirect');
+
+Route::get('/districts', [DistrictController::class, 'index']);
+Route::get('/motels/featured', [MotelController::class, 'featured']);

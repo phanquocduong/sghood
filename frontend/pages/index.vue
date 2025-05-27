@@ -7,7 +7,7 @@
         @search="handleSearch"
     />
 
-    <SectionFeaturedAreas />
+    <SectionFeaturedAreas :districts="districts" />
 
     <SectionFeaturedRentals />
 
@@ -20,6 +20,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+const { $api } = useNuxtApp();
 const router = useRouter();
 
 const search = ref({
@@ -28,30 +29,8 @@ const search = ref({
     priceRange: ''
 });
 
-const areaOptions = ref([
-    'Thủ Đức',
-    'Quận 1',
-    'Quận 3',
-    'Quận 4',
-    'Quận 5',
-    'Quận 6',
-    'Quận 7',
-    'Quận 8',
-    'Quận 10',
-    'Quận 11',
-    'Quận 12',
-    'Tân Bình',
-    'Bình Tân',
-    'Bình Thạn',
-    'Tân Phú',
-    'Gò Vấp',
-    'Phú Nhuậ',
-    'Bình Cháh',
-    'Hóc Môn',
-    'Cần Giờ',
-    'Củ Chi',
-    'Nhà Bè'
-]);
+const areaOptions = ref([]);
+const districts = ref([]);
 
 const priceOptions = ref([
     { value: '', label: 'Tất cả mức giá' },
@@ -67,6 +46,12 @@ const handleSearch = () => {
     // Thêm logic tìm kiếm, ví dụ: điều hướng hoặc gọi API
     router.push('/danh-sach-nha-tro');
 };
+
+onMounted(async () => {
+    const response = await $api('/districts', { method: 'GET' });
+    areaOptions.value = response.data.map(d => d.name);
+    districts.value = response.data;
+});
 </script>
 
 <style scoped></style>

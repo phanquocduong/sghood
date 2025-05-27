@@ -515,24 +515,24 @@ export default defineNuxtPlugin(nuxtApp => {
                         });
                 }
 
-                if ($('.simple-slick-carousel').length) {
-                    try {
-                        $('.simple-slick-carousel').slick('unslick');
-                    } catch (e) {
-                        console.log('simple-slick-carousel not initialized yet, skipping unslick');
-                    }
-                    $('.simple-slick-carousel').slick({
-                        infinite: true,
-                        slidesToShow: 3,
-                        slidesToScroll: 3,
-                        dots: true,
-                        arrows: true,
-                        responsive: [
-                            { breakpoint: 992, settings: { slidesToShow: 2, slidesToScroll: 2 } },
-                            { breakpoint: 769, settings: { slidesToShow: 1, slidesToScroll: 1 } }
-                        ]
-                    });
-                }
+                // if ($('.simple-slick-carousel').length) {
+                //     try {
+                //         $('.simple-slick-carousel').slick('unslick');
+                //     } catch (e) {
+                //         console.log('simple-slick-carousel not initialized yet, skipping unslick');
+                //     }
+                //     $('.simple-slick-carousel').slick({
+                //         infinite: true,
+                //         slidesToShow: 3,
+                //         slidesToScroll: 3,
+                //         dots: true,
+                //         arrows: true,
+                //         responsive: [
+                //             { breakpoint: 992, settings: { slidesToShow: 2, slidesToScroll: 2 } },
+                //             { breakpoint: 769, settings: { slidesToShow: 1, slidesToScroll: 1 } }
+                //         ]
+                //     });
+                // }
 
                 if ($('.simple-fw-slick-carousel').length) {
                     try {

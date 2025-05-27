@@ -2,82 +2,37 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h3 class="headline centered margin-top-75">
+                <h3 class="headline centered margin-bottom-35 margin-top-70">
                     <strong class="headline-with-separator">Khu Vực Nổi Bật</strong>
                 </h3>
             </div>
-        </div>
-    </div>
-    <div class="fullwidth-carousel-container margin-top-25">
-        <div class="fullwidth-slick-carousel category-carousel">
-            <!-- Item -->
-            <div class="fw-carousel-item">
-                <div class="category-box-container">
-                    <a href="listings-half-screen-map-grid-1.html" class="category-box" data-background-image="images/category-box-01.jpg">
-                        <div class="category-box-content">
-                            <h3>Gò Vấp</h3>
-                            <span>64 nhà trọ</span>
-                        </div>
-                        <span class="category-box-btn">Xem</span>
-                    </a>
-                </div>
-            </div>
 
-            <!-- Item -->
-            <div class="fw-carousel-item">
-                <div class="category-box-container">
-                    <a href="listings-half-screen-map-grid-1.html" class="category-box" data-background-image="images/category-box-03.jpg">
-                        <div class="category-box-content">
-                            <h3>Quận 12</h3>
-                            <span>67 nhà trọ</span>
-                        </div>
-                        <span class="category-box-btn">Xem</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Item -->
-            <div class="fw-carousel-item">
-                <div class="category-box-container">
-                    <a href="listings-half-screen-map-grid-1.html" class="category-box" data-background-image="images/category-box-04.jpg">
-                        <div class="category-box-content">
-                            <h3>Quận 7</h3>
-                            <span>27 nhà trọ</span>
-                        </div>
-                        <span class="category-box-btn">Xem</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Item -->
-            <div class="fw-carousel-item">
-                <div class="category-box-container">
-                    <a href="listings-half-screen-map-list.html" class="category-box" data-background-image="images/category-box-05.jpg">
-                        <div class="category-box-content">
-                            <h3>Quận 4</h3>
-                            <span>22 nhà trọ</span>
-                        </div>
-                        <span class="category-box-btn">Xem</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Item -->
-            <div class="fw-carousel-item">
-                <div class="category-box-container">
-                    <a href="listings-half-screen-map-list.html" class="category-box" data-background-image="images/category-box-06.jpg">
-                        <div class="category-box-content">
-                            <h3>Quận Tân Bình</h3>
-                            <span>130 nhà trọ</span>
-                        </div>
-                        <span class="category-box-btn">Xem</span>
-                    </a>
-                </div>
+            <div v-for="(district, index) in districts" :key="district.id" :class="index < 2 ? 'col-md-6' : 'col-md-4'">
+                <a
+                    href="listings-list-with-sidebar.html"
+                    class="img-box alternative-imagebox"
+                    :style="{
+                        backgroundImage: `url(${config.public.baseUrl}${district.image})`
+                    }"
+                >
+                    <div class="img-box-content visible">
+                        <h4>{{ district.name }}</h4>
+                        <span>{{ district.motel_count }} nhà trọ</span>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+const config = useRuntimeConfig();
+defineProps(['districts']);
+</script>
 
-<style scoped></style>
+<style scoped>
+.img-box {
+    background-size: cover;
+    background-position: center;
+}
+</style>

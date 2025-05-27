@@ -17,4 +17,9 @@ class Amenity extends Model
         'status',
         'type',
     ];
+
+    public function motels()
+    {
+        return $this->belongsToMany(Motel::class, 'motel_amenities', 'amenity_id', 'motel_id');
+    }
 };

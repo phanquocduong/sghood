@@ -37,6 +37,11 @@ class Motel extends Model
         return $this->hasMany(MotelImage::class);
     }
 
+    public function mainImage()
+    {
+        return $this->hasOne(MotelImage::class, 'motel_id')->where('is_main', 1);
+    }
+
     public function amenities()
     {
         return $this->belongsToMany(Amenity::class, 'motel_amenities', 'motel_id', 'amenity_id');
