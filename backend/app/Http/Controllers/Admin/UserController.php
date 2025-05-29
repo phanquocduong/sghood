@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\UserService;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
@@ -23,29 +24,6 @@ class UserController extends Controller
         return view('admin.user', compact('users'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.
@@ -59,22 +37,24 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {
-        $user = User::findOrFail($id);
-        $user->role = $request->role;
-        $user->status = $request->status;
-        $user->save();
+    public function update(UpdateUserRequest $request, $id)
+{
+    $user = User::findOrFail($id);
 
-        return redirect()->route('admin.users')->with('success', 'Cập nhật thành công');
+    $data = $request->validated();
+
+    // Handle avatar upload if exists
+    if ($request->hasFile('avatar')) {
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $data['avatar'] = $path;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        $user->delete();
-        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
-    }
+    // Cập nhật user
+    $user->update($data);
+
+    return redirect()->route('admin.users')->with('success', 'Cập nhật thành công');
+}
+
+
 
 }
