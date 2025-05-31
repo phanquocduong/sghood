@@ -108,28 +108,30 @@ class MotelService
         }
     }
 
-    public function createMotel(array $data, array $imageFiles): array
+    public function createMotel(array $data, array $imageFiles, int $mainImageIndex = 0): array
     {
         DB::beginTransaction();
         try {
-            // Tạo slug duy nhất từ tên
             $data['slug'] = $this->generateUniqueSlug($data['name']);
 
-            // Đặt trạng thái mặc định nếu không có (form có select bắt buộc, đây là dự phòng)
             if (!isset($data['status'])) {
-                $data['status'] = 'available';
+                $data['status'] = 'Hoạt động'; // Đảm bảo trạng thái mặc định
             }
 
-            // Tạo bản ghi nhà trọ
             $motel = Motel::create(array_filter($data, function ($value) {
                 return $value !== null && $value !== '';
             }));
 
-            // Xử lý hình ảnh
-            $failedUploads = $this->processMotelImages($motel->id, $imageFiles);
+            // Xử lý images nếu có
+            $failedUploads = [];
+            if (!empty($imageFiles)) {
+                $failedUploads = $this->processMotelImages($motel->id, $imageFiles, $mainImageIndex);
+            }
 
-            // Đồng bộ tiện ích (quan hệ nhiều-nhiều)
-            $motel->amenities()->sync($data['amenities']);
+            // Xử lý amenities nếu có
+            if (isset($data['amenities']) && is_array($data['amenities'])) {
+                $motel->amenities()->sync($data['amenities']);
+            }
 
             DB::commit();
 
@@ -158,20 +160,54 @@ class MotelService
         return $slug;
     }
 
-    private function processMotelImages(int $motelId, array $imageFiles): array
+    private function processMotelImages(int $motelId, array $imageFiles, int $mainImageIndex = 0): array
     {
         $failedUploads = [];
-        foreach ($imageFiles as $file) {
+        $totalImages = count($imageFiles);
+
+        if ($totalImages === 0) {
+            return $failedUploads;
+        }
+
+        // Đảm bảo mainImageIndex hợp lệ
+        if ($mainImageIndex < 0 || $mainImageIndex >= $totalImages) {
+            $mainImageIndex = 0; // Mặc định chọn ảnh đầu tiên
+        }
+
+        // Upload và lưu từng ảnh
+        for ($i = 0; $i < $totalImages; $i++) {
+            $file = $imageFiles[$i];
+            $isMain = ($i === $mainImageIndex) ? 1 : 0;
+
             $imagePath = $this->uploadMotelImage($file);
             if ($imagePath) {
                 MotelImage::create([
                     'motel_id' => $motelId,
-                    'image_url' => $imagePath
+                    'image_url' => $imagePath,
+                    'is_main' => $isMain
                 ]);
             } else {
                 $failedUploads[] = $file->getClientOriginalName();
             }
         }
+
+        // Đảm bảo chỉ có một ảnh chính (fallback)
+        $mainImages = MotelImage::where('motel_id', $motelId)->where('is_main', 1)->count();
+        if ($mainImages === 0) {
+            // Nếu không có ảnh nào được đánh dấu là chính, chọn ảnh đầu tiên
+            $firstImage = MotelImage::where('motel_id', $motelId)->first();
+            if ($firstImage) {
+                $firstImage->update(['is_main' => 1]);
+            }
+        } elseif ($mainImages > 1) {
+            // Nếu có nhiều hơn 1 ảnh chính, chỉ giữ lại ảnh đầu tiên
+            MotelImage::where('motel_id', $motelId)->update(['is_main' => 0]);
+            $firstMainImage = MotelImage::where('motel_id', $motelId)->first();
+            if ($firstMainImage) {
+                $firstMainImage->update(['is_main' => 1]);
+            }
+        }
+
         return $failedUploads;
     }
 
@@ -194,6 +230,7 @@ class MotelService
 
     public function updateMotel(int $id, array $data, array $imageFiles): array
     {
+        Log::info('FULL REQUEST DATA', request()->all());
         DB::beginTransaction();
         try {
             $motel = Motel::find($id);
@@ -207,13 +244,33 @@ class MotelService
 
             $motel->update($data);
 
-            if (!empty($imageFiles)) {
-                foreach ($motel->images()->get() as $image) {
-                    $this->deleteMotelImage($image->image_url);
+            // Xử lý xóa ảnh hiện tại
+            if (!empty($data['delete_images'])) {
+                foreach ($data['delete_images'] as $imageId) {
+                    $image = MotelImage::find($imageId);
+                    if ($image) {
+                        $this->deleteMotelImage($image->image_url);
+                        $image->delete();
+                    }
                 }
-                $motel->images()->delete();
+            }
 
-                $failedUploads = $this->processMotelImages($motel->id, $imageFiles);
+            // Xử lý ảnh mới
+            if (!empty($imageFiles)) {
+                // Xóa tất cả ảnh hiện tại trước khi thêm ảnh mới (nếu có upload lại)
+                  $existingImages = $motel->images()->get();
+                foreach ($existingImages as $image) {
+                    $this->deleteMotelImage($image->image_url);
+                     $image->delete();
+                }
+
+                $mainImageIndex = request()->input('main_image_index', 0); // Lấy index ảnh chính từ form
+                $failedUploads = $this->processMotelImages($motel->id, $imageFiles, $mainImageIndex);
+            } elseif (request()->has('main_image_index')) {
+                // Cập nhật is_main cho ảnh hiện tại nếu có thay đổi
+                $mainImageId = request()->input('main_image_index');
+                MotelImage::where('motel_id', $id)->update(['is_main' => 0]);
+                MotelImage::where('id', $mainImageId)->update(['is_main' => 1]);
             }
 
             if (isset($data['amenities'])) {
