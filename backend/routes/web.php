@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
@@ -100,4 +101,15 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
     });
+
+    // Config routes
+    Route::get('configs', [ConfigController::class, 'index'])->name('configs.index');
+    Route::get('configs/create', [ConfigController::class, 'create'])->name('configs.create');
+    Route::post('configs', [ConfigController::class, 'store'])->name('configs.store');
+    Route::get('configs/{id}/edit', [ConfigController::class, 'edit'])->name('configs.edit');
+    Route::put('configs/{id}', [ConfigController::class, 'update'])->name('configs.update');
+    Route::delete('configs/{id}', [ConfigController::class, 'destroy'])->name('configs.destroy');
+    Route::get('configs/trash', [ConfigController::class, 'trash'])->name('configs.trash');
+    Route::patch('configs/{id}/restore', [ConfigController::class, 'restore'])->name('configs.restore');
+    Route::delete('configs/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('configs.forceDelete');
 });

@@ -21,17 +21,6 @@
             <h6 class="mb-0 fw-bold">{{ __('Sửa nhà trọ') }}</h6>
         </div>
         <div class="card-body p-4">
-            <!-- @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__shakeX" role="alert">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif -->
-
             <form action="{{ route('motels.update', $motel->id) }}" method="POST" enctype="multipart/form-data" id="motelForm" novalidate>
                 @csrf
                 @method('PUT')
@@ -185,14 +174,10 @@
                         @endif
                     </div>
                     <div class="col-12">
-                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh hiện tại</label>
-                        <div class="row g-2 mb-3">
+                        <label for="existing_images" class="form-label fw-bold text-primary">Hình ảnh hiện tại</label>
+                        <div id="existing-image-preview" class="row g-2 mb-3" data-images="{{ json_encode($motel->images ?? []) }}">
                             @if($motel->images && count($motel->images) > 0)
-                                @foreach ($motel->images as $image)
-                                    <div class="col-md-3 mb-2 position-relative">
-                                        <img src="{{ $image->image_url }}" class="img-fluid rounded shadow-sm existing-image" alt="{{ $motel->name }}" style="max-height: 100px; object-fit: cover; transition: transform 0.3s;">
-                                    </div>
-                                @endforeach
+                                <!-- Dữ liệu đã được JavaScript xử lý -->
                             @else
                                 <p class="text-muted">Chưa có hình ảnh nào.</p>
                             @endif
@@ -231,7 +216,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    #image-preview img, .existing-image {
+    #image-preview img, #existing-image-preview img {
         max-height: 100px;
         object-fit: cover;
         border-radius: 8px;
@@ -239,8 +224,15 @@
         transition: transform 0.3s;
     }
 
-    #image-preview img:hover, .existing-image:hover {
+    /* #image-preview img:hover, #existing-image-preview img:hover {
         transform: scale(1.1);
+    } */
+
+    .image-item .delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 10;
     }
 
     .alert-success, .alert-danger {

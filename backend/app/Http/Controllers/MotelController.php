@@ -46,53 +46,36 @@ class MotelController extends Controller
         }
         return view('motels.show', ['motel' => $result['data']]);
     }
-    // public function show()
-    // {
-    //     // $result = $this->motelService->getMotel($id);
-    //     return view('motels.show');
-    // }
+
     public function create()
     {
         $amenities = $this->amenityService->getAllAmenities();
         $districts = $this->districtService->getAllDistricts();
-        return view('motels.create', ['amenities' => $amenities['data']], ['districts' => $districts['data']]);
+        return view('motels.create', ['amenities' => $amenities['data'], 'districts' => $districts['data']]);
     }
 
     public function store(MotelRequest $request)
     {
         $data = $request->validated();
-
-        // Chuyển district thành district_id từ dữ liệu form
-        if (isset($data['district'])) {
-            $data['district_id'] = $data['district'];
-            unset($data['district']);
-        }
-
-        // Đảm bảo amenities là mảng (rỗng nếu không chọn gì)
-        $data['amenities'] = $request->input('amenities', []);
-
-        // Xử lý hình ảnh
-        // dd($request->file('images'));
         $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
 
-        if (!is_array($imageFiles)) {
-            $imageFiles = [$imageFiles];
-        }
+        // Lấy main_image_index từ request, mặc định là 0 (ảnh đầu tiên)
+        $mainImageIndex = (int) $request->input('main_image_index', 0);
 
-        // Đặt trạng thái mặc định nếu không có (dù select là bắt buộc, đây là dự phòng)
-        if (!isset($data['status'])) {
-            $data['status'] = 'available';
-        }
-
-        $result = $this->motelService->createMotel($data, $imageFiles);
+        $result = $this->motelService->createMotel($data, $imageFiles, $mainImageIndex);
 
         if (isset($result['error'])) {
             return redirect()->back()
-                ->withInput()
-                ->with('error', $result['error']);
+                ->withErrors($result['error'])
+                ->withInput();
         }
 
-        return redirect()->route('motels.index')->with('success', 'Nhà trọ đã được tạo thành công!');
+        $message = 'Nhà trọ đã được tạo thành công!';
+        if (isset($result['warnings'])) {
+            $message .= ' Tuy nhiên, một số hình ảnh không thể tải lên.';
+        }
+
+        return redirect()->route('motels.index')->with('success', $message);
     }
 
     public function edit(int $id)
