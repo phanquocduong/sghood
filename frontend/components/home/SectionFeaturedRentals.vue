@@ -12,7 +12,7 @@
                     <div class="col-md-12">
                         <div v-if="motels.length > 0" ref="carousel" class="simple-slick-carousel dots-nav">
                             <div v-for="motel in motels" :key="motel.id" class="carousel-item">
-                                <a :href="`/listings-single-page?motel=${motel.id}`" class="listing-item-container">
+                                <NuxtLink :to="`/nha-tro/${motel.slug}`" class="listing-item-container">
                                     <div class="listing-item">
                                         <img :src="`${config.public.baseUrl}${motel.image}`" :alt="motel.name" />
                                         <div class="listing-badge now-open">Nổi bật</div>
@@ -28,9 +28,9 @@
                                         </div>
                                     </div>
                                     <div class="star-rating">
-                                        <div class="rating-counter">Giá từ {{ formatPrice(motel.price) }}đ/tháng</div>
+                                        <div class="rating-counter">Giá từ {{ formatPrice(motel.price) }}/tháng</div>
                                     </div>
-                                </a>
+                                </NuxtLink>
                             </div>
                         </div>
                         <div v-else class="col-md-12 text-center">
@@ -44,8 +44,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useNuxtApp } from '#app';
+import { NuxtLink } from '#components';
 
 const { $api } = useNuxtApp();
 const config = useRuntimeConfig();
@@ -94,17 +95,8 @@ onMounted(async () => {
     }
 });
 
-onBeforeUnmount(() => {
-    if (carousel.value && typeof window !== 'undefined' && window.jQuery && window.jQuery.fn.slick) {
-        const $ = window.jQuery;
-        if ($(carousel.value).hasClass('slick-initialized')) {
-            $(carousel.value).slick('unslick');
-        }
-    }
-});
-
 const formatPrice = price => {
-    return new Intl.NumberFormat('vi-VN').format(price);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 </script>
 

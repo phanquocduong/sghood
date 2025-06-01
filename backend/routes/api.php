@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Apis\RoomController;
+use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
@@ -25,3 +27,7 @@ Route::get('/xac-minh-email', function (Request $request) {
 
 Route::get('/districts', [DistrictController::class, 'index']);
 Route::get('/motels/featured', [MotelController::class, 'featured']);
+Route::get('/amenities', [AmenityController::class, 'index']);
+Route::get('/motels/search', [MotelController::class, 'search']);
+Route::get('/motels/{slug}', [MotelController::class, 'show']);
+Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);

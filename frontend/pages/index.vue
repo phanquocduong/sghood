@@ -17,18 +17,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const { $api } = useNuxtApp();
 const router = useRouter();
 
-const search = ref({
-    keyword: '',
-    area: '',
-    priceRange: ''
-});
-
+const search = ref({ keyword: '', area: '', priceRange: '' });
 const areaOptions = ref([]);
 const districts = ref([]);
 
@@ -42,15 +37,24 @@ const priceOptions = ref([
 ]);
 
 const handleSearch = () => {
-    console.log('Search triggered:', search.value); // Debug tìm kiếm
-    // Thêm logic tìm kiếm, ví dụ: điều hướng hoặc gọi API
-    router.push('/danh-sach-nha-tro');
+    router.push({
+        path: '/danh-sach-nha-tro',
+        query: {
+            keyword: search.value.keyword || undefined,
+            area: search.value.area || undefined,
+            priceRange: search.value.priceRange || undefined
+        }
+    });
 };
 
 onMounted(async () => {
-    const response = await $api('/districts', { method: 'GET' });
-    areaOptions.value = response.data.map(d => d.name);
-    districts.value = response.data;
+    try {
+        const response = await $api('/districts', { method: 'GET' });
+        areaOptions.value = response.data.map(d => d.name);
+        districts.value = response.data;
+    } catch (error) {
+        console.error('Lỗi khi tải danh sách quận:', error);
+    }
 });
 </script>
 

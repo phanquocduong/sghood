@@ -1,3 +1,4 @@
+<!-- components/FilterWidget.vue -->
 <template>
     <div class="widget margin-bottom-40">
         <h3 class="margin-top-0 margin-bottom-30">Bộ lọc</h3>
@@ -7,7 +8,7 @@
             <div class="col-md-12">
                 <input
                     type="text"
-                    placeholder="Nhập từ khoá bạn muốn tìm..."
+                    placeholder="Nhập từ khoá..."
                     :value="filters.keyword"
                     @input="updateFilter('keyword', $event.target.value)"
                 />
@@ -81,7 +82,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, nextTick } from 'vue';
+import { onMounted, watch, nextTick } from 'vue';
 
 const props = defineProps({
     filters: {
@@ -94,29 +95,16 @@ const props = defineProps({
             amenities: []
         })
     },
-    areaOptions: {
-        type: Array,
-        default: () => []
-    },
-    priceOptions: {
-        type: Array,
-        default: () => []
-    },
-    areaRangeOptions: {
-        type: Array,
-        default: () => []
-    },
-    amenitiesOptions: {
-        type: Array,
-        default: () => []
-    }
+    areaOptions: { type: Array, default: () => [] },
+    priceOptions: { type: Array, default: () => [] },
+    areaRangeOptions: { type: Array, default: () => [] },
+    amenitiesOptions: { type: Array, default: () => [] }
 });
 
 const emit = defineEmits(['update:filters', 'apply']);
 
 const updateFilter = (key, value) => {
     const newFilters = { ...props.filters, [key]: value };
-    console.log(`Updating ${key}:`, value); // Debug giá trị
     emit('update:filters', newFilters);
 };
 
@@ -125,39 +113,39 @@ const toggleAmenity = amenity => {
         ? props.filters.amenities.filter(a => a !== amenity)
         : [...props.filters.amenities, amenity];
     const newFilters = { ...props.filters, amenities };
-    console.log('New filters:', newFilters); // Debug filters
     emit('update:filters', newFilters);
 };
 
 // Khởi tạo Chosen và gắn sự kiện change
-onMounted(async () => {
-    if (window.jQuery && window.jQuery.fn.chosen) {
-        // Hoãn khởi tạo Chosen để đảm bảo DOM trong ClientOnly đã sẵn sàng
-        await nextTick();
-        window.jQuery('.chosen-select').each(function () {
-            const $select = window.jQuery(this);
-            $select
+onMounted(() => {
+    nextTick(() => {
+        if (window.jQuery && window.jQuery.fn.chosen) {
+            window
+                .jQuery('.chosen-select')
                 .chosen({
                     width: '100%',
                     no_results_text: 'Không tìm thấy kết quả'
                 })
                 .on('change', event => {
-                    const key = $select.attr('name');
+                    const key = event.target.name;
                     const value = event.target.value;
-                    console.log(`Chosen change - ${key}:`, value); // Debug sự kiện
                     updateFilter(key, value);
                 });
-        });
-    } else {
-        console.error('jQuery hoặc Chosen không được tải');
-    }
+        } else {
+            console.error('jQuery hoặc Chosen không được tải');
+        }
+    });
 });
 
-// Hủy Chosen khi component bị hủy
-onUnmounted(() => {
-    if (window.jQuery && window.jQuery.fn.chosen) {
-        window.jQuery('.chosen-select').chosen('destroy');
-        window.jQuery('.chosen-select').off('change');
-    }
-});
+watch(
+    () => props.areaOptions,
+    () => {
+        nextTick(() => {
+            if (window.jQuery && window.jQuery.fn.chosen) {
+                window.jQuery('.chosen-select').trigger('chosen:updated');
+            }
+        });
+    },
+    { deep: true }
+);
 </script>

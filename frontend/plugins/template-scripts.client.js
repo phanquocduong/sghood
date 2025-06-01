@@ -45,6 +45,62 @@ export default defineNuxtPlugin(nuxtApp => {
             const initCustom = () => {
                 console.log('Initializing custom.js logic');
 
+                const initListingSlider = () => {
+                    // Áp dụng background-image
+                    $('.listing-slider-small .item').each(function () {
+                        var attrImageBG = $(this).attr('data-background-image');
+                        if (attrImageBG !== undefined) {
+                            $(this).css('background-image', 'url(' + attrImageBG + ')');
+                        }
+                    });
+
+                    // Khởi tạo Magnific Popup
+                    $('.mfp-gallery-container').each(function () {
+                        $(this).magnificPopup({
+                            type: 'image',
+                            delegate: 'a.mfp-gallery',
+                            fixedContentPos: true,
+                            fixedBgPos: true,
+                            overflowY: 'auto',
+                            closeBtnInside: false,
+                            preloader: true,
+                            removalDelay: 0,
+                            mainClass: 'mfp-fade',
+                            gallery: { enabled: true, tCounter: '' }
+                        });
+                    });
+
+                    // Khởi tạo Slick cho listing-slider
+                    if ($('.listing-slider-small').length) {
+                        try {
+                            $('.listing-slider-small').slick('unslick'); // Hủy khởi tạo nếu đã tồn tại
+                        } catch (e) {
+                            console.log('listing-slider not initialized yet, skipping unslick');
+                        }
+                        $('.listing-slider-small').slick({
+                            centerMode: true,
+                            centerPadding: '20%',
+                            slidesToShow: 2,
+                            responsive: [
+                                { breakpoint: 1367, settings: { centerPadding: '15%' } },
+                                { breakpoint: 1025, settings: { centerPadding: '0' } },
+                                { breakpoint: 767, settings: { centerPadding: '0', slidesToShow: 1 } }
+                            ]
+                        });
+                    }
+                };
+
+                // Gọi khởi tạo ban đầu
+                initListingSlider();
+
+                // Lắng nghe sự kiện initListingSlider để khởi tạo lại khi dữ liệu sẵn sàng
+                $(window)
+                    .off('initListingSlider')
+                    .on('initListingSlider', () => {
+                        console.log('Reinitializing listing slider due to data update');
+                        initListingSlider();
+                    });
+
                 // Mmenu
                 function mmenuInit() {
                     var wi = $(window).width();
@@ -116,32 +172,6 @@ export default defineNuxtPlugin(nuxtApp => {
                     .mouseup(function () {
                         if (!mouse_is_inside) $('.user-menu').removeClass('active');
                     });
-
-                // Sticky Header
-                // $('#header').not('#header.not-sticky').clone(true).addClass('cloned unsticky').insertAfter('#header');
-                // $('#header.cloned #sign-in-dialog').remove();
-                // $('#navigation.style-2').clone(true).addClass('cloned unsticky').insertAfter('#navigation.style-2');
-
-                // $('#logo .sticky-logo').clone(true).prependTo('#navigation.style-2.cloned ul#responsive');
-
-                // var headerOffset = 140;
-                // $(window)
-                //     .off('scroll.sticky')
-                //     .scroll(function () {
-                //         if ($(window).scrollTop() >= headerOffset) {
-                //             $('#header.cloned').addClass('sticky').removeClass('unsticky');
-                //             $('#navigation.style-2.cloned').addClass('sticky').removeClass('unsticky');
-                //         } else {
-                //             $('#header.cloned').addClass('unsticky').removeClass('sticky');
-                //             $('#navigation.style-2.cloned').addClass('unsticky').removeClass('sticky');
-                //         }
-                //     });
-
-                // $(window)
-                //     .off('scroll.stickyLogo load.stickyLogo')
-                //     .on('scroll load', function () {
-                //         $('#header.cloned #logo img').attr('src', $('#header #logo img').attr('data-sticky-logo'));
-                //     });
 
                 // Back to Top
                 var pxShow = 600;
@@ -421,46 +451,6 @@ export default defineNuxtPlugin(nuxtApp => {
                     });
                 }
 
-                if ($('.listing-slider').length) {
-                    try {
-                        $('.listing-slider').slick('unslick');
-                    } catch (e) {
-                        console.log('listing-slider not initialized yet, skipping unslick');
-                    }
-                    $('.listing-slider').slick({
-                        centerMode: true,
-                        centerPadding: '20%',
-                        slidesToShow: 2,
-                        responsive: [
-                            { breakpoint: 1367, settings: { centerPadding: '15%' } },
-                            { breakpoint: 1025, settings: { centerPadding: '0' } },
-                            { breakpoint: 767, settings: { centerPadding: '0', slidesToShow: 1 } }
-                        ]
-                    });
-                }
-
-                if ($('.listing-slider-small').length) {
-                    try {
-                        $('.listing-slider-small').slick('unslick');
-                    } catch (e) {
-                        console.log('listing-slider-small not initialized yet, skipping unslick');
-                    }
-                    $('.listing-slider-small').slick({
-                        centerMode: true,
-                        centerPadding: '0',
-                        slidesToShow: 3,
-                        responsive: [{ breakpoint: 767, settings: { slidesToShow: 1 } }]
-                    });
-                    $(window)
-                        .off('load.slickFixSmall resize.slickFixSmall')
-                        .on('load resize', function () {
-                            var carouselListItems = $('.listing-slider-small .slick-track').children().length;
-                            if (carouselListItems < 2) {
-                                $('.listing-slider-small .slick-track').css({ transform: 'none' });
-                            }
-                        });
-                }
-
                 $('.home-search-carousel').append(
                     "<div class='slider-controls-container'>" +
                         "<div class='slider-controls'>" +
@@ -514,25 +504,6 @@ export default defineNuxtPlugin(nuxtApp => {
                             }
                         });
                 }
-
-                // if ($('.simple-slick-carousel').length) {
-                //     try {
-                //         $('.simple-slick-carousel').slick('unslick');
-                //     } catch (e) {
-                //         console.log('simple-slick-carousel not initialized yet, skipping unslick');
-                //     }
-                //     $('.simple-slick-carousel').slick({
-                //         infinite: true,
-                //         slidesToShow: 3,
-                //         slidesToScroll: 3,
-                //         dots: true,
-                //         arrows: true,
-                //         responsive: [
-                //             { breakpoint: 992, settings: { slidesToShow: 2, slidesToScroll: 2 } },
-                //             { breakpoint: 769, settings: { slidesToShow: 1, slidesToScroll: 1 } }
-                //         ]
-                //     });
-                // }
 
                 if ($('.simple-fw-slick-carousel').length) {
                     try {
