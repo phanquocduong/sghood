@@ -6,6 +6,8 @@ use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AmenityController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NoteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,9 +24,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Các route được bảo vệ bởi middleware admin
 Route::middleware('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notes Routes Group
+    Route::prefix('notes')->name('notes.')->group(function () {
+        Route::get('/', [NoteController::class, 'index'])->name('index');
+        Route::post('/', [NoteController::class, 'store'])->name('store');
+        Route::delete('/{id}', [NoteController::class, 'destroy'])->name('destroy');
+        Route::get('/users', [NoteController::class, 'getUsersWithNotes'])->name('users');
+    });
 
     // Motel Routes Group
     Route::prefix('motels')->name('motels.')->group(function () {
@@ -86,12 +94,10 @@ Route::middleware('admin')->group(function () {
         Route::delete('/force-delete/{id}', [AmenityController::class, 'forceDelete'])->name('forceDelete');
     });
 
-    // user routes
+    // User Routes Group
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user');
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
     });
 });
-
-
