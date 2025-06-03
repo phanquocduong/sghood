@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ContactController as ApiContactController;
 use App\Http\Controllers\apis\FirebaseAuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\apis\DistrictController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\apis\RoomController;
 use App\Http\Controllers\apis\AmenityController;
 use App\Http\Controllers\apis\UserController;
 use App\Http\Controllers\apis\BookmarkController;
+use App\Http\Controllers\apis\ContactController;
 
 // Authentication Routes
 Route::post('/firebase-auth', [FirebaseAuthController::class, 'auth']);
@@ -94,9 +96,13 @@ Route::middleware(['firebase', 'role:Quản trị viên'])->group(function () {
     });
 });
 
-
+// Bookmark Routes
 Route::prefix('bookmarks')->group(function () {
     Route::get('/', [BookmarkController::class, 'index']);
     Route::post('/', [BookmarkController::class, 'store']);
     Route::delete('/{id}', [BookmarkController::class, 'destroy']);
 });
+
+// Contact Routes
+Route::post('/contact', [ContactController::class, 'send']);
+
