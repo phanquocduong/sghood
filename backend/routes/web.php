@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
@@ -103,13 +104,21 @@ Route::middleware('admin')->group(function () {
     });
 
     // Config routes
-    Route::get('configs', [ConfigController::class, 'index'])->name('configs.index');
-    Route::get('configs/create', [ConfigController::class, 'create'])->name('configs.create');
-    Route::post('configs', [ConfigController::class, 'store'])->name('configs.store');
-    Route::get('configs/{id}/edit', [ConfigController::class, 'edit'])->name('configs.edit');
-    Route::put('configs/{id}', [ConfigController::class, 'update'])->name('configs.update');
-    Route::delete('configs/{id}', [ConfigController::class, 'destroy'])->name('configs.destroy');
-    Route::get('configs/trash', [ConfigController::class, 'trash'])->name('configs.trash');
-    Route::patch('configs/{id}/restore', [ConfigController::class, 'restore'])->name('configs.restore');
-    Route::delete('configs/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('configs.forceDelete');
+    Route::prefix('configs')->name('configs.')->group(function () {
+        Route::get('/', [ConfigController::class, 'index'])->name('index');
+        Route::get('/create', [ConfigController::class, 'create'])->name('create');
+        Route::post('/', [ConfigController::class, 'store'])->name('store');
+        Route::get('/trash', [ConfigController::class, 'trash'])->name('trash');
+        Route::get('/{id}/edit', [ConfigController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ConfigController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ConfigController::class, 'destroy'])->name('destroy');
+        Route::patch('/{id}/restore', [ConfigController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    // schedule routes group
+    Route::prefix('schedules')->name('schedules.')->group(function () {
+        Route::get('/', [ScheduleController::class, 'index'])->name('index');
+        Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
+    });
 });
