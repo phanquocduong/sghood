@@ -35,6 +35,12 @@ class NoteController extends Controller
             return redirect()->route('dashboard')->with('error', $result['error']);
         }
 
+        $usersResult = $this->noteService->getUsersWithNotes();
+        $users = $usersResult['data'] ?? collect([]);
+
+        $typesResult = $this->noteService->getNoteTypes();
+        $types = $typesResult['data'] ?? collect([]);
+
         return view('notes.index', [
             'notes' => $result['data'],
             'querySearch' => $querySearch,
@@ -42,7 +48,8 @@ class NoteController extends Controller
             'type' => $type,
             'sortOption' => $sortOption,
             'perPage' => $perPage,
-            'users' => $this->getActiveUsers()
+            'users' => $users,
+            'types' => $types,
         ]);
     }
 
@@ -58,7 +65,7 @@ class NoteController extends Controller
     // Lấy danh sách người dùng đang hoạt động
     private function getActiveUsers()
     {
-        return User::where('status', 'active')->get();
+        return User::where('status', 'Hoạt động')->get();
     }
 
     // Hiển thị chi tiết ghi chú.

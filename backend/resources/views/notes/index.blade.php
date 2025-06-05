@@ -4,6 +4,11 @@
 
 @section('content')
 
+@php
+    // Determine if the old 'type' is custom (not in $types)
+    $isCustomType = old('type') && !in_array(old('type'), $types);
+@endphp
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -48,20 +53,25 @@
                     <div class="col-md-3">
                         <select class="form-select shadow-sm" name="user_id" onchange="this.form.submit()">
                             <option value="">Tất cả người dùng</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ $userId == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
+                            @forelse($users as $id => $name)
+                                <option value="{{ $id }}" {{ $userId == $id ? 'selected' : '' }}>
+                                    {{ $name }}
                                 </option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>Không có người dùng nào có ghi chú</option>
+                            @endforelse
                         </select>
                     </div>
                     <div class="col-md-3">
                         <select class="form-select shadow-sm" name="type" onchange="this.form.submit()">
                             <option value="">Tất cả loại</option>
-                            <option value="Ghi chú cá nhân" {{ $type == 'Ghi chú cá nhân' ? 'selected' : '' }}>Ghi chú cá nhân</option>
-                            <option value="Công việc" {{ $type == 'Công việc' ? 'selected' : '' }}>Công việc</option>
-                            <option value="Nhắc nhở" {{ $type == 'Nhắc nhở' ? 'selected' : '' }}>Nhắc nhở</option>
-                            <option value="Quan trọng" {{ $type == 'Quan trọng' ? 'selected' : '' }}>Quan trọng</option>
+                            @forelse($types as $noteType)
+                                <option value="{{ $noteType }}" {{ $type == $noteType ? 'selected' : '' }}>
+                                    {{ $noteType }}
+                                </option>
+                            @empty
+                                <option value="" disabled>Không có loại ghi chú nào</option>
+                            @endforelse
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -69,8 +79,8 @@
                             <option value="">Sắp xếp</option>
                             <option value="content_asc" {{ $sortOption == 'content_asc' ? 'selected' : '' }}>Nội dung A-Z</option>
                             <option value="content_desc" {{ $sortOption == 'content_desc' ? 'selected' : '' }}>Nội dung Z-A</option>
-                            <option value="created_at_desc" {{ $sortOption == 'created_at_desc' ? 'selected' : '' }}>Cũ nhất</option>
-                            <option value="created_at_asc" {{ $sortOption == 'created_at_asc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="created_at_desc" {{ $sortOption == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="created_at_asc" {{ $sortOption == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
                         </select>
                     </div>
                 </form>
@@ -184,7 +194,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="add_content" class="form-label fw-bold">Nội dung ghi chú <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('content') is-invalid @enderror" id="add_content" name="content" rows="4" placeholder="Nhập nội dung ghi chú..." required maxlength="255"></textarea>
+                        <textarea class="form-control @error('content') is-invalid @enderror" id="add_content" name="content" rows="4" placeholder="Nhập nội dung ghi chú..." required maxlength="255">{{ old('content') }}</textarea>
                         @error('content')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -192,11 +202,22 @@
                     </div>
                     <div class="mb-3">
                         <label for="add_type" class="form-label fw-bold">Loại ghi chú <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('type') is-invalid @enderror" id="add_content" name="type" rows="2" placeholder="Nhập loại ghi chú..." required maxlength="255"></textarea>
+                        <select class="form-control @error('type') is-invalid @enderror" id="add_type" name="type" required onchange="toggleCustomType(this)">
+                            <option value="">Chọn loại ghi chú</option>
+                            @forelse($types as $noteType)
+                                <option value="{{ $noteType }}" {{ old('type') == $noteType ? 'selected' : '' }}>
+                                    {{ $noteType }}
+                                </option>
+                            @empty
+                                <option value="" disabled>Không có loại ghi chú nào</option>
+                            @endforelse
+                            <option value="{{ old('type') }}" class="custom-option">Khác</option>
+                        </select>
+                        <input type="text" class="form-control mt-2 @error('type') is-invalid @enderror" id="custom_type" style="display: {{ $isCustomType ? 'block' : 'none' }};" placeholder="Nhập loại ghi chú mới..." maxlength="50" value="{{ old('type') }}" oninput="updateTypeValue(this)">
                         @error('type')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">Tối đa 50 ký tự</div>
+                        <div class="form-text">Tối đa 50 ký tự cho loại ghi chú mới</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -211,6 +232,45 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if ($errors->any() || old('content') || old('type'))
+            var addNoteModal = new bootstrap.Modal(document.getElementById('addNoteModal'));
+            addNoteModal.show();
+
+            var select = document.getElementById('add_type');
+            var customInput = document.getElementById('custom_type');
+            var selectedValue = "{{ old('type') }}";
+            var isCustom = {{ $isCustomType ? 'true' : 'false' }};
+
+            if (isCustom && selectedValue) {
+                customInput.style.display = 'block';
+                customInput.value = selectedValue;
+                select.querySelector('.custom-option').value = selectedValue;
+                select.value = selectedValue;
+            }
+        @endif
+    });
+
+    function toggleCustomType(select) {
+        var customInput = document.getElementById('custom_type');
+        var isCustom = select.options[select.selectedIndex].classList.contains('custom-option');
+        customInput.style.display = isCustom ? 'block' : 'none';
+        if (!isCustom) {
+            select.value = select.options[select.selectedIndex].value;
+        } else {
+            customInput.focus();
+        }
+    }
+
+    function updateTypeValue(input) {
+        var select = document.getElementById('add_type');
+        var customOption = select.querySelector('.custom-option');
+        customOption.value = input.value;
+        select.value = input.value;
+    }
+</script>
 
 <style>
 .breadcrumb {
@@ -239,53 +299,4 @@
 }
 </style>
 
-@endsection
-
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Character counter for textareas
-    const textareas = document.querySelectorAll('textarea[maxlength]');
-    textareas.forEach(textarea => {
-        const maxLength = textarea.getAttribute('maxlength');
-        const formText = textarea.nextElementSibling;
-
-        textarea.addEventListener('input', function() {
-            const currentLength = this.value.length;
-            formText.textContent = `${currentLength}/${maxLength} ký tự`;
-
-            if (currentLength > maxLength * 0.9) {
-                formText.classList.add('text-warning');
-            } else {
-                formText.classList.remove('text-warning');
-            }
-        });
-    });
-});
-
-// Delete note
-function deleteNote(noteId) {
-    if (confirm('Bạn có chắc chắn muốn xóa ghi chú này?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/notes/${noteId}`;
-        form.style.display = 'none';
-
-        const methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'DELETE';
-
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = '_token';
-        tokenInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        form.appendChild(methodInput);
-        form.appendChild(tokenInput);
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
-</script>
 @endsection
