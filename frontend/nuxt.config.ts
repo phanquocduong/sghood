@@ -7,7 +7,7 @@ export default defineNuxtConfig({
         '~/plugins/api.js',
         '~/plugins/toast.js',
         '~/plugins/template-scripts.client.js',
-        '~/plugins/auth.client.js',
+        '~/plugins/auth.js',
         '~/plugins/dropzone.client.js'
     ],
     devServer: {

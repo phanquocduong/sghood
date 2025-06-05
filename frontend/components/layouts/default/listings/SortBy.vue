@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, nextTick } from 'vue';
+import { onMounted, nextTick } from 'vue';
 
 const props = defineProps({
     options: {
@@ -44,20 +44,11 @@ onMounted(async () => {
                 })
                 .on('change', event => {
                     const value = event.target.value;
-                    console.log('SortBy change:', value); // Debug giá trị
                     emit('update:sort', value); // Emit sự kiện update:sort
                 });
         });
     } else {
         console.error('jQuery hoặc Chosen không được tải');
-    }
-});
-
-// Hủy Chosen khi component bị hủy
-onUnmounted(() => {
-    if (window.jQuery && window.jQuery.fn.chosen) {
-        window.jQuery('.chosen-select-no-single').chosen('destroy');
-        window.jQuery('.chosen-select-no-single').off('change');
     }
 });
 </script>

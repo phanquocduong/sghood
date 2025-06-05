@@ -4,14 +4,14 @@
         <!-- Content -->
         <div class="row sticky-wrapper">
             <div class="col-lg-8 col-md-8 padding-right-30">
-                <ListingTitlebar :title="motel.name" :address="motel.address" :tag="motel.district_name" />
+                <ListingTitlebar :title="motel.name" :location="motel.address" :tag="motel.district_name" />
 
                 <div class="listing-section">
                     <p>{{ motel.description }}</p>
 
                     <ListingAmenities :amenities="motel.amenities" />
 
-                    <ListingSliderSmall :images="motel.images" />
+                    <ListingGallery :images="motel.images" />
                 </div>
             </div>
 
@@ -21,7 +21,18 @@
             </div>
         </div>
 
-        <ListingMap :map-url="motel.map_url" />
+        <div id="listing-location" class="listing-section">
+            <h3 class="listing-desc-headline margin-top-60 margin-bottom-30">Vị trí</h3>
+            <iframe
+                :src="motel.map_url"
+                width="100%"
+                height="400"
+                style="border: 0"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+        </div>
 
         <!-- Danh sách phòng trống -->
         <div id="listing-pricing-list" class="listing-section">
@@ -29,7 +40,7 @@
 
             <div class="row">
                 <div v-for="room in motel.rooms" :key="room.id" class="col-lg-4 col-md-6">
-                    <ListingItemChild :item="room" />
+                    <RoomItem :item="room" />
                 </div>
             </div>
         </div>

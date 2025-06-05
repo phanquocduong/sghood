@@ -6,7 +6,7 @@
                 {{ title }} <span class="listing-tag">{{ tag }}</span>
             </h2>
             <span>
-                <a href="#listing-location" class="listing-address"> <i class="fa fa-map-marker"></i>{{ address }} </a>
+                <a href="#listing-location" class="listing-address"> <i class="fa fa-map-marker"></i>{{ location }} </a>
             </span>
         </div>
     </div>
@@ -15,7 +15,7 @@
 <script setup>
 defineProps({
     title: String,
-    address: String,
+    location: String,
     tag: String
 });
 </script>

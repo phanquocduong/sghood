@@ -1,11 +1,24 @@
 <!-- pages/danh-sach-nha-tro.vue -->
 <template>
     <div>
-        <Titlebar
-            title="Danh sách nhà trọ"
-            :resultCount="`Có ${total} kết quả phù hợp`"
-            :breadcrumbs="[{ text: 'Trang chủ', to: '/' }, { text: 'Danh sách nhà trọ' }]"
-        />
+        <div id="titlebar" class="gradient">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h2>Danh sách nhà trọ</h2>
+                        <span>Có {{ total }} kết quả phù hợp</span>
+                        <nav id="breadcrumbs">
+                            <ul>
+                                <li>
+                                    <NuxtLink to="/">Trang chủ</NuxtLink>
+                                </li>
+                                <li>Danh sách nhà trọ</li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="container">
             <div class="row">
                 <div class="col-lg-9 col-md-8 padding-right-30">
@@ -31,7 +44,7 @@
                     <!-- Danh sách nhà trọ -->
                     <div v-else class="row">
                         <div v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
-                            <ListingItem :item="item" />
+                            <MotelItem :item="item" />
                         </div>
                         <!-- Thông báo khi không có dữ liệu -->
                         <div v-if="!listings.length" class="col-md-12 text-center">

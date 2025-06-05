@@ -14,7 +14,9 @@ export default defineNuxtPlugin(nuxtApp => {
             '/scripts/jquery-ui.min.js',
             '/scripts/tooltips.min.js',
             '/scripts/custom.js',
-            '/scripts/switcher.js'
+            '/scripts/switcher.js',
+            '/scripts/moment.min.js',
+            '/scripts/daterangepicker.js'
         ];
 
         const loadScript = src => {

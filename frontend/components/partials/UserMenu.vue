@@ -8,10 +8,15 @@
             </a>
             <!-- User Menu if user is logged in -->
             <div v-show="user" class="user-menu">
-                <div class="user-name">
-                    <span><img :src="user?.avatar || '/images/dashboard-avatar.jpg'" alt="Avatar" /></span>
-                    Xin chào, {{ user?.name || 'Người dùng' }}!
-                </div>
+                <ClientOnly>
+                    <div class="user-name">
+                        <span>
+                            <img :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/dashboard-avatar.jpg'" alt="Avatar" />
+                        </span>
+                        Xin chào, {{ user?.name || 'Người dùng' }}!
+                    </div>
+                </ClientOnly>
+
                 <ul>
                     <li>
                         <NuxtLink to="/dashboard-messages"><i class="fa fa-bell-o"></i> Thông báo</NuxtLink>
@@ -34,6 +39,7 @@
 <script setup>
 import { useAuthStore } from '~/stores/auth';
 
+const config = useRuntimeConfig();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 </script>

@@ -3,8 +3,11 @@
 use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
+use App\Http\Controllers\Apis\BookingController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
+use App\Http\Controllers\Apis\UserController;
+use App\Http\Controllers\Apis\ViewingScheduleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +18,14 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'getUser']);
+    Route::patch('/user/profile', [UserController::class, 'updateProfile']);
+    Route::patch('/user/change-password', [UserController::class, 'changePassword']);
+
+    Route::post('/viewing-schedules', [ViewingScheduleController::class, 'store']);
+    Route::get('/viewing-schedules', [ViewingScheduleController::class, 'index']);
+    Route::post('/viewing-schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
+
+    Route::post('/booking', [BookingController::class, 'store']);
 });
 
 // Email verification routes
