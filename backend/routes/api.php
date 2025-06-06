@@ -10,6 +10,7 @@ use App\Http\Controllers\apis\AmenityController;
 use App\Http\Controllers\apis\UserController;
 use App\Http\Controllers\apis\BookmarkController;
 use App\Http\Controllers\apis\ContactController;
+use App\Http\Controllers\apis\ConfigController;
 
 // Authentication Routes
 Route::post('/firebase-auth', [FirebaseAuthController::class, 'auth']);
@@ -105,4 +106,5 @@ Route::prefix('bookmarks')->group(function () {
 
 // Contact Routes
 Route::post('/contact', [ContactController::class, 'send']);
-
+// Config Routes
+Route::get('/configs', [ConfigController::class, 'index']);
