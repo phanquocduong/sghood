@@ -4,6 +4,7 @@ use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
 use App\Http\Controllers\Apis\BookingController;
+use App\Http\Controllers\Apis\ContactController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
@@ -43,3 +44,6 @@ Route::get('/amenities', [AmenityController::class, 'index']);
 Route::get('/motels/search', [MotelController::class, 'search']);
 Route::get('/motels/{slug}', [MotelController::class, 'show']);
 Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
+
+// Contact Routes
+Route::post('/contact', [ContactController::class, 'send']);
