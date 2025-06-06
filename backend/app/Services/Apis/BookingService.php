@@ -23,4 +23,37 @@ class BookingService
             'status' => 'Chờ xác nhận'
         ]);
     }
+
+    public function getBookings(array $filters)
+    {
+        $query = Booking::query();
+        $query->where('user_id', Auth::id());
+
+        if ($filters['status']) {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($filters['sort'] === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } elseif ($filters['sort'] === 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($filters['sort'] === 'default') {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Eager load quan hệ 'room' và 'motel' của room
+        return $query->with(['room.motel'])->get()->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'room_id' => $booking->room->id,
+                'room_name' => $booking->room->name,
+                'room_image' => $booking->room->main_image->image_url,
+                'motel_name' => $booking->room->motel->name,
+                'start_date' => $booking->start_date,
+                'end_date' => $booking->end_date,
+                'note' => $booking->note,
+                'status' => $booking->status,
+            ];
+        });
+    }
 }

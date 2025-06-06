@@ -9,9 +9,11 @@
             <div class="message-reply margin-top-0">
                 <div class="row with-forms">
                     <div class="col-lg-6">
+                        <label>Ngày bắt đầu:</label>
                         <input type="text" id="date-picker" placeholder="Ngày bắt đầu" readonly="readonly" />
                     </div>
                     <div class="col-lg-6">
+                        <label>Thời gian thuê:</label>
                         <select class="modal-duration-select">
                             <option value="">Thời gian</option>
                             <option value="1 năm">1 năm</option>
@@ -23,7 +25,10 @@
 
                 <textarea v-model="formData.note" cols="40" rows="2" placeholder="Ghi chú"></textarea>
 
-                <button @click.prevent="submitBooking" class="button">Đặt phòng</button>
+                <button @click.prevent="submitBooking" class="button" :disabled="buttonLoading">
+                    <span v-if="buttonLoading" class="spinner"></span>
+                    {{ buttonLoading ? 'Đang xử lý...' : 'Đặt phòng' }}
+                </button>
             </div>
         </div>
 
@@ -46,7 +51,6 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useAuthStore } from '~/stores/auth';
 
 definePageMeta({
     layout: 'management'
@@ -56,21 +60,9 @@ const { $api } = useNuxtApp();
 const bookings = ref([]);
 const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
+const buttonLoading = ref(false);
 const toast = useToast();
 const formData = ref({ room_id: null, start_date: '', duration: '', note: '' });
-
-const fetchBookings = async () => {
-    console.log('Fetching bookings...'); // Debug
-    isLoading.value = true;
-    try {
-        const response = await $api('/viewing-schedules', { method: 'GET', params: filter.value });
-        bookings.value = response.data;
-    } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu:', error);
-    } finally {
-        isLoading.value = false;
-    }
-};
 
 const handleBackendError = error => {
     const data = error.response?._data;
@@ -83,6 +75,18 @@ const handleBackendError = error => {
         return;
     }
     toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
+};
+
+const fetchBookings = async () => {
+    isLoading.value = true;
+    try {
+        const response = await $api('/viewing-schedules', { method: 'GET', params: filter.value });
+        bookings.value = response.data;
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 const rejectBooking = async id => {
@@ -104,27 +108,19 @@ const rejectBooking = async id => {
 };
 
 const submitBooking = async () => {
-    isLoading.value = true;
+    buttonLoading.value = true;
     try {
         if (!formData.value.room_id || !formData.value.start_date || !formData.value.duration) {
             toast.error('Vui lòng chọn phòng, ngày bắt đầu và thời gian thuê');
             return;
         }
 
-        const payload = {
-            user_id: useAuthStore().user?.id,
-            room_id: formData.value.room_id,
-            start_date: formData.value.start_date,
-            duration: formData.value.duration,
-            note: formData.value.note
-        };
-
         await $api('/booking', {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             },
-            body: payload
+            body: formData.value
         });
 
         toast.success('Đặt phòng thành công');
@@ -134,7 +130,7 @@ const submitBooking = async () => {
     } catch (error) {
         handleBackendError(error);
     } finally {
-        isLoading.value = false;
+        buttonLoading.value = false;
     }
 };
 
@@ -231,7 +227,26 @@ input#date-picker {
     box-shadow: 0 1px 3px 0px rgba(0, 0, 0, 0.08);
 }
 
-.modal-duration-select {
-    width: 100%;
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 </style>

@@ -25,7 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/viewing-schedules', [ViewingScheduleController::class, 'index']);
     Route::post('/viewing-schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
 
-    Route::post('/booking', [BookingController::class, 'store']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings', [BookingController::class, 'index']);
 });
 
 // Email verification routes

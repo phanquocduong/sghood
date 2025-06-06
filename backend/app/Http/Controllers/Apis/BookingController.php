@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Apis\StoreBookingRequest;
 use App\Services\Apis\BookingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
@@ -29,5 +30,12 @@ class BookingController extends Controller
                 'error' => 'Lỗi khi đặt phòng: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function index(Request $request)
+    {
+        $filters = $request->only(['sort', 'status']);
+        $bookings = $this->bookingService->getBookings($filters);
+        return response()->json(['data' => $bookings], 200);
     }
 }

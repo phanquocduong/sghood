@@ -63,6 +63,7 @@ class ViewingScheduleService
                 'id' => $booking->id,
                 'room_id' => $booking->room->id,
                 'room_name' => $booking->room->name,
+                'room_image' => $booking->room->main_image->image_url,
                 'motel_name' => $booking->room->motel->name,
                 'scheduled_at' => $booking->scheduled_at,
                 'message' => $booking->message,
@@ -71,6 +72,7 @@ class ViewingScheduleService
             ];
         });
     }
+
     public function rejectBooking($id)
     {
         $booking = ViewingSchedule::findOrFail($id);
