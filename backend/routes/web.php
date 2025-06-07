@@ -103,6 +103,13 @@ Route::middleware('admin')->group(function () {
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
     });
 
+    // Booking Routes Group
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::patch('/{id}/update-status', [BookingController::class, 'updateStatus'])->name('updateStatus');
+        Route::patch('/{id}/update-note', [BookingController::class, 'updateNote'])->name('updateNote');
+    });
+
     // Config routes
     Route::get('configs', [ConfigController::class, 'index'])->name('configs.index');
     Route::get('configs/create', [ConfigController::class, 'create'])->name('configs.create');
@@ -114,7 +121,3 @@ Route::middleware('admin')->group(function () {
     Route::patch('configs/{id}/restore', [ConfigController::class, 'restore'])->name('configs.restore');
     Route::delete('configs/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('configs.forceDelete');
 });
-    // Booking Routes Group
-    Route::prefix('bookings')->name('bookings.')->group(function () {
-        Route::get('/', [BookingController::class, 'index'])->name('index');
-    });

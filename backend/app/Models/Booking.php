@@ -22,17 +22,11 @@ class Booking extends Model
         'end_date' => 'date',
     ];
 
-    /**
-     * Mối quan hệ với User
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Mối quan hệ với Room
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);
