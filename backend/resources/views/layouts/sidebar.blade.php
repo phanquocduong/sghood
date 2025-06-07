@@ -23,7 +23,7 @@
     <div class="nav-item dropdown">
         <a href="#" class="nav-link dropdown-toggle {{ request()->is('booking.html') || request()->is('contract.html') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
         <div class="dropdown-menu bg-transparent border-0">
-            <a href="booking.html" class="dropdown-item {{ request()->is('booking.html') ? 'active' : '' }}">Lịch xem phòng</a>
+            <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
             <a href="booking.html" class="dropdown-item {{ request()->is('booking.html') ? 'active' : '' }}">Đặt phòng</a>
             <a href="contract.html" class="dropdown-item {{ request()->is('contract.html') ? 'active' : '' }}">Hợp đồng</a>
         </div>
