@@ -13,7 +13,7 @@
                             kiếm và quản lý phòng trọ.
                         </p>
                     </div>
-                    <img src="/images/Questions-pana.png" alt="About" class="image" />
+                    <img src="public/images/Questions-pana.png" alt="About" class="image" />
                 </div>
             </div>
         </section>

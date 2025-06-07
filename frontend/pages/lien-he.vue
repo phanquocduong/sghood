@@ -82,24 +82,26 @@
                                 </div>
                             </div>
                         </div>
-                        <!--  <div>
-                            <input name="subject" type="text" id="subject" placeholder="Chủ đề" required="required" />
-                        </div> -->
+                          <div>
+                            <input name="subject" type="text" id="subject-contact" placeholder="Chủ đề" required="required" v-model="subject" />
+                        </div> 
                         <div>
                             <textarea
                                 name="message"
                                 cols="40"
                                 rows="3"
-                                id="contact-text"
+                                id="contact-message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
                                 required="required"
                                 v-model="message"
                             ></textarea>
                         </div>
-                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" />
-                        <div v-if="noficationMessage" class="notification" style="margin-top: 10px">
-                            {{ noficationMessage }}
+                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" />
+                        <div v-if="noficationMessage"
+                                :class="{'notification-success': res?.status === true, 'notification-error': res?.status !== true}"  
+                                style="margin-top: 10px">
+                                {{ noficationMessage }}
                         </div>
                     </form>
                 </section>
@@ -109,15 +111,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
 const { $api } = useNuxtApp();
 const name = ref('');
 const email = ref('');
-/* const subject = ref('') */
+const subject = ref('');
 const message = ref('');
 const loading = ref(false);
 const noficationMessage = ref('');
-
+const authStore = useAuthStore();
+onMounted(()=>{
+if(authStore.user){
+    name.value = authStore.user.name ||'';
+    email.value = authStore.user.email ||'';
+}
+})
 const handleSubmit = async () => {
     loading.value = true;
     try {
@@ -130,8 +139,8 @@ const handleSubmit = async () => {
             body: {
                 name: name.value,
                 email: email.value,
-                /* subject:subject.value, */
-                message: message.value
+                subject:subject.value, 
+                message: message.value,
             }
         });
         console.log(res.value);
@@ -139,7 +148,7 @@ const handleSubmit = async () => {
             noficationMessage.value = '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.';
             name.value = '';
             email.value = '';
-            /*  subject.value ='' */
+            subject.value ='' ;
             message.value = '';
         } else {
             noficationMessage.value = `❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`;
