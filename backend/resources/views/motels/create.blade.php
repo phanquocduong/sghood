@@ -1,3 +1,4 @@
+```html
 @extends('layouts.app')
 
 @section('title', 'Thêm nhà trọ')
@@ -47,7 +48,7 @@
                                 <option value="">Chọn quận/huyện</option>
                                 @if(isset($districts) && $districts->count() > 0)
                                     @foreach($districts as $district)
-                                        <option value="{{ $district->id }}" {{ request('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                                        <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
                                     @endforeach
                                 @else
                                     <option value="">Không có quận/huyện nào.</option>
@@ -150,7 +151,7 @@
                                         @endif
                                     @endforeach
                                 @else
-                                    <div class="col-12"></div>
+                                    <div class="col-12">
                                         <p class="text-muted">Không có tiện ích nào.</p>
                                     </div>
                                 @endif
@@ -163,6 +164,7 @@
                         <div class="col-12">
                             <label for="images" class="form-label fw-bold text-primary">Hình ảnh</label>
                             <input type="file" class="form-control shadow-sm {{ $errors->has('images') ? 'is-invalid' : '' }}" id="images" name="images[]" accept="image/*" multiple>
+                            <input type="hidden" name="main_image_index" id="main_image_index" value="0">
                             @error('images')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -202,9 +204,9 @@
             transition: transform 0.3s;
         }
 
-        #image-preview img:hover {
+        /* #image-preview img:hover {
             transform: scale(1.1);
-        }
+        } */
 
         .alert-success, .alert-danger {
             border-left: 5px solid #28a745;

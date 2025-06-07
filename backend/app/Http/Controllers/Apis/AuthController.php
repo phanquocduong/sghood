@@ -2,8 +2,8 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Apis\RegisterRequest;
 use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
 use App\Services\Apis\AuthService;
 use App\Services\Apis\FirebaseService;
 use Illuminate\Auth\Events\Verified;

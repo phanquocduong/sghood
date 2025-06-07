@@ -1,8 +1,14 @@
 <?php
 
+use App\Http\Controllers\Apis\RoomController;
+use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
+use App\Http\Controllers\Apis\BookingController;
+use App\Http\Controllers\Apis\ContactController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
+use App\Http\Controllers\Apis\UserController;
+use App\Http\Controllers\Apis\ViewingScheduleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +19,15 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'getUser']);
+    Route::patch('/user/profile', [UserController::class, 'updateProfile']);
+    Route::patch('/user/change-password', [UserController::class, 'changePassword']);
+
+    Route::post('/viewing-schedules', [ViewingScheduleController::class, 'store']);
+    Route::get('/viewing-schedules', [ViewingScheduleController::class, 'index']);
+    Route::post('/viewing-schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
+
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings', [BookingController::class, 'index']);
 });
 
 // Email verification routes
@@ -25,3 +40,10 @@ Route::get('/xac-minh-email', function (Request $request) {
 
 Route::get('/districts', [DistrictController::class, 'index']);
 Route::get('/motels/featured', [MotelController::class, 'featured']);
+Route::get('/amenities', [AmenityController::class, 'index']);
+Route::get('/motels/search', [MotelController::class, 'search']);
+Route::get('/motels/{slug}', [MotelController::class, 'show']);
+Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
+
+// Contact Routes
+Route::post('/contact', [ContactController::class, 'send']);

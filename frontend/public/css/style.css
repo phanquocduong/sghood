@@ -6231,7 +6231,7 @@ a.button.add-review-btn i {
 .listing-slider .item {
     position: relative;
     background-size: cover;
-    background-position: 50%;
+    background-position: center;
     height: 40vh;
     min-height: 400px;
 }

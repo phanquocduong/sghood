@@ -1,152 +1,112 @@
+<!-- pages/danh-sach-nha-tro.vue -->
 <template>
-    <Titlebar
-        title="Danh sách nhà trọ"
-        resultCount="Có 128 kết quả phù hợp"
-        :breadcrumbs="[{ text: 'Trang chủ', to: '/' }, { text: 'Danh sách nhà trọ' }]"
-    />
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-9 col-md-8 padding-right-30">
-                <!-- Sorting / Layout Switcher -->
-                <div class="row margin-bottom-25">
-                    <div class="col-md-12 col-xs-12">
-                        <SortBy
-                            :options="['Sắp xếp mặc định', 'Nổi bật nhất', 'Mới nhất', 'Cũ nhất']"
-                            :selected="sortOption"
-                            @update:sort="sortOption = $event"
+    <div>
+        <div id="titlebar" class="gradient">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h2>Danh sách nhà trọ</h2>
+                        <span>Có {{ total }} kết quả phù hợp</span>
+                        <nav id="breadcrumbs">
+                            <ul>
+                                <li>
+                                    <NuxtLink to="/">Trang chủ</NuxtLink>
+                                </li>
+                                <li>Danh sách nhà trọ</li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-9 col-md-8 padding-right-30">
+                    <div class="row margin-bottom-25">
+                        <div class="col-md-12 col-xs-12">
+                            <SortBy
+                                :options="['Sắp xếp mặc định', 'Nổi bật nhất', 'Mới nhất', 'Cũ nhất']"
+                                :selected="sortOption"
+                                @update:sort="
+                                    sortOption = $event;
+                                    fetchMotels();
+                                "
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Hiển thị loading spinner -->
+                    <div v-if="isLoading" class="loading-overlay">
+                        <div class="spinner"></div>
+                        <p>Đang tải...</p>
+                    </div>
+
+                    <!-- Danh sách nhà trọ -->
+                    <div v-else class="row">
+                        <div v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
+                            <MotelItem :item="item" />
+                        </div>
+                        <!-- Thông báo khi không có dữ liệu -->
+                        <div v-if="!listings.length" class="col-md-12 text-center">
+                            <p>Không tìm thấy nhà trọ nào phù hợp.</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Pagination
+                                :current-page="currentPage"
+                                :total-pages="totalPages"
+                                @change:page="
+                                    currentPage = $event;
+                                    fetchMotels();
+                                "
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-4">
+                    <div class="sidebar">
+                        <FilterWidget
+                            :filters="filters"
+                            :area-options="areaOptions"
+                            :price-options="priceOptions"
+                            :area-range-options="areaRangeOptions"
+                            :amenities-options="amenitiesOptions"
+                            @update:filters="filters = $event"
+                            @apply="fetchMotels"
                         />
                     </div>
                 </div>
-                <!-- Sorting / Layout Switcher / End -->
-
-                <div class="row">
-                    <div v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
-                        <ListingItem :item="item" />
-                    </div>
-                </div>
-
-                <!-- Pagination -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <Pagination :current-page="currentPage" :total-pages="totalPages" @change:page="currentPage = $event" />
-                    </div>
-                </div>
             </div>
-
-            <!-- Sidebar -->
-            <div class="col-lg-3 col-md-4">
-                <div class="sidebar">
-                    <!-- Widget -->
-                    <FilterWidget
-                        :filters="filters"
-                        :area-options="areaOptions"
-                        :price-options="priceOptions"
-                        :area-range-options="areaRangeOptions"
-                        :amenities-options="amenitiesOptions"
-                        @update:filters="filters = $event"
-                        @apply="applyFilters"
-                    />
-                </div>
-            </div>
-            <!-- Sidebar / End -->
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
 const sortOption = ref('Sắp xếp mặc định');
-const currentPage = ref(1);
-const totalPages = ref(3);
-const listings = ref([
-    {
-        id: 1,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    },
-    {
-        id: 2,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    },
-    {
-        id: 3,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    },
-    {
-        id: 4,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    },
-    {
-        id: 5,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    },
-    {
-        id: 6,
-        image: '/images/listing-item-03.jpg',
-        district: 'Quận 12',
-        name: 'Nhà trọ Phố Hiến',
-        address: '01 đường Lê Văn Khương, phường Thới An',
-        price: '3.500.000đ',
-        availableRooms: 14
-    }
-]);
+const currentPage = ref(0);
+const totalPages = ref(0);
+const total = ref(0);
+const listings = ref([]);
+const isLoading = ref(false); // Biến isLoading
+
+// Khởi tạo bộ lọc từ query string
 const filters = ref({
-    keyword: '',
-    area: '',
-    priceRange: '',
+    keyword: route.query.keyword || '',
+    area: route.query.area || '',
+    priceRange: route.query.priceRange || '',
     areaRange: '',
-    amenities: []
+    amenities: route.query.amenities ? (Array.isArray(route.query.amenities) ? route.query.amenities : [route.query.amenities]) : []
 });
 
-const areaOptions = ref([
-    'Thủ Đức',
-    'Quận 1',
-    'Quận 3',
-    'Quận 4',
-    'Quận 5',
-    'Quận 6',
-    'Quận 7',
-    'Quận 8',
-    'Quận 10',
-    'Quận 11',
-    'Quận 12',
-    'Tân Bình',
-    'Bình Tân',
-    'Bình Thạn',
-    'Tân Phú',
-    'Gò Vấp',
-    'Phú Nhuậ',
-    'Bình Cháh',
-    'Hóc Môn',
-    'Cần Giờ',
-    'Củ Chi',
-    'Nhà Bè'
-]);
-
+const areaOptions = ref([]);
 const priceOptions = ref([
     { value: '', label: 'Tất cả mức giá' },
     { value: 'under_1m', label: 'Dưới 1 triệu' },
@@ -164,21 +124,108 @@ const areaRangeOptions = ref([
     { value: 'over_50', label: 'Trên 50m²' }
 ]);
 
-const amenitiesOptions = ref([
-    { value: 'full_furniture', label: 'Đầy đủ nội thất' },
-    { value: 'loft', label: 'Có gác' },
-    { value: 'kitchen_shelf', label: 'Kệ bếp' },
-    { value: 'air_conditioner', label: 'Có máy lạnh' },
-    { value: 'washing_machine', label: 'Có máy giặt' },
-    { value: 'fridge', label: 'Có tủ lạnh' },
-    { value: 'elevator', label: 'Có thang máy' },
-    { value: 'no_shared_owner', label: 'Không chung chủ' }
-]);
+const amenitiesOptions = ref([]);
 
-const applyFilters = () => {
-    // Implement filtering logic here, e.g., API call or local filtering
-    console.log('Applying filters:', filters.value);
+const { $api } = useNuxtApp();
+
+const fetchMotels = async () => {
+    isLoading.value = true; // Bật loading
+    try {
+        const response = await $api('/motels/search', {
+            method: 'GET',
+            query: {
+                keyword: filters.value.keyword || undefined,
+                area: filters.value.area || undefined,
+                priceRange: filters.value.priceRange || undefined,
+                areaRange: filters.value.areaRange || undefined,
+                amenities: filters.value.amenities.length ? filters.value.amenities : undefined,
+                sort: sortOption.value,
+                page: currentPage.value,
+                per_page: 6
+            }
+        });
+
+        listings.value = response.data.map(item => ({
+            id: item.id,
+            slug: item.slug,
+            image: item.image,
+            district: item.district_name,
+            name: item.name,
+            address: item.address,
+            price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price),
+            availableRooms: item.room_count
+        }));
+        currentPage.value = response.current_page;
+        totalPages.value = response.total_pages;
+        total.value = response.total;
+
+        if (!listings.value.length) {
+            currentPage.value = 0;
+            totalPages.value = 0;
+        }
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách nhà trọ:', error);
+        listings.value = [];
+        total.value = 0;
+    } finally {
+        isLoading.value = false; // Tắt loading
+    }
 };
+
+onMounted(async () => {
+    isLoading.value = true; // Bật loading khi tải dữ liệu ban đầu
+    try {
+        const districtsResponse = await $api('/districts', { method: 'GET' });
+        areaOptions.value = districtsResponse.data.map(d => d.name);
+
+        const amenitiesResponse = await $api('/amenities', { method: 'GET' });
+        amenitiesOptions.value = amenitiesResponse.data;
+
+        await fetchMotels();
+    } catch (error) {
+        console.error('Lỗi khi tải dữ liệu ban đầu:', error);
+    } finally {
+        isLoading.value = false; // Tắt loading
+    }
+});
 </script>
 
-<style scoped></style>
+<style scoped>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8); /* Nền trắng mờ */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Đảm bảo overlay hiển thị trên cùng */
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #f91942;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+p {
+    color: #333;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+</style>
