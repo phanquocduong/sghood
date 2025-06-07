@@ -263,7 +263,6 @@
                 <strong>Lưu ý:</strong> Email này được gửi tự động từ hệ thống website. Vui lòng không trả lời trực tiếp email này.
             </p>
         </div>
-
         <div class="footer">
             <p><strong>🏢 Hệ thống quản lý Tro Việt Platform</strong></p>
             <div class="contact-footer">
