@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông báo liên hệ từ khách hàng</title>
+    <title>Thông báo từ chối đặt phòng</title>
     <style>
         * {
             margin: 0;
@@ -29,7 +29,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
             padding: 30px;
             text-align: center;
@@ -56,16 +56,16 @@
             color: #2c3e50;
         }
 
-        .contact-info {
+        .booking-info {
             background: #f8f9fa;
             border-radius: 10px;
             padding: 25px;
             margin: 25px 0;
-            border-left: 4px solid #007bff;
+            border-left: 4px solid #dc3545;
         }
 
-        .contact-info h3 {
-            color: #007bff;
+        .booking-info h3 {
+            color: #dc3545;
             margin-bottom: 15px;
             font-size: 18px;
         }
@@ -73,7 +73,7 @@
         .info-row {
             display: flex;
             margin-bottom: 12px;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .info-label {
@@ -86,27 +86,26 @@
         .info-value {
             color: #212529;
             flex: 1;
-            word-break: break-word;
         }
 
-        .message-content {
-            background: #e8f4fd;
-            border: 1px solid #b3d7ff;
+        .rejection-reason {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
             border-radius: 8px;
             padding: 20px;
             margin: 25px 0;
         }
 
-        .message-content h4 {
-            color: #0056b3;
+        .rejection-reason h4 {
+            color: #856404;
             margin-bottom: 10px;
             font-size: 16px;
         }
 
-        .message-content p {
-            color: #0056b3;
-            line-height: 1.6;
+        .rejection-reason p {
+            color: #856404;
             font-style: italic;
+            line-height: 1.5;
         }
 
         .message {
@@ -122,7 +121,7 @@
 
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             padding: 12px 30px;
             text-decoration: none;
@@ -133,7 +132,7 @@
 
         .cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
         }
 
         .footer {
@@ -148,7 +147,7 @@
             opacity: 0.8;
         }
 
-        .contact-footer {
+        .contact-info {
             font-size: 14px;
             opacity: 0.7;
         }
@@ -159,20 +158,6 @@
             height: 20px;
             margin-right: 8px;
             vertical-align: middle;
-        }
-
-        .priority-high {
-            background: #fff3cd;
-            border-left-color: #ffc107;
-            border: 1px solid #ffeaa7;
-        }
-
-        .priority-high h4 {
-            color: #856404;
-        }
-
-        .priority-high p {
-            color: #856404;
         }
 
         @media (max-width: 600px) {
@@ -204,71 +189,74 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>📧 Thông báo liên hệ mới</h1>
-            <p>Có khách hàng vừa gửi yêu cầu liên hệ</p>
+            <h1>🚫 Thông báo từ chối đặt phòng</h1>
+            <p>Chúng tôi rất tiếc phải thông báo về quyết định này</p>
         </div>
 
         <div class="content">
             <div class="greeting">
-                Xin chào <strong>Admin</strong>,
+                Xin chào <strong>{{ $userName }}</strong>,
             </div>
 
             <p class="message">
-                Một khách hàng đã gửi thông tin liên hệ qua website. Vui lòng kiểm tra và phản hồi <strong style="color: #007bff;">kịp thời</strong>.
+                Chúng tôi rất tiếc phải thông báo rằng yêu cầu đặt phòng của bạn đã bị <strong style="color: #dc3545;">từ chối</strong>.
             </p>
 
-            <div class="contact-info">
-                <h3>👤 Thông tin khách hàng</h3>
+            <div class="booking-info">
+                <h3>📋 Thông tin đặt phòng</h3>
                 <div class="info-row">
-                    <span class="info-label">👨‍💼 Họ và tên:</span>
-                    <span class="info-value"><strong>{{ $data['name'] }}</strong></span>
+                    <span class="info-label">🏠 Tên phòng:</span>
+                    <span class="info-value">{{ $roomName }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">📧 Email:</span>
-                    <span class="info-value">{{ $data['email'] }}</span>
+                    <span class="info-label">📅 Ngày bắt đầu:</span>
+                    <span class="info-value">{{ $startDate }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">📋 Chủ đề:</span>
-                    <span class="info-value">{{ $data['subject'] }}</span>
+                    <span class="info-label">📅 Ngày kết thúc:</span>
+                    <span class="info-value">{{ $endDate }}</span>
                 </div>
+                @if($booking->created_at)
                 <div class="info-row">
-                    <span class="info-label">🕐 Thời gian:</span>
-                    <span class="info-value">{{ now()->format('d/m/Y H:i') }}</span>
+                    <span class="info-label">🕐 Ngày đặt:</span>
+                    <span class="info-value">{{ \Carbon\Carbon::parse($booking->created_at)->format('d/m/Y H:i') }}</span>
                 </div>
+                @endif
             </div>
 
-            <div class="message-content">
-                <h4>💬 Nội dung tin nhắn:</h4>
-                <p>{{ $data['message'] }}</p>
+            @if($rejectionReason)
+            <div class="rejection-reason">
+                <h4>💬 Lý do từ chối:</h4>
+                <p>{{ $rejectionReason }}</p>
             </div>
+            @endif
 
             <p class="message">
-                Để đảm bảo chất lượng dịch vụ, vui lòng:
+                Chúng tôi hiểu rằng điều này có thể gây ra sự bất tiện cho bạn. Tuy nhiên, bạn vẫn có thể:
             </p>
 
             <ul style="margin: 20px 0; padding-left: 20px; color: #6c757d;">
-                <li style="margin-bottom: 8px;">✅ Phản hồi trong vòng 24 giờ</li>
-                <li style="margin-bottom: 8px;">📞 Liên hệ trực tiếp nếu cần thiết</li>
-                <li style="margin-bottom: 8px;">📝 Ghi chú thông tin vào hệ thống CRM</li>
-                <li style="margin-bottom: 8px;">🎯 Đưa ra giải pháp phù hợp</li>
+                <li style="margin-bottom: 8px;">🔍 Tìm kiếm các phòng khác còn trống</li>
+                <li style="margin-bottom: 8px;">📞 Liên hệ trực tiếp với chúng tôi để được hỗ trợ</li>
+                <li style="margin-bottom: 8px;">📝 Đặt phòng cho thời gian khác</li>
             </ul>
 
             <div class="cta-section">
-                <a href="mailto:{{ $data['email'] }}" class="cta-button" style="color: #ffffff;">
-                    📧 Phản hồi ngay
+                <a href="{{ url('/') }}" class="cta-button" style="color: #ffffff;">
+                    🏠 Xem phòng khác
                 </a>
             </div>
 
             <p class="message">
-                <strong>Lưu ý:</strong> Email này được gửi tự động từ hệ thống website. Vui lòng không trả lời trực tiếp email này.
+                Cảm ơn bạn đã quan tâm đến dịch vụ của chúng tôi. Chúng tôi hy vọng có cơ hội phục vụ bạn trong tương lai.
             </p>
         </div>
 
         <div class="footer">
-            <p><strong>🏢 Hệ thống quản lý Tro Việt Platform</strong></p>
-            <div class="contact-footer">
-                <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-                <p style="color: #ffffff;">🌐 Website: sghood.store</p>
+            <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
+            <div class="contact-info">
+                <p style="color: #ffffff;">📞 Hotline: 1900 1234 | ✉️ Email: sghood@gmail.com</p>
+                <pp style="color: #ffffff;">🌐 Website: sghood.com</pp>
             </div>
         </div>
     </div>

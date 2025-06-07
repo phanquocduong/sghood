@@ -10,8 +10,9 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NoteController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -101,6 +102,13 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user');
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
+    });
+
+    // Booking Routes Group
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::patch('/{id}/update-status', [BookingController::class, 'updateStatus'])->name('updateStatus');
+        Route::patch('/{id}/update-note', [BookingController::class, 'updateNote'])->name('updateNote');
     });
 
     // Config routes

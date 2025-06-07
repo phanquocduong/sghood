@@ -34,4 +34,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role' => 'string',
         'status' => 'string',
     ];
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class);
+    }
 }

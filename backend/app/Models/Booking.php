@@ -35,9 +35,6 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Mối quan hệ với Room
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);
