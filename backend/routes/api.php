@@ -9,6 +9,7 @@ use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
+use App\Http\Controllers\Apis\ConfigController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -47,3 +48,6 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 
 // Contact Routes
 Route::post('/contact', [ContactController::class, 'send']);
+// Get all config
+Route::get('/configs', [ConfigController::class, 'index']);
+

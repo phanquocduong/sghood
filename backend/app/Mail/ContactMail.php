@@ -19,7 +19,9 @@ class ContactMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Khách hàng liên hệ từ website')
-                    ->view('emails.contact');
+        return $this->subject('Chủ đề: ' . $this->data['subject'] . ' - Khách hàng liên hệ từ website')
+                    ->view('emails.contact')
+                    ->with('data', $this->data);
     }
+
 }
