@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\RoomService;
-use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {

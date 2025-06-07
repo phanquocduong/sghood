@@ -56,4 +56,11 @@ class BookingService
             ];
         });
     }
+
+    public function rejectBooking($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->update(['status' => Booking::STATUS_CANCELED]);
+        return $booking;
+    }
 }

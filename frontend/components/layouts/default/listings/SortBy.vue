@@ -1,9 +1,8 @@
-<!-- SortBy.vue -->
 <template>
     <ClientOnly>
         <div class="sort-by">
             <div class="sort-by-select">
-                <select :value="selected" class="chosen-select-no-single">
+                <select class="chosen-select-no-single">
                     <option v-for="option in options" :key="option" :value="option">
                         {{ option }}
                     </option>
@@ -20,35 +19,28 @@ const props = defineProps({
     options: {
         type: Array,
         default: () => []
-    },
-    selected: {
-        type: String,
-        default: ''
     }
 });
 
 const emit = defineEmits(['update:sort']);
 
 // Khởi tạo Chosen và gắn sự kiện change
-onMounted(async () => {
-    if (window.jQuery && window.jQuery.fn.chosen) {
-        // Hoãn khởi tạo Chosen để đảm bảo DOM trong ClientOnly đã sẵn sàng
-        await nextTick();
-        window.jQuery('.chosen-select-no-single').each(function () {
-            const $select = window.jQuery(this);
-            $select
+onMounted(() => {
+    nextTick(() => {
+        if (window.jQuery && window.jQuery.fn.chosen) {
+            window
+                .jQuery('.chosen-select-no-single')
                 .chosen({
                     width: '100%',
-                    no_results_text: 'Không tìm thấy kết quả',
-                    disable_search: false
+                    no_results_text: 'Không tìm thấy kết quả'
                 })
                 .on('change', event => {
                     const value = event.target.value;
-                    emit('update:sort', value); // Emit sự kiện update:sort
+                    emit('update:sort', value);
                 });
-        });
-    } else {
-        console.error('jQuery hoặc Chosen không được tải');
-    }
+        } else {
+            console.error('jQuery hoặc Chosen không được tải');
+        }
+    });
 });
 </script>

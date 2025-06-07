@@ -1,13 +1,13 @@
 <template>
     <SearchBanner
         :search="search"
-        :area-options="areaOptions"
+        :districts="districts.map(d => d.name)"
         :price-options="priceOptions"
         @update:search="search = $event"
         @search="handleSearch"
     />
 
-    <SectionFeaturedAreas :districts="districts" />
+    <SectionFeaturedDistricts :districts="districts" />
 
     <SectionFeaturedMotels />
 
@@ -63,8 +63,7 @@ import { useRouter } from 'vue-router';
 const { $api } = useNuxtApp();
 const router = useRouter();
 
-const search = ref({ keyword: '', area: '', priceRange: '' });
-const areaOptions = ref([]);
+const search = ref({ keyword: '', district: '', priceRange: '' });
 const districts = ref([]);
 
 const priceOptions = ref([
@@ -81,7 +80,7 @@ const handleSearch = () => {
         path: '/danh-sach-nha-tro',
         query: {
             keyword: search.value.keyword || undefined,
-            area: search.value.area || undefined,
+            district: search.value.district || undefined,
             priceRange: search.value.priceRange || undefined
         }
     });
@@ -90,7 +89,6 @@ const handleSearch = () => {
 onMounted(async () => {
     try {
         const response = await $api('/districts', { method: 'GET' });
-        areaOptions.value = response.data.map(d => d.name);
         districts.value = response.data;
     } catch (error) {
         console.error('Lỗi khi tải danh sách quận:', error);

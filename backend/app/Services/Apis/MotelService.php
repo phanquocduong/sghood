@@ -26,8 +26,6 @@ class MotelService
             ->take(6)
             ->get()
             ->map(function ($motel) {
-                $minPrice = $motel->rooms->min('price') ?? 0;
-
                 return [
                     'id' => $motel->id,
                     'slug' => $motel->slug,
@@ -36,10 +34,10 @@ class MotelService
                     'address' => $motel->address,
                     'status' => $motel->status,
                     'district_name' => $motel->district->name,
-                    'image' => $motel->mainImage->image_url,
+                    'main_image' => $motel->mainImage->image_url,
                     'amenity_count' => $motel->amenities_count,
                     'room_count' => $motel->available_rooms_count,
-                    'price' => $minPrice,
+                    'min_price' => $motel->rooms->min('price'),
                 ];
             });
 
@@ -64,7 +62,7 @@ class MotelService
         }
 
         // Lọc theo khu vực
-        if ($area = $request->input('area')) {
+        if ($area = $request->input('district')) {
             $query->whereHas('district', function ($q) use ($area) {
                 $q->where('name', $area);
             });
@@ -104,13 +102,12 @@ class MotelService
 
         // Lọc theo tiện ích
         $amenities = $request->input('amenities', []);
-        if (is_string($amenities)) {
-            $amenities = array_filter(explode('+', $amenities));
-        }
         if (!empty($amenities)) {
-            $query->whereHas('amenities', function ($q) use ($amenities) {
-                $q->whereIn('amenities.name', $amenities);
-            }, '=', count($amenities));
+            foreach ($amenities as $amenity) {
+                $query->whereHas('amenities', function ($q) use ($amenity) {
+                    $q->where('amenities.name', $amenity);
+                });
+            }
         }
 
         // Sắp xếp

@@ -19,9 +19,9 @@
 
                             <ClientOnly>
                                 <div class="main-search-input-item">
-                                    <select name="area" :value="search.area" class="chosen-select">
+                                    <select name="district" :value="search.district" class="chosen-select">
                                         <option value="">Tất cả khu vực</option>
-                                        <option v-for="option in areaOptions" :key="option" :value="option">
+                                        <option v-for="option in districts" :key="option" :value="option">
                                             {{ option }}
                                         </option>
                                     </select>
@@ -51,8 +51,8 @@
 import { onMounted, watch, nextTick } from 'vue';
 
 const props = defineProps({
-    search: { type: Object, default: () => ({ keyword: '', area: '', priceRange: '' }) },
-    areaOptions: { type: Array, default: () => [] },
+    search: { type: Object, default: () => ({ keyword: '', district: '', priceRange: '' }) },
+    districts: { type: Array, default: () => [] },
     priceOptions: { type: Array, default: () => [] }
 });
 
@@ -60,7 +60,6 @@ const emit = defineEmits(['update:search', 'search']);
 
 const updateSearch = (key, value) => {
     const newSearch = { ...props.search, [key]: value };
-    console.log(newSearch.value);
     emit('update:search', newSearch);
 };
 
@@ -86,11 +85,11 @@ onMounted(() => {
 });
 
 watch(
-    () => props.areaOptions,
+    () => props.districts,
     () => {
         nextTick(() => {
             if (window.jQuery && window.jQuery.fn.chosen) {
-                window.jQuery('select[name="area"]').trigger('chosen:updated');
+                window.jQuery('select[name="district"]').trigger('chosen:updated');
             }
         });
     },

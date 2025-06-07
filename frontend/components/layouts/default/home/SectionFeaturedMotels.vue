@@ -1,5 +1,5 @@
 <template>
-    <client-only>
+    <ClientOnly>
         <section class="fullwidth margin-top-65 padding-top-75 padding-bottom-70" data-background-color="#f8f8f8">
             <div class="container">
                 <div class="row">
@@ -10,11 +10,11 @@
                     </div>
 
                     <div class="col-md-12">
-                        <div v-if="motels.length > 0" ref="carousel" class="simple-slick-carousel dots-nav">
+                        <div ref="carousel" class="simple-slick-carousel dots-nav">
                             <div v-for="motel in motels" :key="motel.id" class="carousel-item">
                                 <NuxtLink :to="`/nha-tro/${motel.slug}`" class="listing-item-container">
                                     <div class="listing-item">
-                                        <img :src="`${config.public.baseUrl}${motel.image}`" :alt="motel.name" />
+                                        <img :src="`${config.public.baseUrl}${motel.main_image}`" :alt="motel.name" />
                                         <div class="listing-badge now-open">Nổi bật</div>
                                         <div class="listing-item-details">
                                             <ul>
@@ -28,25 +28,20 @@
                                         </div>
                                     </div>
                                     <div class="star-rating">
-                                        <div class="rating-counter">Giá từ {{ formatPrice(motel.price) }}/tháng</div>
+                                        <div class="rating-counter">Giá từ {{ formatPrice(motel.min_price) }}/tháng</div>
                                     </div>
                                 </NuxtLink>
                             </div>
-                        </div>
-                        <div v-else class="col-md-12 text-center">
-                            <p>Không có nhà trọ nổi bật nào để hiển thị.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
-    </client-only>
+    </ClientOnly>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { useNuxtApp } from '#app';
-import { NuxtLink } from '#components';
 
 const { $api } = useNuxtApp();
 const config = useRuntimeConfig();
@@ -90,7 +85,7 @@ onMounted(async () => {
             });
         }
     } catch (error) {
-        console.error('Lỗi khi gọi API:', error);
+        console.error('Đã xảy ra lỗi khi lấy dữ liệu nhà trọ nổi bật', error);
         motels.value = [];
     }
 });
