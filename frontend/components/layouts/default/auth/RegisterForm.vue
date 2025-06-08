@@ -4,7 +4,7 @@
             <form @submit.prevent="authStore.sendOTP">
                 <div class="form-row form-row-wide">
                     <label for="phone">
-                        Số điện thoại (+84):
+                        Số điện thoại:
                         <i class="im im-icon-Phone-2"></i>
                         <input
                             type="tel"
@@ -12,7 +12,7 @@
                             id="phone"
                             v-model="phone"
                             required
-                            placeholder="+84..."
+                            placeholder="Nhập số điện thoại"
                             pattern="^(?:\+84|0)(3|5|7|8|9)\d{8}$"
                         />
                     </label>

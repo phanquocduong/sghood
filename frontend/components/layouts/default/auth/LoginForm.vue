@@ -16,7 +16,7 @@
                     <input class="input-text" type="password" name="password" id="password" v-model="password" required />
                 </label>
                 <span class="lost_password">
-                    <a href="#">Quên mật khẩu?</a>
+                    <a href="#" @click="showForgotPassword">Quên mật khẩu?</a>
                 </span>
             </p>
 
@@ -25,10 +25,6 @@
                     <span v-if="loading" class="spinner"></span>
                     {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
                 </button>
-                <div class="checkboxes margin-top-10">
-                    <input id="remember-me" type="checkbox" name="check" />
-                    <label for="remember-me">Ghi nhớ tôi</label>
-                </div>
             </div>
         </form>
     </div>
@@ -40,6 +36,13 @@ import { useAuthStore } from '~/stores/auth';
 
 const authStore = useAuthStore();
 const { username, password, loading } = storeToRefs(authStore);
+
+const showForgotPassword = () => {
+    if (typeof window !== 'undefined' && window.$.magnificPopup) {
+        window.$('.tab-content').hide();
+        window.$('#forgot-password').show();
+    }
+};
 </script>
 
 <style scoped>
