@@ -53,7 +53,6 @@
             <div class="col-md-8">
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
-                    <div id="contact-message"></div>
                     <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
@@ -87,22 +86,21 @@
                         </div> 
                         <div>
                             <textarea
+                            v-model="message"
                                 name="message"
                                 cols="40"
                                 rows="3"
-                                id="contact-message"
+                                id="contact-Message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
                                 required="required"
-                                v-model="message"
+                                style="min-height: 180px; width: 100%; "
                             ></textarea>
                         </div>
-                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" />
-                        <div v-if="noficationMessage"
-                                :class="{'notification-success': res?.status === true, 'notification-error': res?.status !== true}"  
-                                style="margin-top: 10px">
-                                {{ noficationMessage }}
-                        </div>
+                        <button type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" style="margin-bottom:10px ; margin-top: -10px;" >
+                            <span v-if="loading"  class="spinner" ></span>
+                            {{ loading ? ' Đang gửi...':'Gửi đi' }}
+                        </button>
                     </form>
                 </section>
             </div>
@@ -113,13 +111,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
+import { useToast } from 'vue-toastification';
+const toast = useToast();
 const { $api } = useNuxtApp();
 const name = ref('');
 const email = ref('');
 const subject = ref('');
 const message = ref('');
 const loading = ref(false);
-const noficationMessage = ref('');
 const authStore = useAuthStore();
 onMounted(()=>{
 if(authStore.user){
@@ -145,16 +144,14 @@ const handleSubmit = async () => {
         });
         console.log(res.value);
         if (res?.status === true) {
-            noficationMessage.value = '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.';
-            name.value = '';
-            email.value = '';
+           toast.success ( '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
             subject.value ='' ;
             message.value = '';
         } else {
-            noficationMessage.value = `❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`;
+           toast.error  (`❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
         }
     } catch (error) {
-        noficationMessage.value = '❌ Gửi thất bại: Lỗi kết nối đến máy chủ.';
+       toast.error  ('❌ Gửi thất bại: Lỗi kết nối đến máy chủ.');
     } finally {
         loading.value = false;
     }
@@ -162,20 +159,31 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.notification-success {
-    color: #2e7d32;
-    background-color: #e6f4ea;
-    padding: 10px;
-    border-left: 4px solid #2e7d32;
-    margin-top: 10px;
-    border-radius: 4px;
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
 }
-.notification-error {
-    color: #c62828;
-    background-color: #fdecea;
-    padding: 10px;
-    border-left: 4px solid #c62828;
-    margin-top: 10px;
-    border-radius: 4px;
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.textarea{
+     min-height: 120px;
+    width: 100%;
 }
 </style>
