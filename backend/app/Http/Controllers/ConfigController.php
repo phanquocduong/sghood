@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\ConfigService;
 use App\Http\Requests\ConfigRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ConfigController extends Controller
 {
@@ -30,14 +31,29 @@ class ConfigController extends Controller
 
     public function store(ConfigRequest $request)
     {
-        $data = $request->validated();
-        $result = $this->configService->createConfig($data);
+        try {
+            // Use validated data from ConfigRequest
+            $data = $request->validated();
 
-        if (isset($result['error'])) {
-            return redirect()->route('configs.index')->with('error', $result['error']);
+            // Handle image or text value
+            if ($request->input('config_type') === 'IMAGE') {
+                $imageFile = $request->file('config_image');
+                if (!$imageFile) {
+                    return redirect()->back()->with('error', 'Vui lòng tải lên file ảnh!')->withInput();
+                }
+                $result = $this->configService->storeConfig($data, $imageFile);
+            } else {
+                $result = $this->configService->storeConfig($data);
+            }
+
+            if (isset($result['error'])) {
+                return redirect()->back()->with('error', $result['error'])->withInput();
+            }
+
+            return redirect()->route('configs.index')->with('success', 'Cấu hình đã được tạo thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage())->withInput();
         }
-
-        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được thêm thành công!');
     }
 
     public function edit($id)
@@ -48,14 +64,28 @@ class ConfigController extends Controller
 
     public function update(ConfigRequest $request, $id)
     {
-        $data = $request->validated();
-        $result = $this->configService->updateConfig($id, $data);
+        try {
+            // Use validated data from ConfigRequest
+            $data = $request->validated();
 
-        if (isset($result['error'])) {
-            return redirect()->route('configs.index')->with('error', $result['error']);
+            // Handle image or text value
+            if ($request->input('config_type') === 'IMAGE') {
+                $imageFile = $request->hasFile('config_image') ? $request->file('config_image') : null;
+                $result = $this->configService->updateConfig($id, $data, $imageFile);
+            } else {
+                $data['config_value'] = $request->input('config_value');
+                $result = $this->configService->updateConfig($id, $data);
+            }
+
+            if (isset($result['error'])) {
+                return redirect()->back()->with('error', $result['error'])->withInput();
+            }
+
+            return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công!');
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi cập nhật cấu hình: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage())->withInput();
         }
-
-        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công!');
     }
 
     public function destroy($id)
