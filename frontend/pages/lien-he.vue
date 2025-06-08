@@ -82,9 +82,16 @@
                                 </div>
                             </div>
                         </div>
-                          <div>
-                            <input name="subject" type="text" id="subject-contact" placeholder="Chủ đề" required="required" v-model="subject" />
-                        </div> 
+                        <div>
+                            <input
+                                name="subject"
+                                type="text"
+                                id="subject-contact"
+                                placeholder="Chủ đề"
+                                required="required"
+                                v-model="subject"
+                            />
+                        </div>
                         <div>
                             <textarea
                                 name="message"
@@ -98,10 +105,12 @@
                             ></textarea>
                         </div>
                         <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" />
-                        <div v-if="noficationMessage"
-                                :class="{'notification-success': res?.status === true, 'notification-error': res?.status !== true}"  
-                                style="margin-top: 10px">
-                                {{ noficationMessage }}
+                        <div
+                            v-if="noficationMessage"
+                            :class="{ 'notification-success': res?.status === true, 'notification-error': res?.status !== true }"
+                            style="margin-top: 10px"
+                        >
+                            {{ noficationMessage }}
                         </div>
                     </form>
                 </section>
@@ -121,12 +130,12 @@ const message = ref('');
 const loading = ref(false);
 const noficationMessage = ref('');
 const authStore = useAuthStore();
-onMounted(()=>{
-if(authStore.user){
-    name.value = authStore.user.name ||'';
-    email.value = authStore.user.email ||'';
-}
-})
+onMounted(() => {
+    if (authStore.user) {
+        name.value = authStore.user.name || '';
+        email.value = authStore.user.email || '';
+    }
+});
 const handleSubmit = async () => {
     loading.value = true;
     try {
@@ -139,8 +148,8 @@ const handleSubmit = async () => {
             body: {
                 name: name.value,
                 email: email.value,
-                subject:subject.value, 
-                message: message.value,
+                subject: subject.value,
+                message: message.value
             }
         });
         console.log(res.value);
@@ -148,7 +157,7 @@ const handleSubmit = async () => {
             noficationMessage.value = '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.';
             name.value = '';
             email.value = '';
-            subject.value ='' ;
+            subject.value = '';
             message.value = '';
         } else {
             noficationMessage.value = `❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`;
@@ -177,5 +186,9 @@ const handleSubmit = async () => {
     border-left: 4px solid #c62828;
     margin-top: 10px;
     border-radius: 4px;
+}
+
+.container > .row {
+    margin-bottom: 40px;
 }
 </style>
