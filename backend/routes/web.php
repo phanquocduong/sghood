@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
@@ -9,8 +10,9 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NoteController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -102,14 +104,29 @@ Route::middleware('admin')->group(function () {
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
     });
 
+    // Booking Routes Group
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::patch('/{id}/update-status', [BookingController::class, 'updateStatus'])->name('updateStatus');
+        Route::patch('/{id}/update-note', [BookingController::class, 'updateNote'])->name('updateNote');
+    });
+
     // Config routes
-    Route::get('configs', [ConfigController::class, 'index'])->name('configs.index');
-    Route::get('configs/create', [ConfigController::class, 'create'])->name('configs.create');
-    Route::post('configs', [ConfigController::class, 'store'])->name('configs.store');
-    Route::get('configs/{id}/edit', [ConfigController::class, 'edit'])->name('configs.edit');
-    Route::put('configs/{id}', [ConfigController::class, 'update'])->name('configs.update');
-    Route::delete('configs/{id}', [ConfigController::class, 'destroy'])->name('configs.destroy');
-    Route::get('configs/trash', [ConfigController::class, 'trash'])->name('configs.trash');
-    Route::patch('configs/{id}/restore', [ConfigController::class, 'restore'])->name('configs.restore');
-    Route::delete('configs/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('configs.forceDelete');
+    Route::prefix('configs')->name('configs.')->group(function () {
+        Route::get('/', [ConfigController::class, 'index'])->name('index');
+        Route::get('/create', [ConfigController::class, 'create'])->name('create');
+        Route::post('/', [ConfigController::class, 'store'])->name('store');
+        Route::get('/trash', [ConfigController::class, 'trash'])->name('trash');
+        Route::get('/{id}/edit', [ConfigController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ConfigController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ConfigController::class, 'destroy'])->name('destroy');
+        Route::patch('/{id}/restore', [ConfigController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    // schedule routes group
+    Route::prefix('schedules')->name('schedules.')->group(function () {
+        Route::get('/', [ScheduleController::class, 'index'])->name('index');
+        Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
+    });
 });

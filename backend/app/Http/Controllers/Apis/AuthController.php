@@ -3,12 +3,17 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Apis\RegisterRequest;
+use App\Http\Requests\Apis\ResetPasswordRequest;
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
 use App\Services\Apis\AuthService;
 use App\Services\Apis\FirebaseService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -111,5 +116,34 @@ class AuthController extends Controller
         }
 
         return redirect()->to(config('app.frontend_url') . '/xac-minh-email?message=' . urlencode('Xác minh email thành công'));
+    }
+
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        $input = $request->validated();
+        $phone = $input['phone'];
+
+        $user = User::where('phone', $phone)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Số điện thoại không tồn tại'], 404);
+        }
+
+        try {
+            $verifiedPhone = $this->firebaseService->verifyToken($request->id_token);
+            if ($verifiedPhone !== $phone) {
+                return response()->json(['error' => 'Mã OTP không hợp lệ'], 400);
+            }
+
+            $user->forceFill([
+                'password' => Hash::make($input['password'])
+            ])->save();
+
+            event(new PasswordReset($user));
+            return response()->json(['message' => 'Đặt lại mật khẩu thành công']);
+        } catch (\Throwable $e) {
+            Log::error('Reset Password Error:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi đặt lại mật khẩu'], 500);
+        }
     }
 }

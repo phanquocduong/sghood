@@ -4,6 +4,17 @@
 @section('title', 'Thêm nhà trọ')
 
 @section('content')
+
+<!-- dropzone -->
+ @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+@endpush
+
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+@endpush
+
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
             {{ session('success') }}

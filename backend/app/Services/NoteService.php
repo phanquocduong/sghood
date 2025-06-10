@@ -203,11 +203,25 @@ class NoteService
     public function getUsersWithNotes(): array
     {
         try {
-            $users = User::has('notes')->pluck('name', 'id');
+            $users = User::where('status', 'Hoạt động')
+                        ->has('notes')
+                        ->pluck('name', 'id');
             return $this->successResponse($users);
         } catch (Exception $e) {
             \Log::error('Error retrieving users with notes: ' . $e->getMessage());
             return $this->errorResponse('Không thể lấy danh sách người dùng: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // Lấy danh sách các loại ghi chú
+    public function getNoteTypes(): array
+    {
+        try {
+            $types = Note::distinct()->pluck('type');
+            return $this->successResponse($types);
+        } catch (Exception $e) {
+            \Log::error('Error retrieving note types: ' . $e->getMessage());
+            return $this->errorResponse('Không thể lấy danh sách loại ghi chú: ' . $e->getMessage(), 500);
         }
     }
 }

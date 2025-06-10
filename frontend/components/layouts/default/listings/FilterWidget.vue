@@ -15,13 +15,13 @@
             </div>
         </div>
 
-        <!-- Area Select -->
+        <!-- District Select -->
         <ClientOnly>
             <div class="row with-forms">
                 <div class="col-md-12">
-                    <select name="area" :value="filters.area" class="chosen-select">
+                    <select name="district" :value="filters.district" class="chosen-select">
                         <option value="">Tất cả khu vực</option>
-                        <option v-for="option in areaOptions" :key="option" :value="option">
+                        <option v-for="option in districts" :key="option" :value="option">
                             {{ option }}
                         </option>
                     </select>
@@ -89,13 +89,13 @@ const props = defineProps({
         type: Object,
         default: () => ({
             keyword: '',
-            area: '',
+            district: '',
             priceRange: '',
             areaRange: '',
             amenities: []
         })
     },
-    areaOptions: { type: Array, default: () => [] },
+    districts: { type: Array, default: () => [] },
     priceOptions: { type: Array, default: () => [] },
     areaRangeOptions: { type: Array, default: () => [] },
     amenitiesOptions: { type: Array, default: () => [] }
@@ -138,7 +138,7 @@ onMounted(() => {
 });
 
 watch(
-    () => props.areaOptions,
+    () => props.districts,
     () => {
         nextTick(() => {
             if (window.jQuery && window.jQuery.fn.chosen) {

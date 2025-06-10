@@ -1,4 +1,3 @@
-<!-- pages/danh-sach-nha-tro.vue -->
 <template>
     <div>
         <div id="titlebar" class="gradient">
@@ -26,7 +25,6 @@
                         <div class="col-md-12 col-xs-12">
                             <SortBy
                                 :options="['Sắp xếp mặc định', 'Nổi bật nhất', 'Mới nhất', 'Cũ nhất']"
-                                :selected="sortOption"
                                 @update:sort="
                                     sortOption = $event;
                                     fetchMotels();
@@ -35,19 +33,16 @@
                         </div>
                     </div>
 
-                    <!-- Hiển thị loading spinner -->
                     <div v-if="isLoading" class="loading-overlay">
                         <div class="spinner"></div>
                         <p>Đang tải...</p>
                     </div>
 
-                    <!-- Danh sách nhà trọ -->
                     <div v-else class="row">
-                        <div v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
+                        <div v-if="listings.length" v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
                             <MotelItem :item="item" />
                         </div>
-                        <!-- Thông báo khi không có dữ liệu -->
-                        <div v-if="!listings.length" class="col-md-12 text-center">
+                        <div v-else class="col-md-12 text-center">
                             <p>Không tìm thấy nhà trọ nào phù hợp.</p>
                         </div>
                     </div>
@@ -70,7 +65,7 @@
                     <div class="sidebar">
                         <FilterWidget
                             :filters="filters"
-                            :area-options="areaOptions"
+                            :districts="districts"
                             :price-options="priceOptions"
                             :area-range-options="areaRangeOptions"
                             :amenities-options="amenitiesOptions"
@@ -89,24 +84,25 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const { $api } = useNuxtApp();
 
 const sortOption = ref('Sắp xếp mặc định');
 const currentPage = ref(0);
 const totalPages = ref(0);
 const total = ref(0);
 const listings = ref([]);
-const isLoading = ref(false); // Biến isLoading
+const isLoading = ref(false);
 
 // Khởi tạo bộ lọc từ query string
 const filters = ref({
     keyword: route.query.keyword || '',
-    area: route.query.area || '',
+    district: route.query.district || '',
     priceRange: route.query.priceRange || '',
     areaRange: '',
-    amenities: route.query.amenities ? (Array.isArray(route.query.amenities) ? route.query.amenities : [route.query.amenities]) : []
+    amenities: []
 });
 
-const areaOptions = ref([]);
+const districts = ref([]);
 const priceOptions = ref([
     { value: '', label: 'Tất cả mức giá' },
     { value: 'under_1m', label: 'Dưới 1 triệu' },
@@ -126,19 +122,17 @@ const areaRangeOptions = ref([
 
 const amenitiesOptions = ref([]);
 
-const { $api } = useNuxtApp();
-
 const fetchMotels = async () => {
-    isLoading.value = true; // Bật loading
+    isLoading.value = true;
     try {
         const response = await $api('/motels/search', {
             method: 'GET',
             query: {
                 keyword: filters.value.keyword || undefined,
-                area: filters.value.area || undefined,
+                district: filters.value.district || undefined,
                 priceRange: filters.value.priceRange || undefined,
                 areaRange: filters.value.areaRange || undefined,
-                amenities: filters.value.amenities.length ? filters.value.amenities : undefined,
+                'amenities[]': filters.value.amenities.length ? filters.value.amenities : undefined,
                 sort: sortOption.value,
                 page: currentPage.value,
                 per_page: 6
@@ -148,11 +142,11 @@ const fetchMotels = async () => {
         listings.value = response.data.map(item => ({
             id: item.id,
             slug: item.slug,
-            image: item.image,
+            mainImage: item.main_image,
             district: item.district_name,
             name: item.name,
             address: item.address,
-            price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price),
+            minPrice: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.min_price),
             availableRooms: item.room_count
         }));
         currentPage.value = response.current_page;
@@ -168,15 +162,15 @@ const fetchMotels = async () => {
         listings.value = [];
         total.value = 0;
     } finally {
-        isLoading.value = false; // Tắt loading
+        isLoading.value = false;
     }
 };
 
 onMounted(async () => {
-    isLoading.value = true; // Bật loading khi tải dữ liệu ban đầu
+    isLoading.value = true;
     try {
         const districtsResponse = await $api('/districts', { method: 'GET' });
-        areaOptions.value = districtsResponse.data.map(d => d.name);
+        districts.value = districtsResponse.data.map(d => d.name);
 
         const amenitiesResponse = await $api('/amenities', { method: 'GET' });
         amenitiesOptions.value = amenitiesResponse.data;
@@ -185,7 +179,7 @@ onMounted(async () => {
     } catch (error) {
         console.error('Lỗi khi tải dữ liệu ban đầu:', error);
     } finally {
-        isLoading.value = false; // Tắt loading
+        isLoading.value = false;
     }
 });
 </script>
@@ -197,12 +191,12 @@ onMounted(async () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.8); /* Nền trắng mờ */
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Đảm bảo overlay hiển thị trên cùng */
+    z-index: 9999;
 }
 
 .spinner {

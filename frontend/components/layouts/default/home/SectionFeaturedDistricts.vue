@@ -35,7 +35,7 @@ const handleRedirect = district => {
     router.push({
         path: '/danh-sach-nha-tro',
         query: {
-            area: district
+            district: district
         }
     });
 };
@@ -48,13 +48,12 @@ const handleRedirect = district => {
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
-    border-radius: 8px;
-    cursor: pointer; /* Thêm con trỏ để báo hiệu có thể click */
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .img-box:hover {
-    transform: scale(1.02);
-    filter: brightness(0.8);
+    transform: scale(1.01);
 }
 
 .img-box-content {
@@ -68,8 +67,8 @@ const handleRedirect = district => {
 
 .img-box:hover .img-box-content {
     transform: translateY(-10px);
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 4px;
 }
 </style>

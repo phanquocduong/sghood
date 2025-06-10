@@ -28,6 +28,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+
 </head>
 <body>
     <div class="container-fluid position-relative bg-white d-flex p-0">

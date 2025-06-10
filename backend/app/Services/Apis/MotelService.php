@@ -3,176 +3,178 @@
 namespace App\Services\Apis;
 
 use App\Models\Motel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class MotelService
 {
+    // Hằng số cho các tiêu chí sắp xếp
+    private const SORT_DEFAULT = 'Sắp xếp mặc định';
+    private const SORT_FEATURED = 'Nổi bật nhất';
+    private const SORT_NEWEST = 'Mới nhất';
+    private const SORT_OLDEST = 'Cũ nhất';
+
+    // Hằng số cho khoảng giá
+    private const PRICE_RANGES = [
+        'under_1m' => ['max' => 1000000],
+        '1m_2m' => ['min' => 1000000, 'max' => 2000000],
+        '2m_3m' => ['min' => 2000000, 'max' => 3000000],
+        '3m_5m' => ['min' => 3000000, 'max' => 5000000],
+        'over_5m' => ['min' => 5000000],
+    ];
+
+    // Hằng số cho diện tích
+    private const AREA_RANGES = [
+        'under_20' => ['max' => 20],
+        '20_30' => ['min' => 20, 'max' => 30],
+        '30_50' => ['min' => 30, 'max' => 50],
+        'over_50' => ['min' => 50],
+    ];
+
+    /**
+     * Lấy danh sách nhà trọ nổi bật.
+     *
+     * @return array
+     */
     public function getFeaturedMotels()
     {
-        $motels = Motel::select('id', 'slug', 'name', 'description', 'address', 'status', 'district_id')
-            ->with('district')
-            ->with('mainImage')
+        $motels = Motel::query()
+            ->select('id', 'slug', 'name', 'description', 'address', 'status', 'district_id')
+            ->with(['district:id,name', 'mainImage:id,motel_id,image_url'])
             ->withCount('amenities')
-            ->withCount(['rooms as available_rooms_count' => function ($query) {
-                $query->where('status', 'Trống');
-            }])
-            ->with(['rooms' => function ($query) {
+            ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
+                $query->where('status', 'Trống')
+            ])
+            ->with(['rooms' => fn ($query) =>
                 $query->select('motel_id', 'price')
-                      ->whereNotNull('price')
-                      ->orderBy('price', 'asc');
-            }])
+                    ->whereNotNull('price')
+                    ->orderBy('price', 'asc')
+                    ->take(1)
+            ])
             ->orderBy('amenities_count', 'desc')
             ->orderBy('available_rooms_count', 'desc')
             ->take(6)
-            ->get()
-            ->map(function ($motel) {
-                $minPrice = $motel->rooms->min('price') ?? 0;
+            ->get();
 
-                return [
-                    'id' => $motel->id,
-                    'slug' => $motel->slug,
-                    'name' => $motel->name,
-                    'description' => $motel->description,
-                    'address' => $motel->address,
-                    'status' => $motel->status,
-                    'district_name' => $motel->district->name,
-                    'image' => $motel->mainImage->image_url,
-                    'amenity_count' => $motel->amenities_count,
-                    'room_count' => $motel->available_rooms_count,
-                    'price' => $minPrice,
-                ];
-            });
-
-        return $motels;
+        return $this->transformMotelList($motels);
     }
 
+    /**
+     * Tìm kiếm nhà trọ theo tiêu chí.
+     *
+     * @param Request $request
+     * @return array
+     */
     public function searchMotels(Request $request)
     {
-        $query = Motel::query()->with(['district', 'rooms', 'mainImage'])
+        $query = Motel::query()
+            ->with(['district:id,name', 'rooms:id,motel_id,price', 'mainImage:id,motel_id,image_url'])
             ->withCount('amenities')
-            ->withCount(['rooms as available_rooms_count' => function ($query) {
-                $query->where('status', 'Trống');
-            }]);
+            ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
+                $query->where('status', 'Trống')
+            ]);
 
         // Lọc theo từ khóa
         if ($keyword = $request->input('keyword')) {
-            $query->where(function ($q) use ($keyword) {
+            $query->where(function (Builder $q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('address', 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%");
+                    ->orWhere('address', 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%");
             });
         }
 
         // Lọc theo khu vực
-        if ($area = $request->input('area')) {
-            $query->whereHas('district', function ($q) use ($area) {
-                $q->where('name', $area);
-            });
+        if ($district = $request->input('district')) {
+            $query->whereHas('district', fn (Builder $q) =>
+                $q->where('name', $district)
+            );
         }
 
         // Lọc theo khoảng giá
         if ($priceRange = $request->input('priceRange')) {
-            $query->whereHas('rooms', function ($q) use ($priceRange) {
-                if ($priceRange == 'under_1m') {
-                    $q->where('price', '<', 1000000);
-                } elseif ($priceRange == '1m_2m') {
-                    $q->whereBetween('price', [1000000, 2000000]);
-                } elseif ($priceRange == '2m_3m') {
-                    $q->whereBetween('price', [2000000, 3000000]);
-                } elseif ($priceRange == '3m_5m') {
-                    $q->whereBetween('price', [3000000, 5000000]);
-                } elseif ($priceRange == 'over_5m') {
-                    $q->where('price', '>', 5000000);
+            $query->whereHas('rooms', function (Builder $q) use ($priceRange) {
+                if (isset(self::PRICE_RANGES[$priceRange])) {
+                    $range = self::PRICE_RANGES[$priceRange];
+                    if (isset($range['min']) && isset($range['max'])) {
+                        $q->whereBetween('price', [$range['min'], $range['max']]);
+                    } elseif (isset($range['min'])) {
+                        $q->where('price', '>', $range['min']);
+                    } else {
+                        $q->where('price', '<', $range['max']);
+                    }
                 }
             });
         }
 
         // Lọc theo diện tích
         if ($areaRange = $request->input('areaRange')) {
-            $query->whereHas('rooms', function ($q) use ($areaRange) {
-                if ($areaRange == 'under_20') {
-                    $q->where('area', '<', 20);
-                } elseif ($areaRange == '20_30') {
-                    $q->whereBetween('area', [20, 30]);
-                } elseif ($areaRange == '30_50') {
-                    $q->whereBetween('area', [30, 50]);
-                } elseif ($areaRange == 'over_50') {
-                    $q->where('area', '>', 50);
+            $query->whereHas('rooms', function (Builder $q) use ($areaRange) {
+                if (isset(self::AREA_RANGES[$areaRange])) {
+                    $range = self::AREA_RANGES[$areaRange];
+                    if (isset($range['min']) && isset($range['max'])) {
+                        $q->whereBetween('area', [$range['min'], $range['max']]);
+                    } elseif (isset($range['min'])) {
+                        $q->where('area', '>', $range['min']);
+                    } else {
+                        $q->where('area', '<', $range['max']);
+                    }
                 }
             });
         }
 
         // Lọc theo tiện ích
-        $amenities = $request->input('amenities', []);
-        if (is_string($amenities)) {
-            $amenities = array_filter(explode('+', $amenities));
-        }
-        if (!empty($amenities)) {
-            $query->whereHas('amenities', function ($q) use ($amenities) {
-                $q->whereIn('amenities.name', $amenities);
-            }, '=', count($amenities));
+        if ($amenities = $request->input('amenities', [])) {
+            $query->whereHas('amenities', fn (Builder $q) =>
+                $q->whereIn('amenities.name', $amenities), '>=', count($amenities)
+            );
         }
 
         // Sắp xếp
-        $sort = $request->input('sort', 'Sắp xếp mặc định');
-        if ($sort == 'Nổi bật nhất') {
-            $query->orderBy('amenities_count', 'desc')
-                  ->orderBy('available_rooms_count', 'desc');
-        } elseif ($sort == 'Mới nhất') {
-            $query->orderBy('created_at', 'desc');
-        } elseif ($sort == 'Cũ nhất') {
-            $query->orderBy('created_at', 'asc');
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
+        $sort = $request->input('sort', self::SORT_DEFAULT);
+        match ($sort) {
+            self::SORT_FEATURED => $query->orderBy('amenities_count', 'desc')
+                ->orderBy('available_rooms_count', 'desc'),
+            self::SORT_NEWEST => $query->orderBy('created_at', 'desc'),
+            self::SORT_OLDEST => $query->orderBy('created_at', 'asc'),
+            default => $query->orderBy('created_at', 'desc'),
+        };
 
         // Phân trang
         $perPage = $request->input('per_page', 6);
-        $page = $request->input('page', 1);
-        $motels = $query->paginate($perPage, ['*'], 'page', $page);
-
-        // Transform kết quả
-        $motels->getCollection()->transform(function ($motel) {
-            $minPrice = $motel->rooms->min('price') ?? 0;
-            return [
-                'id' => $motel->id,
-                'slug' => $motel->slug,
-                'name' => $motel->name,
-                'description' => $motel->description,
-                'address' => $motel->address,
-                'status' => $motel->status,
-                'district_name' => $motel->district->name,
-                'image' => $motel->mainImage->image_url,
-                'room_count' => $motel->available_rooms_count,
-                'price' => $minPrice,
-            ];
-        });
+        /** @var LengthAwarePaginator $motels */
+        $motels = $query->paginate($perPage);
 
         return [
-            'data' => $motels->items(),
+            'data' => $this->transformMotelList($motels->getCollection()),
             'current_page' => $motels->currentPage(),
             'total_pages' => $motels->lastPage(),
             'total' => $motels->total(),
         ];
     }
 
+    /**
+     * Lấy chi tiết nhà trọ theo slug.
+     *
+     * @param string $slug
+     * @return array
+     */
     public function getMotelDetail($slug)
     {
-        $motel = Motel::with([
-            'district',
-            'images',
-            'rooms' => function ($query) {
-                $query->select('id', 'motel_id', 'name', 'price', 'area', 'status')
-                    ->where('status', 'Trống')
-                    ->with(['amenities' => function ($query) {
-                        $query->select('amenities.id', 'amenities.name');
-                    }])
-                    ->with('mainImage');
-            },
-            'amenities' => function ($query) {
-                $query->select('amenities.id', 'amenities.name');
-            },
-        ])->where('slug', $slug)->firstOrFail();
+        $motel = Motel::query()
+            ->with([
+                'district:id,name',
+                'images:id,motel_id,image_url',
+                'rooms' => fn ($query) =>
+                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status')
+                        ->where('status', 'Trống')
+                        ->with([
+                            'amenities:id,name',
+                            'mainImage:id,room_id,image_url'
+                        ]),
+                'amenities:id,name',
+            ])
+            ->where('slug', $slug)
+            ->firstOrFail();
 
         // Lấy fees từ DB với đơn vị
         $fees = [
@@ -185,9 +187,17 @@ class MotelService
         ];
 
         // Lấy danh sách ảnh từ motel_images
-        $images = $motel->images->map(function ($image) {
-            return ['src' => $image->image_url];
-        })->values()->all();
+        $images = $motel->images->map(fn ($image) => ['src' => $image->image_url])->values()->all();
+
+        $rooms = $motel->rooms->map(fn ($room) => [
+            'id' => $room->id,
+            'name' => $room->name,
+            'price' => $room->price,
+            'area' => $room->area,
+            'status' => $room->status,
+            'amenities' => $room->amenities->pluck('name')->toArray(),
+            'main_image' => $room->mainImage->image_url,
+        ])->values()->all();
 
         return [
             'id' => $motel->id,
@@ -197,19 +207,32 @@ class MotelService
             'description' => $motel->description,
             'images' => $images,
             'amenities' => $motel->amenities->pluck('name')->toArray(),
-            'rooms' => $motel->rooms->map(function ($room) {
-                return [
-                    'id' => $room->id,
-                    'name' => $room->name,
-                    'price' => $room->price,
-                    'area' => $room->area,
-                    'status' => $room->status,
-                    'amenities' => $room->amenities->pluck('name')->toArray(),
-                    'image' => $room->mainImage->image_url
-                ];
-            })->values(),
+            'rooms' => $rooms,
             'fees' => $fees,
             'map_url' => $motel->map_embed_url,
         ];
+    }
+
+    /**
+     * Biến đổi danh sách nhà trọ thành định dạng trả về.
+     *
+     * @param \Illuminate\Support\Collection $motels
+     * @return array
+     */
+    private function transformMotelList($motels): array
+    {
+        return $motels->map(function ($motel) {
+            return [
+                'id' => $motel->id,
+                'slug' => $motel->slug,
+                'name' => $motel->name,
+                'address' => $motel->address,
+                'status' => $motel->status,
+                'district_name' => $motel->district->name,
+                'main_image' => $motel->mainImage->image_url,
+                'room_count' => $motel->available_rooms_count,
+                'min_price' => $motel->rooms->min('price'),
+            ];
+        })->toArray();
     }
 }

@@ -38,4 +38,10 @@ class BookingController extends Controller
         $bookings = $this->bookingService->getBookings($filters);
         return response()->json(['data' => $bookings], 200);
     }
+
+    public function reject($id)
+    {
+        $booking = $this->bookingService->rejectBooking($id);
+        return response()->json(['data' => $booking], 200);
+    }
 }

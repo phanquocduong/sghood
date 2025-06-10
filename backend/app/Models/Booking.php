@@ -22,6 +22,11 @@ class Booking extends Model
         'end_date' => 'date',
     ];
 
+    const STATUS_PENDING = 'Chờ xác nhận';
+    const STATUS_ACCEPTED = 'Chấp nhận';
+    const STATUS_REFUSED = 'Từ chối';
+    const STATUS_CANCELED = 'Huỷ bỏ';
+
     /**
      * Mối quan hệ với User
      */
@@ -30,9 +35,6 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Mối quan hệ với Room
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);

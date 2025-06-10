@@ -1,4 +1,3 @@
-<!-- components/ListingTitlebar.vue -->
 <template>
     <div id="titlebar" class="listing-titlebar">
         <div class="listing-titlebar-title">
@@ -6,7 +5,7 @@
                 {{ title }} <span class="listing-tag">{{ tag }}</span>
             </h2>
             <span>
-                <a href="#listing-location" class="listing-address"> <i class="fa fa-map-marker"></i>{{ location }} </a>
+                <a class="listing-address"> <i class="fa fa-map-marker"></i>{{ location }} </a>
             </span>
         </div>
     </div>

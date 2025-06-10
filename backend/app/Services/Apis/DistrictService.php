@@ -6,7 +6,7 @@ use App\Models\District;
 
 class DistrictService
 {
-    public function getDistrictsWithMotelCount()
+    public function getFeaturedDistricts()
     {
         $districts = District::select('id', 'name', 'image')
             ->withCount('motels') // Đếm số lượng nhà trọ

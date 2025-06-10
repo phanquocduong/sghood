@@ -54,41 +54,64 @@
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
                     <div id="contact-message"></div>
-                    <form method="post" action="contact.php" name="contactform" id="contactform" autocomplete="on">
+                    <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
                                 <div>
-                                    <input name="name" type="text" id="name" placeholder="Họ và tên" required="required" />
+                                    <input
+                                        name="name"
+                                        type="text"
+                                        id="contact-name"
+                                        placeholder="Họ và tên"
+                                        required="required"
+                                        v-model="name"
+                                    />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div>
                                     <input
                                         name="email"
-                                        type="email"
-                                        id="email"
+                                        type="text"
+                                        id="contact-email"
                                         placeholder="Email"
                                         pattern="^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$"
                                         required="required"
+                                        v-model="email"
                                     />
                                 </div>
                             </div>
                         </div>
                         <div>
-                            <input name="subject" type="text" id="subject" placeholder="Chủ đề" required="required" />
+                            <input
+                                name="subject"
+                                type="text"
+                                id="subject-contact"
+                                placeholder="Chủ đề"
+                                required="required"
+                                v-model="subject"
+                            />
                         </div>
                         <div>
                             <textarea
-                                name="comments"
+                                name="message"
                                 cols="40"
                                 rows="3"
-                                id="comments"
+                                id="contact-message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
                                 required="required"
+                                v-model="message"
                             ></textarea>
                         </div>
-                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" />
+                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" />
+                        <div
+                            v-if="noficationMessage"
+                            :class="{ 'notification-success': res?.status === true, 'notification-error': res?.status !== true }"
+                            style="margin-top: 10px"
+                        >
+                            {{ noficationMessage }}
+                        </div>
                     </form>
                 </section>
             </div>
@@ -96,6 +119,76 @@
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+const { $api } = useNuxtApp();
+const name = ref('');
+const email = ref('');
+const subject = ref('');
+const message = ref('');
+const loading = ref(false);
+const noficationMessage = ref('');
+const authStore = useAuthStore();
+onMounted(() => {
+    if (authStore.user) {
+        name.value = authStore.user.name || '';
+        email.value = authStore.user.email || '';
+    }
+});
+const handleSubmit = async () => {
+    loading.value = true;
+    try {
+        const res = await $api('/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            },
+            body: {
+                name: name.value,
+                email: email.value,
+                subject: subject.value,
+                message: message.value
+            }
+        });
+        console.log(res.value);
+        if (res?.status === true) {
+            noficationMessage.value = '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.';
+            name.value = '';
+            email.value = '';
+            subject.value = '';
+            message.value = '';
+        } else {
+            noficationMessage.value = `❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`;
+        }
+    } catch (error) {
+        noficationMessage.value = '❌ Gửi thất bại: Lỗi kết nối đến máy chủ.';
+    } finally {
+        loading.value = false;
+    }
+};
+</script>
 
-<style scoped></style>
+<style scoped>
+.notification-success {
+    color: #2e7d32;
+    background-color: #e6f4ea;
+    padding: 10px;
+    border-left: 4px solid #2e7d32;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+.notification-error {
+    color: #c62828;
+    background-color: #fdecea;
+    padding: 10px;
+    border-left: 4px solid #c62828;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.container > .row {
+    margin-bottom: 40px;
+}
+</style>
