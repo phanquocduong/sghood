@@ -55,6 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
         email.value = '';
         otpSent.value = false;
         showRegisterFields.value = false;
+        showResetFields.value = false;
     };
 
     const getCsrfCookie = async () => {

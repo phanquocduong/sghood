@@ -5,7 +5,7 @@
                 <label for="username">
                     SĐT hoặc Email:
                     <i class="im im-icon-Male"></i>
-                    <input type="text" class="input-text" name="username" id="username" v-model="username" required />
+                    <input type="text" class="input-text" id="username" v-model="username" required />
                 </label>
             </p>
 
@@ -13,10 +13,10 @@
                 <label for="password">
                     Mật khẩu:
                     <i class="im im-icon-Lock-2"></i>
-                    <input class="input-text" type="password" name="password" id="password" v-model="password" required />
+                    <input class="input-text" type="password" id="password" v-model="password" required />
                 </label>
                 <span class="lost_password">
-                    <a href="#" @click="showForgotPassword">Quên mật khẩu?</a>
+                    <a href="#" @click.prevent="showForgotPassword">Quên mật khẩu?</a>
                 </span>
             </p>
 
@@ -36,6 +36,39 @@ import { useAuthStore } from '~/stores/auth';
 
 const authStore = useAuthStore();
 const { username, password, loading } = storeToRefs(authStore);
+
+// Hàm chuẩn hóa số điện thoại
+const normalizePhoneNumber = value => {
+    // Nếu giá trị là email, không cần chuẩn hóa
+    if (value.includes('@')) {
+        return value;
+    }
+
+    let cleaned = value.replace(/[^0-9+]/g, ''); // Loại bỏ ký tự không phải số hoặc dấu +
+
+    // Nếu số bắt đầu bằng 0, chuyển thành +84
+    if (cleaned.startsWith('0')) {
+        cleaned = '+84' + cleaned.slice(1);
+    }
+
+    // Nếu số không bắt đầu bằng +84, thêm +84 vào
+    if (!cleaned.startsWith('+84') && cleaned.length > 0) {
+        cleaned = '+84' + cleaned;
+    }
+
+    return cleaned;
+};
+
+// Theo dõi và chuẩn hóa username nếu là số điện thoại
+watch(username, newValue => {
+    if (!newValue.includes('@')) {
+        // Chỉ chuẩn hóa nếu không phải email
+        const normalized = normalizePhoneNumber(newValue);
+        if (normalized !== newValue) {
+            username.value = normalized;
+        }
+    }
+});
 
 const showForgotPassword = () => {
     if (typeof window !== 'undefined' && window.$.magnificPopup) {
