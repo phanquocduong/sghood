@@ -1,8 +1,10 @@
 <?php
 namespace App\Services;
 
+use App\Mail\ScheduleStatusMail;
 use App\Models\Schedule;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ScheduleService
 {
@@ -40,15 +42,48 @@ class ScheduleService
         }
     }
 
-    public function updateScheduleStatus($id, $status)
+ public function updateScheduleStatus(int $id, string $newStatus): array
     {
         try {
-            $schedule = Schedule::findOrFail($id);
-            $schedule->update(['status' => $status]);
+            $schedule = Schedule::with(['room', 'user'])->find($id);
+            if (!$schedule) {
+                return ['error' => 'Lịch xem phòng không tồn tại'];
+            }
+            
+            // Lưu trạng thái cũ trước khi cập nhật
+            $oldStatus = $schedule->status;
+            
+            // Cập nhật trạng thái mới
+            $schedule->status = $newStatus;
+            $schedule->save();
+            
+            // Gửi email thông báo
+            $this->sendStatusUpdateEmail($schedule, $oldStatus, $newStatus);
+            
             return ['data' => $schedule];
-        } catch (\Throwable $e) {
-            Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái', 'status' => 500];
+        } catch (\Exception $e) {
+            Log::error('Lỗi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng'];
+        }
+    }
+    
+    /**
+     * Gửi email thông báo cập nhật trạng thái
+     */
+    private function sendStatusUpdateEmail(Schedule $schedule, string $oldStatus, string $newStatus): void
+    {
+        try {
+            if ($schedule->user && $schedule->user->email) {
+                Mail::to($schedule->user->email)->send(new ScheduleStatusMail($schedule, $oldStatus, $newStatus));
+                Log::info('Đã gửi email thông báo cập nhật trạng thái lịch xem phòng', [
+                    'schedule_id' => $schedule->id,
+                    'user_email' => $schedule->user->email,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Lỗi gửi email thông báo: ' . $e->getMessage());
         }
     }
 }
