@@ -24,7 +24,7 @@ class ConfigService
             return ['data' => $config];
         } catch (\Throwable $e) {
             Log::error('Lỗi khi tạo cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi tạo cấu hình!', 'status' => 500];
+            return ['error' => `Đã xảy ra lỗi khi tạo cấu hình! `, 'status' => 500];
         }
     }
 
@@ -44,7 +44,7 @@ class ConfigService
             return ['data' => $config];
         } catch (\Exception $e) {
             \Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.'];
+           return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.', 'status' => 500];
         }
     }
 
