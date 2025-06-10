@@ -84,13 +84,14 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const { $api } = useNuxtApp();
 
 const sortOption = ref('Sắp xếp mặc định');
 const currentPage = ref(0);
 const totalPages = ref(0);
 const total = ref(0);
 const listings = ref([]);
-const isLoading = ref(false); // Biến isLoading
+const isLoading = ref(false);
 
 // Khởi tạo bộ lọc từ query string
 const filters = ref({
@@ -121,11 +122,8 @@ const areaRangeOptions = ref([
 
 const amenitiesOptions = ref([]);
 
-const { $api } = useNuxtApp();
-
 const fetchMotels = async () => {
-    isLoading.value = true; // Bật loading
-    console.log(filters.value.amenities);
+    isLoading.value = true;
     try {
         const response = await $api('/motels/search', {
             method: 'GET',
@@ -144,11 +142,11 @@ const fetchMotels = async () => {
         listings.value = response.data.map(item => ({
             id: item.id,
             slug: item.slug,
-            image: item.image,
+            mainImage: item.main_image,
             district: item.district_name,
             name: item.name,
             address: item.address,
-            price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price),
+            minPrice: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.min_price),
             availableRooms: item.room_count
         }));
         currentPage.value = response.current_page;
@@ -164,12 +162,12 @@ const fetchMotels = async () => {
         listings.value = [];
         total.value = 0;
     } finally {
-        isLoading.value = false; // Tắt loading
+        isLoading.value = false;
     }
 };
 
 onMounted(async () => {
-    isLoading.value = true; // Bật loading khi tải dữ liệu ban đầu
+    isLoading.value = true;
     try {
         const districtsResponse = await $api('/districts', { method: 'GET' });
         districts.value = districtsResponse.data.map(d => d.name);
@@ -181,7 +179,7 @@ onMounted(async () => {
     } catch (error) {
         console.error('Lỗi khi tải dữ liệu ban đầu:', error);
     } finally {
-        isLoading.value = false; // Tắt loading
+        isLoading.value = false;
     }
 });
 </script>
@@ -193,12 +191,12 @@ onMounted(async () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.8); /* Nền trắng mờ */
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Đảm bảo overlay hiển thị trên cùng */
+    z-index: 9999;
 }
 
 .spinner {

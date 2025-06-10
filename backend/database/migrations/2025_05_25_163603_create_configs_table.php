@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('config_key', 255)->unique();
             $table->text('config_value');
             $table->string('description', 255)->nullable();
-            $table->enum('config_type', ['TEXT', 'URL', 'HTML', 'JSON'])->default('TEXT');
+            $table->enum('config_type', ['TEXT', 'URL', 'HTML', 'JSON', 'IMAGE'])->default('TEXT');
             $table->timestamps();
         });
     }
