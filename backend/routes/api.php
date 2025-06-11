@@ -10,6 +10,7 @@ use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\ConfigController;
+use App\Http\Controllers\Apis\ContractController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -55,3 +56,7 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
+// Get contract
+Route::get('/contracts/{id}', [ContractController::class, 'getContractById']);
+// Get contracts by user
+Route::get('/users/{userId}/contracts', [ContractController::class, 'getContractsByUser']);
