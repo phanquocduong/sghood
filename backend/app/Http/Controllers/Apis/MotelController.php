@@ -4,32 +4,48 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\MotelService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MotelController extends Controller
 {
-    protected $motelService;
-
-    public function __construct(MotelService $motelService)
+    public function __construct(protected MotelService $motelService)
     {
-        $this->motelService = $motelService;
     }
 
-    public function featured()
+    /**
+     * Lấy danh sách nhà trọ nổi bật.
+     *
+     * @return JsonResponse
+     */
+    public function featured(): JsonResponse
     {
-        $motels = $this->motelService->getFeaturedMotels();
-        return response()->json(['data' => $motels]);
+        return response()->json([
+            'data' => $this->motelService->getFeaturedMotels(),
+        ]);
     }
 
-    public function search(Request $request)
+    /**
+     * Tìm kiếm nhà trọ theo tiêu chí.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function search(Request $request): JsonResponse
     {
-        $result = $this->motelService->searchMotels($request);
-        return response()->json($result);
+        return response()->json($this->motelService->searchMotels($request));
     }
 
-    public function show($slug)
+    /**
+     * Lấy chi tiết nhà trọ theo slug.
+     *
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function show(string $slug): JsonResponse
     {
-        $motel = $this->motelService->getMotelDetail($slug);
-        return response()->json(['data' => $motel]);
+        return response()->json([
+            'data' => $this->motelService->getMotelDetail($slug),
+        ]);
     }
 }

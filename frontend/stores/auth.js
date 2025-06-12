@@ -19,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     const otp = ref('');
     const otpSent = ref(false);
     const showRegisterFields = ref(false);
+    const showResetFields = ref(false);
     const name = ref('');
     const email = ref('');
     const loading = ref(false);
@@ -54,6 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
         email.value = '';
         otpSent.value = false;
         showRegisterFields.value = false;
+        showResetFields.value = false;
     };
 
     const getCsrfCookie = async () => {
@@ -76,7 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = response.data;
             resetForm();
             closePopup();
-            toast.success('Đăng nhập thành công!');
+            toast.success(response.message);
         } catch (error) {
             handleBackendError(error);
         } finally {
@@ -99,7 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
                 return;
             }
 
-            await $api('/register', {
+            const response = await $api('/register', {
                 method: 'POST',
                 body: {
                     id_token: idToken,
@@ -117,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
             resetForm();
             closePopup();
             await signOut();
-            toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.');
+            toast.success(response.message);
         } catch (error) {
             handleBackendError(error);
         } finally {
@@ -128,8 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
     const logout = async () => {
         try {
             loading.value = true;
-            await getCsrfCookie();
-            await $api('/logout', {
+            const response = await $api('/logout', {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
@@ -137,7 +138,7 @@ export const useAuthStore = defineStore('auth', () => {
             });
             user.value = null;
             router.push('/');
-            toast.success('Đăng xuất thành công!');
+            toast.success(response.message);
             resetForm();
         } catch (error) {
             toast.error('Lỗi đăng xuất. Vui lòng thử lại.');
@@ -158,6 +159,44 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
+    const resetPassword = async () => {
+        if (password.value !== confirmPassword.value) {
+            toast.error('Mật khẩu xác nhận không khớp!');
+            return;
+        }
+
+        try {
+            loading.value = true;
+            await getCsrfCookie();
+            const idToken = await getIdToken();
+            if (!idToken) {
+                toast.error('Không thể lấy token xác thực!');
+                return;
+            }
+
+            const response = await $api('/reset-password', {
+                method: 'POST',
+                body: {
+                    id_token: idToken,
+                    phone: phone.value,
+                    password: password.value,
+                    password_confirmation: confirmPassword.value
+                },
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            resetForm();
+            closePopup();
+            toast.success(response.message);
+        } catch (error) {
+            console.log(error);
+            handleBackendError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         username,
         password,
@@ -166,6 +205,7 @@ export const useAuthStore = defineStore('auth', () => {
         otp,
         otpSent,
         showRegisterFields,
+        showResetFields,
         name,
         email,
         loading,
@@ -183,12 +223,14 @@ export const useAuthStore = defineStore('auth', () => {
             const success = await verifyOTP(otp.value);
             if (success) {
                 showRegisterFields.value = true;
+                showResetFields.value = true;
             }
             loading.value = false;
         },
         loginUser,
         registerUser,
         logout,
-        fetchUser
+        fetchUser,
+        resetPassword
     };
 });

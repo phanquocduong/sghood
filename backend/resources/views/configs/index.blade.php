@@ -62,7 +62,14 @@
                                 <tr class="table-row">
                                     <td>{{ $configs->firstItem() + $index }}</td>
                                     <td>{{ $config->config_key }}</td>
-                                    <td>{{ Str::limit($config->config_value, 50) }}</td>
+
+                                    <td>
+                                        @if($config->config_type === 'IMAGE')
+                                            <img src="{{ $config->config_value }}" alt="Config Image" class="img-thumbnail" style="max-width: 100px; max-height: 50px;">
+                                        @else
+                                            {{ Str::limit($config->config_value, 50) }}
+                                        @endif
+                                    </td>
                                     <td>{{ $config->description ?? 'Không có mô tả' }}</td>
                                     <td>{{ $config->config_type }}</td>
                                     <td>

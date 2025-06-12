@@ -1,9 +1,9 @@
 <template>
     <div class="page-wrapper">
         <!-- VỀ CHÚNG TÔI -->
+        <h2 class="section-title title-large">VỀ CHÚNG TÔI</h2>
         <section class="section bg-gray">
             <div class="section-inner">
-                <h2 class="section-title title-large">VỀ CHÚNG TÔI</h2>
                 <div class="flex-row">
                     <div class="text-block">
                         <h3 class="sub-title">CHÚNG TÔI LÀ AI</h3>
@@ -13,7 +13,7 @@
                             kiếm và quản lý phòng trọ.
                         </p>
                     </div>
-                    <img src="/images/Questions-pana.png" alt="About" class="image" />
+                    <img src="public/images/Questions-pana.png" alt="About" class="image" />
                 </div>
             </div>
         </section>
@@ -40,11 +40,16 @@
         <section class="section bg-gray">
             <div class="section-inner">
                 <h2 class="section-title">CHÚNG TÔI LÀM GÌ</h2>
-                <div class="text-box">
-                    <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
-                    <p>✔ Đặt lịch xem phòng & thanh toán trực tuyến một cách nhanh chóng, an toàn.</p>
-                    <p>✔ Kết nối trực tiếp với chủ trọ thông qua tin nhắn hoặc cuộc gọi.</p>
-                    <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
+                <div class="flex-row">
+                     <div class="text-block">
+                         <div class="text-box">
+                             <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
+                             <p>✔ Đặt lịch xem phòng & thanh toán trực tuyến một cách nhanh chóng, an toàn.</p>
+                             <p>✔ Kết nối trực tiếp với chủ trọ thông qua tin nhắn hoặc cuộc gọi.</p>
+                             <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
+                         </div>
+                        </div>
+                        <img src="public/images/Man thinking-pana.png" alt="About" class="image" style="margin-right: -30px;"/>
                 </div>
             </div>
         </section>
@@ -122,6 +127,8 @@
 
 .text-block {
     flex: 1 1 300px;
+      min-width: 300px;
+    max-width: 100%;
 }
 
 .image {
@@ -138,5 +145,6 @@
     margin-bottom: 12px;
     line-height: 1.6;
     color: #333;
+        text-align: left; /* nếu muốn căn trái nội dung bullet */
 }
 </style>

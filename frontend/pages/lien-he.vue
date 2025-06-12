@@ -2,8 +2,8 @@
     <!-- Map Container -->
     <div class="contact-map margin-bottom-60">
         <!-- Google Maps -->
-        <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3545.98648316269!2d106.62092318328997!3d10.853900716383444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752b6c59ba4c97%3A0x535e784068f1558b!2zVHLGsOG7nW5nIENhbyDEkeG6s25nIEZQVCBQb2x5dGVjaG5pYw!5e1!3m2!1svi!2s!4v1746097904850!5m2!1svi!2s"
+        <iframe v-if="config?.gg_map"
+            :src=" config.gg_map"
             width="100%"
             height="450"
             style="border: 0"
@@ -18,9 +18,9 @@
                 <div class="office-address">
                     <h3>Văn phòng chúng tôi</h3>
                     <ul>
-                        <li>141 - 143, Trung Mỹ Tây, Quận 12</li>
-                        <li>TP.HCM</li>
-                        <li>Điện thoại (123) 123-456</li>
+                        <li v-if="config?.dia_chi">{{config.dia_chi}}</li>
+                        <li>    </li>
+                        <li v-if="config?.sdt">Điện thoại {{config.sdt}}</li>
                     </ul>
                 </div>
             </div>
@@ -40,10 +40,10 @@
                         <li><i class="im im-icon-Phone-2"></i> <strong>Phone:</strong> <span>(123) 123-456</span></li>
                         <li><i class="im im-icon-Fax"></i> <strong>Fax:</strong> <span>(123) 123-456</span></li>
                         <li>
-                            <i class="im im-icon-Globe"></i> <strong>Web:</strong> <span><a href="#">www.troviet.com</a></span>
+                            <i class="im im-icon-Globe"></i> <strong>Web:</strong>  <span><a :href="config.dia_chi_web">{{ config.dia_chi_web }}</a></span>
                         </li>
                         <li>
-                            <i class="im im-icon-Envelope"></i> <strong>Email:</strong> <span><a href="#">troviet@gmail.com</a></span>
+                            <i class="im im-icon-Envelope"></i> <strong>Email:</strong> <span><a :href="config.email">{{config.email}}</a></span>
                         </li>
                     </ul>
                 </div>
@@ -53,7 +53,6 @@
             <div class="col-md-8">
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
-                    <div id="contact-message"></div>
                     <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
@@ -82,25 +81,35 @@
                                 </div>
                             </div>
                         </div>
-                        <!--  <div>
-                            <input name="subject" type="text" id="subject" placeholder="Chủ đề" required="required" />
-                        </div> -->
+                        <div>
+                            <input
+                                name="subject"
+                                type="text"
+                                id="subject-contact"
+                                placeholder="Chủ đề"
+                                required="required"
+                                v-model="subject"
+                            />
+                        </div>
                         <div>
                             <textarea
+                            v-model="message"
                                 name="message"
                                 cols="40"
                                 rows="3"
-                                id="contact-text"
+                                id="contact-Message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
                                 required="required"
-                                v-model="message"
+                                style="min-height: 180px; width: 100%; "
                             ></textarea>
                         </div>
-                        <input type="submit" class="submit button" id="submit" value="Gửi tin nhắn" />
-                        <div v-if="noficationMessage" class="notification" style="margin-top: 10px">
-                            {{ noficationMessage }}
-                        </div>
+
+                        <button type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" style="margin-bottom:10px ; margin-top: -10px;" >
+                            <span v-if="loading"  class="spinner" ></span>
+                            {{ loading ? ' Đang gửi...':'Gửi đi' }}
+                        </button>
+
                     </form>
                 </section>
             </div>
@@ -109,15 +118,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+import { useToast } from 'vue-toastification';
+// api config
+const config = useState('configs')
+const baseUrl = useRuntimeConfig().public.baseUrl
+console.log('Config:',config.value)
+// api lien he
+const toast = useToast();
 const { $api } = useNuxtApp();
 const name = ref('');
 const email = ref('');
-/* const subject = ref('') */
+const subject = ref('');
 const message = ref('');
 const loading = ref(false);
-const noficationMessage = ref('');
-
+const authStore = useAuthStore();
+onMounted(() => {
+    if (authStore.user) {
+        name.value = authStore.user.name || '';
+        email.value = authStore.user.email || '';
+    }
+});
 const handleSubmit = async () => {
     loading.value = true;
     try {
@@ -130,22 +152,20 @@ const handleSubmit = async () => {
             body: {
                 name: name.value,
                 email: email.value,
-                /* subject:subject.value, */
+                subject: subject.value,
                 message: message.value
             }
         });
         console.log(res.value);
         if (res?.status === true) {
-            noficationMessage.value = '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.';
-            name.value = '';
-            email.value = '';
-            /*  subject.value ='' */
+           toast.success ( '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
+            subject.value ='' ;
             message.value = '';
         } else {
-            noficationMessage.value = `❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`;
+           toast.error  (`❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
         }
     } catch (error) {
-        noficationMessage.value = '❌ Gửi thất bại: Lỗi kết nối đến máy chủ.';
+       toast.error  ('❌ Gửi thất bại: Lỗi kết nối đến máy chủ.');
     } finally {
         loading.value = false;
     }
@@ -153,20 +173,35 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.notification-success {
-    color: #2e7d32;
-    background-color: #e6f4ea;
-    padding: 10px;
-    border-left: 4px solid #2e7d32;
-    margin-top: 10px;
-    border-radius: 4px;
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
 }
-.notification-error {
-    color: #c62828;
-    background-color: #fdecea;
-    padding: 10px;
-    border-left: 4px solid #c62828;
-    margin-top: 10px;
-    border-radius: 4px;
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.textarea{
+     min-height: 120px;
+    width: 100%;
+}
+
+.container > .row {
+    margin-bottom: 40px;
 }
 </style>

@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('configs', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->string('config_key', 255)->unique();
-            $table->text('config_value');
-            $table->string('description', 255)->nullable();
-            $table->enum('config_type', ['TEXT', 'URL', 'HTML', 'JSON', 'IMAGE'])->default('TEXT');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->string('content', 500);
+            $table->enum('status', ['Chưa đọc', 'Đã đọc'])->default('Chưa đọc');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('configs');
+        Schema::dropIfExists('notifications');
     }
 };

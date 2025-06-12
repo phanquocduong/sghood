@@ -29,9 +29,7 @@ watch(
     () => props.images,
     newImages => {
         if (newImages && newImages.length > 0) {
-            // Đợi DOM cập nhật
             nextTick(() => {
-                // Kích hoạt sự kiện tùy chỉnh để thông báo dữ liệu đã sẵn sàng
                 const event = new Event('initListingSlider');
                 window.dispatchEvent(event);
             });
@@ -40,7 +38,6 @@ watch(
 );
 
 onMounted(() => {
-    // Kiểm tra nếu images đã có dữ liệu ngay khi mounted
     if (props.images && props.images.length > 0) {
         nextTick(() => {
             const event = new Event('initListingSlider');

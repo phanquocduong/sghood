@@ -11,6 +11,7 @@ use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ContractController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -128,5 +129,12 @@ Route::middleware('admin')->group(function () {
     Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
         Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
+    });
+
+    // Contract routes group
+    Route::prefix('contracts')->name('contracts.')->group(function () {
+        Route::get('/', [ContractController::class, 'index'])->name('index');
+        Route::get('/{id}', [ContractController::class, 'show'])->name('show');
+        Route::match(['put', 'patch'],'/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
     });
 });

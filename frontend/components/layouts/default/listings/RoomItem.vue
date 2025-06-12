@@ -1,8 +1,7 @@
-<!-- components/ListingItemChild.vue -->
 <template>
     <NuxtLink :to="`/nha-tro/${$route.params.slug}/${item.id}`" class="listing-item-container">
         <div class="listing-item">
-            <img :src="`${config.public.baseUrl}${item.image}`" alt="" />
+            <img :src="`${config.public.baseUrl}${item.main_image}`" :alt="item.name" />
             <div class="listing-item-details">
                 <ul>
                     <li v-for="amenitiy in item.amenities" :key="amenitiy">{{ amenitiy }}</li>

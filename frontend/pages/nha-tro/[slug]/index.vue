@@ -77,13 +77,12 @@ onMounted(async () => {
         // Định dạng giá và phí trước khi gán vào motel
         data.rooms = data.rooms.map(room => ({
             ...room,
-            price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price)
+            price: formatPrice(room.price)
         }));
-        console.log(data.rooms);
         data.fees = formatFees(data.fees);
         motel.value = data;
     } catch (error) {
-        console.error('Error fetching motel details:', error);
+        console.error('Lỗi khi khi lấy dữ liệu chi tiết nhà trọ', error);
     }
 });
 </script>

@@ -10,13 +10,16 @@ use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\ConfigController;
-
+use App\Http\Controllers\Apis\OcrController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -52,3 +55,5 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
+
+Route::post('/ocr/citizen-id', [OcrController::class, 'processCitizenId']);
