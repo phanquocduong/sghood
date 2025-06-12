@@ -23,7 +23,7 @@ class UserService
             $image = $manager->read($avatar)->toWebp(quality: 85)->toString();
             Storage::disk('public')->put($filename, $image);
 
-            $user->update(['avatar' => Storage::url($filename)]);
+            $user->update(['avatar' => '/storage/' . $filename]);
         }
 
         return $user;

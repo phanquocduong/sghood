@@ -10,6 +10,7 @@ use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\ConfigController;
+use App\Http\Controllers\Apis\ContractController;
 use App\Http\Controllers\Apis\OcrController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -57,3 +58,5 @@ Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/configs', [ConfigController::class, 'index']);
 
 Route::post('/extract-cccd', [OcrController::class, 'extractCccdData']);
+
+Route::get('/users/{userId}/contract', [ContractController::class, 'getContractsByUser']);
