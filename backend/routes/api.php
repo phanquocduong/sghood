@@ -56,4 +56,4 @@ Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
 
-Route::post('/ocr/citizen-id', [OcrController::class, 'processCitizenId']);
+Route::post('/extract-cccd', [OcrController::class, 'extractCccdData']);

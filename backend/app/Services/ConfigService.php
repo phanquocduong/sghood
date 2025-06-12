@@ -43,7 +43,7 @@ class ConfigService
 
             return ['data' => $config];
         } catch (\Exception $e) {
-            \Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
+            Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
            return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.', 'status' => 500];
         }
     }

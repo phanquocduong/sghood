@@ -4,15 +4,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-5 col-sm-6">
-                <img
-                    v-if="config?.logo_ngang"
-                    :src="baseUrl + '/' + config.logo_ngang"
-                    alt="Logo"
-                   class="logo-footer"
-                />
+                    <img v-if="config?.logo_ngang" :src="baseUrl + '/' + config.logo_ngang" alt="Logo" class="logo-footer" />
                     <br /><br />
                     <p v-if="config?.mo_ta_footer">
-                     {{config.mo_ta_footer}}
+                        {{ config.mo_ta_footer }}
                     </p>
                 </div>
 
@@ -33,8 +28,12 @@
                     <h4>Liên hệ với chúng tôi</h4>
                     <div class="text-widget">
                         <span>QTSC 9 Building, Đ. Tô Ký, Tân Chánh Hiệp, Quận 12, Hồ Chí Minh</span> <br />
-                      <span v-if="config?.sdt">Điện thoại: <span>{{ config.sdt }}</span></span><br />
-                     <span v-if="config?.email">Email: <a :href="'mailto:' + config.email">{{ config.email }}</a></span><br />
+                        <span v-if="config?.sdt"
+                            >Điện thoại: <span>{{ config.sdt }}</span></span
+                        ><br />
+                        <span v-if="config?.email"
+                            >Email: <a :href="'mailto:' + config.email">{{ config.email }}</a></span
+                        ><br />
                     </div>
 
                     <ul class="social-icons margin-top-20">
@@ -64,9 +63,9 @@
 </template>
 
 <script setup>
-const config = useState('configs')
-const baseUrl = useRuntimeConfig().public.baseUrl
-console.log('🧪 Footer config:', config.value)
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+console.log('🧪 Footer config:', config.value);
 </script>
 
 <style scoped>

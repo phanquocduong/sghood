@@ -3,74 +3,126 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use Google\Cloud\Vision\V1\Image;
+use Google\Cloud\Vision\V1\AnnotateImageRequest;
+use Google\Cloud\Vision\V1\BatchAnnotateImagesRequest;
+use Google\Cloud\Vision\V1\Feature;
+use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use thiagoalessio\TesseractOCR\TesseractOCR;
 
 class OcrController extends Controller
 {
-    public function processCitizenId(Request $request)
+    public function extractCccdData(Request $request)
     {
-        // Validate file upload
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png|max:2048',
-        ]);
-
-        // Lưu ảnh tạm thời
-        $image = $request->file('image');
-        $path = $image->store('temp', 'public');
-
-        // Đường dẫn đầy đủ tới ảnh
-        $fullPath = storage_path('app/public/' . $path);
-
         try {
-            // Gọi Tesseract để trích xuất văn bản
-            $ocr = new TesseractOCR($fullPath);
-            $text = $ocr->lang('vie')->run(); // Sử dụng ngôn ngữ tiếng Việt
-
-            // Phân tích dữ liệu (giả định định dạng CCCD Việt Nam)
-            $data = $this->parseCitizenIdData($text);
-
-            // Xóa ảnh tạm
-            Storage::disk('public')->delete($path);
-
-            return response()->json([
-                'success' => true,
-                'data' => $data,
+            // Validate file upload
+            $request->validate([
+                'cccd_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
-        } catch (\Exception $e) {
-            // Xóa ảnh tạm nếu có lỗi
-            Storage::disk('public')->delete($path);
+
+            // Store uploaded image
+            $imagePath = $request->file('cccd_image')->store('cccd_images', 'public');
+
+            // Get full path to image
+            $fullImagePath = storage_path('app/public/' . $imagePath);
+
+            // Initialize Google Cloud Vision client
+            $imageAnnotator = new ImageAnnotatorClient();
+
+            // Read image content
+            $imageContent = file_get_contents($fullImagePath);
+
+            // Create image object
+            $image = (new Image())
+                ->setContent($imageContent);
+
+            // Set feature for text detection
+            $feature = (new Feature())
+                ->setType(Feature\Type::TEXT_DETECTION);
+
+            // Create annotate image request
+            $requestAnnotate = (new AnnotateImageRequest())
+                ->setImage($image)
+                ->setFeatures([$feature]);
+
+            // Create batch annotate request
+            $batchRequest = (new BatchAnnotateImagesRequest())
+                ->setRequests([$requestAnnotate]);
+
+            // Perform batch text detection
+            $response = $imageAnnotator->batchAnnotateImages($batchRequest);
+            $annotations = $response->getResponses()[0]->getTextAnnotations();
+
+            // Close client
+            $imageAnnotator->close();
+
+            // Extract text
+            $extractedText = !empty($annotations) ? $annotations[0]->getDescription() : '';
+
+            // Parse CCCD data (simple regex-based parsing for demo)
+            $cccdData = $this->parseCccdText($extractedText);
+
+            // Delete temporary image
+            Storage::disk('public')->delete($imagePath);
+
             return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
+                'status' => 'success',
+                'data' => $cccdData,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
-    private function parseCitizenIdData($text)
+    private function parseCccdText($text)
     {
-        // Logic đơn giản để trích xuất thông tin (có thể tùy chỉnh regex cho chính xác hơn)
         $data = [
             'id_number' => '',
-            'name' => '',
-            'dob' => '',
+            'full_name' => '',
+            'date_of_birth' => '',
             'address' => '',
         ];
 
-        // Ví dụ regex để trích xuất thông tin
-        if (preg_match('/\d{12}/', $text, $matches)) {
-            $data['id_number'] = $matches[0];
+        // Split text into lines
+        $lines = preg_split('/\r\n|\r|\n/', $text);
+
+        $addressStarted = false;
+        $addressLines = [];
+        foreach ($lines as $index => $line) {
+            $trimmedLine = trim($line);
+            if (empty($trimmedLine)) continue;
+
+            // ID Number (12 digits)
+            if (preg_match('/\b\d{12}\b/', $trimmedLine, $matches)) {
+                $data['id_number'] = $matches[0];
+            }
+            // Full Name (after "Họ và tên" or "Full name", capture next non-empty line)
+            if (preg_match('/Họ và tên[:\s]*[:\s]*/u', $trimmedLine) && isset($lines[$index + 1]) && trim($lines[$index + 1]) !== '') {
+                $data['full_name'] = trim($lines[$index + 1]);
+            } elseif (preg_match('/Full name[:\s]*[:\s]*/i', $trimmedLine) && isset($lines[$index + 1]) && trim($lines[$index + 1]) !== '') {
+                $data['full_name'] = trim($lines[$index + 1]);
+            }
+            // Date of Birth (format DD/MM/YYYY)
+            if (preg_match('/\b(\d{2}\/\d{2}\/\d{4})\b/', $trimmedLine, $matches)) {
+                $data['date_of_birth'] = $matches[1];
+            }
+            // Address (after "Nơi thường trú" or "Place of residence", collect multiple lines)
+            if (preg_match('/Nơi thường trú[:\s]*[:\s]*/u', $trimmedLine) || preg_match('/Place of residence[:\s]*[:\s]*/i', $trimmedLine)) {
+                $addressStarted = true;
+            } elseif ($addressStarted && !preg_match('/^(Họ và tên|Full name|Nơi thường trú|Place of residence|Ngày sinh|Date of birth|Quốc tịch|Nationality|Giới tính|Sex|Nơi cấp|Place of origin|Ngày cấp|Date of expiry)/u', $trimmedLine)) {
+                $addressLines[] = $trimmedLine;
+            } elseif ($addressStarted && (preg_match('/^(Họ và tên|Full name|Nơi thường trú|Place of residence|Ngày sinh|Date of birth|Quốc tịch|Nationality|Giới tính|Sex|Nơi cấp|Place of origin|Ngày cấp|Date of expiry)/u', $trimmedLine) || empty($trimmedLine))) {
+                $addressStarted = false;
+            }
         }
-        if (preg_match('/Họ và tên: ([^\n]+)/i', $text, $matches)) {
-            $data['name'] = trim($matches[1]);
-        }
-        if (preg_match('/Ngày sinh: (\d{2}\/\d{2}\/\d{4})/i', $text, $matches)) {
-            $data['dob'] = $matches[1];
-        }
-        if (preg_match('/Quê quán: ([^\n]+)/i', $text, $matches)) {
-            $data['address'] = trim($matches[1]);
-        }
+
+        // Join address lines and remove duplicates
+        $data['address'] = implode(', ', array_filter(array_unique($addressLines)));
 
         return $data;
     }

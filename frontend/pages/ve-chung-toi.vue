@@ -41,15 +41,15 @@
             <div class="section-inner">
                 <h2 class="section-title">CHÚNG TÔI LÀM GÌ</h2>
                 <div class="flex-row">
-                     <div class="text-block">
-                         <div class="text-box">
-                             <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
-                             <p>✔ Đặt lịch xem phòng & thanh toán trực tuyến một cách nhanh chóng, an toàn.</p>
-                             <p>✔ Kết nối trực tiếp với chủ trọ thông qua tin nhắn hoặc cuộc gọi.</p>
-                             <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
-                         </div>
+                    <div class="text-block">
+                        <div class="text-box">
+                            <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
+                            <p>✔ Đặt lịch xem phòng & thanh toán trực tuyến một cách nhanh chóng, an toàn.</p>
+                            <p>✔ Kết nối trực tiếp với chủ trọ thông qua tin nhắn hoặc cuộc gọi.</p>
+                            <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
                         </div>
-                        <img src="public/images/Man thinking-pana.png" alt="About" class="image" style="margin-right: -30px;"/>
+                    </div>
+                    <img src="public/images/Man thinking-pana.png" alt="About" class="image" style="margin-right: -30px" />
                 </div>
             </div>
         </section>
@@ -127,7 +127,7 @@
 
 .text-block {
     flex: 1 1 300px;
-      min-width: 300px;
+    min-width: 300px;
     max-width: 100%;
 }
 
@@ -145,6 +145,6 @@
     margin-bottom: 12px;
     line-height: 1.6;
     color: #333;
-        text-align: left; /* nếu muốn căn trái nội dung bullet */
+    text-align: left; /* nếu muốn căn trái nội dung bullet */
 }
 </style>
