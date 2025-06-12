@@ -56,7 +56,7 @@ class ConfigRequest extends FormRequest
         return [
             'config_key.required' => 'Khóa cấu hình là bắt buộc.',
             'config_key.string' => 'Khóa cấu hình phải là chuỗi ký tự.',
-            'config_key.max' => 'Khóa cấu hình không được dài quá 255 ký tự.',
+            'config_key.max' => 'Khóa cấu hình không được dài quá 1000 ký tự.',
             'config_key.unique' => 'Khóa cấu hình đã tồn tại, vui lòng chọn khóa khác.',
             'config_value.required' => 'Giá trị cấu hình là bắt buộc.',
             'config_image.image' => 'Ảnh cấu hình phải là một tệp hình ảnh.',

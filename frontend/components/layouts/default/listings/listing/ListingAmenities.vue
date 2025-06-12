@@ -1,4 +1,3 @@
-<!-- components/ListingAmenities.vue -->
 <template>
     <div>
         <h3 class="listing-desc-headline">Tiện ích</h3>

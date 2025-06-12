@@ -1,4 +1,3 @@
-<!-- components/ListingPricing.vue -->
 <template>
     <div id="listing-pricing-list" class="listing-section">
         <div class="pricing-list-container">

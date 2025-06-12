@@ -36,6 +36,7 @@
                             <div class="tabs-container alt">
                                 <LoginForm />
                                 <RegisterForm />
+                                <ForgotPasswordForm />
                             </div>
                         </div>
                     </div>

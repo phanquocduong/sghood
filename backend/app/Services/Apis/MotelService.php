@@ -196,7 +196,7 @@ class MotelService
             'area' => $room->area,
             'status' => $room->status,
             'amenities' => $room->amenities->pluck('name')->toArray(),
-            'image' => $room->mainImage->image_url,
+            'main_image' => $room->mainImage->image_url,
         ])->values()->all();
 
         return [
