@@ -20,7 +20,6 @@
                 <ListingPricing :title="'Phí hàng tháng'" :fees="motel.fees" />
             </div>
         </div>
-
         <div id="listing-location" class="listing-section">
             <h3 class="listing-desc-headline margin-top-60 margin-bottom-30">Vị trí</h3>
             <iframe
@@ -86,3 +85,27 @@ onMounted(async () => {
     }
 });
 </script>
+<style scoped>
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>

@@ -11,7 +11,6 @@
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
         ></iframe>
-
         <!-- Office -->
         <div class="address-box-container">
             <div class="address-container" data-background-image="/images/our-office.jpg">
@@ -65,6 +64,7 @@
                                         required="required"
                                         v-model="name"
                                     />
+
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -77,6 +77,7 @@
                                         pattern="^[A-Za-z0-9](([_\.\-]?[a-zA-Z0-9]+)*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*)\.([A-Za-z]{2,})$"
                                         required="required"
                                         v-model="email"
+
                                     />
                                 </div>
                             </div>
@@ -109,6 +110,7 @@
                             <span v-if="loading"  class="spinner" ></span>
                             {{ loading ? ' Đang gửi...':'Gửi đi' }}
                         </button>
+
 
                     </form>
                 </section>

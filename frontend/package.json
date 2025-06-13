@@ -11,6 +11,7 @@
     },
     "dependencies": {
         "@pinia/nuxt": "^0.11.0",
+        "bootstrap": "^5.3.6",
         "dropzone": "^6.0.0-beta.2",
         "firebase": "^11.6.1",
         "nuxt": "^3.17.1",
