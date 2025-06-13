@@ -110,12 +110,12 @@ class BookingService
             $contractData = $this->generateContractPreviewData($booking);
         }
 
+        // <div class="container-fluid py-5 px-4">
+        //     <div class="card shadow border-0 rounded-4">
+        //         <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
+        //             <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
+        //         </div>
         $content = '
-<div class="container-fluid py-5 px-4">
-    <div class="card shadow border-0 rounded-4">
-        <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
-            <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
-        </div>
 
         <div class="card-body p-4">
             <div class="text-center mb-4">
@@ -166,21 +166,31 @@ class BookingService
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Họ và tên:</label>
-                    <input type="text" class="form-control" value="'.$contractData['tenant']['name'].'" name="name">
+                    <input type="text" class="form-control" value="" name="name">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">CMND/CCCD:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['identity_document'] . '" name="identity_document">
+                    <input type="text" class="form-control" value="" name="identity_document">
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Ngày sinh:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['birthdate'] . '" name="birthdate">
+                    <input type="text" class="form-control" value="" name="birthdate">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Địa chỉ thường trú:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['address'] . '" name="address">
+                    <input type="text" class="form-control" value="" name="address">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Ngày cấp:</label>
+                    <input type="text" class="form-control" value="" name="date_of_issue">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nơi cấp:</label>
+                    <input type="text" class="form-control" value="" name="address_of_issue">
                 </div>
             </div>
             <div class="row mb-4">
@@ -233,8 +243,8 @@ class BookingService
                     </ul>
                 </li>
                 <li class="list-group-item">
-                        <strong>Các phí khác:</strong>
-                        <ul class="list-group list-group-flush">
+                    <strong>Các phí khác:</strong>
+                        <ul class="mt-2">
                             <li>Tiền điện: <span class="text-primary">' . number_format($contractData['fees']['electricity_fee'], 0, ",", ".") . '</span>VNĐ/Kg</li>
                             <li>Tiền nước: <span class="text-primary">' . number_format($contractData['fees']['water_fee'], 0, ",", ".") . '</span>VNĐ/Khối</li>
                             <li>Tiền gửi xe: <span class="text-primary">' . number_format($contractData['fees']['parking_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
@@ -280,9 +290,9 @@ class BookingService
                 </div>
             </div>
         </div>
-    </div>
-</div>
-';
+        ';
+    //     </div>
+    // </div>
 
         return $content;
     }

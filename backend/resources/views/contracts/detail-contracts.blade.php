@@ -81,7 +81,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Ngày sinh:</label>
-                        <p class="border p-2 rounded">{{ $contract->user->birthdate ? \Carbon\Carbon::parse($contract->user->birth_date)->format('d/m/Y') : '15/03/1985' }}</p>
+                        <p class="border p-2 rounded">{{ $contract->user->birthdate ? \Carbon\Carbon::parse($contract->user->birth_date)->format('d/m/Y') : '' }}</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Địa chỉ thường trú:</label>
@@ -180,7 +180,7 @@
                                         <i class="fas fa-info-circle me-2"></i>Trạng thái hiện tại
                                     </h6>
                                     @php
-                                        $currentStatus = $contract->status ?? ''; // This should come from $contract->status
+                                        $currentStatus = $contract->status ?? '';
                                         $badgeClass = match ($currentStatus) {
                                             'Chờ xác nhận' => 'warning',
                                             'Đã ký' => 'success',
@@ -214,7 +214,7 @@
                                     </p>
                                     <p class="mb-0">
                                         <strong>Ngày hết hạn:</strong>
-                                        <span class="text-primary">31/12/2025</span>
+                                        <span class="text-primary">{{ $contract->booking->end_date ? $contract->end_date->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
                                     </p>
                                 </div>
                             </div>
@@ -280,7 +280,6 @@
             </div>
         </div>
     </div>
-{{-- @endsection --}}
 
 <style>
     .list-group-item {
