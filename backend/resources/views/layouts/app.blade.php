@@ -30,6 +30,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 
 </head>
+
 <body>
     <div class="container-fluid position-relative bg-white d-flex p-0">
         <!-- Spinner Start -->
@@ -70,5 +71,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="{{ asset('js/system.js') }}"></script>
     <script src="{{ asset('js/room-edit.js') }}"></script>
     <script src="{{ asset('js/room.js') }}"></script>
+    <script src="{{ asset('js/schedule.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>

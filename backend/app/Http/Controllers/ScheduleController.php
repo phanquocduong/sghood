@@ -25,7 +25,6 @@ class ScheduleController extends Controller
         if (isset($schedules['error'])) {
             return redirect()->route('schedules.index')->with('error', $schedules['error']);
         }
-        $data = $schedules['data'];
 
         return view('schedules.index', [
             'schedules' => $schedules['data'],
@@ -39,9 +38,15 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'status' => 'required|in:Chờ xác nhận,Đã xác nhận,Huỷ bỏ,Hoàn thành',
+            'cancel_reason' => 'required_if:status,Huỷ bỏ|string|max:500|nullable',
         ]);
 
-        $result = $this->scheduleService->updateScheduleStatus($id, $request->input('status'));
+        $result = $this->scheduleService->updateScheduleStatus(
+            $id, 
+            $request->input('status'),
+            $request->input('cancel_reason')
+        );
+
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error']);
         }

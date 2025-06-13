@@ -15,7 +15,8 @@ class ScheduleService
 
             if ($querySearch) {
                 $query->where(function ($q) use ($querySearch) {
-                    $q->where('message', 'like', "%$querySearch%");
+                    $q->where('message', 'like', "%$querySearch%")
+                      ->orWhere('cancel_reason', 'like', "%$querySearch%");
                 });
             }
 
@@ -42,7 +43,7 @@ class ScheduleService
         }
     }
 
- public function updateScheduleStatus(int $id, string $newStatus): array
+    public function updateScheduleStatus(int $id, string $newStatus, ?string $cancelReason = null): array
     {
         try {
             $schedule = Schedule::with(['room', 'user'])->find($id);
@@ -53,8 +54,13 @@ class ScheduleService
             // Lưu trạng thái cũ trước khi cập nhật
             $oldStatus = $schedule->status;
             
-            // Cập nhật trạng thái mới
+            // Cập nhật trạng thái mới và lý do hủy (nếu có)
             $schedule->status = $newStatus;
+            if ($newStatus === 'Huỷ bỏ' && $cancelReason) {
+                $schedule->cancellation_reason = $cancelReason;
+            } elseif ($newStatus !== 'Huỷ bỏ') {
+                $schedule->cancellation_reason = null;
+            }
             $schedule->save();
             
             // Gửi email thông báo
@@ -63,7 +69,7 @@ class ScheduleService
             return ['data' => $schedule];
         } catch (\Exception $e) {
             Log::error('Lỗi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng'];
+            return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage(), 'status' => 500];
         }
     }
     
@@ -79,7 +85,8 @@ class ScheduleService
                     'schedule_id' => $schedule->id,
                     'user_email' => $schedule->user->email,
                     'old_status' => $oldStatus,
-                    'new_status' => $newStatus
+                    'new_status' => $newStatus,
+                    'cancel_reason' => $schedule->cancel_reason ?? 'N/A'
                 ]);
             }
         } catch (\Exception $e) {
