@@ -1,6 +1,6 @@
 <template>
     <ClientOnly>
-        <div v-if="config.banner" class="main-search-container" :data-background-image="baseUrl + '/' + config.banner">
+        <div v-if="config.banner" class="main-search-container" :data-background-image="baseUrl + config.banner">
             <div class="main-search-inner">
                 <div class="container">
                     <div class="row">

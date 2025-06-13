@@ -4,7 +4,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-5 col-sm-6">
-                    <img v-if="config?.logo_ngang" :src="baseUrl + '/' + config.logo_ngang" alt="Logo" class="logo-footer" />
+                    <img v-if="config?.logo_ngang" :src="baseUrl + config.logo_ngang" alt="Logo" class="logo-footer" />
                     <br /><br />
                     <p v-if="config?.mo_ta_footer">
                         {{ config.mo_ta_footer }}

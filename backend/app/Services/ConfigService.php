@@ -34,8 +34,8 @@ class ConfigService
             // Nếu là kiểu IMAGE và có file ảnh
             if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
                 $fileName = time() . '_' . $imageFile->getClientOriginalName();
-                $path = $imageFile->storeAs('config_images', $fileName, 'public');
-                $data['config_value'] = 'storage/' . $path;
+                $path = $imageFile->storeAs('images/configs', $fileName, 'public');
+                $data['config_value'] = '/storage/' . $path;
             }
 
             // Tạo bản ghi trong database

@@ -8,7 +8,7 @@
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + '/' + config.logo_doc" /></NuxtLink>
+                            <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + config.logo_doc" /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
