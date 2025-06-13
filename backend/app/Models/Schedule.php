@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Schedule extends Model
 {
     protected $table = 'viewing_schedules';
-    protected $fillable = ['user_id', 'room_id', 'scheduled_at', 'message', 'status'];
+    protected $fillable = ['user_id', 'room_id', 'scheduled_at', 'message', 'status', 'cancellation_reason'];
     protected $casts = [
         'scheduled_at' => 'datetime',
         'created_at' => 'datetime',
