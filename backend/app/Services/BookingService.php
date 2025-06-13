@@ -166,21 +166,31 @@ class BookingService
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Họ và tên:</label>
-                    <input type="text" class="form-control" value="'.$contractData['tenant']['name'].'" name="name">
+                    <input type="text" class="form-control" value="" name="name">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">CMND/CCCD:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['identity_document'] . '" name="identity_document">
+                    <input type="text" class="form-control" value="" name="identity_document">
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Ngày sinh:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['birthdate'] . '" name="birthdate">
+                    <input type="text" class="form-control" value="" name="birthdate">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Địa chỉ thường trú:</label>
-                    <input type="text" class="form-control" value="' . $contractData['tenant']['address'] . '" name="address">
+                    <input type="text" class="form-control" value="" name="address">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Ngày cấp:</label>
+                    <input type="text" class="form-control" value="" name="date_of_issue">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nơi cấp:</label>
+                    <input type="text" class="form-control" value="" name="address_of_issue">
                 </div>
             </div>
             <div class="row mb-4">
