@@ -24,7 +24,7 @@ class ConfigService
             return ['data' => $config];
         } catch (\Throwable $e) {
             Log::error('Lỗi khi tạo cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi tạo cấu hình!', 'status' => 500];
+            return ['error' => `Đã xảy ra lỗi khi tạo cấu hình! `, 'status' => 500];
         }
     }
 
@@ -34,8 +34,8 @@ class ConfigService
             // Nếu là kiểu IMAGE và có file ảnh
             if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
                 $fileName = time() . '_' . $imageFile->getClientOriginalName();
-                $path = $imageFile->storeAs('config_images', $fileName, 'public');
-                $data['config_value'] = 'storage/' . $path;
+                $path = $imageFile->storeAs('images/configs', $fileName, 'public');
+                $data['config_value'] = '/storage/' . $path;
             }
 
             // Tạo bản ghi trong database
@@ -43,8 +43,8 @@ class ConfigService
 
             return ['data' => $config];
         } catch (\Exception $e) {
-            \Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.'];
+            Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
+           return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.', 'status' => 500];
         }
     }
 

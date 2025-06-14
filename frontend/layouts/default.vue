@@ -8,7 +8,7 @@
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/"><img src="/images/troviet_logo1.png" alt="" /></NuxtLink>
+                            <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + config.logo_doc" /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -53,4 +53,8 @@
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+console.log('Header config:', config.value);
+</script>

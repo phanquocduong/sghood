@@ -85,7 +85,7 @@
                                 <td>{{ $motels->firstItem() + $index }}</td>
                                 <td>
                                     @if ($motel->images && $motel->images->count() > 0)
-                                        <img src="{{ $motel->images->first()->image_url }}" alt="{{ $motel->name }}" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
+                                        <img src="{{ $motel->images->first()->image_url }}" alt="{{ $motel->images->first()->image_url }}" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                     @else
                                         <img src="https://via.placeholder.com/100?text=Không+có+ảnh" alt="No Image" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                     @endif

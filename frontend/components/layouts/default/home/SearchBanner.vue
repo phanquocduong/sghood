@@ -1,55 +1,59 @@
 <template>
-    <div class="main-search-container" data-background-image="/images/main-search-background-01.jpg">
-        <div class="main-search-inner">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h2>Tìm Phòng Trọ Phù Hợp Gần Bạn</h2>
-                        <h4>Khám phá khu trọ chính chủ, giá tốt, cập nhật mỗi ngày tại Trọ Việt</h4>
+    <ClientOnly>
+        <div v-if="config.banner" class="main-search-container" :data-background-image="baseUrl + config.banner">
+            <div class="main-search-inner">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h2 v-if="config?.title_banner_h2">{{ config.title_banner_h2 }}</h2>
+                            <h4 v-if="config?.title_banner_h4">{{ config.title_banner_h4 }}</h4>
 
-                        <div class="main-search-input">
-                            <div class="main-search-input-item">
-                                <input
-                                    type="text"
-                                    placeholder="Nhập từ khoá..."
-                                    :value="search.keyword"
-                                    @input="updateSearch('keyword', $event.target.value)"
-                                />
+                            <div class="main-search-input">
+                                <div class="main-search-input-item">
+                                    <input
+                                        type="text"
+                                        placeholder="Nhập từ khoá..."
+                                        :value="search.keyword"
+                                        @input="updateSearch('keyword', $event.target.value)"
+                                    />
+                                </div>
+
+                                <ClientOnly>
+                                    <div class="main-search-input-item">
+                                        <select name="district" :value="search.district" class="chosen-select">
+                                            <option value="">Tất cả khu vực</option>
+                                            <option v-for="option in districts" :key="option" :value="option">
+                                                {{ option }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </ClientOnly>
+
+                                <ClientOnly>
+                                    <div class="main-search-input-item">
+                                        <select name="priceRange" :value="search.priceRange" class="chosen-select">
+                                            <option v-for="option in priceOptions" :key="option.value" :value="option.value">
+                                                {{ option.label }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </ClientOnly>
+
+                                <button class="button" @click="$emit('search')">Tìm kiếm</button>
                             </div>
-
-                            <ClientOnly>
-                                <div class="main-search-input-item">
-                                    <select name="district" :value="search.district" class="chosen-select">
-                                        <option value="">Tất cả khu vực</option>
-                                        <option v-for="option in districts" :key="option" :value="option">
-                                            {{ option }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </ClientOnly>
-
-                            <ClientOnly>
-                                <div class="main-search-input-item">
-                                    <select name="priceRange" :value="search.priceRange" class="chosen-select">
-                                        <option v-for="option in priceOptions" :key="option.value" :value="option.value">
-                                            {{ option.label }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </ClientOnly>
-
-                            <button class="button" @click="$emit('search')">Tìm kiếm</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </ClientOnly>
 </template>
 
 <script setup>
 import { onMounted, watch, nextTick } from 'vue';
-
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+console.log('config', config.value);
 const props = defineProps({
     search: { type: Object, default: () => ({ keyword: '', district: '', priceRange: '' }) },
     districts: { type: Array, default: () => [] },

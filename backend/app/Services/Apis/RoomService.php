@@ -50,7 +50,7 @@ class RoomService
                 'area' => $item->area,
                 'status' => $item->status,
                 'description' => $item->description,
-                'image' => $item->mainImage ? $item->mainImage->image_url : null,
+                'main_image' => $item->mainImage ? $item->mainImage->image_url : null,
                 'amenities' => $item->amenities->pluck('name')->toArray()
             ];
         })->values();

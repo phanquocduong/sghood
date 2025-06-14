@@ -64,7 +64,7 @@ onMounted(async () => {
         otherRooms.value = data.other_rooms.map(item => ({
             ...item,
             price: formatPrice(item.price),
-            image: item.image,
+            main_image: item.main_image,
             status: item.status,
             amenities: item.amenities
         }));

@@ -221,7 +221,7 @@ class MotelService
 
             Storage::disk('public')->put($filename, $image);
 
-            return Storage::url($filename);
+            return '/storage/' . $filename;
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;

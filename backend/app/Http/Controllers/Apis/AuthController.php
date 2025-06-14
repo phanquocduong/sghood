@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
@@ -7,143 +8,170 @@ use App\Http\Requests\Apis\ResetPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use App\Services\Apis\AuthService;
-use App\Services\Apis\FirebaseService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Cookie;
 
+/**
+ * API Controller for handling authentication-related endpoints.
+ */
 class AuthController extends Controller
 {
-    protected $authService;
-    protected $firebaseService;
+    protected AuthService $authService;
 
-    public function __construct(AuthService $authService, FirebaseService $firebaseService)
+    public function __construct(AuthService $authService)
     {
         $this->authService = $authService;
-        $this->firebaseService = $firebaseService;
     }
 
+    /**
+     * Authenticate user with email/phone and password.
+     *
+     * @param LoginRequest $request
+     * @return JsonResponse
+     */
     public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->only('username', 'password');
-        $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        $credentials[$field] = $credentials['username'];
-        unset($credentials['username']);
+        $field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $credentials = [$field => $request->username, 'password' => $request->password];
 
         $result = $this->authService->login($credentials);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
 
-        return response()->json([
-            'message' => 'Đăng nhập thành công',
-            'data' => $result['data'],
-        ])->withCookie(cookie(
-            name: 'sanctum_token',
-            value: $result['token'],
-            minutes: 60,
-            path: '/',
-            domain: null,
-            secure: true,
-            httpOnly: true,
-            sameSite: 'Strict'
-        ));
+        return $this->respondWithResult(
+            $result,
+            'Đăng nhập thành công',
+            fn($result) => $this->createAuthCookie($result['token'])
+        );
     }
 
+    /**
+     * Register a new user and initiate email verification.
+     *
+     * @param RegisterRequest $request
+     * @return JsonResponse
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $verifiedPhone = $this->firebaseService->verifyToken($request->id_token);
-
-        if ($verifiedPhone !== $request->phone) {
-            return response()->json(['error' => 'Số điện thoại không khớp với OTP'], 400);
-        }
-
-        $payload = $request->validated();
-        unset($payload['password_confirmation']);
-
+        $payload = $request->except('password_confirmation');
         $result = $this->authService->register($payload);
-        if (isset($result['error'])) {
-            return response()->json(['error' => $result['error']], $result['status']);
-        }
 
-        return response()->json([
-            'message' => 'Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.',
-            'data' => $result['data'],
-        ])->withCookie(cookie(
-            name: 'sanctum_token',
-            value: $result['token'],
-            minutes: 60,
-            path: '/',
-            domain: null,
-            secure: true,
-            httpOnly: true,
-            sameSite: 'Strict'
-        ));
+        return $this->respondWithResult(
+            $result,
+            'Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.',
+            fn($result) => $this->createAuthCookie($result['token'])
+        );
     }
 
+    /**
+     * Retrieve authenticated user details.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getUser(Request $request): JsonResponse
     {
-        return response()->json(['data' => $request->user()]);
+        return response()->json(['data' => $request->user() ?? []]);
     }
 
+    /**
+     * Log out the authenticated user and clear session.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function logout(Request $request): JsonResponse
     {
-        if ($request->user()) {
+        if ($user = $request->user()) {
+            $this->authService->logout($user);
             $request->session()->invalidate();
             $request->session()->regenerateToken();
         }
+
         return response()->json(['message' => 'Đăng xuất thành công'])
             ->withCookie(cookie()->forget('sanctum_token'));
     }
 
-    public function verifyEmail(Request $request, $id, $hash): \Illuminate\Http\RedirectResponse
+    /**
+     * Verify user email with ID and hash.
+     *
+     * @param Request $request
+     * @param int $id
+     * @param string $hash
+     * @return RedirectResponse
+     */
+    public function verifyEmail(Request $request, int $id, string $hash): RedirectResponse
     {
-        $user = \App\Models\User::findOrFail($id);
+        $user = User::findOrFail($id);
+        $frontendUrl = config('app.frontend_url') . '/xac-minh-email';
 
-        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return redirect()->to(config('app.frontend_url') . '/xac-minh-email?error=' . urlencode('Liên kết xác minh không hợp lệ'));
+        if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return redirect()->to("{$frontendUrl}?error=" . urlencode('Liên kết xác minh không hợp lệ'));
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->to(config('app.frontend_url') . '/xac-minh-email?message=' . urlencode('Email đã được xác minh'));
+            return redirect()->to("{$frontendUrl}?message=" . urlencode('Email đã được xác minh'));
         }
 
-        if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
-        }
+        $user->markEmailAsVerified();
+        event(new Verified($user));
 
-        return redirect()->to(config('app.frontend_url') . '/xac-minh-email?message=' . urlencode('Xác minh email thành công'));
+        return redirect()->to("{$frontendUrl}?message=" . urlencode('Xác minh email thành công'));
     }
 
+    /**
+     * Reset user password using phone number.
+     *
+     * @param ResetPasswordRequest $request
+     * @return JsonResponse
+     */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        $input = $request->validated();
-        $phone = $input['phone'];
+        $result = $this->authService->resetPassword($request->validated());
 
-        $user = User::where('phone', $phone)->first();
+        return $this->respondWithResult($result, 'Đặt lại mật khẩu thành công');
+    }
 
-        if (!$user) {
-            return response()->json(['error' => 'Số điện thoại không tồn tại'], 404);
+    /**
+     * Handle API response for success or error cases.
+     *
+     * @param array $result
+     * @param string $successMessage
+     * @param callable|null $cookieCallback
+     * @return JsonResponse
+     */
+    protected function respondWithResult(array $result, string $successMessage, ?callable $cookieCallback = null): JsonResponse
+    {
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['status']);
         }
 
-        try {
-            $verifiedPhone = $this->firebaseService->verifyToken($request->id_token);
-            if ($verifiedPhone !== $phone) {
-                return response()->json(['error' => 'Mã OTP không hợp lệ'], 400);
-            }
+        $response = response()->json([
+            'message' => $successMessage,
+            'data' => $result['data'] ?? [],
+        ]);
 
-            $user->forceFill([
-                'password' => Hash::make($input['password'])
-            ])->save();
+        return $cookieCallback ? $response->withCookie($cookieCallback($result)) : $response;
+    }
 
-            event(new PasswordReset($user));
-            return response()->json(['message' => 'Đặt lại mật khẩu thành công']);
-        } catch (\Throwable $e) {
-            Log::error('Reset Password Error:', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Đã xảy ra lỗi khi đặt lại mật khẩu'], 500);
-        }
+    /**
+     * Create authentication cookie with configurable settings.
+     *
+     * @param string $token
+     * @return Cookie
+     */
+    protected function createAuthCookie(string $token): Cookie
+    {
+        return cookie(
+            name: 'sanctum_token',
+            value: $token,
+            minutes: config('auth.token_expiration', 60),
+            path: '/',
+            domain: null,
+            secure: true,
+            httpOnly: true,
+            sameSite: 'Strict'
+        );
     }
 }
