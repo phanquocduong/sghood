@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Services\UserService;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -59,6 +60,9 @@ class UserController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id) {
+        if (Auth::id() == $id) {
+        return redirect()->back()->with('error', 'Bạn không thể chỉnh sửa chính mình.');
+        }
         $user = User::findOrFail($id);
         $user->role = $request->role;
         $user->status = $request->status;
