@@ -137,6 +137,4 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'],'/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
     });
-
-    Route::patch('/schedules/ajax-update/{id}', [ScheduleController::class, 'ajaxUpdateStatus'])->name('schedules.ajaxUpdateStatus');
 });
