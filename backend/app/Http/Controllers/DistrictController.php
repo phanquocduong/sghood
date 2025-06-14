@@ -17,14 +17,9 @@ class DistrictController extends Controller
 
     public function index(Request $request)
     {
-        // $querySearch = $request->get('query', '');
-        // $sortOption = $request->input('sortOption', '');
-        
-    $querySearch = (string) $request->input('query', '');
-    $sortOption = (string) $request->input('sortOption', '');
-    $perPage = (int) $request->get('perPage', 25);
-    
-    // $result = $this->districtService->getDistrictsList($query, $sortOption, $perPage);
+        $querySearch = (string) $request->input('query', '');
+        $sortOption = (string) $request->input('sortOption', '');
+        $perPage = (int) $request->get('perPage', 10);
 
         $result = $this->districtService->getAvailableDistricts($querySearch, $sortOption, $perPage);
 
@@ -33,17 +28,6 @@ class DistrictController extends Controller
         }
 
         return view('districts.index', ['districts' => $result['data']]);
-    }
-
-    public function show(int $id)
-    {
-        $result = $this->districtService->getDistrict($id);
-
-        if (isset($result['error'])) {
-            return redirect()->back()->with('error', $result['error']);
-        }
-
-        return view('districts.show', ['district' => $result['data']]);
     }
 
     public function create()

@@ -23,6 +23,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            <h5 class="mb-4">Tổng số nhà trọ: <span class="text-primary">{{ $motels->total() }}</span></h5>
 
             <div class="mb-4">
                 <form action="{{ route('motels.index') }}" method="GET" class="row g-3">
@@ -84,8 +91,13 @@
                             <tr class="table-row">
                                 <td>{{ $motels->firstItem() + $index }}</td>
                                 <td>
-                                    @if ($motel->images && $motel->images->count() > 0)
-                                        <img src="{{ $motel->images->first()->image_url }}" alt="{{ $motel->images->first()->image_url }}" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
+                                    @php
+                                        $mainImage = $motel->images && $motel->images->count() > 0 
+                                            ? $motel->images->where('is_main', 1)->first() ?? $motel->images->first()
+                                            : null;
+                                    @endphp
+                                    @if ($mainImage)
+                                        <img src="{{ $mainImage->image_url }}" alt="{{ $mainImage->image_url }}" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                     @else
                                         <img src="https://via.placeholder.com/100?text=Không+có+ảnh" alt="No Image" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                     @endif

@@ -16,10 +16,12 @@ class ScheduleController extends Controller
 
     public function index(Request $request)
     {
+        $sortBy = (string) $request->input('sort_by', '');
         $schedules = $this->scheduleService->getSchedules(
             (string) $request->get('querySearch', ''),
             (string) $request->get('status', ''),
-            (int) $request->get('perPage', 10)
+            (int) $request->get('perPage', 10),
+            $sortBy
         );
 
         if (isset($schedules['error'])) {
@@ -31,6 +33,12 @@ class ScheduleController extends Controller
             'querySearch' => $request->get('querySearch', ''),
             'status' => $request->get('status', ''),
             'perPage' => $request->get('perPage', 10),
+            'sortBy' => $sortBy,
+            'sortOptions' => [
+                '' => 'Mặc định',
+                'created_at_desc' => 'Mới nhất',
+                'created_at_asc' => 'Cũ nhất',
+            ],
         ]);
     }
 
@@ -42,7 +50,7 @@ class ScheduleController extends Controller
         ]);
 
         $result = $this->scheduleService->updateScheduleStatus(
-            $id, 
+            $id,
             $request->input('status'),
             $request->input('cancel_reason')
         );

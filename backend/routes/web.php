@@ -58,7 +58,6 @@ Route::middleware('admin')->group(function () {
         Route::get('/create', [DistrictController::class, 'create'])->name('create');
         Route::post('/', [DistrictController::class, 'store'])->name('store');
         Route::get('/trash', [DistrictController::class, 'trash'])->name('trash');
-        Route::get('/{id}', [DistrictController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [DistrictController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DistrictController::class, 'update'])->name('update');
         Route::delete('/{id}', [DistrictController::class, 'destroy'])->name('destroy');
@@ -130,5 +129,11 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
         Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
     });
-    Route::patch('/schedules/ajax-update/{id}', [ScheduleController::class, 'ajaxUpdateStatus'])->name('schedules.ajaxUpdateStatus');
+
+    // Contract routes group
+    Route::prefix('contracts')->name('contracts.')->group(function () {
+        Route::get('/', [ContractController::class, 'index'])->name('index');
+        Route::get('/{id}', [ContractController::class, 'show'])->name('show');
+        Route::match(['put', 'patch'],'/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+    });
 });

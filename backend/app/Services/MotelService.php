@@ -48,7 +48,7 @@ class MotelService
         }
 
         if (!empty($area)) {
-            $query->where('district_id', $area); // assuming 'district_id' is column in 'motels'
+            $query->where('district_id', $area);
         }
     }
 
@@ -169,15 +169,9 @@ class MotelService
             return $failedUploads;
         }
 
-        // Đảm bảo mainImageIndex hợp lệ
-        if ($mainImageIndex < 0 || $mainImageIndex >= $totalImages) {
-            $mainImageIndex = 0; // Mặc định chọn ảnh đầu tiên
-        }
-
         // Upload và lưu từng ảnh
-        for ($i = 0; $i < $totalImages; $i++) {
-            $file = $imageFiles[$i];
-            $isMain = ($i === $mainImageIndex) ? 1 : 0;
+        foreach ($imageFiles as $index => $file) {
+           $isMain = ($index === $mainImageIndex) ? 1 : 0; // Ảnh đầu tiên sẽ là ảnh chính
 
             $imagePath = $this->uploadMotelImage($file);
             if ($imagePath) {
@@ -191,25 +185,25 @@ class MotelService
             }
         }
 
-        // Đảm bảo chỉ có một ảnh chính (fallback)
-        $mainImages = MotelImage::where('motel_id', $motelId)->where('is_main', 1)->count();
-        if ($mainImages === 0) {
-            // Nếu không có ảnh nào được đánh dấu là chính, chọn ảnh đầu tiên
+        // Đảm bảo chỉ có đúng 1 ảnh is_main = 1
+        $mainImages = MotelImage::where('motel_id', $motelId)->where('is_main', 1)->get();
+
+        if ($mainImages->count() === 0) {
+            // Không có ảnh chính, gán ảnh đầu tiên
             $firstImage = MotelImage::where('motel_id', $motelId)->first();
             if ($firstImage) {
                 $firstImage->update(['is_main' => 1]);
             }
-        } elseif ($mainImages > 1) {
-            // Nếu có nhiều hơn 1 ảnh chính, chỉ giữ lại ảnh đầu tiên
-            MotelImage::where('motel_id', $motelId)->update(['is_main' => 0]);
-            $firstMainImage = MotelImage::where('motel_id', $motelId)->first();
-            if ($firstMainImage) {
-                $firstMainImage->update(['is_main' => 1]);
+        } elseif ($mainImages->count() > 1) {
+            // Có nhiều ảnh chính, chỉ giữ ảnh chính đầu tiên
+            foreach ($mainImages as $i => $image) {
+                $image->update(['is_main' => $i === 0 ? 1 : 0]);
             }
         }
 
         return $failedUploads;
     }
+
 
     private function uploadMotelImage(UploadedFile $imageFile): string|false
     {
@@ -258,10 +252,10 @@ class MotelService
             // Xử lý ảnh mới
             if (!empty($imageFiles)) {
                 // Xóa tất cả ảnh hiện tại trước khi thêm ảnh mới (nếu có upload lại)
-                  $existingImages = $motel->images()->get();
+                $existingImages = $motel->images()->get();
                 foreach ($existingImages as $image) {
                     $this->deleteMotelImage($image->image_url);
-                     $image->delete();
+                    $image->delete();
                 }
 
                 $mainImageIndex = request()->input('main_image_index', 0); // Lấy index ảnh chính từ form
@@ -296,6 +290,10 @@ class MotelService
         DB::beginTransaction();
         try {
             $motel = Motel::find($id);
+            // Kiểm tra khoá ngoại
+            if ($motel->rooms()->count() > 0) {
+                return ['error' => 'Không thể xóa nhà trọ này vì có phòng liên quan, vui lòng xoá các phòng liên quan trước!', 'status' => 400];
+            }
             if (!$motel) {
                 return ['error' => 'Nhà trọ không tìm thấy', 'status' => 404];
             }

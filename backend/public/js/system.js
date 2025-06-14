@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Tạo radio button để chọn ảnh chính
                     const radioInput = document.createElement("input");
-                    radioInput.type = "radio";
+                    radioInput.type = "hidden";
                     radioInput.name = "main_image_index";
                     radioInput.value =
                         selectedFiles.indexOf(file) + existingImagesCount;

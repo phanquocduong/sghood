@@ -46,6 +46,7 @@
                             <option value="created_at_desc" {{ request('sortOption') == 'created_at_desc' ? 'selected' : '' }}>Sắp xếp theo</option>
                             <option value="name_asc" {{ request('sortOption') == 'name_asc' ? 'selected' : '' }}>Tên A-Z</option>
                             <option value="name_dsc" {{ request('sortOption') == 'name_dsc' ? 'selected' : '' }}>Tên Z-A</option>
+                            <option value="most_motels" {{ request('sortOption') == 'most_motels' ? 'selected' : '' }}>Nhiều dãy trọ nhất</option>
                         </select>
                     </div>
                 </form>
@@ -73,9 +74,13 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('districts.show', $district->id) }}" class="text-primary fw-bold text-decoration-none" style="transition: color 0.3s;">
-                                        {{ $district->name }}
-                                    </a>
+                                    <p class="text-primary fw-bold text-decoration-none" style="transition: color 0.3s;">
+                                        @if(request('sortOption') == 'most_motels')
+                                            {{ $district->name }} ({{ $district->motels_count }} dãy trọ)
+                                        @else
+                                            {{ $district->name }}
+                                        @endif
+                                    </p>
                                 </td>
                                 <td>
                                     <a href="{{ route('districts.edit', $district->id) }}" class="btn btn-sm btn-primary action-btn me-2" style="transition: all 0.3s;">
