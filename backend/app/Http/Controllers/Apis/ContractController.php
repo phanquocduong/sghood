@@ -1,24 +1,18 @@
 <?php
+
 namespace App\Http\Controllers\Apis;
+
 use App\Http\Controllers\Controller;
 use App\Services\Apis\ContractService;
+use Illuminate\Http\Request;
 
 class ContractController extends Controller
 {
-    protected $contractService;
+     protected $contractService;
 
     public function __construct(ContractService $contractService)
     {
         $this->contractService = $contractService;
-    }
-
-    public function getContractById($id)
-    {
-        $contract = $this->contractService->getContractById($id);
-        if (!$contract) {
-            return response()->json(['message' => 'Hợp đồng không tồn tại'], 404);
-        }
-        return response()->json($contract, 200);
     }
 
     public function getContractsByUser($userId)

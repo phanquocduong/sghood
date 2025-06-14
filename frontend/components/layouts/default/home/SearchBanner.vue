@@ -1,12 +1,12 @@
 <template>
     <ClientOnly>
-        <div v-if="config.banner" class="main-search-container" :data-background-image=" baseUrl + '/' + config.banner">
+        <div v-if="config.banner" class="main-search-container" :data-background-image="baseUrl + '/' + config.banner">
             <div class="main-search-inner">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
-                            <h2 v-if="config?.title_banner_h2">{{config.title_banner_h2}}</h2>
-                            <h4 v-if="config?.title_banner_h4">{{config.title_banner_h4}}</h4>
+                            <h2 v-if="config?.title_banner_h2">{{ config.title_banner_h2 }}</h2>
+                            <h4 v-if="config?.title_banner_h4">{{ config.title_banner_h4 }}</h4>
 
                             <div class="main-search-input">
                                 <div class="main-search-input-item">
@@ -51,9 +51,9 @@
 
 <script setup>
 import { onMounted, watch, nextTick } from 'vue';
-const config = useState('configs')
-const baseUrl = useRuntimeConfig().public.baseUrl
-console.log('config',config.value)
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+console.log('config', config.value);
 const props = defineProps({
     search: { type: Object, default: () => ({ keyword: '', district: '', priceRange: '' }) },
     districts: { type: Array, default: () => [] },

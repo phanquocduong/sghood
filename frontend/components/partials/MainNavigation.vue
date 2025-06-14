@@ -9,12 +9,10 @@
             </li>
             <li>
                 <NuxtLink to="/ve-chung-toi" active-class="current">Về chúng tôi</NuxtLink>
+
             </li>
             <li>
                 <NuxtLink to="/lien-he" active-class="current">Liên Hệ</NuxtLink>
-            </li>
-              <li>
-                <NuxtLink to="/gioi-thieu" active-class="current">Giới Thiệu</NuxtLink>
             </li>
         </ul>
     </nav>

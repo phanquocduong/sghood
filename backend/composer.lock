@@ -4,7 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7abc590bb90b203d70dc5e28bcd6669e",
+
+    "content-hash": "333971d4b9745de7eea37530c23aaa4e",
+
     "packages": [
         {
             "name": "beste/clock",
@@ -1087,6 +1089,64 @@
             "time": "2025-04-18T20:49:28+00:00"
         },
         {
+            "name": "google/cloud-vision",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/googleapis/google-cloud-php-vision.git",
+                "reference": "5e2ed6ee24f958424e3bc14132724c569c9857fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-vision/zipball/5e2ed6ee24f958424e3bc14132724c569c9857fa",
+                "reference": "5e2ed6ee24f958424e3bc14132724c569c9857fa",
+                "shasum": ""
+            },
+            "require": {
+                "google/cloud-core": "^1.57",
+                "google/gax": "^1.36.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "erusev/parsedown": "^1.6",
+                "google/cloud-storage": "^1.12",
+                "phpdocumentor/reflection": "^5.3.3||^6.0",
+                "phpdocumentor/reflection-docblock": "^5.3",
+                "phpspec/prophecy-phpunit": "^2.0",
+                "phpunit/phpunit": "^9.0",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "suggest": {
+                "ext-grpc": "The gRPC extension enables use of the performant gRPC transport",
+                "ext-protobuf": "Provides a significant increase in throughput over the pure PHP protobuf implementation. See https://cloud.google.com/php/grpc for installation instructions.",
+                "google/cloud-storage": "Annotate images stored in Google Cloud Storage"
+            },
+            "type": "library",
+            "extra": {
+                "component": {
+                    "id": "cloud-vision",
+                    "path": "Vision",
+                    "entry": "src/VisionClient.php",
+                    "target": "googleapis/google-cloud-php-vision.git"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Google\\Cloud\\Vision\\": "src",
+                    "GPBMetadata\\Google\\Cloud\\Vision\\": "metadata"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Cloud Vision Client for PHP",
+            "support": {
+                "source": "https://github.com/googleapis/google-cloud-php-vision/tree/v2.0.2"
+            },
+            "time": "2025-05-20T19:49:54+00:00"
+        },
+        {
             "name": "google/common-protos",
             "version": "4.12.0",
             "source": {
@@ -1922,16 +1982,16 @@
         },
         {
             "name": "intervention/image",
-            "version": "3.11.2",
+            "version": "3.11.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Intervention/image.git",
-                "reference": "ebbb711871fb261c064cf4c422f5f3c124fe1842"
+                "reference": "d0f097b8a3fa8fb758efc9440b513aa3833cda17"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Intervention/image/zipball/ebbb711871fb261c064cf4c422f5f3c124fe1842",
-                "reference": "ebbb711871fb261c064cf4c422f5f3c124fe1842",
+                "url": "https://api.github.com/repos/Intervention/image/zipball/d0f097b8a3fa8fb758efc9440b513aa3833cda17",
+                "reference": "d0f097b8a3fa8fb758efc9440b513aa3833cda17",
                 "shasum": ""
             },
             "require": {
@@ -1978,7 +2038,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Intervention/image/issues",
-                "source": "https://github.com/Intervention/image/tree/3.11.2"
+                "source": "https://github.com/Intervention/image/tree/3.11.3"
             },
             "funding": [
                 {
@@ -1994,7 +2054,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2025-02-27T13:08:55+00:00"
+            "time": "2025-05-22T17:26:23+00:00"
         },
         {
             "name": "kreait/firebase-php",

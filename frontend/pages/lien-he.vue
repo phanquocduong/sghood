@@ -2,8 +2,9 @@
     <!-- Map Container -->
     <div class="contact-map margin-bottom-60">
         <!-- Google Maps -->
-        <iframe v-if="config?.gg_map"
-            :src=" config.gg_map"
+        <iframe
+            v-if="config?.gg_map"
+            :src="config.gg_map"
             width="100%"
             height="450"
             style="border: 0"
@@ -17,9 +18,9 @@
                 <div class="office-address">
                     <h3>Văn phòng chúng tôi</h3>
                     <ul>
-                        <li v-if="config?.dia_chi">{{config.dia_chi}}</li>
-                        <li>    </li>
-                        <li v-if="config?.sdt">Điện thoại {{config.sdt}}</li>
+                        <li v-if="config?.dia_chi">{{ config.dia_chi }}</li>
+                        <li></li>
+                        <li v-if="config?.sdt">Điện thoại {{ config.sdt }}</li>
                     </ul>
                 </div>
             </div>
@@ -39,10 +40,16 @@
                         <li><i class="im im-icon-Phone-2"></i> <strong>Phone:</strong> <span>(123) 123-456</span></li>
                         <li><i class="im im-icon-Fax"></i> <strong>Fax:</strong> <span>(123) 123-456</span></li>
                         <li>
-                            <i class="im im-icon-Globe"></i> <strong>Web:</strong>  <span><a :href="config.dia_chi_web">{{ config.dia_chi_web }}</a></span>
+                            <i class="im im-icon-Globe"></i> <strong>Web:</strong>
+                            <span
+                                ><a :href="config.dia_chi_web">{{ config.dia_chi_web }}</a></span
+                            >
                         </li>
                         <li>
-                            <i class="im im-icon-Envelope"></i> <strong>Email:</strong> <span><a :href="config.email">{{config.email}}</a></span>
+                            <i class="im im-icon-Envelope"></i> <strong>Email:</strong>
+                            <span
+                                ><a :href="config.email">{{ config.email }}</a></span
+                            >
                         </li>
                     </ul>
                 </div>
@@ -94,7 +101,7 @@
                         </div>
                         <div>
                             <textarea
-                            v-model="message"
+                                v-model="message"
                                 name="message"
                                 cols="40"
                                 rows="3"
@@ -102,16 +109,21 @@
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
                                 required="required"
-                                style="min-height: 180px; width: 100%; "
+                                style="min-height: 180px; width: 100%"
                             ></textarea>
                         </div>
 
-                        <button type="submit" class="submit button" id="submit" value="Gửi tin nhắn" :disabled="loading" style="margin-bottom:10px ; margin-top: -10px;" >
-                            <span v-if="loading"  class="spinner" ></span>
-                            {{ loading ? ' Đang gửi...':'Gửi đi' }}
+                        <button
+                            type="submit"
+                            class="submit button"
+                            id="submit"
+                            value="Gửi tin nhắn"
+                            :disabled="loading"
+                            style="margin-bottom: 10px; margin-top: -10px"
+                        >
+                            <span v-if="loading" class="spinner"></span>
+                            {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
                         </button>
-
-
                     </form>
                 </section>
             </div>
@@ -124,9 +136,9 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useToast } from 'vue-toastification';
 // api config
-const config = useState('configs')
-const baseUrl = useRuntimeConfig().public.baseUrl
-console.log('Config:',config.value)
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+console.log('Config:', config.value);
 // api lien he
 const toast = useToast();
 const { $api } = useNuxtApp();
@@ -160,14 +172,14 @@ const handleSubmit = async () => {
         });
         console.log(res.value);
         if (res?.status === true) {
-           toast.success ( '✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
-            subject.value ='' ;
+            toast.success('✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
+            subject.value = '';
             message.value = '';
         } else {
-           toast.error  (`❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
+            toast.error(`❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
         }
     } catch (error) {
-       toast.error  ('❌ Gửi thất bại: Lỗi kết nối đến máy chủ.');
+        toast.error('❌ Gửi thất bại: Lỗi kết nối đến máy chủ.');
     } finally {
         loading.value = false;
     }
@@ -175,7 +187,6 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-
 .spinner {
     display: inline-block;
     width: 16px;
@@ -198,8 +209,8 @@ const handleSubmit = async () => {
     opacity: 0.6;
     cursor: not-allowed;
 }
-.textarea{
-     min-height: 120px;
+.textarea {
+    min-height: 120px;
     width: 100%;
 }
 

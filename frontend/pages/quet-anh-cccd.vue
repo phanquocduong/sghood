@@ -1,20 +1,23 @@
 <template>
-    <div class="p-4 max-w-md mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Quét Căn Cước Công Dân</h1>
-        <form @submit.prevent="uploadImage" enctype="multipart/form-data">
-            <input type="file" accept="image/*" @change="onFileChange" />
-            <button type="submit" class="mt-4" :disabled="!file">Tải lên</button>
-        </form>
+    <div class="container">
+        <div class="card">
+            <h2 class="card-header">Quét Căn Cước Công Dân</h2>
 
-        <div v-if="loading" class="mt-4">Đang xử lý...</div>
-        <div v-if="result" class="mt-4 p-4 border rounded">
-            <h2 class="text-lg font-semibold">Kết quả:</h2>
-            <p><strong>Số CCCD:</strong> {{ result.id_number }}</p>
-            <p><strong>Họ tên:</strong> {{ result.name }}</p>
-            <p><strong>Ngày sinh:</strong> {{ result.dob }}</p>
-            <p><strong>Địa chỉ:</strong> {{ result.address }}</p>
+            <div class="form-group">
+                <label for="cccd">Chọn ảnh CCCD:</label>
+                <input type="file" id="cccd" accept="image/*" @change="handleFileChange" />
+            </div>
+
+            <button :disabled="!file || isLoading" @click="submitImage" class="btn">
+                {{ isLoading ? 'Đang quét...' : 'Quét CCCD' }}
+            </button>
+
+            <div v-if="result" class="result">
+                <h3>Kết quả:</h3>
+                <pre>{{ result }}</pre>
+            </div>
         </div>
-        <div v-if="error" class="mt-4 text-red-500">{{ error }}</div>
+
     </div>
 </template>
 
@@ -23,45 +26,95 @@ import { ref } from 'vue';
 
 const { $api } = useNuxtApp();
 const file = ref(null);
+const isLoading = ref(false);
 const result = ref(null);
-const error = ref(null);
-const loading = ref(false);
 
-const onFileChange = event => {
+const handleFileChange = event => {
     file.value = event.target.files[0];
 };
 
-const uploadImage = async () => {
+const submitImage = async () => {
     if (!file.value) return;
 
-    loading.value = true;
-    error.value = null;
+    isLoading.value = true;
     result.value = null;
 
-    const formData = new FormData();
-    formData.append('image', file.value);
-
     try {
-        const response = await $api('/ocr/citizen-id', {
+        const formData = new FormData();
+        formData.append('cccd_image', file.value);
+
+        const response = await $api('/extract-cccd', {
             method: 'POST',
+            body: formData,
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-            },
-            body: formData
+            }
         });
 
-        if (response.success) {
+        if (response.status === 'success') {
             result.value = response.data;
         } else {
-            error.value = response.error;
+            throw new Error(response.message);
         }
-    } catch (err) {
-        console.log(err);
-        error.value = 'Có lỗi xảy ra khi xử lý ảnh';
+    } catch (error) {
+        console.log(error);
+        alert('Lỗi: ' + error.message);
     } finally {
-        loading.value = false;
+        isLoading.value = false;
+
     }
 };
 </script>
+<style scoped>
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 24px;
+}
 
-<style lang="scss" scoped></style>
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+input[type='file'] {
+    margin-top: 8px;
+}
+
+.btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+.result {
+    margin-top: 24px;
+    background: #f1f1f1;
+    padding: 16px;
+    border-radius: 6px;
+}
+</style>
+

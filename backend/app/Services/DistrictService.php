@@ -33,7 +33,7 @@ class DistrictService
         }
     }
 
-   
+
 
     public function getAllDistricts(): array
     {
@@ -130,7 +130,7 @@ class DistrictService
             $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
 
             Storage::disk('public')->put($filename, $image);
-            return Storage::url($filename);
+            return '/storage/' . $filename;
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
             return false;

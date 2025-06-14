@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    css: ['public/css/style.css', 'public/css/main-color.css','bootstrap/dist/css/bootstrap.min.css'],
+    css: ['public/css/style.css', 'public/css/main-color.css',],
     plugins: [
         '~/plugins/firebase.js',
         '~/plugins/api.js',

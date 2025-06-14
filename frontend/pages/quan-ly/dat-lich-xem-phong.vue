@@ -115,7 +115,7 @@ const submitBooking = async () => {
             return;
         }
 
-        await $api('/booking', {
+        await $api('/bookings', {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
