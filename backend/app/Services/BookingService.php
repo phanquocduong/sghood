@@ -110,13 +110,13 @@ class BookingService
             $contractData = $this->generateContractPreviewData($booking);
         }
 
-        // <div class="container-fluid py-5 px-4">
-        //     <div class="card shadow border-0 rounded-4">
-        //         <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
-        //             <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
-        //         </div>
-        $content = '
 
+        $content = '
+        <div class="container-fluid py-5 px-4">
+        <div class="card shadow border-0 rounded-4">
+            <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
+                <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
+            </div>
         <div class="card-body p-4">
             <div class="text-center mb-4">
                 <p class="fw-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
@@ -290,9 +290,10 @@ class BookingService
                 </div>
             </div>
         </div>
+            </div>
+    </div>
         ';
-    //     </div>
-    // </div>
+
 
         return $content;
     }

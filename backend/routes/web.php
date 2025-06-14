@@ -139,4 +139,4 @@ Route::middleware('admin')->group(function () {
     });
 
     Route::patch('/schedules/ajax-update/{id}', [ScheduleController::class, 'ajaxUpdateStatus'])->name('schedules.ajaxUpdateStatus');
-
+});
