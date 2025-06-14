@@ -81,11 +81,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Ngày sinh:</label>
-<<<<<<< HEAD
-                        <p class="border p-2 rounded">{{ $contract->user->birthdate ? \Carbon\Carbon::parse($contract->user->birth_date)->format('d/m/Y') : '15/03/1985' }}</p>
-=======
                         <p class="border p-2 rounded">{{ $contract->user->birthdate ? \Carbon\Carbon::parse($contract->user->birth_date)->format('d/m/Y') : '' }}</p>
->>>>>>> 8ea80c61a2b1dcc25f477a4cddcc1075d7e49b18
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Địa chỉ thường trú:</label>
@@ -184,11 +180,7 @@
                                         <i class="fas fa-info-circle me-2"></i>Trạng thái hiện tại
                                     </h6>
                                     @php
-<<<<<<< HEAD
-                                        $currentStatus = $contract->status ?? ''; // This should come from $contract->status
-=======
                                         $currentStatus = $contract->status ?? '';
->>>>>>> 8ea80c61a2b1dcc25f477a4cddcc1075d7e49b18
                                         $badgeClass = match ($currentStatus) {
                                             'Chờ xác nhận' => 'warning',
                                             'Đã ký' => 'success',
@@ -222,11 +214,7 @@
                                     </p>
                                     <p class="mb-0">
                                         <strong>Ngày hết hạn:</strong>
-<<<<<<< HEAD
-                                        <span class="text-primary">31/12/2025</span>
-=======
                                         <span class="text-primary">{{ $contract->booking->end_date ? $contract->end_date->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
->>>>>>> 8ea80c61a2b1dcc25f477a4cddcc1075d7e49b18
                                     </p>
                                 </div>
                             </div>
