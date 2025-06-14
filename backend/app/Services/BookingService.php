@@ -76,7 +76,8 @@ class BookingService
             // Thông tin phòng
             'room' => [
                 'name' => $booking->room->name ?? '',
-                'address' => $booking->room->address ?? '',
+                'address' => $booking->room->motel->districts->name ?? '',
+                'motel_name' => $booking->room->motel->name ?? '',
                 'area' => $booking->room->area ?? ''
             ],
 
@@ -110,13 +111,12 @@ class BookingService
             $contractData = $this->generateContractPreviewData($booking);
         }
 
-        // <div class="container-fluid py-5 px-4">
-        //     <div class="card shadow border-0 rounded-4">
-        //         <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
-        //             <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
-        //         </div>
         $content = '
-
+        <div class="container-fluid py-2 px-4">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
+                    <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
+                </div>
         <div class="card-body p-4">
             <div class="text-center mb-4">
                 <p class="fw-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
@@ -209,7 +209,7 @@ class BookingService
             <ol class="list-group list-group-numbered mb-4">
                 <li class="list-group-item">
                     <strong>Nội dung thuê phòng trọ:</strong>
-                    Bên A cho thuê Bên B phòng trọ số <span class="text-primary fw-bold">' . $contractData['room']['name'] . '</span>
+                    Bên A cho thuê Bên B phòng trọ số <span class="text-primary fw-bold">' . $contractData['room']['name'] . ' '.$contractData['room']['motel_name'].'</span>
                     tại địa chỉ <span class="text-primary fw-bold">' . $contractData['room']['address'] . '</span>.
                     Diện tích: <span class="text-primary fw-bold">' . $contractData['room']['area'] . '</span> m².
                 </li>
@@ -245,8 +245,8 @@ class BookingService
                 <li class="list-group-item">
                     <strong>Các phí khác:</strong>
                         <ul class="mt-2">
-                            <li>Tiền điện: <span class="text-primary">' . number_format($contractData['fees']['electricity_fee'], 0, ",", ".") . '</span>VNĐ/Kg</li>
-                            <li>Tiền nước: <span class="text-primary">' . number_format($contractData['fees']['water_fee'], 0, ",", ".") . '</span>VNĐ/Khối</li>
+                            <li>Tiền điện: <span class="text-primary">' . number_format($contractData['fees']['electricity_fee'], 0, ",", ".") . '</span>VNĐ/kw</li>
+                            <li>Tiền nước: <span class="text-primary">' . number_format($contractData['fees']['water_fee'], 0, ",", ".") . '</span>VNĐ/m3</li>
                             <li>Tiền gửi xe: <span class="text-primary">' . number_format($contractData['fees']['parking_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
                             <li>Tiền rác: <span class="text-primary">' . number_format($contractData['fees']['junk_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
                             <li>Tiền internet: <span class="text-primary">' . number_format($contractData['fees']['internet_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
@@ -290,9 +290,9 @@ class BookingService
                 </div>
             </div>
         </div>
+        </div>
+    </div>
         ';
-    //     </div>
-    // </div>
 
         return $content;
     }
