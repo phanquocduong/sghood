@@ -48,8 +48,6 @@ const config = useRuntimeConfig();
 const motels = ref([]);
 const carousel = ref(null);
 
-const Ready = ref(false)
-
 onMounted(async () => {
     try {
         const response = await $api('/motels/featured', { method: 'GET' });

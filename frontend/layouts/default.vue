@@ -1,5 +1,7 @@
 <template>
-    <div id="wrapper">
+  <div id="wrapper">
+    <Loading v-if="isLoading" />
+    <template v-else>
         <!-- Header -->
         <header id="header-container" class="no-shadow">
             <div id="header">
@@ -42,19 +44,34 @@
             </div>
         </header>
 
-        <Loading />
+      <NuxtPage />
 
-        <NuxtPage />
+      <AppFooter />
 
-        <AppFooter />
-
-        <!-- Back To Top Button -->
-        <div id="backtotop"><a href="#"></a></div>
-    </div>
+      <!-- Back To Top Button -->
+      <div id="backtotop"><a href="#"></a></div>
+    </template>
+  </div>
 </template>
 
+
 <script setup>
+import { useRoute } from 'vue-router';
+import { ref, watch, nextTick } from 'vue';
+const route = useRoute();
+const isLoading = ref (false)
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
+
+watch(()=> route.fullPath,async ()=>{
+    isLoading.value=true
+    await nextTick()
+    setTimeout(()=>{
+       isLoading.value=false
+    },500)
+}, {immediate:true})
+
+
+
 console.log('Header config:', config.value);
 </script>

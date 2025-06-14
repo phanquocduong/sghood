@@ -57,6 +57,8 @@ onUnmounted(() => {
 
 <style scoped>
 .loading-overlay {
+      top: 60px; /* giữ lại header, tuỳ theo chiều cao header của bạn */
+    height: calc(100% - 60px); /* điều chỉnh tương ứng */
     position: fixed;
     top: 0;
     left: 0;
@@ -67,7 +69,7 @@ onUnmounted(() => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Đảm bảo overlay hiển thị trên cùng */
+   
 }
 
 .spinner {
@@ -93,4 +95,14 @@ p {
         transform: rotate(360deg);
     }
 }
+
+.loading-overlay {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+}
+.loading-overlay[style*="display: none"] {
+    opacity: 0;
+    pointer-events: none;
+}
+
 </style>
