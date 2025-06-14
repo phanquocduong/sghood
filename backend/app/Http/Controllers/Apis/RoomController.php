@@ -13,10 +13,6 @@ class RoomController extends Controller
     {
         $this->roomService = $roomService;
     }
-
-    /**
-     * Lấy chi tiết phòng trọ theo slug nhà trọ và ID phòng
-     */
     public function show($slug, $roomId)
     {
         try {

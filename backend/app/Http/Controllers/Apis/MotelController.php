@@ -12,10 +12,7 @@ class MotelController extends Controller
     public function __construct(protected MotelService $motelService)
     {
     }
-
     /**
-     * Lấy danh sách nhà trọ nổi bật.
-     *
      * @return JsonResponse
      */
     public function featured(): JsonResponse
@@ -24,10 +21,7 @@ class MotelController extends Controller
             'data' => $this->motelService->getFeaturedMotels(),
         ]);
     }
-
     /**
-     * Tìm kiếm nhà trọ theo tiêu chí.
-     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -35,10 +29,7 @@ class MotelController extends Controller
     {
         return response()->json($this->motelService->searchMotels($request));
     }
-
     /**
-     * Lấy chi tiết nhà trọ theo slug.
-     *
      * @param string $slug
      * @return JsonResponse
      */

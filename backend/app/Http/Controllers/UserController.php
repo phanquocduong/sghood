@@ -14,51 +14,16 @@ class UserController extends Controller
     {
         $this->userService = $userService;
     }
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $users = $this->userService->getFilteredUsers($request);
         return view('users.user', compact('users'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $user = User::findOrFail($id);
         return view('users.editUser', compact('user'));
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id) {
         if (Auth::id() == $id) {
         return redirect()->back()->with('error', 'Bạn không thể chỉnh sửa chính mình.');
@@ -70,10 +35,6 @@ class UserController extends Controller
 
         return redirect()->route('users.user')->with('success', 'Cập nhật thành công');
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
         $user->delete();
