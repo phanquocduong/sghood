@@ -76,7 +76,7 @@ class BookingService
             // Thông tin phòng
             'room' => [
                 'name' => $booking->room->name ?? '',
-                'address' => $booking->room->motel->districts->name ?? '',
+                'address' => $booking->room->motel->address ?? '',
                 'motel_name' => $booking->room->motel->name ?? '',
                 'area' => $booking->room->area ?? ''
             ],
