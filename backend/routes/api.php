@@ -56,7 +56,7 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
-
 Route::post('/extract-cccd', [OcrController::class, 'extractCccdData']);
 
 Route::get('/users/{userId}/contract', [ContractController::class, 'getContractsByUser']);
+

@@ -17,6 +17,7 @@
                 <pre>{{ result }}</pre>
             </div>
         </div>
+
     </div>
 </template>
 
@@ -60,10 +61,10 @@ const submitImage = async () => {
         alert('Lỗi: ' + error.message);
     } finally {
         isLoading.value = false;
+
     }
 };
 </script>
-
 <style scoped>
 .container {
     max-width: 600px;
@@ -116,3 +117,4 @@ input[type='file'] {
     border-radius: 6px;
 }
 </style>
+
