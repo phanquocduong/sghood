@@ -55,12 +55,12 @@ class BookingService
 
             // Thông tin bên A (chủ nhà) - có thể lấy từ config hoặc database
             'landlord' => [
-                'name' => 'SGHood',
-                'identity_document' => '123456789',
-                'birthdate' => '01/01/1990',
-                'address' => '123 Đường ABC, TP Hồ Chí Minh',
-                'phone' => '0901234567',
-                'email' => 'sghood@gmail.com'
+                'name' => 'Phan Quốc Dương',
+                'identity_number' => '083205001354',
+                'year_of_birth' => '2005',
+                'date_of_issue' => '01/01/2020',
+                'place_of_issue' => 'Cục CSQLHC về TTXH',
+                'permanent_address' => '123 Đường ABC, TP Hồ Chí Minh'
             ],
 
             // Thông tin bên B (người thuê)
@@ -110,193 +110,265 @@ class BookingService
             $contractData = $this->generateContractPreviewData($booking);
         }
 
-
         $content = '
-        <div class="container-fluid py-5 px-4">
-        <div class="card shadow border-0 rounded-4">
-            <div class="card-header text-white bg-dark d-flex justify-content-center rounded-top-4">
-                <h4 class="mb-0" style="color: #ffffff">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h4>
-            </div>
-        <div class="card-body p-4">
-            <div class="text-center mb-4">
-                <p class="fw-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                <p class="fw-bold">Độc lập - Tự do - Hạnh phúc</p>
-                <p class="mb-0">
-                    <small>
-                        <span class="text-primary">TP.HCM, ngày ' . $contractData['current_day'] . ' tháng ' . $contractData['current_month'] . ' năm ' . $contractData['current_year'] . '</span>
-                    </small>
-                </p>
-            </div>
+        <div class="container-fluid p-0">
+            <div class="contract-document mx-auto" style="max-width: 210mm; min-height: 297mm; background: white; font-family: \'Times New Roman\', serif; font-size: 13px; line-height: 1.4; padding: 15mm 20mm;">
 
-            <!-- BÊN A (CHỦ NHÀ) -->
-            <h5 class="mt-4">BÊN CHO THUÊ PHÒNG TRỌ (BÊN A)</h5>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Họ và tên:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['name'] . '</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">CMND/CCCD:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['identity_document'] . '</p>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Ngày sinh:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['birthdate'] . '</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Địa chỉ thường trú:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['address'] . '</p>
-                </div>
-            </div>
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Số điện thoại:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['phone'] . '</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Email:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['landlord']['email'] . '</p>
-                </div>
-            </div>
-
-            <!-- BÊN B (NGƯỜI THUÊ) -->
-            <h5 class="mt-4">BÊN THUÊ PHÒNG TRỌ (BÊN B)</h5>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Họ và tên:</label>
-                    <input type="text" class="form-control" value="" name="name">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">CMND/CCCD:</label>
-                    <input type="text" class="form-control" value="" name="identity_document">
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Ngày sinh:</label>
-                    <input type="text" class="form-control" value="" name="birthdate">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Địa chỉ thường trú:</label>
-                    <input type="text" class="form-control" value="" name="address">
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Ngày cấp:</label>
-                    <input type="text" class="form-control" value="" name="date_of_issue">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Nơi cấp:</label>
-                    <input type="text" class="form-control" value="" name="address_of_issue">
-                </div>
-            </div>
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Số điện thoại:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['tenant']['phone'] . '</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Email:</label>
-                    <p class="border p-2 rounded bg-light">' . $contractData['tenant']['email'] . '</p>
-                </div>
-            </div>
-
-            <!-- NỘI DUNG HỢP ĐỒNG -->
-            <h5 class="mt-4">NỘI DUNG HỢP ĐỒNG</h5>
-            <ol class="list-group list-group-numbered mb-4">
-                <li class="list-group-item">
-                    <strong>Nội dung thuê phòng trọ:</strong>
-                    Bên A cho thuê Bên B phòng trọ số <span class="text-primary fw-bold">' . $contractData['room']['name'] . '</span>
-                    tại địa chỉ <span class="text-primary fw-bold">' . $contractData['room']['address'] . '</span>.
-                    Diện tích: <span class="text-primary fw-bold">' . $contractData['room']['area'] . '</span> m².
-                </li>
-                <li class="list-group-item">
-                    <strong>Trách nhiệm bên A (Chủ nhà):</strong>
-                    <ul class="mt-2">
-                        <li>Cung cấp phòng trọ sạch sẽ, đầy đủ tiện nghi theo thỏa thuận.</li>
-                        <li>Hỗ trợ bên B trong trường hợp có sự cố liên quan đến phòng trọ.</li>
-                        <li>Đảm bảo an ninh, trật tự tại khu trọ.</li>
-                        <li>Cung cấp hóa đơn điện, nước, internet đúng hạn.</li>
-                    </ul>
-                </li>
-                <li class="list-group-item">
-                    <strong>Trách nhiệm bên B (Người thuê):</strong>
-                    <ul class="mt-2">
-                        <li>Đảm bảo thanh toán đầy đủ tiền thuê phòng trọ đúng hạn.</li>
-                        <li>Giữ gìn vệ sinh, không làm hư hỏng tài sản của bên A.</li>
-                        <li>Chấp hành các quy định về an ninh, trật tự tại khu trọ.</li>
-                        <li>Thông báo trước khi có khách hoặc thay đổi số người ở.</li>
-                    </ul>
-                </li>
-                <li class="list-group-item">
-                    <strong>Điều khoản thanh toán:</strong>
-                    <ul class="mt-2">
-                        <li>Đặt cọc: <span class="text-primary fw-bold">' . number_format($contractData['contract']['deposit_amount'], 0, ",", ".") . '</span> VNĐ.</li>
-                        <li>Tiền thuê phòng: <span class="text-primary fw-bold">' . number_format($contractData['contract']['rental_price'], 0, ",", ".") . '</span> VNĐ/tháng,
-                            thanh toán vào ngày <span class="text-primary fw-bold">' . $contractData['contract']['payment_day'] . '</span> hàng tháng.</li>
-                        <li>Thời hạn hợp đồng: Từ ngày <span class="text-primary fw-bold">' . $contractData['contract']['start_date'] . '</span>
-                            đến ngày <span class="text-primary fw-bold">' . $contractData['contract']['end_date'] . '</span>.</li>
-                        <li>Phí dịch vụ (điện, nước, internet): Theo đơn giá thực tế.</li>
-                    </ul>
-                </li>
-                <li class="list-group-item">
-                    <strong>Các phí khác:</strong>
-                        <ul class="mt-2">
-                            <li>Tiền điện: <span class="text-primary">' . number_format($contractData['fees']['electricity_fee'], 0, ",", ".") . '</span>VNĐ/Kg</li>
-                            <li>Tiền nước: <span class="text-primary">' . number_format($contractData['fees']['water_fee'], 0, ",", ".") . '</span>VNĐ/Khối</li>
-                            <li>Tiền gửi xe: <span class="text-primary">' . number_format($contractData['fees']['parking_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
-                            <li>Tiền rác: <span class="text-primary">' . number_format($contractData['fees']['junk_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
-                            <li>Tiền internet: <span class="text-primary">' . number_format($contractData['fees']['internet_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
-                            <li>Phí dịch vụ khác (nếu có): <span class="text-primary">' . number_format($contractData['fees']['service_fee'], 0, ",", ".") . '</span> VNĐ/tháng</li>
-                        </ul>
-                    </li>
-                <li class="list-group-item">
-                    <strong>Điều khoản chấm dứt hợp đồng:</strong>
-                    <ul class="mt-2">
-                        <li>Hai bên có thể chấm dứt hợp đồng trước thời hạn bằng thông báo trước 30 ngày.</li>
-                        <li>Bên vi phạm nghiêm trọng các điều khoản sẽ bị chấm dứt hợp đồng ngay lập tức.</li>
-                        <li>Khi chấm dứt hợp đồng, bên B phải trả phòng trong tình trạng ban đầu.</li>
-                    </ul>
-                </li>
-                <li class="list-group-item">
-                    <strong>Điều khoản khác:</strong>
-                    <div class="mt-2">
-                        <p class="border p-2 rounded bg-light">' . ($contractData['contract']['additional_terms'] ?? 'Hai bên cam kết thực hiện đúng các điều khoản đã nêu trên. Mọi tranh chấp sẽ được giải quyết thông qua thương lượng hoặc cơ quan có thẩm quyền.') . '</p>
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="mb-2">
+                        <strong style="font-size: 14px; letter-spacing: 0.5px;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong>
                     </div>
-                </li>
-            </ol>
+                    <div class="mb-3">
+                        <u><strong>Độc lập - Tự do - Hạnh phúc</strong></u>
+                    </div>
 
-            <!-- CHỮ KÝ XÁC NHẬN -->
-            <h5 class="mt-4">CHỮ KÝ XÁC NHẬN</h5>
-            <div class="row mb-4">
-                <div class="col-md-6 text-center">
-                    <p class="fw-bold">BÊN A (CHỦ NHÀ)</p>
-                    <p class="text-muted">(Ký, ghi rõ họ tên)</p>
-                    <div class="border p-4 rounded bg-light d-flex flex-column justify-content-center" style="min-height: 120px;">
-                        <p class="fw-bold mb-1 fs-5">' . $contractData['landlord']['name'] . '</p>
-                        <small class="text-muted">' . $contractData['current_date'] . '</small>
+                    <div class="my-4">
+                        <h3 class="mb-0" style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">
+                            HỢP ĐỒNG CHO THUÊ
+                        </h3>
+                    </div>
+
+                    <div class="text-end mb-4">
+                        <div class="d-inline-block border border-dark px-2 py-1">
+                            <strong>SGHood</strong>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 text-center">
-                    <p class="fw-bold">BÊN B (NGƯỜI THUÊ)</p>
-                    <p class="text-muted">(Ký, ghi rõ họ tên)</p>
-                    <div class="border p-4 rounded bg-light d-flex flex-column justify-content-center" style="min-height: 120px;">
-                        <p class="fw-bold mb-1 fs-5">' . $contractData['tenant']['name'] . '</p>
-                        <small class="text-muted">' . ($contractData['contract']['signed_date'] ?? 'Chưa ký') . '</small>
+
+                <!-- Thông tin ngày tháng và bên ký -->
+                <div class="mb-4">
+                    <p class="mb-2">
+                        Hôm nay ngày <strong>' . $contractData['current_day'] . '</strong>
+                        tháng <strong>' . $contractData['current_month'] . '</strong>
+                        năm <strong>' . $contractData['current_year'] . '</strong>
+                    </p>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>CHỦ CHO THUÊ (Chủ nhà):</strong> (Gọi tắt là Bên A)</p>
+                            <p class="mb-1">Họ và tên: <strong>' . $contractData['landlord']['name'] . '</strong> Sinh năm: <strong>' . $contractData['landlord']['year_of_birth'] . '</strong></p>
+                            <p class="mb-1">CCCD số: <strong>' . $contractData['landlord']['identity_number'] . '</strong> Ngày cấp: <strong>' . $contractData['landlord']['date_of_issue'] . '</strong> Nơi cấp: <strong>' . $contractData['landlord']['place_of_issue'] . '</strong></p>
+                            <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['landlord']['address'] . '</strong></p>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="text-end">
+                                <div class="border border-dark px-2 py-1 d-inline-block">
+                                    <small>Mẫu số: 01/...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>BÊN THUÊ:</strong> (Gọi tắt là Bên B)</p>
+                        <p class="mb-1">Họ và tên: <strong>' . $contractData['tenant']['name'] . '</strong> Sinh: <strong>' . ($contractData['tenant']['birthdate'] ? date('Y', strtotime($contractData['tenant']['birthdate'])) : '1995') . '</strong></p>
+                        <p class="mb-1">CCCD Số: <strong>' . $contractData['tenant']['identity_document'] . '</strong> Ngày cấp: <strong>01/01/2021</strong> Nơi cấp: <strong>Cục CSQLHC về TTXH</strong></p>
+                        <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['tenant']['address'] . '</strong></p>
                     </div>
                 </div>
+
+                <!-- Nội dung thỏa thuận -->
+                <div class="mb-4">
+                    <p class="text-center mb-3">
+                        <em>Sau khi bàn bạc hai bên thống nhất ký hợp đồng cho thuê với các điều khoản sau:</em>
+                    </p>
+
+                    <div class="mb-4">
+                        <p class="mb-2"><strong>1. NỘI DUNG HỢP ĐỒNG:</strong></p>
+                        <div class="ms-3">
+                            <p class="mb-2">- Bên A đồng ý cho thuê phòng số: <strong>' . $contractData['room']['name'] . '</strong></p>
+                            <p class="mb-2">- Địa chỉ: <strong>' . $contractData['room']['address'] . '</strong></p>
+                            <p class="mb-2">- Mục đích thuê: <strong>Để ở</strong></p>
+                            <p class="mb-2">- Thời hạn cho thuê là: <strong>12 tháng</strong>, bắt đầu từ ngày <strong>' . $contractData['contract']['start_date'] . '</strong> đến hết ngày <strong>' . $contractData['contract']['end_date'] . '</strong></p>
+                            <p class="mb-2">- Sau khi ký hợp đồng bên B sẽ đặt cọc cho bên A: <strong>' . number_format($contractData['contract']['deposit_amount'], 0, ",", ".") . '</strong> đ.</p>
+                            <p class="mb-2">- Bằng chữ: <strong>' . $this->convertNumberToWords($contractData['contract']['deposit_amount']) . ' đồng</strong></p>
+                            <p class="mb-2">- Giá cho thuê: <strong>' . number_format($contractData['contract']['rental_price'], 0, ",", ".") . '</strong> đ/tháng.</p>
+                            <p class="mb-2">- Bằng chữ: <strong>' . $this->convertNumberToWords($contractData['contract']['rental_price']) . ' đồng</strong></p>
+                            <p class="mb-0">- Phương thức thanh toán: Mỗi tháng bên B thanh toán cho bên A bằng tiền mặt hoặc chuyển khoản. Bên A thu tiền từ ngày 01 đến ngày 10 hàng tháng.</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="mb-2"><strong>2. TRÁCH NHIỆM MỖI BÊN</strong></p>
+
+                        <div class="mb-3">
+                            <p class="mb-2"><strong>a) Bên A:</strong></p>
+                            <div class="ms-3">
+                                <p class="mb-1">- Trong thời gian hợp đồng chủ nhà sẽ không tăng giá tiền nhà.</p>
+                                <p class="mb-1">- Kịp thời sửa chữa hư hỏng trong quá trình sử dụng.</p>
+                                <p class="mb-0">- Tạo mọi điều kiện cho Bên B trong ăn, ở, sinh hoạt, học tập.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-2"><strong>b) Bên B:</strong></p>
+                            <div class="ms-3">
+                                <p class="mb-1">- Có trách nhiệm bảo quản nhà, mọi hư hỏng phải báo ngay cho bên A.</p>
+                                <p class="mb-1">- Thanh toán tiền nhà cho bên A theo đúng thời hạn quy định.</p>
+                                <p class="mb-1">- Không được mang chất dễ cháy, chất nổ, vũ khí ma túy vào nhà thuê.</p>
+                                <p class="mb-1">- Không đánh bạc, uống rượu, bia, gây gổ làm mất an ninh trật tự.</p>
+                                <p class="mb-1">- Không tự ý để người không đăng ký ở lại nhà thuê.</p>
+                                <p class="mb-1">- Nếu vi phạm các quy định trên thì bên B sẽ tự chịu trách nhiệm khi cơ quan công an xử phạt hành chính theo pháp luật.</p>
+                                <p class="mb-1">- Trường hợp bên B trả nhà trong thời gian hợp đồng 12 tháng thì chủ nhà không trả lại tiền đặt cọc.</p>
+                                <p class="mb-1">- Sau khi hết hợp đồng chủ nhà sẽ trả lại tiền đặt cọc là: <strong>' . number_format($contractData['contract']['deposit_amount'], 0, ",", ".") . '</strong> đ cho bên B.</p>
+                                <p class="mb-1">- Nếu mọi hư hỏng do bên B gây ra thì bên B sẽ chịu bồi thường mọi chi phí sửa chữa.</p>
+                                <p class="mb-1">- Không được tự ý sang, chuyển nhượng phòng trọ cho người khác khi không được chủ nhà đồng ý.</p>
+                                <p class="mb-0">- Trong thời hạn 02 ngày kể từ khi đến ở trọ phải đăng ký tạm trú, đăng ký xe máy để làm thẻ xe.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="mb-2"><strong>3. ĐIỀU KHOẢN CHUNG</strong></p>
+                        <div class="ms-3">
+                            <p class="mb-1">- Hợp Đồng này có hiệu lực kể từ ngày đại diện hai bên cùng ký.</p>
+                            <p class="mb-1">- Mọi thay đổi của hợp đồng phải được hai bên thỏa thuận (nếu có).</p>
+                            <p class="mb-0">- Hai bên cam kết thực hiện nghiêm chính hợp đồng này</p>
+                        </div>
+
+                        <p class="mt-3 mb-0">
+                            <em>Hợp đồng này đã được lập thành 02 bản, mỗi bên giữa 01 bản và có giá trị pháp lý như nhau.</em>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Chữ ký -->
+                <div class="row mt-5 pt-4">
+                    <div class="col-6 text-center">
+                        <p class="mb-1"><strong>BÊN A</strong></p>
+                        <p class="mb-5"><em>(Ký, ghi rõ họ tên)</em></p>
+                        <div class="mt-5 pt-3">
+                            <p class="mb-0"><strong>' . $contractData['landlord']['name'] . '</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="col-6 text-center">
+                        <p class="mb-1"><strong>BÊN B</strong></p>
+                        <p class="mb-5"><em>(Ký, ghi rõ họ tên)</em></p>
+                        <div class="mt-5 pt-3">
+                            <p class="mb-0"><strong>' . $contractData['tenant']['name'] . '</strong></p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
-            </div>
-    </div>
+
+        <style>
+            @media print {
+                .container-fluid {
+                    padding: 0 !important;
+                }
+
+                .contract-document {
+                    max-width: none !important;
+                    margin: 0 !important;
+                    padding: 15mm 20mm !important;
+                }
+
+                body {
+                    font-size: 12pt !important;
+                }
+            }
+
+            .contract-document {
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            .border-dark {
+                border-color: #000 !important;
+            }
+
+            p {
+                margin-bottom: 0.5rem;
+            }
+
+            .text-justify {
+                text-align: justify;
+            }
+
+            /* Đảm bảo font Times New Roman hiển thị đúng */
+            .contract-document * {
+                font-family: \'Times New Roman\', serif !important;
+            }
+        </style>
         ';
-    //     </div>
-    // </div>
 
         return $content;
+    }
+
+    // Thêm method chuyển đổi số thành chữ (có thể đặt ở cuối class)
+    private function convertNumberToWords($number)
+    {
+        $ones = array(
+            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+        );
+
+        $tens = array(
+            '', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi',
+            'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'
+        );
+
+        if ($number == 0) return 'không';
+
+        $result = '';
+
+        // Xử lý hàng triệu
+        if ($number >= 1000000) {
+            $millions = intval($number / 1000000);
+            $result .= $this->convertHundreds($millions) . ' triệu ';
+            $number %= 1000000;
+        }
+
+        // Xử lý hàng nghìn
+        if ($number >= 1000) {
+            $thousands = intval($number / 1000);
+            $result .= $this->convertHundreds($thousands) . ' nghìn ';
+            $number %= 1000;
+        }
+
+        // Xử lý hàng trăm
+        if ($number > 0) {
+            $result .= $this->convertHundreds($number);
+        }
+
+        return trim($result);
+    }
+
+    private function convertHundreds($number)
+    {
+        $ones = array(
+            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+        );
+
+        $result = '';
+
+        if ($number >= 100) {
+            $hundreds = intval($number / 100);
+            $result .= $ones[$hundreds] . ' trăm ';
+            $number %= 100;
+        }
+
+        if ($number >= 20) {
+            $tens = intval($number / 10);
+            $result .= $ones[$tens] . ' mươi ';
+            $number %= 10;
+            if ($number > 0) {
+                $result .= $ones[$number] . ' ';
+            }
+        } elseif ($number >= 10) {
+            $result .= 'mười ';
+            $number %= 10;
+            if ($number > 0) {
+                $result .= $ones[$number] . ' ';
+            }
+        } elseif ($number > 0) {
+            $result .= $ones[$number] . ' ';
+        }
+
+        return trim($result);
     }
 
     // Lấy xem trước hợp đồng dựa trên ID đặt phòng
