@@ -10,33 +10,69 @@ use Illuminate\Support\Facades\Mail;
 
 class BookingService
 {
-    public function getAllBooking(string $querySearch = '', string $status = '', int $perPage = 10)
+    public function getAllBooking(string $querySearch = '', string $status = '', string $sortOption = '', int $perPage = 10)
     {
         try {
             $query = Booking::with(['user', 'room']);
 
-            if ($querySearch) {
-                $query->where(function ($q) use ($querySearch) {
-                    $q->where('note', 'like', "%$querySearch%")
-                      ->orWhereHas('user', function($userQuery) use ($querySearch) {
-                          $userQuery->where('name', 'like', "%$querySearch%");
-                      });
-                });
-            }
+            // Áp dụng từng bộ lọc riêng biệt
+            $this->applySearchFilter($query, $querySearch);
+            $this->applyStatusFilter($query, $status);
+            $this->applySorting($query, $sortOption);
 
-            if ($status) {
-                $query->where('status', $status);
-            }
-
-            $booking = $query->orderBy('created_at', 'desc')->paginate($perPage);
-            return ['data' => $booking];
+            $bookings = $query->paginate($perPage);
+            return ['data' => $bookings];
         } catch (\Throwable $e) {
             Log::error('Error getting bookings: ' . $e->getMessage(), [
                 'query_search' => $querySearch,
                 'status' => $status,
+                'sort_option' => $sortOption,
                 'per_page' => $perPage
             ]);
             return ['error' => 'Đã xảy ra lỗi khi lấy danh sách đặt phòng', 'status' => 500];
+        }
+    }
+
+    // Áp dụng bộ lọc tìm kiếm
+    private function applySearchFilter($query, string $querySearch): void
+    {
+        if ($querySearch !== '') {
+            $query->where(function ($q) use ($querySearch) {
+                $q->whereHas('room', function($roomQuery) use ($querySearch) {
+                        $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                    })
+                ->orWhereHas('user', function($userQuery) use ($querySearch) {
+                    $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                });
+            });
+        }
+    }
+
+    // Áp dụng bộ lọc trạng thái
+    private function applyStatusFilter($query, string $status): void
+    {
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+    }
+
+    // Áp dụng sắp xếp cho truy vấn
+    private function applySorting($query, string $sortOption): void
+    {
+        $sort = $this->handleSortOption($sortOption);
+        $query->orderBy($sort['field'], $sort['order']);
+    }
+
+    // Xử lý tùy chọn sắp xếp
+    public function handleSortOption(string $sortOption): array
+    {
+        switch ($sortOption) {
+            case 'created_at_asc':
+                return ['field' => 'created_at', 'order' => 'asc'];
+            case 'created_at_desc':
+                return ['field' => 'created_at', 'order' => 'desc'];
+            default:
+                return ['field' => 'created_at', 'order' => 'desc'];
         }
     }
 
@@ -320,7 +356,7 @@ class BookingService
         }
     }
 
-    public function updateBookingStatus($id, $status, $note = null)
+    public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
             $booking = Booking::with(['user', 'room'])->findOrFail($id);
@@ -330,12 +366,12 @@ class BookingService
                 'booking_id' => $id,
                 'old_status' => $oldStatus,
                 'new_status' => $status,
-                'note' => $note
+                'cancellation_reason' => $cancellation_reason
             ]);
 
             $updateData = ['status' => $status];
-            if ($note) {
-                $updateData['note'] = $note;
+            if ($cancellation_reason) {
+                $updateData['cancellation_reason'] = $cancellation_reason;
             }
 
             $booking->update($updateData);
@@ -369,7 +405,7 @@ class BookingService
             // Send email if status changed to "Từ chối" and user has email
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                 try {
-                    Mail::to($booking->user->email)->send(new BookingRejected($booking, $note ?? ''));
+                    Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
                     Log::info('Rejection email sent successfully', [
                         'booking_id' => $id,
                         'user_email' => $booking->user->email
@@ -395,19 +431,19 @@ class BookingService
         }
     }
 
-    public function updateBookingNote($id, $note)
+    public function updateBookingCancellation($id, $cancellation_reason)
     {
         try {
             $booking = Booking::findOrFail($id);
 
             // Log before update
-            Log::info('Updating booking note', [
+            Log::info('Updating booking cancellation_reason', [
                 'booking_id' => $id,
-                'old_note' => $booking->note,
-                'new_note' => $note
+                'old_cancellation_reason' => $booking->cancellation_reason,
+                'new_cancellation_reason' => $cancellation_reason
             ]);
 
-            $booking->update(['note' => $note]);
+            $booking->update(['cancellation_reason' => $cancellation_reason]);
 
             // Reload to get fresh data
             $booking->refresh();
@@ -417,32 +453,32 @@ class BookingService
             Log::error('Booking not found: ' . $e->getMessage(), ['booking_id' => $id]);
             return ['error' => 'Không tìm thấy đặt phòng', 'status' => 404];
         } catch (\Throwable $e) {
-            Log::error('Error updating booking note: ' . $e->getMessage(), [
+            Log::error('Error updating booking Cancellation: ' . $e->getMessage(), [
                 'booking_id' => $id,
-                'note' => $note
+                'cancellation_reason' => $cancellation_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật lý do', 'status' => 500];
         }
     }
 
-    public function updateBookingStatusAndNote($id, $status, $note)
+    public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
     {
         try {
-            return DB::transaction(function () use ($id, $status, $note) {
+            return DB::transaction(function () use ($id, $status, $cancellation_reason) {
                 $booking = Booking::with(['user', 'room'])->findOrFail($id);
                 $oldStatus = $booking->status;
 
-                Log::info('Updating booking status and note', [
+                Log::info('Updating booking status and cancellation_reason', [
                     'booking_id' => $id,
                     'old_status' => $oldStatus,
                     'new_status' => $status,
-                    'old_note' => $booking->note,
-                    'new_note' => $note
+                    'old_cancellation_reason' => $booking->cancellation_reason,
+                    'new_cancellation_reason' => $cancellation_reason
                 ]);
 
                 $updateData = ['status' => $status];
-                if ($note) {
-                    $updateData['note'] = $note;
+                if ($cancellation_reason) {
+                    $updateData['cancellation_reason'] = $cancellation_reason;
                 }
 
                 $booking->update($updateData);
@@ -474,7 +510,7 @@ class BookingService
 
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                     try {
-                        Mail::to($booking->user->email)->send(new BookingRejected($booking, $note ?? ''));
+                        Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
                         Log::info('Rejection email sent successfully', [
                             'booking_id' => $id,
                             'user_email' => $booking->user->email
@@ -493,10 +529,10 @@ class BookingService
             Log::error('Booking not found: ' . $e->getMessage(), ['booking_id' => $id]);
             return ['error' => 'Không tìm thấy đặt phòng', 'status' => 404];
         } catch (\Throwable $e) {
-            Log::error('Error updating booking status and note: ' . $e->getMessage(), [
+            Log::error('Error updating booking status and cancellation_reason: ' . $e->getMessage(), [
                 'booking_id' => $id,
                 'status' => $status,
-                'note' => $note
+                'cancellation_reason' => $cancellation_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật thông tin đặt phòng', 'status' => 500];
         }

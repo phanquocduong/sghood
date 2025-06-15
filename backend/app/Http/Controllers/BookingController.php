@@ -16,21 +16,25 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        $booking = $this->bookingService->getAllBooking(
-            (string) $request->get('querySearch', ''),
-            (string) $request->get('status', ''),
-            (int) $request->get('perPage', 10)
+        $querySearch = $request->query('query', '');
+        $status = $request->query('status', '');
+        $sortOption = $request->query('sortOption', '');
+        $perPage = $request->query('perPage', 10);
+
+        $result = $this->bookingService->getAllBooking(
+            $querySearch, $status, $sortOption, $perPage
         );
 
-        if (isset($booking['error'])) {
-            return redirect()->route('bookings.index')->with('error', $booking['error']);
+        if (isset($result['error'])) {
+            return redirect()->route('bookings.index')->with('error', $result['error']);
         }
 
         return view('bookings.index', [
-            'booking' => $booking['data'],
-            'querySearch' => $request->get('querySearch', ''),
-            'status' => $request->get('status', ''),
-            'perPage' => $request->get('perPage', 10),
+            'booking' => $result['data'],
+            'querySearch' => $querySearch,
+            'status' => $status,
+            'sortOption' => $sortOption,
+            'perPage' => $perPage,
         ]);
     }
 
@@ -71,7 +75,7 @@ class BookingController extends Controller
         $status = $request->input('status');
 
         // Update note
-        $result = $this->bookingService->updateBookingNote($id, $note);
+        $result = $this->bookingService->updateBookingCancellation($id, $note);
 
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error']);
