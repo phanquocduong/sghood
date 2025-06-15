@@ -12,6 +12,7 @@ use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\ConfigController;
 use App\Http\Controllers\Apis\ContractController;
 use App\Http\Controllers\Apis\OcrController;
+use App\Http\Controllers\Apis\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,3 +61,5 @@ Route::post('/extract-cccd', [OcrController::class, 'extractCccdData']);
 
 Route::get('/users/{userId}/contract', [ContractController::class, 'getContractsByUser']);
 
+Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
+Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);

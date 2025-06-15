@@ -90,9 +90,11 @@
                                     <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
-                                        <i class="fas fa-pen me-1"></i> Sửa
-                                    </a>
+                                    @if ($user->id !== Auth::id())
+                                        <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
+                                            <i class="fas fa-pen me-1"></i> Sửa
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
