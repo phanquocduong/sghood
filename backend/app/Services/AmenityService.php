@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Amenity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Schema;
 class AmenityService
 {
     // Tiêu chuẩn hóa phản hồi thành công
@@ -159,6 +159,14 @@ class AmenityService
                 return $this->errorResponse('Tiện ích không tìm thấy', 404);
             }
 
+            // Kiểm tra khóa ngoại với bảng motel và room
+            $foreignKeyCheck = $this->checkAmenityForeignKeyConstraints($amenity);
+
+            if (!$foreignKeyCheck['canDelete']) {
+                DB::rollBack();
+                return $this->errorResponse($foreignKeyCheck['message'], 400);
+            }
+
             $type = $amenity->type;
             $amenity->delete();
 
@@ -172,6 +180,46 @@ class AmenityService
             Log::error('Error in deleteAmenity: ' . $e->getMessage());
             return $this->errorResponse('Đã xảy ra lỗi khi xóa tiện ích', 500);
         }
+    }
+
+    // Kiểm tra các ràng buộc khóa ngoại trước khi xóa amenity
+    private function checkAmenityForeignKeyConstraints($amenity)
+    {
+        $conflicts = [];
+        $canDelete = true;
+
+        // 1. Kiểm tra bảng motel_amenities (nếu có)
+        if (Schema::hasTable('motel_amenities')) {
+            $motelAmenityCount = DB::table('motel_amenities')
+                ->where('amenity_id', $amenity->id)
+                ->count();
+
+            if ($motelAmenityCount > 0) {
+                $conflicts[] = "Có {$motelAmenityCount} nhà trọ đang sử dụng tiện ích này";
+                $canDelete = false;
+            }
+        }
+
+        // 2. Kiểm tra bảng room_amenities (nếu có)
+        if (Schema::hasTable('room_amenities')) {
+            $roomAmenityCount = DB::table('room_amenities')
+                ->where('amenity_id', $amenity->id)
+                ->count();
+
+            if ($roomAmenityCount > 0) {
+                $conflicts[] = "Có {$roomAmenityCount} phòng đang sử dụng tiện ích này";
+                $canDelete = false;
+            }
+        }
+        $message = $canDelete
+            ? 'Có thể xóa tiện ích này'
+            : 'Không thể xóa tiện ích này vì: ' . implode(', ', $conflicts);
+
+        return [
+            'canDelete' => $canDelete,
+            'message' => $message,
+            'conflicts' => $conflicts
+        ];
     }
 
     // Khôi phục amenity từ thùng rác
