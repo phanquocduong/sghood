@@ -6,6 +6,10 @@
             <header id="header-container" class="no-shadow">
                 <div id="header">
                     <div class="container">
+                         <div class="loading-overlay" v-show="isLoading">
+            <div class="spinner"></div>
+            <p>Đang tải... </p>
+        </div>
                         <!-- Left Side Content -->
                         <div class="left-side">
                             <!-- Logo -->
