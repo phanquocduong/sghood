@@ -248,8 +248,6 @@ class AmenityService
             'name_desc' => ['field' => 'name', 'order' => 'desc'],
             'status_asc' => ['field' => 'status', 'order' => 'asc'],
             'status_desc' => ['field' => 'status', 'order' => 'desc'],
-            'type_asc' => ['field' => 'type', 'order' => 'asc'],
-            'type_desc' => ['field' => 'type', 'order' => 'desc'],
             'order_asc' => ['field' => 'order', 'order' => 'asc'],
             'order_desc' => ['field' => 'order', 'order' => 'desc'],
             'created_at_asc' => ['field' => 'created_at', 'order' => 'asc'],

@@ -37,8 +37,6 @@
                             <option value="">Sắp xếp</option>
                             <option value="name_asc" {{ $sortOption == 'name_asc' ? 'selected' : '' }}>Tên A-Z</option>
                             <option value="name_desc" {{ $sortOption == 'name_desc' ? 'selected' : '' }}>Tên Z-A</option>
-                            <option value="type_asc" {{ $sortOption == 'type_asc' ? 'selected' : '' }}>Loại A-Z</option>
-                            <option value="type_desc" {{ $sortOption == 'type_desc' ? 'selected' : '' }}>Loại Z-A</option>
                             <option value="status_asc" {{ $sortOption == 'status_asc' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="status_desc" {{ $sortOption == 'status_desc' ? 'selected' : '' }}>Không hoạt động</option>
                             <option value="order_asc" {{ $sortOption == 'order_asc' ? 'selected' : '' }}>Thứ tự tăng</option>
