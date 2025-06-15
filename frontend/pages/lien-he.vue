@@ -12,6 +12,10 @@
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
         ></iframe>
+             <div class="loading-overlay" v-show="loading">
+            <div class=""></div>
+            <p></p>
+        </div>
         <!-- Office -->
         <div class="address-box-container">
             <div class="address-container" data-background-image="/images/our-office.jpg">
@@ -34,11 +38,10 @@
                 <h4 class="headline margin-bottom-30">Tìm Chúng Tôi Tại Đây</h4>
                 <div class="sidebar-textbox">
                     <p>
-                        Quản lý thông minh các kênh thuê trọ tại TP.HCM. Tối ưu hóa trải nghiệm thuê trọ với giải pháp hiện đại từ Trọ Việt.
+                        {{ config.nav_lien_he }}
                     </p>
                     <ul class="contact-details">
-                        <li><i class="im im-icon-Phone-2"></i> <strong>Phone:</strong> <span>(123) 123-456</span></li>
-                        <li><i class="im im-icon-Fax"></i> <strong>Fax:</strong> <span>(123) 123-456</span></li>
+                        <li><i class="im im-icon-Phone-2"></i> <strong>Phone:</strong> <span >{{config.sdt }}</span></li>
                         <li>
                             <i class="im im-icon-Globe"></i> <strong>Web:</strong>
                             <span
@@ -155,7 +158,7 @@ onMounted(() => {
     }
 });
 const handleSubmit = async () => {
-    loading.value = true;
+   loading.value=true
     try {
         const res = await $api('/contact', {
             method: 'POST',

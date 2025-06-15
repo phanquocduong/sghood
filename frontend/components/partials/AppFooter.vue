@@ -14,13 +14,13 @@
                 <div class="col-md-4 col-sm-6">
                     <h4>Liên kết nhanh</h4>
                     <ul class="footer-links">
-                        <li><a href="#">Trang chủ</a></li>
-                        <li><a href="#">Nhà trọ</a></li>
+                        <li><NuxtLink to="/">Trang chủ</NuxtLink></li>
+                        <li><NuxtLink to="danh-sach-nha-tro">Nhà trọ</NuxtLink></li>
                     </ul>
 
                     <ul class="footer-links">
                         <li><a href="#">Chính sách bảo mật</a></li>
-                        <li><a href="#">Liên hệ</a></li>
+                        <li><NuxtLink to="lien-he">Liên hệ</NuxtLink></li>
                     </ul>
                 </div>
 

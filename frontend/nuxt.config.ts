@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    css: ['public/css/style.css', 'public/css/main-color.css',],
+    css: ['public/css/fonts.css','public/css/style.css', 'public/css/main-color.css'],
     plugins: [
         '~/plugins/firebase.js',
         '~/plugins/api.js',
@@ -20,7 +20,17 @@ export default defineNuxtConfig({
             pathPrefix: false
         }
     ],
-    modules: ['@pinia/nuxt'],
+    modules: ['@pinia/nuxt','@nuxtjs/google-fonts'],
+    
+   googleFonts: {
+  display: 'swap',
+  families: {
+    Inter: [400, 600, 700],
+    
+  },
+    preconnect: true
+  },
+
     runtimeConfig: {
         public: {
             baseUrl: 'http://127.0.0.1:8000',

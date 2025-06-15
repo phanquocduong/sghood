@@ -1,8 +1,10 @@
 <template>
-    <div v-if="loading" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Đang tải...</p>
+     
+    <div v-if="loading"  class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Đang tải ...</p>
     </div>
+ 
 </template>
 
 <script setup>
@@ -11,6 +13,7 @@ import { useNuxtApp } from '#app';
 
 const { $router } = useNuxtApp();
 const loading = ref(false);
+
 
 // Hàm vô hiệu hóa tương tác với body
 const disableInteraction = () => {
@@ -56,53 +59,36 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+
 .loading-overlay {
-      top: 60px; /* giữ lại header, tuỳ theo chiều cao header của bạn */
-    height: calc(100% - 60px); /* điều chỉnh tương ứng */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: white; /* Nền tối hơn để che hoàn toàn */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-   
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
 }
 
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #f91942;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-p {
-    color: #333;
-    margin-top: 10px;
-    font-size: 16px;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #ddd;
+  border-top: 5px solid #f91942;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.loading-overlay {
-    transition: opacity 0.3s ease;
-    opacity: 1;
-}
-.loading-overlay[style*="display: none"] {
-    opacity: 0;
-    pointer-events: none;
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
 }
 
 </style>
+
+
