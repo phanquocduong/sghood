@@ -95,7 +95,7 @@
                                         <i class="fas fa-tasks me-1"></i>Trạng thái mới
                                     </label>
                                     <select class="form-select shadow-sm" name="status" id="status" required>
-                                        <option value="">-- Chọn trạng thái --</option>
+                                        <option value="">{{ $contract->status }}</option>
                                         @if($currentStatus === 'Chờ duyệt')
                                             <option value="Chờ chỉnh sửa">Chờ chỉnh sửa</option>
                                             <option value="Chờ ký">Chờ ký</option>

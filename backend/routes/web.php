@@ -108,7 +108,7 @@ Route::middleware('admin')->group(function () {
     Route::prefix('bookings')->name('bookings.')->group(function () {
         Route::get('/', [BookingController::class, 'index'])->name('index');
         Route::patch('/{id}/update-status', [BookingController::class, 'updateStatus'])->name('updateStatus');
-        Route::patch('/{id}/update-note', [BookingController::class, 'updateNote'])->name('updateNote');
+        Route::patch('/{id}/update-note', [BookingController::class, 'updateCancellation_reason'])->name('updateNote');
     });
 
     // Config routes

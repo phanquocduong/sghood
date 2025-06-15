@@ -49,15 +49,15 @@
             <!-- Filter Form -->
             <div class="mb-4">
                 <form action="{{ route('bookings.index') }}" method="GET" class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control shadow-sm" name="querySearch"
-                                placeholder="Tìm kiếm theo tên người thuê hoặc ghi chú..."
+                            <input type="text" class="form-control shadow-sm" name="query"
+                                placeholder="Tìm kiếm theo tên người thuê hoặc phòng..."
                                 value="{{ $querySearch }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select shadow-sm" name="status">
                             <option value="">Tất cả trạng thái</option>
                             <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
@@ -67,16 +67,21 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select shadow-sm" name="perPage">
-                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10/trang</option>
-                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25/trang</option>
-                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50/trang</option>
+                        <select class="form-select shadow-sm" name="sortOption">
+                            <option value="">Sắp xếp theo</option>
+                            <option value="created_at_desc" {{ $sortOption == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="created_at_asc" {{ $sortOption == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <button type="submit" class="btn btn-primary shadow-sm w-100">
-                            <i class="fas fa-search me-1"></i>Tìm kiếm
+                            <i class="fas fa-search me-1"></i>Lọc
                         </button>
+                    </div>
+                    <div class="col-md-1">
+                        <a href="{{ route('bookings.index') }}" class="btn btn-outline-secondary shadow-sm w-100" title="Làm mới">
+                            <i class="fas fa-refresh"></i>
+                        </a>
                     </div>
                 </form>
             </div>
@@ -91,7 +96,7 @@
                             <th scope="col" style="width: 15%;">Người thuê</th>
                             <th scope="col" style="width: 12%;" class="text-center">Ngày bắt đầu</th>
                             <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
-                            <th scope="col" style="width: 20%;">Ghi chú</th>
+                            <th scope="col" style="width: 20%;">Ghi chú / Lý do từ chối</th>
                             <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
                             <th scope="col" style="width: 15%;" class="text-center">Hành động</th>
                         </tr>
@@ -131,9 +136,15 @@
                                     </small>
                                 </td>
                                 <td>
-                                    <span class="text-muted fst-italic">
-                                        {{ $bookingItem->note ?? 'Không có ghi chú' }}
-                                    </span>
+                                    @if($bookingItem->status === 'Từ chối')
+                                        <span class="text-danger fst-italic">
+                                            {{ $bookingItem->cancellation_reason ?? 'Không có lý do từ chối' }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted fst-italic">
+                                            {{ $bookingItem->note ?? 'Không có ghi chú' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="text-center">
                                     @php
