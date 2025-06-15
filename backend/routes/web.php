@@ -58,7 +58,6 @@ Route::middleware('admin')->group(function () {
         Route::get('/create', [DistrictController::class, 'create'])->name('create');
         Route::post('/', [DistrictController::class, 'store'])->name('store');
         Route::get('/trash', [DistrictController::class, 'trash'])->name('trash');
-        Route::get('/{id}', [DistrictController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [DistrictController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DistrictController::class, 'update'])->name('update');
         Route::delete('/{id}', [DistrictController::class, 'destroy'])->name('destroy');

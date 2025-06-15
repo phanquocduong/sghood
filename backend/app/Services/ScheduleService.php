@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Mail;
 
 class ScheduleService
 {
-    public function getSchedules(string $querySearch = '', string $status = '', int $perPage = 10)
+    public function getSchedules(string $querySearch = '', string $status = '', int $perPage = 10, string $sortBy = ''): array
     {
         try {
             $query = Schedule::with(['user', 'room']);
@@ -16,7 +16,15 @@ class ScheduleService
             if ($querySearch) {
                 $query->where(function ($q) use ($querySearch) {
                     $q->where('message', 'like', "%$querySearch%")
-                      ->orWhere('cancel_reason', 'like', "%$querySearch%");
+                        ->orWhere('cancellation_reason', 'like', "%$querySearch%")
+                        ->orWhereHas('user', function ($q) use ($querySearch) {
+                            $q->where('name', 'like', "%$querySearch%")
+                                ->orWhere('email', 'like', "%$querySearch%");
+                        })
+                        ->orWhereHas('room', function ($q) use ($querySearch) {
+                            $q->where('name', 'like', "%$querySearch%")
+                                ->orWhere('description', 'like', "%$querySearch%");
+                        });
                 });
             }
 
@@ -24,11 +32,19 @@ class ScheduleService
                 $query->where('status', $status);
             }
 
+            if ($sortBy === 'created_at_desc') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($sortBy === 'created_at_asc') {
+                $query->orderBy('created_at', 'asc');
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+
             $schedules = $query->paginate($perPage);
             return ['data' => $schedules];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách lịch xem phòng', 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách lịch xem phòng' . $e->getMessage(), 'status' => 500];
         }
     }
 
@@ -50,10 +66,10 @@ class ScheduleService
             if (!$schedule) {
                 return ['error' => 'Lịch xem phòng không tồn tại'];
             }
-            
+
             // Lưu trạng thái cũ trước khi cập nhật
             $oldStatus = $schedule->status;
-            
+
             // Cập nhật trạng thái mới và lý do hủy (nếu có)
             $schedule->status = $newStatus;
             if ($newStatus === 'Huỷ bỏ' && $cancelReason) {
@@ -62,17 +78,17 @@ class ScheduleService
                 $schedule->cancellation_reason = null;
             }
             $schedule->save();
-            
+
             // Gửi email thông báo
             $this->sendStatusUpdateEmail($schedule, $oldStatus, $newStatus);
-            
+
             return ['data' => $schedule];
         } catch (\Exception $e) {
             Log::error('Lỗi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage());
             return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage(), 'status' => 500];
         }
     }
-    
+
     /**
      * Gửi email thông báo cập nhật trạng thái
      */
@@ -86,7 +102,7 @@ class ScheduleService
                     'user_email' => $schedule->user->email,
                     'old_status' => $oldStatus,
                     'new_status' => $newStatus,
-                    'cancel_reason' => $schedule->cancel_reason ?? 'N/A'
+                    'cancel_reason' => $schedule->cancellation_reason ?? 'N/A'
                 ]);
             }
         } catch (\Exception $e) {

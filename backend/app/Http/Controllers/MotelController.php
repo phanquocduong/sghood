@@ -28,7 +28,7 @@ class MotelController extends Controller
         $status = (string) $request->get('status', '');
         $sortOption = (string) $request->get('sortOption', '');
         $area = (string) $request->get('area', '');
-        $perPage = (int) $request->get('perPage', 25);
+        $perPage = (int) $request->get('perPage', 10);
 
         $result = $this->motelService->getAvailableMotels($querySearch, $status, $area, $sortOption, $perPage);
 
@@ -59,7 +59,6 @@ class MotelController extends Controller
         $data = $request->validated();
         $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
 
-        // Lấy main_image_index từ request, mặc định là 0 (ảnh đầu tiên)
         $mainImageIndex = (int) $request->input('main_image_index', 0);
 
         $result = $this->motelService->createMotel($data, $imageFiles, $mainImageIndex);
@@ -98,8 +97,15 @@ class MotelController extends Controller
 
     public function destroy(int $id)
     {
-        $this->motelService->deleteMotel($id);
-        return redirect()->route('motels.index')->with('message', 'Nhà trọ đã được xóa thành công!');
+        try {
+            $result = $this->motelService->deleteMotel($id);
+            if(isset($result['error'])) {
+                return redirect()->route('motels.index')->with('error', $result['error']);
+            }
+            return redirect()->route('motels.index')->with('message', 'Nhà trọ đã được xóa thành công!');
+        } catch (\Exception $e) {
+            return redirect()->route('motels.index')->with('error', 'Đã xảy ra lỗi khi xóa nhà trọ: ' . $e->getMessage());
+        }
     }
 
     public function trash(Request $request)

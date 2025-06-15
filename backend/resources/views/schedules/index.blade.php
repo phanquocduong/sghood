@@ -25,15 +25,22 @@
                 <form action="{{ route('schedules.index') }}" method="GET" class="row g-3 mb-4">
                     <div class="col-md-4">
                         <input type="text" class="form-control rounded-3" name="querySearch"
-                            placeholder="Tìm kiếm theo lời nhắn..." value="{{ request('querySearch') }}">
+                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên phòng..." value="{{ request('querySearch') }}">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <select class="form-select rounded-3" name="status">
                             <option value="">Tất cả trạng thái</option>
                             <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
                             <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
                             <option value="Huỷ bỏ" {{ request('status') == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                             <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select rounded-3" name="sort_by">
+                            <option value="">Sắp xếp theo</option>
+                            <option value="created_at_desc" {{ request('sort_by') == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="created_at_asc" {{ request('sort_by') == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -50,7 +57,7 @@
                                 <th>STT</th>
                                 <th>Người dùng</th>
                                 <th>Phòng</th>
-                                <th>Thời gian</th>
+                                <th>Ngày xem phòng</th>
                                 <th>Nội dung</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
@@ -64,7 +71,7 @@
                                     <td>{{ $schedule->room->name ?? 'N/A' }}</td>
                                     <td>
                                         {{ $schedule->scheduled_at
-                                            ? \Carbon\Carbon::parse($schedule->scheduled_at)->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i')
+                                            ? \Carbon\Carbon::parse($schedule->scheduled_at)->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i')
                                             : 'N/A' }}
                                     </td>
                                     <td>{{ $schedule->message ?? 'N/A' }}</td>

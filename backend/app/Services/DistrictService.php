@@ -12,26 +12,33 @@ use Intervention\Image\ImageManager;
 
 class DistrictService
 {
+    private $failedUpload;
     private function fetchDistricts(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array
     {
         try {
             $query = $onlyTrashed ? District::onlyTrashed() : District::query();
-            $query->with(['motels']);
 
             if ($querySearch !== '') {
                 $query->where('name', 'LIKE', '%' . $querySearch . '%');
             }
 
-            $this->applySorting($query, $sortOption);
+            if ($sortOption === 'most_motels') {
+                $query->withCount('motels');
+                $query->orderBy('motels_count', 'desc');
+            } else {
+                $query->with(['motels']);
+                $this->applySorting($query, $sortOption);
+            }
 
             $districts = $query->paginate($perPage);
 
             return ['data' => $districts];
         } catch (\Throwable $e) {
-            Log::error($e->getMessage());
+            Log::error('Đã xảy ra lỗi khi lấy danh sách khu vực: ' . $e->getMessage());
             return ['error' => 'Đã xảy ra lỗi khi lấy danh sách khu vực', 'status' => 500];
         }
     }
+
 
 
 
@@ -63,6 +70,8 @@ class DistrictService
                 return ['field' => 'created_at', 'order' => 'asc'];
             case 'created_at_desc':
                 return ['field' => 'created_at', 'order' => 'desc'];
+            case 'most_motels':
+                return ['field' => 'motels_count', 'order' => 'desc'];
             default:
                 return ['field' => 'created_at', 'order' => 'desc'];
         }
@@ -82,7 +91,7 @@ class DistrictService
     {
         try {
             $query = $onlyTrashed ? District::onlyTrashed() : District::query();
-            $query->with(['motels']);
+            $query->withCount(['motels']);
 
             $district = $query->find($id);
             if (!$district) {
@@ -141,6 +150,7 @@ class DistrictService
     {
         DB::beginTransaction();
         try {
+            $failedUpload = false;
             $district = District::find($id);
             if (!$district) {
                 return ['error' => 'Khu vực không tìm thấy', 'status' => 404];
@@ -149,7 +159,6 @@ class DistrictService
                 if ($district->image) {
                     $this->deleteDistrictImage($district->image);
                 }
-                $failedUpload = false;
                 $imagePath = $this->uploadDistrictImage($imageFile);
                 if ($imagePath) {
                     $data['image'] = $imagePath;

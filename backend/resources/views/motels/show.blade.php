@@ -44,13 +44,32 @@
                 </div>
                 <div class="col-12">
                     <h6 class="text-primary fw-bold">Tiện ích</h6>
-                    <ul class="list-unstyled">
-                        @forelse($motel->amenities as $amenity)
-                            <li>{{ $amenity->name }}</li>
-                        @empty
-                            <li class="text-muted">Không có tiện ích nào.</li>
-                        @endforelse
-                    </ul>
+                    @if($motel->amenities->count() > 5)
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    @foreach($motel->amenities->take(ceil($motel->amenities->count() / 2)) as $amenity)
+                                        <li>{{ $amenity->name }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    @foreach($motel->amenities->skip(ceil($motel->amenities->count() / 2)) as $amenity)
+                                        <li>{{ $amenity->name }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @else
+                        <ul class="list-unstyled">
+                            @forelse($motel->amenities as $amenity)
+                                <li>{{ $amenity->name }}</li>
+                            @empty
+                                <li class="text-muted">Không có tiện ích nào.</li>
+                            @endforelse
+                        </ul>
+                    @endif
                 </div>
                 <div class="col-12">
                     <h6 class="text-primary fw-bold">Bản đồ</h6>
@@ -64,6 +83,9 @@
                         @forelse($motel->images as $image)
                             <div class="col-md-3 mb-2 position-relative">
                                 <img src="{{ $image->image_url }}" class="img-fluid rounded shadow-sm motel-image" alt="Motel Image" style="max-height: 150px; object-fit: cover; transition: transform 0.3s;">
+                                @if($image->is_main == 1)
+                                    <span class="badge bg-primary position-absolute top-0 start-0 m-2">Ảnh chính</span>
+                                @endif
                             </div>
                         @empty
                             <p class="text-muted">Chưa có hình ảnh nào.</p>

@@ -41,8 +41,13 @@
                                 <tr class="table-row">
                                     <td>{{ $index + 1 }}</td>
                                     <td>
-                                        @if ($motel->images && $motel->images->count() > 0)
-                                            <img src="{{ $motel->images->first()->image_url }}" alt="{{ $motel->name }}"
+                                        @php
+                                            $mainImage = $motel->images && $motel->images->count() > 0
+                                                ? $motel->images->where('is_main', 1)->first() ?? $motel->images->first()
+                                                : null;
+                                        @endphp
+                                        @if ($mainImage)
+                                            <img src="{{ $mainImage->image_url }}" alt="{{ $mainImage->image_url }}"
                                                 class="img-fluid rounded motel-image"
                                                 style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                         @else
@@ -69,8 +74,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <form action="{{ route('motels.restore', $motel->id) }}" method="POST"
-                                            class="d-inline">
+                                        <form action="{{ route('motels.restore', $motel->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success me-2 action-btn"
                                                 onclick="return confirm('Bạn có chắc chắn muốn khôi phục?')"
