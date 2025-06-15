@@ -12,7 +12,7 @@
         <!-- Hiệu ứng loading -->
         <div class="loading-overlay" v-show="isLoading">
             <div class=""></div>
-            <p>Đang tải dữ liệu</p>
+            <p>Đang tải dữ liệu...</p>
         </div>
 
         <!-- Nội dung chỉ hiển thị khi load xong -->
@@ -116,7 +116,7 @@ onMounted(async () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.85);
+    background: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
