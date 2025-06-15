@@ -1,0 +1,15 @@
+body,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+input,
+textarea,
+button,
+span,
+div {
+    font-family: 'Inter', sans-serif !important;
+}
