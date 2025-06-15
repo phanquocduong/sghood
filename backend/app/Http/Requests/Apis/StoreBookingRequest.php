@@ -23,22 +23,22 @@ class StoreBookingRequest extends FormRequest
     {
        return [
             'room_id' => 'required|exists:rooms,id',
-            'start_date' => 'required',
-            'duration' => 'required|in:1 năm,2 năm,3 năm',
-            'note' => 'nullable|string|max:255'
+            'start_date' => 'required|date_format:d/m/Y',
+            'duration' => 'required|string|in:1 năm,2 năm,3 năm',
+            'note' => 'nullable|string|max:500'
         ];
     }
 
     public function messages(): array
     {
         return [
-            'room_id.required' => 'Vui lòng cung cấp ID phòng',
+            'room_id.required' => 'Vui lòng chọn phòng.',
             'room_id.exists' => 'Phòng không tồn tại',
             'start_date.required' => 'Vui lòng chọn ngày bắt đầu',
-            'start_date.date' => 'Ngày bắt đầu không hợp lệ',
+            'start_date.date_format' => 'Ngày bắt đầu phải có định dạng DD/MM/YYYY.',
             'duration.required' => 'Vui lòng chọn thời gian thuê',
             'duration.in' => 'Thời gian thuê phải là 1 năm, 2 năm hoặc 3 năm',
-            'note.max' => 'Ghi chú không được vượt quá 255 ký tự'
+            'note.max' => 'Ghi chú không được vượt quá 500 ký tự'
         ];
     }
 }

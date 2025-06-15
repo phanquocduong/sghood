@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Đặt lịch xem phòng" />
+        <Titlebar title="Lịch xem phòng và đặt phòng" />
 
         <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
             <div class="small-dialog-header">
@@ -35,13 +35,8 @@
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <ViewingScheduleFilter v-model:filter="filter" @update:filter="fetchBookings" />
-                    <ViewingScheduleList
-                        :bookings="bookings"
-                        :is-loading="isLoading"
-                        @reject-booking="rejectBooking"
-                        @open-popup="openPopup"
-                    />
+                    <ScheduleBookingFilter v-model:filter="filter" @update:filter="fetchItems" />
+                    <ScheduleBookingList :items="items" :is-loading="isLoading" @reject-item="rejectItem" @open-popup="openPopup" />
                 </div>
             </div>
         </div>
@@ -57,8 +52,8 @@ definePageMeta({
 });
 
 const { $api } = useNuxtApp();
-const bookings = ref([]);
-const filter = ref({ sort: 'default', status: '' });
+const items = ref([]);
+const filter = ref({ sort: 'default', type: '' });
 const isLoading = ref(false);
 const buttonLoading = ref(false);
 const toast = useToast();
@@ -77,29 +72,30 @@ const handleBackendError = error => {
     toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
 };
 
-const fetchBookings = async () => {
+const fetchItems = async () => {
+    console.log(filter.value);
     isLoading.value = true;
     try {
-        const response = await $api('/viewing-schedules', { method: 'GET', params: filter.value });
-        bookings.value = response.data;
+        const response = await $api('/schedules-bookings', { method: 'GET', params: filter.value });
+        items.value = response.data;
     } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu:', error);
+        handleBackendError(error);
     } finally {
         isLoading.value = false;
     }
 };
 
-const rejectBooking = async id => {
+const rejectItem = async ({ id, type }) => {
     isLoading.value = true;
     try {
-        await $api(`/viewing-schedules/${id}/reject`, {
+        await $api(`/schedules-bookings/${id}/${type}/reject`, {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             }
         });
-        await fetchBookings();
-        toast.success('Huỷ lịch xem phòng thành công');
+        await fetchItems();
+        toast.success(`Hủy ${type === 'schedule' ? 'lịch xem phòng' : 'đặt phòng'} thành công`);
     } catch (error) {
         handleBackendError(error);
     } finally {
@@ -115,17 +111,20 @@ const submitBooking = async () => {
             return;
         }
 
-        await $api('/bookings', {
+        await $api('/schedules-bookings', {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            },
+            params: {
+                type: 'booking'
             },
             body: formData.value
         });
 
         toast.success('Đặt phòng thành công');
         window.jQuery.magnificPopup.close();
-        await fetchBookings();
+        await fetchItems();
         formData.value = { room_id: null, start_date: '', duration: '', note: '' };
     } catch (error) {
         handleBackendError(error);
@@ -157,7 +156,7 @@ const openPopup = roomId => {
 };
 
 onMounted(() => {
-    fetchBookings();
+    fetchItems();
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
             window
@@ -207,8 +206,8 @@ onMounted(() => {
             const $select = window.jQuery('.modal-duration-select').chosen({
                 width: '100%',
                 no_results_text: 'Không tìm thấy kết quả',
-                disable_search: true, // Ép tắt thanh tìm kiếm
-                disable_search_threshold: 0 // Tắt dựa trên số lượng tùy chọn
+                disable_search: true,
+                disable_search_threshold: 0
             });
 
             $select.on('change', event => {

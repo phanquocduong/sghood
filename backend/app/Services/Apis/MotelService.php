@@ -79,7 +79,10 @@ class MotelService
             $query->where(function (Builder $q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
                     ->orWhere('address', 'like', "%{$keyword}%")
-                    ->orWhere('description', 'like', "%{$keyword}%");
+                    ->orWhere('description', 'like', "%{$keyword}%")
+                    ->orWhereHas('amenities', function (Builder $amenityQuery) use ($keyword) {
+                        $amenityQuery->where('name', 'like', "%{$keyword}%");
+                    });
             });
         }
 

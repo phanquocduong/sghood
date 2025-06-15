@@ -31,17 +31,4 @@ class BookingController extends Controller
             ], 500);
         }
     }
-
-    public function index(Request $request)
-    {
-        $filters = $request->only(['sort', 'status']);
-        $bookings = $this->bookingService->getBookings($filters);
-        return response()->json(['data' => $bookings], 200);
-    }
-
-    public function reject($id)
-    {
-        $booking = $this->bookingService->rejectBooking($id);
-        return response()->json(['data' => $booking], 200);
-    }
 }

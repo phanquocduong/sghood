@@ -15,17 +15,10 @@
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
-                    <select
-                        name="status"
-                        :value="filter.status"
-                        @change="updateFilter('status', $event.target.value)"
-                        class="chosen-select"
-                    >
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="Chờ xác nhận">Chờ xác nhận</option>
-                        <option value="Đã xác nhận">Đã xác nhận</option>
-                        <option value="Hoàn thành">Hoàn thành</option>
-                        <option value="Huỷ bỏ">Huỷ bỏ</option>
+                    <select name="type" :value="filter.type" @change="updateFilter('type', $event.target.value)" class="chosen-select">
+                        <option value="">Tất cả loại</option>
+                        <option value="schedule">Lịch xem phòng</option>
+                        <option value="booking">Đặt phòng</option>
                     </select>
                 </div>
             </div>

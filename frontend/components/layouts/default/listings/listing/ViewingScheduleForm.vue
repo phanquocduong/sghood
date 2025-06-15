@@ -119,17 +119,20 @@ const submitForm = async () => {
 
     try {
         loading.value = true;
-        await $api('/viewing-schedules', {
+        await $api('/schedules-bookings', {
             method: 'POST',
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            },
+            params: {
+                type: 'schedule'
+            },
             body: {
                 date: formData.value.date,
                 timeSlot: formData.value.timeSlot,
                 message: formData.value.message,
                 user_id: authStore.user.id,
                 room_id: route.params.id
-            },
-            headers: {
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             }
         });
 

@@ -25,7 +25,7 @@
                         <NuxtLink to="/quan-ly/ho-so-ca-nhan"><i class="sl sl-icon-user"></i> Hồ sơ cá nhân</NuxtLink>
                     </li>
                     <li>
-                        <NuxtLink to="/dashboard-bookings"><i class="fa fa-calendar-check-o"></i> Đặt phòng</NuxtLink>
+                        <NuxtLink to="/dashboard-bookings"><i class="fa fa-calendar-check-o"></i> Xem/Đặt phòng</NuxtLink>
                     </li>
                     <li>
                         <a href="#" @click.prevent="authStore.logout"><i class="sl sl-icon-power"></i> Đăng xuất</a>
