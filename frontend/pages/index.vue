@@ -114,14 +114,15 @@ onMounted(async () => {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.85);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    transition: opacity 0.3s ease;
 }
 
 .spinner {

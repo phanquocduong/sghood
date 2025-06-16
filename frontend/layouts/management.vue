@@ -1,14 +1,22 @@
 <template>
     <div id="wrapper">
+        <Loading v-if="isLoading" />
         <!-- Header Container -->
         <header id="header-container" class="fixed fullwidth dashboard">
             <div id="header" class="not-sticky">
+                <div class="loading-overlay" v-show="isLoading">
+                    <div class="spinner"></div>
+                    <p>Đang tải ...</p>
+                </div>
+
                 <div class="container">
                     <!-- Left Side Content -->
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/" class="dashboard-logo"><img src="/images/troviet_logo2.png" alt="" /></NuxtLink>
+                            <NuxtLink to="/" class="dashboard-logo"
+                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt=""
+                            /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -44,11 +52,27 @@
 import { useAuthStore } from '~/stores/auth';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-
+import { useRoute } from 'vue-router';
+import { ref, watch, nextTick } from 'vue';
 // Lấy store và router
 const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
+const route = useRoute();
+const isLoading = ref(false);
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
+watch(
+    () => route.fullPath,
+    async () => {
+        isLoading.value = true;
+        await nextTick();
+        setTimeout(() => {
+            isLoading.value = false;
+        }, 500);
+    },
+    { immediate: true }
+);
 
 // Kiểm tra trạng thái đăng nhập
 const checkAuth = async () => {
@@ -81,5 +105,42 @@ onMounted(() => {
 
 #logo img {
     max-height: 55px;
+}
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay[style*='display: none'] {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ddd;
+    border-top: 5px solid #f91942;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>

@@ -10,10 +10,8 @@ export default defineNuxtPlugin(async nuxtApp => {
             configData[item.config_key] = item.config_value;
         });
 
-        // ⛳ Gán vào useState đúng tên
         useState('configs', () => configData);
-        console.log('✅ Plugin fetchConfig loaded:', configData);
     } catch (err) {
-        console.error('❌ Fetch config error:', err);
+        console.error('Fetch config error:', err);
     }
 });

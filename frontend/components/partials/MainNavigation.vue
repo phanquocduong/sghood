@@ -8,7 +8,7 @@
                 <NuxtLink to="/danh-sach-nha-tro" active-class="current">Danh Sách Nhà Trọ</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/ve-chung-toi" active-class="current">Về chúng tôi</NuxtLink>
+                <NuxtLink to="/ve-chung-toi" active-class="current">Về Chúng Tôi</NuxtLink>
 
             </li>
             <li>
