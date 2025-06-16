@@ -186,7 +186,7 @@ class BookingService
                             <p class="mb-1"><strong>CHỦ CHO THUÊ (Chủ nhà):</strong> (Gọi tắt là Bên A)</p>
                             <p class="mb-1">Họ và tên: <strong>' . $contractData['landlord']['name'] . '</strong> Sinh năm: <strong>' . $contractData['landlord']['year_of_birth'] . '</strong></p>
                             <p class="mb-1">CCCD số: <strong>' . $contractData['landlord']['identity_number'] . '</strong> Ngày cấp: <strong>' . $contractData['landlord']['date_of_issue'] . '</strong> Nơi cấp: <strong>' . $contractData['landlord']['place_of_issue'] . '</strong></p>
-                            <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['landlord']['address'] . '</strong></p>
+                            <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['landlord']['permanent_address'] . '</strong></p>
                         </div>
 
                         <div class="col-6">

@@ -34,8 +34,8 @@
                     </div>
 
                     <div v-if="isLoading" class="loading-overlay">
-                        <div class=""></div>
-                        <p>Đang tải dữ liệu...</p>
+                        <div class="spinner"></div>
+                        <p>Đang tải...</p>
                     </div>
 
                     <div v-else class="row">
