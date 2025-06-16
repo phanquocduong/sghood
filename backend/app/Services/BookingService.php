@@ -76,12 +76,58 @@ class BookingService
         }
     }
 
+   // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
+    private function calculateContractMonths($startDate, $endDate)
+    {
+        try {
+            if (!$startDate || !$endDate) {
+                return 12;
+            }
+
+            $start = \Carbon\Carbon::parse($startDate);
+            $end = \Carbon\Carbon::parse($endDate);
+
+            // Sử dụng ceil để làm tròn lên
+            $months = ceil($start->floatDiffInMonths($end));
+
+            // Đảm bảo ít nhất là 1 tháng
+            return max(1, (int)$months);
+
+        } catch (\Throwable $e) {
+            Log::error('Error calculating contract months: ' . $e->getMessage(), [
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+            return 12;
+        }
+    }
+
+    // Định dạng thời gian hợp đồng
+    private function formatContractDuration($months)
+    {
+        if ($months < 12) {
+            return $months . ' tháng';
+        } else {
+            $years = floor($months / 12);
+            $remainingMonths = $months % 12;
+
+            if ($remainingMonths == 0) {
+                return $years . ' năm';
+            } else {
+                return $years . ' năm ' . $remainingMonths . ' tháng';
+            }
+        }
+    }
+
     // Lấy thông tin đặt phòng theo ID
     public function generateContractPreviewData($booking)
     {
         $currentDate = now()->format('d/m/Y');
         $startDate = $booking->start_date ? \Carbon\Carbon::parse($booking->start_date)->format('d/m/Y') : $currentDate;
         $endDate = $booking->end_date ? \Carbon\Carbon::parse($booking->end_date)->format('d/m/Y') : \Carbon\Carbon::parse($booking->start_date)->addYear()->format('d/m/Y');
+
+        // Tính số tháng hợp đồng
+        $contractMonths = $this->calculateContractMonths($booking->start_date, $booking->end_date);
 
         return [
             'current_date' => $currentDate,
@@ -121,8 +167,10 @@ class BookingService
             'contract' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'rental_price' => $booking->room->price, '',
-                'deposit_amount' => $booking->room->price, '',
+                'contract_months' => $contractMonths,
+                'contract_duration' => $this->formatContractDuration($contractMonths),
+                'rental_price' => $booking->room->price ?? 0,
+                'deposit_amount' => $booking->room->price ?? 0,
                 'payment_day' => '1-10',
                 'additional_terms' => null,
                 'signed_date' => null
@@ -130,12 +178,12 @@ class BookingService
 
             // Các phí
             'fees' => [
-                'electricity_fee' => $booking->room->motel->electricity_fee ?? '',
-                'water_fee' => $booking->room->motel->water_fee ?? '',
-                'parking_fee' => $booking->room->motel->parking_fee ?? '',
-                'junk_fee' => $booking->room->motel->junk_fee ?? '',
-                'internet_fee' => $booking->room->motel->internet_fee ?? '',
-                'service_fee' => $booking->room->motel->service_fee ?? ''
+                'electricity_fee' => $booking->room->motel->electricity_fee ?? 0,
+                'water_fee' => $booking->room->motel->water_fee ?? 0,
+                'parking_fee' => $booking->room->motel->parking_fee ?? 0,
+                'junk_fee' => $booking->room->motel->junk_fee ?? 0,
+                'internet_fee' => $booking->room->motel->internet_fee ?? 0,
+                'service_fee' => $booking->room->motel->service_fee ?? 0
             ]
         ];
     }
@@ -218,7 +266,7 @@ class BookingService
                             <p class="mb-2">- Bên A đồng ý cho thuê phòng số: <strong>' . $contractData['room']['name'] . '</strong></p>
                             <p class="mb-2">- Địa chỉ: <strong>' . $contractData['room']['address'] . '</strong></p>
                             <p class="mb-2">- Mục đích thuê: <strong>Để ở</strong></p>
-                            <p class="mb-2">- Thời hạn cho thuê là: <strong>12 tháng</strong>, bắt đầu từ ngày <strong>' . $contractData['contract']['start_date'] . '</strong> đến hết ngày <strong>' . $contractData['contract']['end_date'] . '</strong></p>
+                            <p class="mb-2">- Thời hạn cho thuê là: <strong>' . $contractData['contract']['contract_duration'] . '</strong>, bắt đầu từ ngày <strong>' . $contractData['contract']['start_date'] . '</strong> đến hết ngày <strong>' . $contractData['contract']['end_date'] . '</strong></p>
                             <p class="mb-2">- Sau khi ký hợp đồng bên B sẽ đặt cọc cho bên A: <strong>' . number_format($contractData['contract']['deposit_amount'], 0, ",", ".") . '</strong> đ.</p>
                             <p class="mb-2">- Bằng chữ: <strong>' . $this->convertNumberToWords($contractData['contract']['deposit_amount']) . ' đồng</strong></p>
                             <p class="mb-2">- Giá cho thuê: <strong>' . number_format($contractData['contract']['rental_price'], 0, ",", ".") . '</strong> đ/tháng.</p>
@@ -248,7 +296,7 @@ class BookingService
                                 <p class="mb-1">- Không đánh bạc, uống rượu, bia, gây gổ làm mất an ninh trật tự.</p>
                                 <p class="mb-1">- Không tự ý để người không đăng ký ở lại nhà thuê.</p>
                                 <p class="mb-1">- Nếu vi phạm các quy định trên thì bên B sẽ tự chịu trách nhiệm khi cơ quan công an xử phạt hành chính theo pháp luật.</p>
-                                <p class="mb-1">- Trường hợp bên B trả nhà trong thời gian hợp đồng 12 tháng thì chủ nhà không trả lại tiền đặt cọc.</p>
+                                <p class="mb-1">- Trường hợp bên B trả nhà trong thời gian hợp đồng ' . $contractData['contract']['contract_duration'] . ' thì chủ nhà không trả lại tiền đặt cọc.</p>
                                 <p class="mb-1">- Sau khi hết hợp đồng chủ nhà sẽ trả lại tiền đặt cọc là: <strong>' . number_format($contractData['contract']['deposit_amount'], 0, ",", ".") . '</strong> đ cho bên B.</p>
                                 <p class="mb-1">- Nếu mọi hư hỏng do bên B gây ra thì bên B sẽ chịu bồi thường mọi chi phí sửa chữa.</p>
                                 <p class="mb-1">- Không được tự ý sang, chuyển nhượng phòng trọ cho người khác khi không được chủ nhà đồng ý.</p>
@@ -412,7 +460,7 @@ class BookingService
     public function getContractPreview($bookingId)
     {
         try {
-            $booking = Booking::with(['user', 'room'])->findOrFail($bookingId);
+            $booking = Booking::with(['user', 'room.motel'])->findOrFail($bookingId);
             $contractData = $this->generateContractPreviewData($booking);
 
             return [
@@ -434,7 +482,7 @@ class BookingService
     public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
-            $booking = Booking::with(['user', 'room'])->findOrFail($id);
+            $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
             $oldStatus = $booking->status;
 
             Log::info('Updating booking status', [
@@ -463,6 +511,7 @@ class BookingService
                     'end_date' => $booking->end_date,
                     'rental_price' => $booking->room->price ?? 0,
                     'deposit_amount' => $contractPreviewData['contract']['deposit_amount'],
+                    'contract_months' => $contractPreviewData['contract']['contract_months'],
                     'content' => $this->generateContractContent($booking, $contractPreviewData),
                     'created_at' => now(),
                     'status' => 'Chờ xác nhận',
@@ -540,7 +589,7 @@ class BookingService
     {
         try {
             return DB::transaction(function () use ($id, $status, $cancellation_reason) {
-                $booking = Booking::with(['user', 'room'])->findOrFail($id);
+                $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
                 $oldStatus = $booking->status;
 
                 Log::info('Updating booking status and cancellation_reason', [
@@ -570,6 +619,7 @@ class BookingService
                         'end_date' => $booking->end_date,
                         'rental_price' => $contractPreviewData['contract']['rental_price'],
                         'deposit_amount' => $contractPreviewData['contract']['deposit_amount'],
+                        'contract_months' => $contractPreviewData['contract']['contract_months'],
                         'content' => $this->generateContractContent($booking, $contractPreviewData),
                         'created_at' => now(),
                         'status' => 'Chờ xác nhận',
