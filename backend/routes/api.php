@@ -58,3 +58,8 @@ Route::get('/users/{userId}/contract', [ContractController::class, 'getContracts
 
 Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
 Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
+
+// Message Routes
+Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
+Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
+Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageController::class, 'getAdminConversations']);
