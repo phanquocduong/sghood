@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\Booking;
 use App\Mail\BookingRejected;
+use App\Mail\BookingAccepted;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -479,7 +480,8 @@ class BookingService
         }
     }
 
-    public function updateBookingStatus($id, $status, $cancellation_reason = null)
+
+public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
             $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
@@ -500,9 +502,11 @@ class BookingService
             $booking->update($updateData);
             $booking->refresh();
 
+            // Xử lý khi status được chấp nhận
             if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                 $contractPreviewData = $this->generateContractPreviewData($booking);
 
+                // Tạo hợp đồng
                 $contractData = [
                     'booking_id' => $id,
                     'user_id' => $booking->user_id,
@@ -520,13 +524,32 @@ class BookingService
                 try {
                     $contract = Contract::create($contractData);
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+
+                    // Gửi email thông báo chấp nhận với link hợp đồng
+                    if ($booking->user && $booking->user->email) {
+                        try {
+                            $contractUrl = url('/contract/preview/' . $booking->id);
+                            Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                            Log::info('Acceptance email sent successfully', [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email,
+                                'contract_url' => $contractUrl
+                            ]);
+                        } catch (\Exception $mailException) {
+                            Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email
+                            ]);
+                        }
+                    }
+
                 } catch (\Throwable $e) {
                     Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     // Không dừng toàn bộ quá trình, chỉ ghi log lỗi
                 }
             }
 
-            // Send email if status changed to "Từ chối" and user has email
+            // Gửi email từ chối (giữ nguyên logic cũ)
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                 try {
                     Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
@@ -585,7 +608,7 @@ class BookingService
         }
     }
 
-    public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
+     public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
     {
         try {
             return DB::transaction(function () use ($id, $status, $cancellation_reason) {
@@ -608,6 +631,7 @@ class BookingService
                 $booking->update($updateData);
                 $booking->refresh();
 
+                // Xử lý khi status được chấp nhận
                 if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                     $contractPreviewData = $this->generateContractPreviewData($booking);
 
@@ -628,11 +652,31 @@ class BookingService
                     try {
                         $contract = Contract::create($contractData);
                         Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+
+                        // Gửi email thông báo chấp nhận với link hợp đồng
+                        if ($booking->user && $booking->user->email) {
+                            try {
+                                $contractUrl = url('/contract/preview/' . $booking->id);
+                                Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                                Log::info('Acceptance email sent successfully', [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email,
+                                    'contract_url' => $contractUrl
+                                ]);
+                            } catch (\Exception $mailException) {
+                                Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email
+                                ]);
+                            }
+                        }
+
                     } catch (\Throwable $e) {
                         Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     }
                 }
 
+                // Gửi email từ chối
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                     try {
                         Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));

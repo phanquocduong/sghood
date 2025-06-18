@@ -99,10 +99,8 @@
                                         @if($currentStatus === 'Chờ duyệt')
                                             <option value="Chờ chỉnh sửa">Chờ chỉnh sửa</option>
                                             <option value="Chờ ký">Chờ ký</option>
-                                            <option value="Huỷ bỏ">Huỷ bỏ</option>
                                         @elseif($currentStatus === 'Chờ ký')
                                             <option value="Hoạt động">Đã ký</option>
-                                            <option value="Huỷ bỏ">Huỷ bỏ</option>
                                         @elseif($currentStatus === 'Hoạt động')
                                             <option value="Kết thúc">Kết thúc hợp đồng</option>
                                         @endif

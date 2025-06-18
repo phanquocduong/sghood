@@ -59,24 +59,29 @@ class ContractController extends Controller
             return redirect()->back()->with('error', $result['error']);
         }
 
-        return redirect()->back()->with('success', 'Trạng thái hợp đồng đã được cập nhật thành công!');
+        // Thông báo thành công với thông tin PDF nếu được tạo
+        $message = 'Trạng thái hợp đồng đã được cập nhật thành công! và đã gửi email thông báo đến người dùng.';
+        if ($request->input('status') === 'Hoạt động') {
+            $message .= ' File PDF đã được tạo tự động.';
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function download($id)
     {
-        $result = $this->contractService->getContractById($id);
+        $result = $this->contractService->downloadContractPdf($id);
 
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error']);
         }
 
-        $contract = $result['data'];
+        $fileData = $result['data'];
 
-        // Check if file exists
-        if (!$contract->file || !file_exists(storage_path('app/contracts/' . $contract->file))) {
-            return redirect()->back()->with('error', 'File hợp đồng không tồn tại');
-        }
-
-        return response()->download(storage_path('app/contracts/' . $contract->file));
+        return response()->download(
+            $fileData['file_path'],
+            $fileData['file_name'],
+            ['Content-Type' => $fileData['mime_type']]
+        );
     }
 }
