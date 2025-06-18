@@ -135,5 +135,6 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [ContractController::class, 'index'])->name('index');
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'],'/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
     });
 });
