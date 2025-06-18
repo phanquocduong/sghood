@@ -4,8 +4,11 @@ namespace App\Services;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContractRevisionNotification;
+use App\Mail\ContractSignNotification;
+use App\Mail\ContractConfirmNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Str;
 
 class ContractService
 {
@@ -87,13 +90,115 @@ class ContractService
                 $this->generateContractPdf($contract);
             }
 
+            // Gửi email thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa"
+            if ($status === 'Chờ chỉnh sửa' && $oldStatus !== 'Chờ chỉnh sửa') {
+                $this->sendContractRevisionEmail($contract);
+            }
+
+            // Gửi email thông báo khi trạng thái chuyển thành "Chờ ký"
+            if ($status === 'Chờ ký' && $oldStatus !== 'Chờ ký') {
+                $this->sendContractSignEmail($contract);
+            }
+
+            // Gửi email thông báo khi trạng thái chuyển thành "Hoạt động"
+            if ($status === 'Hoạt động' && $oldStatus !== 'Hoạt động') {
+                $this->sendContractConfirmEmail($contract);
+            }
+
             return ['data' => $contract];
         } catch (\Throwable $e) {
-            Log::error('Error updating contract status: ' . $e->getMessage(), [
+            Log::error('Lỗi khi cập nhật trạng thái hợp đồng: ' . $e->getMessage(), [
                 'contract_id' => $id,
                 'status' => $status
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái hợp đồng', 'status' => 500];
+        }
+    }
+
+    // Gửi email thông báo khi hợp đồng cần chỉnh sửa
+    private function sendContractRevisionEmail(Contract $contract): void
+    {
+        try {
+            if (!$contract->user || !$contract->user->email) {
+                Log::warning('Không thể gửi email sửa đổi - không tìm thấy người dùng hoặc email', [
+                    'contract_id' => $contract->id
+                ]);
+                return;
+            }
+
+            // Sử dụng Mailable class mới
+            Mail::to($contract->user->email, $contract->user->name)
+                ->send(new ContractRevisionNotification($contract));
+
+            Log::info('Email sửa đổi hợp đồng đã được gửi thành công', [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi khi gửi email sửa đổi hợp đồng: ' . $e->getMessage(), [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email ?? 'N/A',
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    // Gửi email thông báo khi hợp đồng cần ký
+    private function sendContractSignEmail(Contract $contract): void
+    {
+        try {
+            if (!$contract->user || !$contract->user->email) {
+                Log::warning('Không thể gửi email đăng nhập - không tìm thấy người dùng hoặc email', [
+                    'contract_id' => $contract->id
+                ]);
+                return;
+            }
+
+            // Sử dụng Mailable class mới
+            Mail::to($contract->user->email, $contract->user->name)
+                ->send(new ContractSignNotification($contract));
+
+            Log::info('Email ký hợp đồng đã được gửi thành công', [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi khi gửi email ký hợp đồng: ' . $e->getMessage(), [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email ?? 'N/A',
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    // Gửi email thông báo khi hợp đồng đã được xác nhận
+    private function sendContractConfirmEmail(Contract $contract): void
+    {
+        try {
+            if (!$contract->user || !$contract->user->email) {
+                Log::warning('Không thể gửi email xác nhận - không tìm thấy người dùng hoặc email', [
+                    'contract_id' => $contract->id
+                ]);
+                return;
+            }
+
+            // Sử dụng Mailable class mới
+            Mail::to($contract->user->email, $contract->user->name)
+                ->send(new ContractConfirmNotification($contract));
+
+            Log::info('Email xác nhận hợp đồng đã được gửi thành công', [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi khi gửi email xác nhận hợp đồng: ' . $e->getMessage(), [
+                'contract_id' => $contract->id,
+                'user_email' => $contract->user->email ?? 'N/A',
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 
@@ -644,4 +749,5 @@ class ContractService
             return ['error' => 'Đã xảy ra lỗi khi tải file PDF'];
         }
     }
+
 }

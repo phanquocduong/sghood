@@ -60,7 +60,7 @@ class ContractController extends Controller
         }
 
         // Thông báo thành công với thông tin PDF nếu được tạo
-        $message = 'Trạng thái hợp đồng đã được cập nhật thành công!';
+        $message = 'Trạng thái hợp đồng đã được cập nhật thành công! và đã gửi email thông báo đến người dùng.';
         if ($request->input('status') === 'Hoạt động') {
             $message .= ' File PDF đã được tạo tự động.';
         }

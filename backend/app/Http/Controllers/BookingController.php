@@ -48,7 +48,7 @@ class BookingController extends Controller
         $status = $request->input('status');
         $note = $request->input('note');
 
-        // Update status (and note if provided)
+        // Cập nhật trạng thái booking
         $result = $this->bookingService->updateBookingStatus($id, $status, $note);
 
         if (isset($result['error'])) {
@@ -56,7 +56,7 @@ class BookingController extends Controller
         }
 
         $message = match($status) {
-            'Chấp nhận' => 'Đã chấp nhận đặt phòng thành công!',
+            'Chấp nhận' => 'Đã chấp nhận đặt phòng thành công và gửi thông báo điền hợp đồng cho khách hàng!',
             'Từ chối' => 'Đã từ chối đặt phòng và gửi email thông báo cho khách hàng!',
             default => 'Trạng thái đã được cập nhật thành công!'
         };
@@ -74,14 +74,14 @@ class BookingController extends Controller
         $note = $request->input('note');
         $status = $request->input('status');
 
-        // Update note
+        // Cập nhật lý do hủy booking
         $result = $this->bookingService->updateBookingCancellation($id, $note);
 
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error']);
         }
 
-        // If status is provided, also update status
+        // Nếu có trạng thái, cập nhật trạng thái booking
         if ($status) {
             $statusResult = $this->bookingService->updateBookingStatus($id, $status);
 
