@@ -143,4 +143,8 @@ onMounted(() => {
         transform: rotate(360deg);
     }
 }
+
+.container {
+    max-width: 100% !important;
+}
 </style>
