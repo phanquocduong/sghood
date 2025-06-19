@@ -116,23 +116,52 @@ class RoomController extends Controller
     }
 
     // Tạo phòng mới.
-    public function store(RoomRequest $request): RedirectResponse
-    {
-        $motelId = $request->input('motel_id', '');
+    public function store(RoomRequest $request): RedirectResponse|JsonResponse
+{
+    $motelId = $request->input('motel_id', '');
+
+    try {
         $result = $this->roomService->createRoom(
             $request->validated(),
-            $request->file('images')
+            $request->file('images') ?? []
         );
 
-        $errorResponse = $this->handleServiceError($result, $request->all());
-        if ($errorResponse) {
-            return $errorResponse;
+        if (isset($result['error'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error'],
+                    'old' => $request->all()
+                ], $result['status'] ?? 400);
+            }
+            return redirect()->back()->with('error', $result['error'])->withInput();
+        }
+
+        $message = 'Phòng đã được tạo thành công!';
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect_url' => route('rooms.index', ['motel_id' => $motelId])
+            ]);
         }
 
         return redirect()
             ->route('rooms.index', ['motel_id' => $motelId])
-            ->with('success', 'Phòng đã được tạo thành công!');
+            ->with('success', $message);
+    } catch (\Exception $e) {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+            ], 500);
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
     }
+}
 
     // Hiển thị form chỉnh sửa phòng.
     public function edit(string $id): View|RedirectResponse
