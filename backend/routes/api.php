@@ -58,3 +58,11 @@ Route::get('/users/{userId}/contract', [ContractController::class, 'getContracts
 
 Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
 Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
+
+
+// Notification Routes
+
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});

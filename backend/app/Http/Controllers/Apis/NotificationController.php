@@ -15,14 +15,15 @@ class NotificationController extends Controller
         $this->notificationService = $notificationService;
     }
 
-    public function getAllNotificationByUser($userId)
+    public function getAllNotificationByUser(Request $request, $userId)
     {
-        $notifications = $this->notificationService->getUserNotifications($userId);
+        $sortOrder = $request->query('sort', 'desc') === 'asc' ? 'asc' : 'desc';
+        $notifications = $this->notificationService->getUserNotifications($userId, $sortOrder);
 
         if ($notifications->isEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Không có thông báo nào cho người dùng này.'
+                'message' => 'Không có thông báo nào.'
             ], 404);
         }
 
@@ -48,5 +49,4 @@ class NotificationController extends Controller
             'data' => $notification
         ]);
     }
-
 }

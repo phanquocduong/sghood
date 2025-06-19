@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\Contract;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -21,13 +22,13 @@ class ContractService
             if ($querySearch) {
                 $query->where(function ($q) use ($querySearch) {
                     $q->where('content', 'like', "%$querySearch%")
-                      ->orWhere('file', 'like', "%$querySearch%")
-                      ->orWhereHas('user', function($userQuery) use ($querySearch) {
-                          $userQuery->where('name', 'like', "%$querySearch%");
-                      })
-                      ->orWhereHas('room', function($roomQuery) use ($querySearch) {
-                          $roomQuery->where('name', 'like', "%$querySearch%");
-                      });
+                        ->orWhere('file', 'like', "%$querySearch%")
+                        ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                            $userQuery->where('name', 'like', "%$querySearch%");
+                        })
+                        ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
+                            $roomQuery->where('name', 'like', "%$querySearch%");
+                        });
                 });
             }
 
@@ -93,16 +94,52 @@ class ContractService
             // Gửi email thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa"
             if ($status === 'Chờ chỉnh sửa' && $oldStatus !== 'Chờ chỉnh sửa') {
                 $this->sendContractRevisionEmail($contract);
+                // Tạo thông báo cho người dùng
+                $notificationdata = [
+                    'user_id' => $contract->user_id,
+                    'title' => 'Hợp đồng cần chỉnh sửa',
+                    'content' => 'Hợp đồng của bạn cần chỉnh sửa. Vui lòng kiểm tra email để biết chi tiết.',
+                    'status' => 'Chưa đọc'
+                ];
+                $notification = Notification::create($notificationdata);
+                Log::info('Notification created for contract revision', [
+                    'contract_id' => $contract->id,
+                    'notification_id' => $notification->id
+                ]);
             }
 
             // Gửi email thông báo khi trạng thái chuyển thành "Chờ ký"
             if ($status === 'Chờ ký' && $oldStatus !== 'Chờ ký') {
                 $this->sendContractSignEmail($contract);
+                // Tạo thông báo cho người dùng
+                $notificationdata = [
+                    'user_id' => $contract->user_id,
+                    'title' => 'Hợp đồng cần ký',
+                    'content' => 'Hợp đồng của bạn cần ký. Vui lòng kiểm tra email để biết chi tiết.',
+                    'status' => 'Chưa đọc'
+                ];
+                $notification = Notification::create($notificationdata);
+                Log::info('Notification created for contract sign', [
+                    'contract_id' => $contract->id,
+                    'notification_id' => $notification->id
+                ]);
             }
 
             // Gửi email thông báo khi trạng thái chuyển thành "Hoạt động"
             if ($status === 'Hoạt động' && $oldStatus !== 'Hoạt động') {
                 $this->sendContractConfirmEmail($contract);
+                // Tạo thông báo cho người dùng
+                $notificationdata = [
+                    'user_id' => $contract->user_id,
+                    'title' => 'Hợp đồng đã được xác nhận',
+                    'content' => 'Hợp đồng của bạn đã được xác nhận và đang hoạt động.',
+                    'status' => 'Chưa đọc'
+                ];
+                $notification = Notification::create($notificationdata);
+                Log::info('Notification created for contract confirmation', [
+                    'contract_id' => $contract->id,
+                    'notification_id' => $notification->id
+                ]);
             }
 
             return ['data' => $contract];
@@ -694,7 +731,7 @@ class ContractService
         $content = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $content);
 
         // Đảm bảo các ký tự tiếng Việt được hiển thị đúng
-        $content = preg_replace_callback('/[\x{00A0}-\x{FFFF}]/u', function($matches) {
+        $content = preg_replace_callback('/[\x{00A0}-\x{FFFF}]/u', function ($matches) {
             return $matches[0]; // Giữ nguyên ký tự Unicode
         }, $content);
 

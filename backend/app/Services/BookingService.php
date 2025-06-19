@@ -5,6 +5,7 @@ use App\Models\Contract;
 use App\Models\Booking;
 use App\Mail\BookingRejected;
 use App\Mail\BookingAccepted;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -521,10 +522,20 @@ public function updateBookingStatus($id, $status, $cancellation_reason = null)
                     'status' => 'Chờ xác nhận',
                 ];
 
+                // Tạo thông báo cho người dùng
+                $notificationData = [
+                    'user_id' => $booking->user_id,
+                    'title' => 'Đặt phòng đã được chấp nhận',
+                    'content' => 'Đặt phòng của bạn tại ' . $booking->room->motel->name . ' đã được chấp nhận. Vui lòng kiểm tra hợp đồng.',
+                    'status' => 'Chưa đọc',
+                ];
+
                 try {
                     $contract = Contract::create($contractData);
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
-
+                    // Tạo thông báo cho người dùng
+                    $notification = Notification::create($notificationData);
+                    Log::info('Notification created successfully', ['notification_id' => $notification->id, 'booking_id' => $id]);
                     // Gửi email thông báo chấp nhận với link hợp đồng
                     if ($booking->user && $booking->user->email) {
                         try {
