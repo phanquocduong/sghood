@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Apis\ChangePasswordRequest;
 use App\Http\Requests\Apis\UpdateProfileRequest;
 use App\Services\Apis\UserService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
@@ -34,5 +35,12 @@ class UserController extends Controller
         $this->userService->changePassword($user, $request->current_password, $request->new_password);
 
         return response()->json(['message' => 'Đổi mật khẩu thành công']);
+    }
+
+    public function saveFcmToken(Request $request)
+    {
+        $user = Auth::user();
+        $this->userService->updateFcmToken($user, $request->fcm_token);
+        return response()->json(['message' => 'FCM token saved successfully']);
     }
 }

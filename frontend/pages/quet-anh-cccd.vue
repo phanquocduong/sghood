@@ -17,7 +17,6 @@
                 <pre>{{ result }}</pre>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -43,7 +42,7 @@ const submitImage = async () => {
         const formData = new FormData();
         formData.append('cccd_image', file.value);
 
-        const response = await $api('/extract-cccd', {
+        const response = await $api('/ocr/extract-cccd-front', {
             method: 'POST',
             body: formData,
             headers: {
@@ -61,7 +60,6 @@ const submitImage = async () => {
         alert('Lỗi: ' + error.message);
     } finally {
         isLoading.value = false;
-
     }
 };
 </script>
@@ -117,4 +115,3 @@ input[type='file'] {
     border-radius: 6px;
 }
 </style>
-

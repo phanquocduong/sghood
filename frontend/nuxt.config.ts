@@ -1,14 +1,16 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    css: ['public/css/fonts.css','public/css/style.css', 'public/css/main-color.css'],
+    css: ['public/css/fonts.css', 'public/css/style.css', 'public/css/main-color.css'],
     plugins: [
         '~/plugins/firebase.js',
         '~/plugins/api.js',
         '~/plugins/toast.js',
         '~/plugins/template-scripts.client.js',
         '~/plugins/auth.js',
-        '~/plugins/dropzone.client.js'
+        '~/plugins/dropzone.client.js',
+        '~/plugins/service-worker.client.js',
+        '~/plugins/firebase-messaging.client.js'
     ],
     devServer: {
         host: '0.0.0.0',
@@ -20,16 +22,15 @@ export default defineNuxtConfig({
             pathPrefix: false
         }
     ],
-    modules: ['@pinia/nuxt','@nuxtjs/google-fonts'],
-    
-   googleFonts: {
-  display: 'swap',
-  families: {
-    Inter: [400, 600, 700],
-    
-  },
-    preconnect: true
-  },
+    modules: ['@pinia/nuxt', '@nuxtjs/google-fonts'],
+
+    googleFonts: {
+        display: 'swap',
+        families: {
+            Inter: [400, 600, 700]
+        },
+        preconnect: true
+    },
 
     runtimeConfig: {
         public: {
