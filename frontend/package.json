@@ -14,6 +14,7 @@
         "@pinia/nuxt": "^0.11.0",
         "dropzone": "^6.0.0-beta.2",
         "firebase": "^11.6.1",
+        "lucide-vue-next": "^0.518.0",
         "nuxt": "^3.17.1",
         "pinia": "^3.0.2",
         "sweetalert2": "^11.22.0",
