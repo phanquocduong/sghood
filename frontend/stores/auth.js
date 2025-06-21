@@ -7,12 +7,10 @@ import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 export const useAuthStore = defineStore('auth', () => {
     const toast = useToast();
     const router = useRouter();
-    const { $api, $getFcmToken } = useNuxtApp();
+    const { $api } = useNuxtApp();
     const { sendOTP, verifyOTP, getIdToken, signOut } = useFirebaseAuth();
     const config = useRuntimeConfig();
     const nuxtApp = useNuxtApp();
-    console.log('Nuxt App:', nuxtApp); // Kiểm tra các thuộc tính có sẵn
-    console.log('getFcmToken:', nuxtApp.$getFcmToken);
 
     // State
     const username = ref('');
@@ -234,7 +232,6 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             } catch (error) {
                 console.error('Error saving FCM token:', error);
-                // Không hiển thị toast error cho FCM token vì không quan trọng lắm với UX
                 return false;
             }
         }
