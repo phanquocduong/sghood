@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
+use App\Models\Notification;
+use Illuminate\Support\Facades\View;
 use Kreait\Firebase\Auth as FirebaseAuth;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,8 +25,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        View::composer('*', function ($view) {
+            $unreadCount = Notification::where('status', 'Chưa đọc')->count();
+            $latestNotifications = Notification::latest()->take(3)->get();
+
+            $view->with('unreadCount', $unreadCount)
+                ->with('latestNotifications', $latestNotifications);
+        });
     }
 }
