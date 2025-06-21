@@ -4,9 +4,13 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\Booking;
 use App\Mail\BookingRejected;
+use App\Mail\BookingAccepted;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class BookingService
 {
@@ -38,12 +42,12 @@ class BookingService
     {
         if ($querySearch !== '') {
             $query->where(function ($q) use ($querySearch) {
-                $q->whereHas('room', function($roomQuery) use ($querySearch) {
-                        $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                    })
-                ->orWhereHas('user', function($userQuery) use ($querySearch) {
-                    $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                });
+                $q->whereHas('room', function ($roomQuery) use ($querySearch) {
+                    $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                })
+                    ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                    });
             });
         }
     }
@@ -76,7 +80,7 @@ class BookingService
         }
     }
 
-   // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
+    // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
     private function calculateContractMonths($startDate, $endDate)
     {
         try {
@@ -91,7 +95,7 @@ class BookingService
             $months = ceil($start->floatDiffInMonths($end));
 
             // Đảm bảo ít nhất là 1 tháng
-            return max(1, (int)$months);
+            return max(1, (int) $months);
 
         } catch (\Throwable $e) {
             Log::error('Error calculating contract months: ' . $e->getMessage(), [
@@ -417,15 +421,33 @@ class BookingService
     private function convertNumberToWords($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $tens = array(
-            '', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi',
-            'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'
+            '',
+            '',
+            'hai mươi',
+            'ba mươi',
+            'bốn mươi',
+            'năm mươi',
+            'sáu mươi',
+            'bảy mươi',
+            'tám mươi',
+            'chín mươi'
         );
 
-        if ($number == 0) return 'không';
+        if ($number == 0)
+            return 'không';
 
         $result = '';
 
@@ -454,7 +476,16 @@ class BookingService
     private function convertHundreds($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $result = '';
@@ -508,6 +539,7 @@ class BookingService
         }
     }
 
+
     public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
@@ -529,9 +561,11 @@ class BookingService
             $booking->update($updateData);
             $booking->refresh();
 
+            // Xử lý khi status được chấp nhận
             if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                 $contractPreviewData = $this->generateContractPreviewData($booking);
 
+                // Tạo hợp đồng
                 $contractData = [
                     'booking_id' => $id,
                     'user_id' => $booking->user_id,
@@ -546,16 +580,79 @@ class BookingService
                     'status' => 'Chờ xác nhận',
                 ];
 
+                // Tạo thông báo cho người dùng
+                $notificationData = [
+                    'user_id' => $booking->user_id,
+                    'title' => 'Đặt phòng đã được chấp nhận',
+                    'content' => 'Đặt phòng của bạn tại ' . $booking->room->motel->name . ' đã được chấp nhận. Vui lòng kiểm tra hợp đồng.',
+                    'status' => 'Chưa đọc',
+                ];
+
                 try {
                     $contract = Contract::create($contractData);
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+                    // Tạo thông báo cho người dùng
+                    $notification = Notification::create($notificationData);
+
+                    // gửi FCM
+                    $user = $booking->user;
+
+                    if ($user && $user->fcm_token) {
+                        Log::info('⏳ Chuẩn bị gửi FCM', ['user_id' => $user->id, 'token' => $user->fcm_token]);
+
+                        $messaging = app('firebase.messaging');
+
+                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                            ->withNotification(FirebaseNotification::create(
+                                $notificationData['title'],
+                                $notificationData['content']
+                            ));
+
+                        try {
+                            $messaging->send($fcmMessage);
+                            Log::info('✅ FCM sent to user', ['user_id' => $user->id]);
+                        } catch (\Exception $e) {
+                            Log::error('❌ FCM send error', [
+                                'user_id' => $user->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    } else {
+                        Log::warning('⚠️ Không tìm thấy user hoặc user chưa có fcm_token', [
+                            'user_id' => $notificationData['user_id'],
+                            'user_found' => !!$user,
+                            'fcm_token' => $user->fcm_token ?? null
+                        ]);
+                    }
+
+                    Log::info('Notification created successfully', ['notification_id' => $notification->id, 'booking_id' => $id]);
+
+
+                    // Gửi email thông báo chấp nhận với link hợp đồng
+                    if ($booking->user && $booking->user->email) {
+                        try {
+                            $contractUrl = url('/contract/preview/' . $booking->id);
+                            Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                            Log::info('Acceptance email sent successfully', [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email,
+                                'contract_url' => $contractUrl
+                            ]);
+                        } catch (\Exception $mailException) {
+                            Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email
+                            ]);
+                        }
+                    }
+
                 } catch (\Throwable $e) {
                     Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     // Không dừng toàn bộ quá trình, chỉ ghi log lỗi
                 }
             }
 
-            // Send email if status changed to "Từ chối" and user has email
+            // Gửi email từ chối (giữ nguyên logic cũ)
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                 try {
                     Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
@@ -637,6 +734,7 @@ class BookingService
                 $booking->update($updateData);
                 $booking->refresh();
 
+                // Xử lý khi status được chấp nhận
                 if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                     $contractPreviewData = $this->generateContractPreviewData($booking);
 
@@ -657,11 +755,31 @@ class BookingService
                     try {
                         $contract = Contract::create($contractData);
                         Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+
+                        // Gửi email thông báo chấp nhận với link hợp đồng
+                        if ($booking->user && $booking->user->email) {
+                            try {
+                                $contractUrl = url('/contract/preview/' . $booking->id);
+                                Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                                Log::info('Acceptance email sent successfully', [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email,
+                                    'contract_url' => $contractUrl
+                                ]);
+                            } catch (\Exception $mailException) {
+                                Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email
+                                ]);
+                            }
+                        }
+
                     } catch (\Throwable $e) {
                         Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     }
                 }
 
+                // Gửi email từ chối
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                     try {
                         Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));

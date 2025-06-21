@@ -22,7 +22,6 @@
                 <h6 class="mb-0 fw-bold">{{ __('Thêm cấu hình') }}</h6>
             </div>
             <div class="card-body p-4">
-
                 <form action="{{ route('configs.store') }}" method="POST" id="configCreateForm"
                     enctype="multipart/form-data" novalidate>
                     @csrf
@@ -60,57 +59,24 @@
                             <label for="config_value" class="form-label fw-bold text-primary">Nội dung<span
                                     style="color:red;">*</span></label>
                             <textarea class="form-control shadow-sm {{ $errors->has('config_value') ? 'is-invalid' : '' }}"
-                                id="config_value" name="config_value" rows="3" required>{{ old('config_value') }}</textarea>
+                                id="config_value" name="config_value" rows="3">{{ old('config_value') }}</textarea>
                             <input type="file"
-                                class="form-control shadow-sm {{ $errors->has('config_value') ? 'is-invalid' : '' }}"
-                                id="config_image" name="config_image" accept="image/*" style="display: none;">
-                            @if ($errors->has('config_value'))
+                                class="form-control shadow-sm {{ $errors->has('config_image') ? 'is-invalid' : '' }}"
+                                id="config_image" name="config_image" accept="image/jpeg,image/png,image/gif" style="display: none;">
+                            @if ($errors->has('config_image'))
                                 <div class="invalid-feedback">
-                                    {{ $errors->first('config_value') }}
+                                    {{ $errors->first('config_image') }}
                                 </div>
                             @endif
+                            <div id="image_preview_container" style="display: none; margin-top: 10px;">
+                                <img id="image_preview" style="max-width: 200px; max-height: 200px; object-fit: contain;" alt="Image Preview">
+                            </div>
                         </div>
-
-                        <script>
-                            function toggleConfigValue() {
-                                const configType = document.getElementById('config_type').value;
-                                const configValue = document.getElementById('config_value');
-                                const configImage = document.getElementById('config_image');
-
-                                if (configType === 'IMAGE') {
-                                    configValue.style.display = 'none';
-                                    configImage.style.display = 'block';
-                                    configValue.removeAttribute('required');
-                                    configImage.setAttribute('required', 'required');
-                                } else {
-                                    configValue.style.display = 'block';
-                                    configImage.style.display = 'none';
-                                    configImage.removeAttribute('required');
-                                    configValue.setAttribute('required', 'required');
-                                }
-                            }
-
-                            // Initialize on page load
-                            document.addEventListener('DOMContentLoaded', function () {
-                                toggleConfigValue();
-                            });
-
-                            document.getElementById('configCreateForm').addEventListener('submit', function (e) {
-                                const configType = document.getElementById('config_type').value;
-                                const configImage = document.getElementById('config_image').files;
-
-                                if (configType === 'IMAGE' && configImage.length === 0) {
-                                    e.preventDefault();
-                                    alert('Vui lòng chọn một file ảnh!');
-                                }
-                            });
-                        </script>
                         <div class="col-12">
                             <label for="description" class="form-label fw-bold text-primary">Mô tả</label>
                             <input type="text" class="form-control shadow-sm" id="description" name="description"
                                 value="{{ old('description') }}">
                         </div>
-
                     </div>
                     <div class="d-flex justify-content-end mt-4 gap-2">
                         <a href="{{ route('configs.index') }}" class="btn btn-secondary shadow-sm"
@@ -146,7 +112,72 @@
         .alert-danger {
             border-left-color: #dc3545;
         }
+
+        #image_preview_container {
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
     </style>
+
+    <script>
+        function toggleConfigValue() {
+            const configType = document.getElementById('config_type').value;
+            const configValue = document.getElementById('config_value');
+            const configImage = document.getElementById('config_image');
+            const imagePreviewContainer = document.getElementById('image_preview_container');
+            const imagePreview = document.getElementById('image_preview');
+
+            if (configType === 'IMAGE') {
+                configValue.style.display = 'none';
+                configImage.style.display = 'block';
+                imagePreviewContainer.style.display = 'block';
+                configValue.removeAttribute('required');
+                configImage.setAttribute('required', 'required');
+            } else {
+                configValue.style.display = 'block';
+                configImage.style.display = 'none';
+                imagePreviewContainer.style.display = 'none';
+                configImage.removeAttribute('required');
+                configValue.setAttribute('required', 'required');
+                imagePreview.src = ''; // Clear preview
+                configImage.value = ''; // Clear file input
+            }
+        }
+
+        // Image preview functionality
+        document.getElementById('config_image').addEventListener('change', function (e) {
+            const imagePreview = document.getElementById('image_preview');
+            const file = e.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '';
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleConfigValue();
+        });
+
+        // Form submission validation
+        document.getElementById('configCreateForm').addEventListener('submit', function (e) {
+            const configType = document.getElementById('config_type').value;
+            const configImage = document.getElementById('config_image').files;
+
+            if (configType === 'IMAGE' && configImage.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn một file ảnh!');
+            }
+        });
+    </script>
 
     @section('styles')
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />

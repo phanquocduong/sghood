@@ -63,3 +63,18 @@ Route::get('/configs', [ConfigController::class, 'index']);
 
 Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
 Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
+
+
+// Notification Routes
+
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});
+// FCM routes
+Route::post('/save-fcm-token', function (Request $request) {
+    $user = auth()->user();
+    $user->fcm_token = $request->fcm_token;
+    $user->save();
+    return response()->json(['message' => 'Token saved']);
+});
