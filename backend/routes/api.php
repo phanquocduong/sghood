@@ -63,3 +63,5 @@ Route::get('/notifications/{id}', [NotificationController::class, 'getByNotifica
 Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageController::class, 'getAdminConversations']);
+// Get all admin users
+Route::get('/users/admins', [UserController::class, 'getAdmins']);
