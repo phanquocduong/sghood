@@ -1,5 +1,7 @@
 <?php
 
 return [
-    'credentials' => env('FIREBASE_CREDENTIALS'),
+    'credentials' => [
+        'file' => env('FIREBASE_CREDENTIALS'),
+    ],
 ];

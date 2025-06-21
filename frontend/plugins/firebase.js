@@ -17,8 +17,8 @@ export default defineNuxtPlugin(() => {
 
     return {
         provide: {
-            firebaseAuth: auth,
-            firebaseApp: app
+            firebaseApp: app,
+            firebaseAuth: auth
         }
     };
 });

@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -10,6 +11,8 @@ use App\Mail\ContractRevisionNotification;
 use App\Mail\ContractSignNotification;
 use App\Mail\ContractConfirmNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class ContractService
 {
@@ -106,6 +109,26 @@ class ContractService
                     'contract_id' => $contract->id,
                     'notification_id' => $notification->id
                 ]);
+
+                // gửi FCM token
+                $user = User::find($notificationdata['user_id']);
+
+                if ($user && $user->fcm_token) {
+                    $messaging = app('firebase.messaging');
+
+                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                        ->withNotification(FirebaseNotification::create(
+                            $notificationdata['title'],
+                            $notificationdata['content']
+                        ));
+
+                    try {
+                        $messaging->send($fcmMessage);
+                        Log::info('FCM sent to user', ['user_id' => $user->id]);
+                    } catch (\Exception $e) {
+                        Log::error('FCM send error', ['error' => $e->getMessage()]);
+                    }
+                }
             }
 
             // Gửi email thông báo khi trạng thái chuyển thành "Chờ ký"
@@ -123,6 +146,26 @@ class ContractService
                     'contract_id' => $contract->id,
                     'notification_id' => $notification->id
                 ]);
+
+                // gửi FCM token
+                $user = User::find($notificationdata['user_id']);
+
+                if ($user && $user->fcm_token) {
+                    $messaging = app('firebase.messaging');
+
+                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                        ->withNotification(FirebaseNotification::create(
+                            $notificationdata['title'],
+                            $notificationdata['content']
+                        ));
+
+                    try {
+                        $messaging->send($fcmMessage);
+                        Log::info('FCM sent to user', ['user_id' => $user->id]);
+                    } catch (\Exception $e) {
+                        Log::error('FCM send error', ['error' => $e->getMessage()]);
+                    }
+                }
             }
 
             // Gửi email thông báo khi trạng thái chuyển thành "Hoạt động"
@@ -140,6 +183,26 @@ class ContractService
                     'contract_id' => $contract->id,
                     'notification_id' => $notification->id
                 ]);
+
+                // gửi FCM token
+                $user = User::find($notificationdata['user_id']);
+
+                if ($user && $user->fcm_token) {
+                    $messaging = app('firebase.messaging');
+
+                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                        ->withNotification(FirebaseNotification::create(
+                            $notificationdata['title'],
+                            $notificationdata['content']
+                        ));
+
+                    try {
+                        $messaging->send($fcmMessage);
+                        Log::info('FCM sent to user', ['user_id' => $user->id]);
+                    } catch (\Exception $e) {
+                        Log::error('FCM send error', ['error' => $e->getMessage()]);
+                    }
+                }
             }
 
             return ['data' => $contract];

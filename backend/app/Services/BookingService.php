@@ -9,6 +9,8 @@ use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class BookingService
 {
@@ -40,12 +42,12 @@ class BookingService
     {
         if ($querySearch !== '') {
             $query->where(function ($q) use ($querySearch) {
-                $q->whereHas('room', function($roomQuery) use ($querySearch) {
-                        $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                    })
-                ->orWhereHas('user', function($userQuery) use ($querySearch) {
-                    $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                });
+                $q->whereHas('room', function ($roomQuery) use ($querySearch) {
+                    $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                })
+                    ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                    });
             });
         }
     }
@@ -78,7 +80,7 @@ class BookingService
         }
     }
 
-   // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
+    // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
     private function calculateContractMonths($startDate, $endDate)
     {
         try {
@@ -93,7 +95,7 @@ class BookingService
             $months = ceil($start->floatDiffInMonths($end));
 
             // Đảm bảo ít nhất là 1 tháng
-            return max(1, (int)$months);
+            return max(1, (int) $months);
 
         } catch (\Throwable $e) {
             Log::error('Error calculating contract months: ' . $e->getMessage(), [
@@ -419,15 +421,33 @@ class BookingService
     private function convertNumberToWords($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $tens = array(
-            '', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi',
-            'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'
+            '',
+            '',
+            'hai mươi',
+            'ba mươi',
+            'bốn mươi',
+            'năm mươi',
+            'sáu mươi',
+            'bảy mươi',
+            'tám mươi',
+            'chín mươi'
         );
 
-        if ($number == 0) return 'không';
+        if ($number == 0)
+            return 'không';
 
         $result = '';
 
@@ -456,7 +476,16 @@ class BookingService
     private function convertHundreds($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $result = '';
@@ -511,7 +540,7 @@ class BookingService
     }
 
 
-public function updateBookingStatus($id, $status, $cancellation_reason = null)
+    public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
             $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
@@ -564,7 +593,41 @@ public function updateBookingStatus($id, $status, $cancellation_reason = null)
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
                     // Tạo thông báo cho người dùng
                     $notification = Notification::create($notificationData);
+
+                    // gửi FCM
+                    $user = $booking->user;
+
+                    if ($user && $user->fcm_token) {
+                        Log::info('⏳ Chuẩn bị gửi FCM', ['user_id' => $user->id, 'token' => $user->fcm_token]);
+
+                        $messaging = app('firebase.messaging');
+
+                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                            ->withNotification(FirebaseNotification::create(
+                                $notificationData['title'],
+                                $notificationData['content']
+                            ));
+
+                        try {
+                            $messaging->send($fcmMessage);
+                            Log::info('✅ FCM sent to user', ['user_id' => $user->id]);
+                        } catch (\Exception $e) {
+                            Log::error('❌ FCM send error', [
+                                'user_id' => $user->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    } else {
+                        Log::warning('⚠️ Không tìm thấy user hoặc user chưa có fcm_token', [
+                            'user_id' => $notificationData['user_id'],
+                            'user_found' => !!$user,
+                            'fcm_token' => $user->fcm_token ?? null
+                        ]);
+                    }
+
                     Log::info('Notification created successfully', ['notification_id' => $notification->id, 'booking_id' => $id]);
+
+
                     // Gửi email thông báo chấp nhận với link hợp đồng
                     if ($booking->user && $booking->user->email) {
                         try {
@@ -648,7 +711,7 @@ public function updateBookingStatus($id, $status, $cancellation_reason = null)
         }
     }
 
-     public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
+    public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
     {
         try {
             return DB::transaction(function () use ($id, $status, $cancellation_reason) {
