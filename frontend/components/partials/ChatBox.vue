@@ -32,12 +32,18 @@
 
 
 <script setup>
-import { ref,nextTick } from 'vue';
-
+import { ref,nextTick,onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+const authStore = useAuthStore();
+const currentUserId = ref(authStore.user?.id || null)
+const token =ref( authStore.token || '')
+const AdminId = ref(1)
+const {$api} = useNuxtApp()
 const newMessage = ref('')
-const messages = ref([
-    {from:'admin',text:'Chào bạn! Bạn cần hỗ trợ gì'}
-])
+const selectedUserId = ref(null)
+ const messages = ref([
+   /*  {from:'admin',text:'Chào bạn! Bạn cần hỗ trợ gì'} */
+]) 
 // auto Keo
 const messageContainer = ref(null)
 const scrollToBottom = ()=>{
@@ -47,24 +53,61 @@ const scrollToBottom = ()=>{
         }
     })
 }
-// tin nhan gia lap
-const sendMessage = () =>{
-    const text= newMessage.value.trim()
-    if(!text)return
-    
-    //them tin nhan user
-    messages.value.push({from:'user',text})
-    newMessage.value=''
+ 
+onMounted (()=>{
+  fetchMessage()
+})
+const sendMessage = async ()=>{
+  const text = newMessage.value.trim()
+  if(!text) return
+  scrollToBottom()
+  try {
+    await $api('/messages/send',{
+      method:'POST',
+      headers:{
+        Authorization:`Bearer ${token.value}`,
+      'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+
+      },
+      body:{
+        receiver_id:AdminId.value,
+        message:text
+      }
+    })
+    messages.value.push({from:'user', text})
+    newMessage.value = ' ' 
     scrollToBottom()
-    
-    // gia lap phan hoi trong 1s
-
-    setTimeout(()=>{
-        messages.value.push({from:'admin', text:'Cảm ơn bạn! Chúng tôi sẽ phản hồi sớm nhất nhé.'})
-        scrollToBottom();
-    }, 1000)
-
+  } catch (error) {
+    console.error('Loi',error)
+  }
 }
+
+const fetchMessage = async() =>{
+  try {
+    const parnerId =AdminId.value;
+     if (!parnerId) {
+      console.warn('PartnerId bị null → không gọi API.');
+      return;
+    }
+     const res = await $api(`/messages/history/${parnerId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+
+    });
+    const messagesData = res.data || [];
+    messages.value= messagesData.map(item =>({
+      from : item.sender_id === currentUserId.value ? 'user':'admin',
+      text : item.message
+    }));
+    scrollToBottom();
+      } catch (error) {
+      console.error('Loi', error)
+    }
+     
+  }
+
 </script>
 
 <style scoped>
@@ -139,9 +182,10 @@ const sendMessage = () =>{
 .chat-input {
   display: flex;
   border-top: 1px solid #ddd;
-  padding: 5px;
+  padding: 8px 16px;
   background: #fff;
-
+  align-items: center;
+  height: auto;
 }
 .chat-input input {
   flex: 1;
@@ -151,6 +195,7 @@ const sendMessage = () =>{
   padding-top: 5px;
   margin-right: 8px;
   margin-bottom:5px ;
+  height: 40px;
 }
 .chat-input button {
   background-color: #e53935;
@@ -160,8 +205,8 @@ const sendMessage = () =>{
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
-  height: 50px;
-
+  height: 40px;
+  margin-top: -5px;
 }
 .chat-input button:hover {
   background-color: #d32f2f;

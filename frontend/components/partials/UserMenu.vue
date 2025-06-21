@@ -122,7 +122,9 @@ const toggleDropdown = () => {
     min-width: 16px;
     height: 16px;
     line-height: 1;
-    text-align: center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
 }
 
 /* Dùng class dropdown của template */
