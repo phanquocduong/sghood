@@ -46,4 +46,22 @@ class MessageService
 
         return User::whereIn('id', $userIds)->get();
     }
+    public function startChatAdmin($adminId, $userId)
+    {
+        $hasMessages = Message::where(function($query) use ($adminId, $userId) {
+            $query->where('sender_id', $adminId)
+                  ->where('receiver_id', $userId);
+        })->orWhere(function($query) use ($adminId, $userId) {
+            $query->where('sender_id', $userId)
+                  ->where('receiver_id', $adminId);
+        })->exists();
+
+        if (!$hasMessages) {
+            Message::create([
+                'sender_id' => $adminId,
+                'receiver_id' => $userId,
+                'message' => 'Chào bạn! Bạn cần hỗ trợ gì từ chúng tôi?'
+            ]);
+        }
+    }
 }
