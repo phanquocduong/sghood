@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Apis\SendMessageRequest;
+use App\Http\Requests\Apis\StartChatRequest;
 use App\Services\Apis\MessageService;
 use Illuminate\Http\Request;
 
@@ -15,18 +17,13 @@ class MessageController extends Controller
         $this->messageService = $messageService;
     }
 
-    public function sendMessage(Request $request)
+    public function sendMessage(SendMessageRequest $request)
     {
-        $request->validate([
-            'receiver_id' => 'required|exists:users,id',
-            'message' => 'required|string',
-        ]);
-
-        $message = $this->messageService->sendMessage($request->only('receiver_id', 'message'));
+        $data = $request->validated();
+        $message = $this->messageService->sendMessage($data);
 
         return response()->json([
             'status' => true,
-            'message' => 'Gửi thành công',
             'data' => $message
         ]);
     }
@@ -48,6 +45,18 @@ class MessageController extends Controller
         return response()->json([
             'status' => true,
             'data' => $users
+        ]);
+    }
+    public function startChat(StartChatRequest $request)
+    {
+        $userId = $request->receiver_id;
+        $adminId = 1; // hoặc chỉ định ID cụ thể
+
+        $this->messageService->startChatAdmin($adminId, $userId);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Bắt đầu cuộc trò chuyện thành công'
         ]);
     }
 }

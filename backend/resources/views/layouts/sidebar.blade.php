@@ -55,6 +55,8 @@
 
             <!-- Quản lý người dùng -->
             <a href="{{ route('users.user') }}" class="nav-item nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"><i class="fa fa-users me-2"></i>Người dùng</a>
+            <!-- Quản lý tin nhắn -->
+            <a href="{{ route('messages.index') }}" class="nav-item nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"><i class="fa fa-envelope me-2"></i>Tin nhắn</a>
         </div>
     </nav>
 </div>

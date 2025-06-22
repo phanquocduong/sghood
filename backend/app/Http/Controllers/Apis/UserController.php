@@ -7,6 +7,7 @@ use App\Http\Requests\Apis\ChangePasswordRequest;
 use App\Http\Requests\Apis\UpdateProfileRequest;
 use App\Services\Apis\UserService;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class UserController extends Controller
 {
@@ -34,5 +35,9 @@ class UserController extends Controller
         $this->userService->changePassword($user, $request->current_password, $request->new_password);
 
         return response()->json(['message' => 'Đổi mật khẩu thành công']);
+    }
+    public function getAdmins(){
+        $user = User::where('role','Quản trị viên')->get();
+        return response()->json($user);
     }
 }
