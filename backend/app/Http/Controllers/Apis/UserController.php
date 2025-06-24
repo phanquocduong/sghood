@@ -38,6 +38,9 @@ class UserController extends Controller
     }
     public function getAdmins(){
         $user = User::where('role','Quản trị viên')->get();
-        return response()->json($user);
+        return response()->json([
+            'status' =>true,
+            'data'=> $user
+        ]);
     }
 }

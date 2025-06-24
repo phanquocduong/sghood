@@ -57,11 +57,19 @@ class MessageService
         })->exists();
 
         if (!$hasMessages) {
-            Message::create([
+          return Message::create([
                 'sender_id' => $adminId,
                 'receiver_id' => $userId,
                 'message' => 'Chào bạn! Bạn cần hỗ trợ gì từ chúng tôi?'
             ]);
+            //  đã có message, trả về message đầu tiên
+       return Message::where(function($query) use ($adminId, $userId) {
+           $query->where('sender_id', $adminId)
+                 ->where('receiver_id', $userId);
+       })->orWhere(function($query) use ($adminId, $userId) {
+           $query->where('sender_id', $userId)
+                 ->where('receiver_id', $adminId);
+       })->orderBy('created_at', 'asc')->first();
         }
     }
 }

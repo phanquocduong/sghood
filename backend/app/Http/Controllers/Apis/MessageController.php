@@ -50,13 +50,16 @@ class MessageController extends Controller
     public function startChat(StartChatRequest $request)
     {
         $userId = $request->receiver_id;
-        $adminId = 1; // hoặc chỉ định ID cụ thể
+        $adminId = $request ->admin_id ?? 1;
 
         $this->messageService->startChatAdmin($adminId, $userId);
 
         return response()->json([
             'status' => true,
-            'message' => 'Bắt đầu cuộc trò chuyện thành công'
+            'message' => 'Bắt đầu cuộc trò chuyện thành công',
+            'admins' =>[
+                'admin_id'
+            ]
         ]);
     }
 }

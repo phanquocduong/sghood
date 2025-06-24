@@ -2,7 +2,7 @@
   <div class="chat-box">
     <!-- Header Chat -->
     <div class="chat-header">
-      <span class="chat-title">Hỗ trợ khách thuê</span>
+      <span class="chat-title">Hỗ trợ người dùng</span>
       <button class="chat-close" @click="$emit('close')">✕</button>
     </div>
 
@@ -33,13 +33,14 @@
 
 <script setup>
 import { ref,nextTick,onMounted } from 'vue';
+import api from '~/plugins/api';
 import { useAuthStore } from '~/stores/auth';
 const authStore = useAuthStore();
 const currentUserId = ref(authStore.user?.id || null)
 const token =ref( authStore.token || '')
-const AdminId = ref(1)
 const {$api} = useNuxtApp()
 const newMessage = ref('')
+const AdminId = ref()
 const selectedUserId = ref(null)
  const messages = ref([
    /*  {from:'admin',text:'Chào bạn! Bạn cần hỗ trợ gì'} */
@@ -55,7 +56,8 @@ const scrollToBottom = ()=>{
 }
  
 onMounted (()=>{
-  fetchMessage()
+  initChat();
+  
 })
 const sendMessage = async ()=>{
   const text = newMessage.value.trim()
@@ -74,7 +76,7 @@ const sendMessage = async ()=>{
         message:text
       }
     })
-    messages.value.push({from:'user', text})
+    await fetchMessage();
     newMessage.value = ' ' 
     scrollToBottom()
   } catch (error) {
@@ -105,9 +107,32 @@ const fetchMessage = async() =>{
       } catch (error) {
       console.error('Loi', error)
     }
-     
-  }
+  };
+const initChat = async ()=>{
+  const res = await $api (`/users/admins`,{
+    headers:({   Authorization:`Bearer ${token.value}`, })
+  })
+  const admins = res.data || [];
+  if (admins.length === 0) return
+  const random = Math.floor(Math.random() * admins.length);
+  const admin = admins[random];
+  
+  AdminId.value = admin.id
+  console.log(admin)
+  await $api(`/messages/start-chat`,{
+    method :'POST',
+    headers:{
+       Authorization:`Bearer ${token.value}`,
+      'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+    },body:{
+      receiver_id:admin.id,
+      sender_id : currentUserId.value
+    }
+  })
+  await fetchMessage();
 
+  setInterval(fetchMessage,500)
+}
 </script>
 
 <style scoped>
