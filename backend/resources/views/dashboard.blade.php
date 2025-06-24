@@ -446,7 +446,7 @@
                                     <div class="fw-semibold mb-1">Nguyễn Văn A</div>
                                     <small class="text-muted">P101 - Đang thuê</small>
                                 </div>
-                                <span class="badge bg-success bg-opacity-20 text-success">
+                                <span class="badge bg-opacity-20 text-success">
                                     <i class="fas fa-check-circle me-1"></i>Active
                                 </span>
                             </div>
@@ -462,7 +462,7 @@
                                     <div class="fw-semibold mb-1">Trần Thị B</div>
                                     <small class="text-muted">P202 - Đang thuê</small>
                                 </div>
-                                <span class="badge bg-success bg-opacity-20 text-success">
+                                <span class="badge bg-opacity-20 text-success">
                                     <i class="fas fa-check-circle me-1"></i>Active
                                 </span>
                             </div>
@@ -478,7 +478,7 @@
                                     <div class="fw-semibold mb-1">Lê Văn C</div>
                                     <small class="text-muted">P305 - Sắp hết hạn</small>
                                 </div>
-                                <span class="badge bg-warning bg-opacity-20 text-warning">
+                                <span class="badge bg-opacity-20 text-warning">
                                     <i class="fas fa-clock me-1"></i>Expiring
                                 </span>
                             </div>
