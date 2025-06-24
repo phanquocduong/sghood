@@ -96,9 +96,6 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar-circle bg-info text-white me-2" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                                            {{ strtoupper(substr($bookingItem->user->name ?? 'U', 0, 1)) }}
-                                        </div>
                                         <span class="fw-medium">{{ $bookingItem->user->name ?? 'N/A' }}</span>
                                     </div>
                                 </td>
