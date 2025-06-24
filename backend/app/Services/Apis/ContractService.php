@@ -201,22 +201,42 @@ class ContractService
         return $identityDocument;
     }
 
-    public function saveContract(string $content, string $status): Contract
+    public function saveContract(string $content, string $status, int $id): Contract
     {
         try {
-            $contract = Contract::updateOrCreate(
-                ['user_id' => Auth::id(), 'id' => request()->route('id')],
-                ['content' => $content, 'status' => $status]
-            );
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
 
-            $this->notifyAdmins($contract);
+            $oldStatus = $contract->status;
 
-            return $contract;
-        } catch (\Throwable $e) {
-            Log::error('Lỗi lưu hợp đồng', [
+            $contract->update([
+                'content' => $content,
+                'status' => $status,
+                'updated_at' => now()
+            ]);
+
+            // Log hoạt động
+            Log::info('Hợp đồng được cập nhật', [
                 'user_id' => Auth::id(),
-                'contract_id' => request()->route('id'),
+                'contract_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => $status
+            ]);
+
+            // Chỉ thông báo admin khi trạng thái chuyển sang "Chờ duyệt"
+            if ($status === 'Chờ duyệt') {
+                $this->notifyAdmins($contract, $oldStatus);
+            }
+
+            return $contract->fresh(); // Reload để lấy dữ liệu mới nhất
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi cập nhật hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             throw $e;
         }
@@ -302,7 +322,7 @@ class ContractService
         return array_filter($data);
     }
 
-    private function notifyAdmins(Contract $contract): void
+    private function notifyAdmins(Contract $contract, string $oldStatus): void
     {
         try {
             $admins = User::where('role', 'Quản trị viên')->get();
@@ -312,8 +332,13 @@ class ContractService
                 return;
             }
 
-            $title = 'Hợp đồng mới đang chờ duyệt';
-            $body = "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được tạo.";
+            // Điều chỉnh tiêu đề và nội dung thông báo dựa trên trạng thái cũ
+            $title = $oldStatus === 'Chờ chỉnh sửa'
+                ? 'Hợp đồng đã được chỉnh sửa'
+                : 'Hợp đồng mới đang chờ duyệt';
+            $body = $oldStatus === 'Chờ chỉnh sửa'
+                ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được chỉnh sửa và gửi lại để duyệt."
+                : "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.";
 
             Mail::to($admins->pluck('email'))->send(new ContractPendingEmail($contract));
 

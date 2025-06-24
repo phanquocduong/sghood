@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
 
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
-    Route::post('/contracts/{id}/save', [ContractController::class, 'save']);
+    Route::patch('/contracts/{id}', [ContractController::class, 'update']);
 
     Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
 });
@@ -64,9 +64,7 @@ Route::get('/configs', [ConfigController::class, 'index']);
 Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
 Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
 
-
 // Notification Routes
-
 Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
     Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
