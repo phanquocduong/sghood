@@ -78,17 +78,16 @@ export const useAuthStore = defineStore('auth', () => {
 
             user.value = response.data;
 
-            // Delay một chút để đảm bảo user state đã được set
-            setTimeout(async () => {
-                const tokenSaved = await saveFcmToken();
-                if (tokenSaved) {
-                    console.log('FCM token saved after login');
-                }
-            }, 1000);
+            const tokenSaved = await saveFcmToken();
+            if (!tokenSaved) {
+                user.value = null;
+                toast.error('Đã có lỗi xảy ra! Vui lòng tải lại trang và đăng nhập lại');
+            } else {
+                toast.success(response.message);
+            }
 
             resetForm();
             closePopup();
-            toast.success(response.message);
         } catch (error) {
             handleBackendError(error);
         } finally {
@@ -105,16 +104,10 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             loading.value = true;
             await getCsrfCookie();
-            const idToken = await getIdToken();
-            if (!idToken) {
-                toast.error('Không thể lấy token xác thực!');
-                return;
-            }
 
             const response = await $api('/register', {
                 method: 'POST',
                 body: {
-                    id_token: idToken,
                     phone: phone.value,
                     name: name.value,
                     email: email.value,
@@ -126,7 +119,6 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             });
 
-            await saveFcmToken(); // Lưu FCM token sau khi đăng ký
             resetForm();
             closePopup();
             await signOut();
@@ -164,9 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             const response = await $api('/user', { method: 'GET' });
             user.value = response.data;
-            await saveFcmToken();
         } catch (error) {
-            console.error('Failed to fetch user:', error);
             user.value = null;
         }
     };

@@ -7,7 +7,7 @@
             </a>
             <!-- Nếu đã đăng nhập -->
             <ClientOnly>
-                <div v-if="user" class="auth-container">
+                <div v-show="user" class="auth-container">
                     <!-- Menu người dùng -->
                     <div class="user-menu">
                         <div class="user-name">
@@ -22,13 +22,15 @@
 
                         <ul>
                             <li>
-                                <NuxtLink to="/dashboard-messages"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
+                                <NuxtLink to="/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
                             </li>
                             <li>
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
                             </li>
                             <li>
-                                <NuxtLink to="/dashboard-bookings"> <i class="fa fa-calendar-check-o"></i> Đặt phòng </NuxtLink>
+                                <NuxtLink to="/quan-ly/lich-xem-phong-va-dat-phong">
+                                    <i class="fa fa-calendar-check-o"></i> Đặt phòng
+                                </NuxtLink>
                             </li>
                             <li>
                                 <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>

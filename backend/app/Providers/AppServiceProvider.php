@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth as FirebaseAuth;
@@ -25,6 +26,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+       // Lấy đường dẫn tương đối từ .env
+        $googleCredentialsPath = env('GOOGLE_APPLICATION_CREDENTIALS');
+
+        // Chuyển thành đường dẫn tuyệt đối
+        $absolutePath = base_path($googleCredentialsPath);
+
+        // Kiểm tra file tồn tại
+        if (!file_exists($absolutePath)) {
+            Log::error('Google Cloud credentials file not found at: ' . $absolutePath);
+            throw new \Exception('Google Cloud credentials file not found at: ' . $absolutePath);
+        }
+
+        // Thiết lập biến môi trường
+        putenv("GOOGLE_APPLICATION_CREDENTIALS=$absolutePath");
     }
 }

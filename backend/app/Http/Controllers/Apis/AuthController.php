@@ -104,7 +104,7 @@ class AuthController extends Controller
     public function verifyEmail(Request $request, int $id, string $hash): RedirectResponse
     {
         $user = User::findOrFail($id);
-        $frontendUrl = config('app.frontend_url') . '/xac-minh-email';
+        $frontendUrl = 'http://127.0.0.1:3000/xac-minh-email';
 
         if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
             return redirect()->to("{$frontendUrl}?error=" . urlencode('Liên kết xác minh không hợp lệ'));
@@ -166,7 +166,7 @@ class AuthController extends Controller
         return cookie(
             name: 'sanctum_token',
             value: $token,
-            minutes: config('auth.token_expiration', 60),
+            minutes: config('auth.token_expiration', 120),
             path: '/',
             domain: null,
             secure: true,

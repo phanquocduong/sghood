@@ -10,10 +10,7 @@
         />
 
         <!-- Hiệu ứng loading -->
-        <div class="loading-overlay" v-show="isLoading">
-            <div class="spinner"></div>
-            <p>Đang tải...</p>
-        </div>
+        <Loading :is-loading="isLoading" />
 
         <!-- Nội dung chỉ hiển thị khi load xong -->
         <div>

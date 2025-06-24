@@ -39,7 +39,7 @@ class UserController extends Controller
 
     public function saveFcmToken(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
         $this->userService->updateFcmToken($user, $request->fcm_token);
         return response()->json(['message' => 'FCM token saved successfully']);
     }
