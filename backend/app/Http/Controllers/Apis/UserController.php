@@ -8,6 +8,7 @@ use App\Http\Requests\Apis\UpdateProfileRequest;
 use App\Services\Apis\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class UserController extends Controller
 {
@@ -42,5 +43,14 @@ class UserController extends Controller
         $user = $request->user();
         $this->userService->updateFcmToken($user, $request->fcm_token);
         return response()->json(['message' => 'FCM token saved successfully']);
+    }
+
+    public function getAdmins()
+    {
+        $user = User::where('role','Quản trị viên')->get();
+        return response()->json([
+            'status' =>true,
+            'data'=> $user
+        ]);
     }
 }

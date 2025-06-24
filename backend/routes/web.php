@@ -13,6 +13,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\MessageController;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -147,4 +149,10 @@ Route::middleware('admin')->group(function () {
     Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
         ->name('notifications.header');
 
+    // Message routes group
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
+
+    });
 });
