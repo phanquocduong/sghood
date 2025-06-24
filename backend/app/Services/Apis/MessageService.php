@@ -5,6 +5,7 @@ namespace App\Services\Apis;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class MessageService
 {
@@ -12,7 +13,7 @@ class MessageService
     {
     $data['sender_id'] = Auth::id();
 
-    \Log::info('Sender ID:', ['id' => $data['sender_id']]); // thêm dòng này
+    Log::info('Sender ID:', ['id' => $data['sender_id']]); // thêm dòng này
 
     return Message::create($data);
     }

@@ -153,6 +153,5 @@ Route::middleware('admin')->group(function () {
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
-
     });
 });
