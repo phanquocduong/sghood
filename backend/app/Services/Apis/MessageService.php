@@ -30,7 +30,7 @@ class MessageService
 
     public function getUsersChattedWithAdmin()
     {
-        $adminId = 1;
+        $adminId = auth()->id();
 
         $userIds = Message::where('sender_id', $adminId)
             ->orWhere('receiver_id', $adminId)
@@ -62,14 +62,14 @@ class MessageService
                 'receiver_id' => $userId,
                 'message' => 'Chào bạn! Bạn cần hỗ trợ gì từ chúng tôi?'
             ]);
-            //  đã có message, trả về message đầu tiên
-       return Message::where(function($query) use ($adminId, $userId) {
-           $query->where('sender_id', $adminId)
-                 ->where('receiver_id', $userId);
-       })->orWhere(function($query) use ($adminId, $userId) {
-           $query->where('sender_id', $userId)
-                 ->where('receiver_id', $adminId);
-       })->orderBy('created_at', 'asc')->first();
         }
-    }
+        //  đã có message, trả về message đầu tiên
+        return Message::where(function($query) use ($adminId, $userId) {
+            $query->where('sender_id', $adminId)
+                  ->where('receiver_id', $userId);
+        })->orWhere(function($query) use ($adminId, $userId) {
+            $query->where('sender_id', $userId)
+                  ->where('receiver_id', $adminId);
+        })->orderBy('created_at', 'asc')->first();
+         }
 }
