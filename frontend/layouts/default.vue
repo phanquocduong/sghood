@@ -47,11 +47,11 @@
         <AppFooter />
         <!-- Back To Top Button -->
         <div id="backtotop"><a href="#"></a></div>
-        
+
         <!-- chatbox -->
         <div>
-            <ChatIcon v-if="user" @toggle = "toggleChat"/>
-            <ChatBox  v-if=" isChatOpen" @close = "isChatOpen=false"></ChatBox>
+            <ChatIcon v-if="user" @toggle="toggleChat" />
+            <ChatBox v-if="isChatOpen" @close="isChatOpen = false"></ChatBox>
         </div>
     </div>
 </template>
@@ -59,15 +59,16 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { ref, watch, nextTick } from 'vue';
-import  { ChatIcon } from '#components';
+import { useAuthStore } from '~/stores/auth';
+
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const isChatOpen = ref(false);
 const authStore = useAuthStore();
-const {user} = storeToRefs(authStore)
-const toggleChat = () => isChatOpen.value = !isChatOpen.value;
+const { user } = storeToRefs(authStore);
+const toggleChat = () => (isChatOpen.value = !isChatOpen.value);
 
 watch(
     () => route.fullPath,
