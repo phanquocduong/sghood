@@ -40,8 +40,8 @@ const currentUserId = ref(authStore.user?.id || null)
 const token =ref( authStore.token || '')
 const {$api} = useNuxtApp()
 const newMessage = ref('')
+const chatMessage = ref([])
 const AdminId = ref()
-const selectedUserId = ref(null)
  const messages = ref([
    /*  {from:'admin',text:'Chào bạn! Bạn cần hỗ trợ gì'} */
 ]) 
@@ -56,6 +56,7 @@ const scrollToBottom = ()=>{
 }
  
 onMounted (()=>{
+  
   initChat();
   
 })
@@ -119,19 +120,24 @@ const initChat = async ()=>{
   
   AdminId.value = admin.id
   console.log(admin)
-  await $api(`/messages/start-chat`,{
+
+   const respone =  await $api(`/messages/start-chat`,{
     method :'POST',
     headers:{
        Authorization:`Bearer ${token.value}`,
       'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
     },body:{
       receiver_id:admin.id,
-      sender_id : currentUserId.value
+      sender_id : currentUserId.value,
+      AdminId:admin.id
     }
   })
+  if(res?.data?.data){
+    chatMessage.value.push(respone.data.data)
+  }
   await fetchMessage();
 
-  setInterval(fetchMessage,500)
+  setInterval(fetchMessage,1000)
 }
 </script>
 
