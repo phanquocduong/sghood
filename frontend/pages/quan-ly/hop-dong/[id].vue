@@ -14,7 +14,7 @@
 
             <!-- Cột giấy tờ tùy thân (chỉ hiển thị khi cần) -->
             <div v-if="['Chờ xác nhận', 'Chờ chỉnh sửa'].includes(contract.status)" class="col-lg-3 col-md-3">
-                <div class="dashboard-list-box margin-top-0">
+                <div v-if="contract.status === 'Chờ xác nhận'" class="dashboard-list-box margin-top-0">
                     <h4 class="gray">Giấy tờ tùy thân</h4>
                     <div class="dashboard-list-box-static">
                         <div class="edit-profile-photo">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
 
-                <button @click="saveContract" class="button margin-top-15" :disabled="saveLoading || !isFormComplete">
+                <button @click="saveContract" class="button margin-top-15" :disabled="saveLoading || (!isFormComplete && !isEditable)">
                     <span v-if="saveLoading" class="button-spinner"></span>
                     {{ saveLoading ? 'Đang lưu...' : 'Lưu hợp đồng' }}
                 </button>
@@ -84,6 +84,8 @@ const isFormComplete = computed(() =>
         .every(value => value)
 );
 
+const isEditable = ref(false);
+
 const getColumnClass = status => {
     return ['Chờ xác nhận', 'Chờ chỉnh sửa'].includes(status) ? 'col-lg-9 col-md-9' : 'col-lg-12 col-md-12';
 };
@@ -95,6 +97,9 @@ const fetchContract = async () => {
         const response = await $api(`/contracts/${route.params.id}`, { method: 'GET' });
         contract.value = response.data;
         await nextTick();
+
+        // Xử lý nội dung hợp đồng dựa trên trạng thái
+        processContractContent();
         syncIdentityData();
     } catch (error) {
         console.error('Lỗi khi lấy hợp đồng:', error);
@@ -103,6 +108,28 @@ const fetchContract = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const processContractContent = () => {
+    if (!contract.value.content) return;
+
+    isEditable.value = true;
+    let processedContent = contract.value.content;
+
+    // Nếu trạng thái là "Chờ chỉnh sửa", xóa thuộc tính readonly
+    if (contract.value.status === 'Chờ chỉnh sửa') {
+        // Xóa thuộc tính readonly khỏi tất cả các input
+        processedContent = processedContent.replace(/\s*readonly\s*(?=\s|>|\/)/gi, '');
+
+        // Đảm bảo các input có thể chỉnh sửa được
+        processedContent = processedContent.replace(/<input([^>]*type="text"[^>]*)>/gi, (match, attributes) => {
+            // Loại bỏ readonly nếu có
+            const cleanAttributes = attributes.replace(/\s*readonly\s*/gi, '');
+            return `<input${cleanAttributes}>`;
+        });
+    }
+
+    contract.value.content = processedContent;
 };
 
 const syncIdentityData = () => {
@@ -124,6 +151,12 @@ const syncIdentityData = () => {
             };
             input.handlers = { ...input.handlers, [name]: handler };
             input.addEventListener('input', handler);
+
+            // Nếu trạng thái là "Chờ chỉnh sửa", đảm bảo input có thể chỉnh sửa
+            if (contract.value.status === 'Chờ chỉnh sửa') {
+                input.removeAttribute('readonly');
+                input.disabled = false;
+            }
         }
     });
 };
@@ -199,13 +232,21 @@ const updateContractHtml = () => {
 const saveContract = async () => {
     saveLoading.value = true;
     try {
-        syncIdentityData();
+        if (contract.value.status === 'Chờ xác nhận') {
+            syncIdentityData();
+        }
         const updatedHtml = updateContractHtml();
         const formData = new FormData();
         formData.append('contract_content', updatedHtml);
-        identityImages.value.forEach(file => formData.append('identity_images[]', file));
 
-        const response = await $api(`/contracts/${route.params.id}/save`, {
+        // Chỉ gửi ảnh căn cước khi trạng thái là "Chờ xác nhận"
+        if (contract.value.status === 'Chờ xác nhận') {
+            identityImages.value.forEach(file => formData.append('identity_images[]', file));
+        }
+
+        formData.append('_method', 'PATCH');
+
+        const response = await $api(`/contracts/${route.params.id}`, {
             method: 'POST',
             body: formData,
             headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
@@ -214,7 +255,7 @@ const saveContract = async () => {
         router.push('/quan-ly/hop-dong');
     } catch (error) {
         console.error('Lỗi khi lưu hợp đồng:', error);
-        toast.error('Lỗi khi lưu thông tin, vui lòng thử lại.');
+        handleBackendError(error);
     } finally {
         saveLoading.value = false;
     }
@@ -324,5 +365,16 @@ onMounted(async () => {
 
 .edit-profile-photo {
     margin-bottom: 0;
+}
+
+/* Thêm style cho input khi có thể chỉnh sửa */
+input[type='text']:not([readonly]) {
+    background-color: #fff;
+    border-color: #ddd;
+}
+
+input[type='text']:not([readonly]):focus {
+    border-color: #59b02c;
+    box-shadow: 0 0 0 0.2rem rgba(89, 176, 44, 0.25);
 }
 </style>

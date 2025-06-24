@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 hiddenInput.value = imageId;
                 const formElement = document.querySelector("#motelForm");
                 formElement.appendChild(hiddenInput);
-                 console.log("Thêm input xoá: ", hiddenInput); 
+                console.log("Thêm input xoá: ", hiddenInput);
                 col.remove();
 
                 updateFileInput(selectedFiles, imageInput);

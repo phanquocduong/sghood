@@ -3,22 +3,13 @@
 @section('title', 'Danh sách khu vực')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Danh sách khu vực') }}</h6>
+            <h6 class="mb-0 fw-bold">{{ __('Danh sách khu vực') }}
+                <span class="badge bg-light text-primary ms-2">{{ $districts->total() ?? 0 }} khu vực</span>
+            </h6>
             <div>
                 <a href="{{ route('districts.create') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-plus me-1"></i> {{ __('Thêm khu vực') }}
@@ -51,7 +42,18 @@
                     </div>
                 </form>
             </div>
-
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center">
                     <thead class="table-dark">

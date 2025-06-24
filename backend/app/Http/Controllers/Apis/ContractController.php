@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contract;
 use App\Services\Apis\ContractService;
 use App\Services\Apis\UserService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -131,7 +133,7 @@ class ContractController extends Controller
         }
     }
 
-    public function save(Request $request): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         try {
             $request->validate([
@@ -139,12 +141,23 @@ class ContractController extends Controller
                 'identity_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             ]);
 
-            $contract = $this->contractService->saveContract(
+            // Lấy thông tin hợp đồng hiện tại
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
+
+            // Xác định trạng thái mới dựa trên trạng thái hiện tại
+            $newStatus = $this->determineNewStatus($contract->status);
+
+            // Lưu hợp đồng với trạng thái mới
+            $updatedContract = $this->contractService->saveContract(
                 $request->input('contract_content'),
-                'Chờ duyệt'
+                $newStatus,
+                $id
             );
 
-            if ($request->hasFile('identity_images')) {
+            // Chỉ xử lý ảnh căn cước khi trạng thái là "Chờ xác nhận" và có file được gửi lên
+            if ($contract->status === 'Chờ xác nhận' && $request->hasFile('identity_images')) {
                 $this->userService->extractAndSaveIdentityImages(
                     Auth::user(),
                     $request->file('identity_images')
@@ -152,24 +165,61 @@ class ContractController extends Controller
             }
 
             return response()->json([
-                'message' => 'Hợp đồng đã được lưu và đang chờ duyệt',
-                'data' => $contract,
+                'message' => $this->getSuccessMessage($contract->status),
+                'data' => $updatedContract,
             ]);
+
         } catch (ValidationException $e) {
             return response()->json([
-                'error' => $e->errors(),
+                'errors' => $e->errors(),
                 'status' => 422,
             ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Hợp đồng không tồn tại hoặc bạn không có quyền truy cập.',
+                'status' => 404,
+            ], 404);
         } catch (\Throwable $e) {
-            Log::error('Lỗi lưu hợp đồng', [
+            Log::error('Lỗi cập nhật hợp đồng', [
                 'user_id' => Auth::id(),
+                'contract_id' => $id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
-                'error' => $e->getMessage(),
-                'status' => 422,
-            ], 422);
+                'error' => 'Đã có lỗi xảy ra khi cập nhật hợp đồng. Vui lòng thử lại.',
+                'status' => 500,
+            ], 500);
+        }
+    }
+
+     /**
+     * Xác định trạng thái mới dựa trên trạng thái hiện tại
+     */
+    private function determineNewStatus(string $currentStatus): string
+    {
+        switch ($currentStatus) {
+            case 'Chờ xác nhận':
+                return 'Chờ duyệt';
+            case 'Chờ chỉnh sửa':
+                return 'Chờ duyệt';
+            default:
+                return $currentStatus; // Giữ nguyên trạng thái nếu không phải 2 trạng thái trên
+        }
+    }
+
+    /**
+     * Lấy thông báo thành công phù hợp
+     */
+    private function getSuccessMessage(string $oldStatus): string
+    {
+        if ($oldStatus === 'Chờ xác nhận') {
+            return 'Hợp đồng đã được lưu và đang chờ duyệt';
+        } elseif ($oldStatus === 'Chờ chỉnh sửa') {
+            return 'Hợp đồng đã được chỉnh sửa và gửi lại để duyệt';
+        } else {
+            return 'Hợp đồng đã được cập nhật thành công';
         }
     }
 }
