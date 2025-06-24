@@ -1,6 +1,6 @@
 <template>
     <div class="tab-content" id="login" style="display: none">
-        <form @submit.prevent="authStore.loginUser">
+        <form @submit.prevent="handleLogin">
             <p class="form-row form-row-wide">
                 <label for="username">
                     SĐT hoặc Email:
@@ -59,16 +59,16 @@ const normalizePhoneNumber = value => {
     return cleaned;
 };
 
-// Theo dõi và chuẩn hóa username nếu là số điện thoại
-watch(username, newValue => {
-    if (!newValue.includes('@')) {
-        // Chỉ chuẩn hóa nếu không phải email
-        const normalized = normalizePhoneNumber(newValue);
-        if (normalized !== newValue) {
-            username.value = normalized;
-        }
+// Hàm xử lý đăng nhập
+const handleLogin = async () => {
+    // Chuẩn hóa username trước khi gửi
+    if (!username.value.includes('@')) {
+        username.value = normalizePhoneNumber(username.value);
     }
-});
+
+    // Gọi hàm đăng nhập từ authStore
+    await authStore.loginUser();
+};
 
 const showForgotPassword = () => {
     if (typeof window !== 'undefined' && window.$.magnificPopup) {

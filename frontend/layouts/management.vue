@@ -1,16 +1,10 @@
 <template>
-    <div id="wrapper">
-        <Loading v-if="isLoading" />
+    <Loading :is-loading="isLoading" />
+    <div v-if="!isLoading" id="wrapper">
         <!-- Header Container -->
         <header id="header-container" class="fixed fullwidth dashboard">
             <div id="header" class="not-sticky">
-                <div class="loading-overlay" v-show="isLoading">
-                    <div class="spinner"></div>
-                    <p>Đang tải ...</p>
-                </div>
-
                 <div class="container">
-                    <!-- Left Side Content -->
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">

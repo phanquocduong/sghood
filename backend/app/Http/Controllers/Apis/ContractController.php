@@ -5,22 +5,20 @@ namespace App\Http\Controllers\Apis;
 use App\Http\Controllers\Controller;
 use App\Services\Apis\ContractService;
 use App\Services\Apis\UserService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ContractController extends Controller
 {
-    protected $contractService;
-    protected $userService;
+    public function __construct(
+        private readonly ContractService $contractService,
+        private readonly UserService $userService
+    ) {}
 
-    public function __construct(ContractService $contractService, UserService $userService)
-    {
-        $this->contractService = $contractService;
-        $this->userService = $userService;
-    }
-
-    public function index()
+    public function index(): JsonResponse
     {
         try {
             $contracts = $this->contractService->getUserContracts();
@@ -30,8 +28,9 @@ class ContractController extends Controller
                 'status' => 200,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Error fetching user contracts: ' . $e->getMessage(), [
-                'user_id' => Auth::id() ?? null,
+            Log::error('Lỗi lấy danh sách hợp đồng', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
@@ -41,7 +40,7 @@ class ContractController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
         try {
             $contract = $this->contractService->getContractDetail($id);
@@ -58,9 +57,10 @@ class ContractController extends Controller
                 'status' => 200,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Error fetching contract detail: ' . $e->getMessage(), [
+            Log::error('Lỗi lấy chi tiết hợp đồng', [
                 'contract_id' => $id,
-                'user_id' => Auth::id() ?? null,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
@@ -70,7 +70,7 @@ class ContractController extends Controller
         }
     }
 
-    public function reject($id)
+    public function reject(int $id): JsonResponse
     {
         try {
             $result = $this->contractService->rejectContract($id);
@@ -87,9 +87,10 @@ class ContractController extends Controller
                 'status' => 200,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Error rejecting contract: ' . $e->getMessage(), [
+            Log::error('Lỗi hủy hợp đồng', [
                 'contract_id' => $id,
-                'user_id' => Auth::id() ?? null,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
@@ -99,61 +100,70 @@ class ContractController extends Controller
         }
     }
 
-    public function extractIdentityImages(Request $request)
+    public function extractIdentityImages(Request $request): JsonResponse
     {
         try {
             $request->validate([
-                'identity_images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                'identity_images.*' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             ]);
 
-            $identityImages = $request->file('identity_images');
-            $cccdData = $this->contractService->extractIdentityImages($identityImages);
+            $cccdData = $this->contractService->extractIdentityImages($request->file('identity_images'));
 
             return response()->json([
-                'status' => 'success',
                 'data' => $cccdData,
-                'message' => 'Trích xuất thông tin căn cước công dân thành công.',
+                'message' => 'Trích xuất thông tin CCCD thành công',
             ]);
-        } catch (\Exception $e) {
-            Log::error('Error extracting CCCD: ' . $e->getMessage(), [
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => $e->errors(),
+                'status' => 422,
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi trích xuất CCCD', [
                 'user_id' => Auth::id(),
-                'timestamp' => now(),
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
+                'error' => $e->getMessage(),
+                'status' => 422,
             ], 422);
         }
     }
 
-    public function save(Request $request)
+    public function save(Request $request): JsonResponse
     {
         try {
             $request->validate([
-                'contract_content' => 'required|string',
-                'identity_images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'contract_content' => ['required', 'string'],
+                'identity_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             ]);
 
-            $content = $request->input('contract_content');
-            $identityImages = $request->file('identity_images');
+            $contract = $this->contractService->saveContract(
+                $request->input('contract_content'),
+                'Chờ duyệt'
+            );
 
-            // Lưu hợp đồng
-            $contract = $this->contractService->saveContract($content, 'Chờ duyệt');
-
-            // Nếu có ảnh CCCD, lưu thông tin CCCD vào user
-            if ($identityImages) {
-                $user = Auth::user();
-                $cccdData = $this->userService->extractAndSaveIdentityImages($user, $identityImages);
+            if ($request->hasFile('identity_images')) {
+                $this->userService->extractAndSaveIdentityImages(
+                    Auth::user(),
+                    $request->file('identity_images')
+                );
             }
 
             return response()->json([
                 'message' => 'Hợp đồng đã được lưu và đang chờ duyệt',
                 'data' => $contract,
-            ], 200);
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => $e->errors(),
+                'status' => 422,
+            ], 422);
         } catch (\Throwable $e) {
-            Log::error('Error saving contract and identity images: ' . $e->getMessage(), [
+            Log::error('Lỗi lưu hợp đồng', [
                 'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
