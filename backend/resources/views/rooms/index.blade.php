@@ -13,6 +13,7 @@
                 </a>
                 <h6 class="mb-0 fw-bold">{{ __('Danh sách phòng trọ') }}
                     <span class="badge bg-light text-primary ms-2">{{ $motel->name ?? 'ID: ' . $motelId }}</span>
+                    <span class="badge bg-light text-secondary ms-2">{{ $rooms->total() }} phòng trọ</span>
                 </h6>
             </div>
             <div>

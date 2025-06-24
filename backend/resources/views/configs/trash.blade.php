@@ -3,18 +3,7 @@
 @section('title', 'Thùng rác cấu hình')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -26,6 +15,19 @@
             </div>
         </div>
         <div class="card-body p-4">
+            <!-- Breadcrumb navigation -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('configs.index') }}" class="text-decoration-none">
+                                <i class="fas fa-home me-1"></i>Cấu hình
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="fas fa-door-open me-1"></i>Thùng rác
+                        </li>
+                    </ol>
+                </nav>
             <div class="mb-4">
                 <form action="{{ route('configs.trash') }}" method="GET" class="row g-3">
                     <div class="col-md-4">
@@ -39,7 +41,18 @@
                     </div>
                 </form>
             </div>
-
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center">
                     <thead class="table-dark">
