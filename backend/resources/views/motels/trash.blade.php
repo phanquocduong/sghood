@@ -5,24 +5,34 @@
 @section('content')
     <div class="container-fluid py-5 px-4">
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
-                style="background: linear-gradient(90deg, #ff7e5f, #feb47b); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-                <h6 class="mb-0 fw-bold">{{ __('Thùng rác') }}</h6>
-                <div>
-                    <a href="{{ route('motels.index') }}" class="btn btn-light text-dark shadow-sm"
-                        style="transition: all 0.3s;">
-                        <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
-                    </a>
-                </div>
+            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+            <h6 class="mb-0 fw-bold">{{ __('Thùng rác nhà trọ') }}</h6>
+            <div>
+                <a href="{{ route('motels.index') }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">
+                    <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại danh sách') }}
+                </a>
             </div>
+        </div>
             <div class="card-body p-4">
+                <!-- Breadcrumb navigation -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('motels.index') }}" class="text-decoration-none">
+                                <i class="fas fa-home me-1"></i>Nhà trọ
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="fas fa-door-open me-1"></i>Thùng rác
+                        </li>
+                    </ol>
+                </nav>
                 @if (session('message'))
                     <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
                         {{ session('message') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered align-middle text-center">
                         <thead class="table-dark">

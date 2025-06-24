@@ -17,7 +17,10 @@
 @endif
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
-        <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+        <div class="card-header bg-gradient text-white d-flex align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+            <a href="{{ route('districts.index') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại danh sách phòng trọ">
+                <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
+            </a>
             <h6 class="mb-0 fw-bold">{{ __('Chỉnh sửa khu vực') }}</h6>
         </div>
         <div class="card-body p-4">
