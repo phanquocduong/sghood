@@ -53,6 +53,7 @@ Route::middleware('admin')->group(function () {
         Route::delete('/{id}', [MotelController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [MotelController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [MotelController::class, 'forceDestroy'])->name('forceDelete');
+        Route::post('/{motel_id}/images/{image_id}/delete', [MotelController::class, 'deleteMotelImage'])->name('motels.delete-image');
     });
 
     // District Routes Group

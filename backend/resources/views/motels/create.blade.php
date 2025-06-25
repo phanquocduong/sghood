@@ -3,29 +3,11 @@
 @section('title', 'Thêm nhà trọ')
 
 @section('content')
+    <!-- Adding FilePond CSS -->
+    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/create-motel.css') }}">
 
-<!-- dropzone -->
- @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
-@endpush
-
-@push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
-@endpush
-
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
     <div class="container-fluid py-5 px-4">
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -36,25 +18,24 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="name" class="form-label fw-bold text-primary">Tên dãy trọ</label>
-                            <input type="text" class="form-control shadow-sm {{ $errors->has('name') ? 'is-invalid' : '' }}"
-                                id="name" name="name" value="{{ old('name') }}" required>
+                            <label for="name" class="form-label fw-bold text-primary">Tên dãy trọ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control shadow-sm @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6">
-                            <label for="address" class="form-label fw-bold text-primary">Địa chỉ</label>
-                            <input type="text" class="form-control shadow-sm {{ $errors->has('address') ? 'is-invalid' : '' }}" id="address" name="address" value="{{ old('address') }}" required>
+                            <label for="address" class="form-label fw-bold text-primary">Địa chỉ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control shadow-sm @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address') }}" required>
                             @error('address')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6">
-                            <label for="district_id" class="form-label fw-bold text-primary">Quận/Huyện</label>
-                            <select class="form-select shadow-sm {{ $errors->has('district_id') ? 'is-invalid' : '' }}" id="district_id" name="district_id" required>
+                            <label for="district_id" class="form-label fw-bold text-primary">Quận/Huyện <span class="text-danger">*</span></label>
+                            <select class="form-select shadow-sm @error('district_id') is-invalid @enderror" id="district_id" name="district_id" required>
                                 <option value="">Chọn quận/huyện</option>
                                 @if(isset($districts) && $districts->count() > 0)
                                     @foreach($districts as $district)
@@ -70,8 +51,8 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="map_embed_url" class="form-label fw-bold text-primary">URL nhúng bản đồ</label>
-                            <input type="url" class="form-control shadow-sm {{ $errors->has('map_embed_url') ? 'is-invalid' : '' }}" id="map_embed_url" name="map_embed_url" value="{{ old('map_embed_url') }}" placeholder="https://maps.google.com/...">
+                            <label for="map_embed_url" class="form-label fw-bold text-primary">URL nhúng bản đồ <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control shadow-sm @error('map_embed_url') is-invalid @enderror" id="map_embed_url" name="map_embed_url" value="{{ old('map_embed_url') }}" required placeholder="https://maps.google.com/...">
                             @error('map_embed_url')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -79,63 +60,63 @@
 
                         <div class="col-12">
                             <label for="description" class="form-label fw-bold text-primary">Mô tả</label>
-                            <textarea class="form-control shadow-sm {{ $errors->has('description') ? 'is-invalid' : '' }}" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                            <textarea class="form-control shadow-sm @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="electricity_fee" class="form-label fw-bold text-primary">Tiền điện (VNĐ/kWh)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('electricity_fee') ? 'is-invalid' : '' }}" id="electricity_fee" name="electricity_fee" value="{{ old('electricity_fee') }}" step="1" min="0">
+                            <label for="electricity_fee" class="form-label fw-bold text-primary">Tiền điện (VNĐ/kWh) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('electricity_fee') is-invalid @enderror" id="electricity_fee" name="electricity_fee" value="{{ old('electricity_fee') }}" step="any" min="0" required>
                             @error('electricity_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="water_fee" class="form-label fw-bold text-primary">Tiền nước (VNĐ/m³)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('water_fee') ? 'is-invalid' : '' }}" id="water_fee" name="water_fee" value="{{ old('water_fee') }}" step="1" min="0">
+                            <label for="water_fee" class="form-label fw-bold text-primary">Tiền nước (VNĐ/m³) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('water_fee') is-invalid @enderror" id="water_fee" name="water_fee" value="{{ old('water_fee') }}" step="any" min="0" required>
                             @error('water_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="parking_fee" class="form-label fw-bold text-primary">Phí giữ xe (VNĐ/tháng)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('parking_fee') ? 'is-invalid' : '' }}" id="parking_fee" name="parking_fee" value="{{ old('parking_fee') }}" step="1" min="0">
+                            <label for="parking_fee" class="form-label fw-bold text-primary">Phí giữ xe (VNĐ/tháng) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('parking_fee') is-invalid @enderror" id="parking_fee" name="parking_fee" value="{{ old('parking_fee') }}" step="any" min="0" required>
                             @error('parking_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="junk_fee" class="form-label fw-bold text-primary">Phí rác (VNĐ/tháng)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('junk_fee') ? 'is-invalid' : '' }}" id="junk_fee" name="junk_fee" value="{{ old('junk_fee') }}" step="1" min="0">
+                            <label for="junk_fee" class="form-label fw-bold text-primary">Phí rác (VNĐ/tháng) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('junk_fee') is-invalid @enderror" id="junk_fee" name="junk_fee" value="{{ old('junk_fee') }}" step="any" min="0" required>
                             @error('junk_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="internet_fee" class="form-label fw-bold text-primary">Phí internet (VNĐ/tháng)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('internet_fee') ? 'is-invalid' : '' }}" id="internet_fee" name="internet_fee" value="{{ old('internet_fee') }}" step="1" min="0">
+                            <label for="internet_fee" class="form-label fw-bold text-primary">Phí internet (VNĐ/tháng) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('internet_fee') is-invalid @enderror" id="internet_fee" name="internet_fee" value="{{ old('internet_fee') }}" step="any" min="0" required>
                             @error('internet_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label for="service_fee" class="form-label fw-bold text-primary">Phí dịch vụ (VNĐ/tháng)</label>
-                            <input type="number" class="form-control shadow-sm {{ $errors->has('service_fee') ? 'is-invalid' : '' }}" id="service_fee" name="service_fee" value="{{ old('service_fee') }}" step="1" min="0">
+                            <label for="service_fee" class="form-label fw-bold text-primary">Phí dịch vụ (VNĐ/tháng) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control shadow-sm @error('service_fee') is-invalid @enderror" id="service_fee" name="service_fee" value="{{ old('service_fee') }}" step="any" min="0" required>
                             @error('service_fee')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-md-6">
-                            <label for="status" class="form-label fw-bold text-primary">Trạng thái</label>
-                            <select class="form-select shadow-sm {{ $errors->has('status') ? 'is-invalid' : '' }}" id="status" name="status" required>
+                            <label for="status" class="form-label fw-bold text-primary">Trạng thái <span class="text-danger">*</span></label>
+                            <select class="form-select shadow-sm @error('status') is-invalid @enderror" id="status" name="status" required>
                                 <option value="Hoạt động" {{ old('status') == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                                 <option value="Không hoạt động" {{ old('status') == 'Không hoạt động' ? 'selected' : '' }}>Không hoạt động</option>
                             </select>
@@ -144,7 +125,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-12 {{ $errors->has('amenities') ? 'is-invalid' : '' }}">
+                        <div class="col-12">
                             <label for="amenities" class="form-label fw-bold text-primary">Tiện ích</label>
                             <div class="row g-2">
                                 @if(isset($amenities) && count($amenities) > 0)
@@ -152,7 +133,7 @@
                                         @if($amenity->type == 'Nhà trọ')
                                             <div class="col-md-4">
                                                 <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" id="amenity_{{ $amenity->id }}"
+                                                    <input type="checkbox" class="form-check-input @error('amenities') is-invalid @enderror" id="amenity_{{ $amenity->id }}"
                                                         name="amenities[]" value="{{ $amenity->id }}"
                                                         {{ in_array($amenity->id, old('amenities', [])) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="amenity_{{ $amenity->id }}">{{ $amenity->name }}</label>
@@ -167,78 +148,45 @@
                                 @endif
                             </div>
                             @error('amenities')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="col-12">
-                            <label for="images" class="form-label fw-bold text-primary">Hình ảnh</label>
-                            <input type="file" class="form-control shadow-sm {{ $errors->has('images') ? 'is-invalid' : '' }}" id="images" name="images[]" accept="image/*" multiple>
-                            <input type="hidden" name="main_image_index" id="main_image_index" value="0">
+                            <label for="images" class="form-label fw-bold text-primary">Hình ảnh <span class="text-danger">*</span></label>
+                            <input type="file" class="filepond form-control shadow-sm @error('images') is-invalid @enderror" name="images[]" multiple accept="image/*" required>
+                            <small class="form-text text-muted mb-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Bạn có thể thêm 1 hình hoặc nhiều hình. Định dạng hỗ trợ: JPG, PNG, GIF, Webp.
+                            </small>
+
+                            <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+                                <label class="form-label fw-bold text-success">
+                                    <i class="fas fa-images me-1"></i>
+                                    Hình ảnh đã chọn (Click vào ảnh để chọn làm ảnh chính)
+                                </label>
+                                <div id="imagePreviewGrid" class="row g-2"></div>
+                                <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
+                            </div>
+
                             @error('images')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
-                            <div id="image-preview" class="row g-2 mt-3"></div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end mt-4 gap-2">
                         <a href="{{ route('motels.index') }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">Hủy</a>
-                        <button type="submit" name="submit" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">Thêm nhà trọ</button>
+                        <button type="submit" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">Thêm nhà trọ</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <style>
-        .card {
-            border-radius: 15px;
-        }
-
-        .card-header {
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        #image-preview img {
-            max-height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-right: 10px;
-            transition: transform 0.3s;
-        }
-
-        /* #image-preview img:hover {
-            transform: scale(1.1);
-        } */
-
-        .alert-success, .alert-danger {
-            border-left: 5px solid #28a745;
-        }
-
-        .alert-danger {
-            border-left-color: #dc3545;
-        }
-
-        .invalid-feedback {
-            display: block;
-            font-size: 0.875em;
-            color: #dc3545;
-            margin-top: 0.25rem;
-        }
-
-        .is-invalid {
-            border-color: #dc3545;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(0.375em + 0.1875rem) center;
-            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-        }
-    </style>
+    <!-- Adding FilePond JS and Plugins -->
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+    <script src="{{ asset('js/motel.js') }}"></script>
 @endsection

@@ -3,6 +3,8 @@
 @section('title', 'Danh sách nhà trọ')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/index-motel.css') }}">
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #6a11cb, #2575fc); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -19,9 +21,9 @@
             </div>
         </div>
         <div class="card-body p-4">
-            @if (session('message'))
+            @if (session('success') || session('message'))
                 <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                    {{ session('message') }}
+                    {{ session('success') ?: session('message') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
@@ -31,7 +33,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-
             <div class="mb-4">
                 <form action="{{ route('motels.index') }}" method="GET" class="row g-3">
                     <div class="col-md-4">
@@ -144,30 +145,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .table-row:hover {
-        background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
-    }
-
-    .motel-image:hover {
-        transform: scale(1.1);
-    }
-
-    .action-btn:hover, .btn-primary:hover, .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .alert-success {
-        border-left: 5px solid #28a745;
-    }
-
-    .text-primary:hover {
-        color: #6a11cb !important;
-    }
-</style>
 
 @section('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>

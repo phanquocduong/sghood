@@ -115,7 +115,7 @@ class MotelService
             $data['slug'] = $this->generateUniqueSlug($data['name']);
 
             if (!isset($data['status'])) {
-                $data['status'] = 'Hoạt động'; // Đảm bảo trạng thái mặc định
+                $data['status'] = 'Hoạt động';
             }
 
             $motel = Motel::create(array_filter($data, function ($value) {
@@ -169,10 +169,8 @@ class MotelService
             return $failedUploads;
         }
 
-        // Upload và lưu từng ảnh
         foreach ($imageFiles as $index => $file) {
-           $isMain = ($index === $mainImageIndex) ? 1 : 0; // Ảnh đầu tiên sẽ là ảnh chính
-
+            $isMain = ($index === $mainImageIndex) ? 1 : 0;
             $imagePath = $this->uploadMotelImage($file);
             if ($imagePath) {
                 MotelImage::create([
@@ -185,17 +183,14 @@ class MotelService
             }
         }
 
-        // Đảm bảo chỉ có đúng 1 ảnh is_main = 1
+        // Đảm bảo chỉ có một ảnh chính
         $mainImages = MotelImage::where('motel_id', $motelId)->where('is_main', 1)->get();
-
         if ($mainImages->count() === 0) {
-            // Không có ảnh chính, gán ảnh đầu tiên
             $firstImage = MotelImage::where('motel_id', $motelId)->first();
             if ($firstImage) {
                 $firstImage->update(['is_main' => 1]);
             }
         } elseif ($mainImages->count() > 1) {
-            // Có nhiều ảnh chính, chỉ giữ ảnh chính đầu tiên
             foreach ($mainImages as $i => $image) {
                 $image->update(['is_main' => $i === 0 ? 1 : 0]);
             }
@@ -223,67 +218,55 @@ class MotelService
     }
 
     public function updateMotel(int $id, array $data, array $imageFiles): array
-    {
-        Log::info('FULL REQUEST DATA', request()->all());
-        DB::beginTransaction();
-        try {
-            $motel = Motel::find($id);
-            if (!$motel) {
-                return ['error' => 'Nhà trọ không tìm thấy', 'status' => 404];
-            }
+{
+    DB::beginTransaction();
+    try {
+        $motel = Motel::findOrFail($id);
 
-            if (isset($data['name']) && $data['name'] !== $motel->name) {
-                $data['slug'] = $this->generateUniqueSlug($data['name']);
-            }
-
-            $motel->update($data);
-
-            // Xử lý xóa ảnh hiện tại
-            if (!empty($data['delete_images'])) {
-                foreach ($data['delete_images'] as $imageId) {
-                    $image = MotelImage::find($imageId);
-                    if ($image) {
-                        $this->deleteMotelImage($image->image_url);
-                        $image->delete();
-                    }
-                }
-            }
-
-            // Xử lý ảnh mới
-            if (!empty($imageFiles)) {
-                // Xóa tất cả ảnh hiện tại trước khi thêm ảnh mới (nếu có upload lại)
-                $existingImages = $motel->images()->get();
-                foreach ($existingImages as $image) {
-                    $this->deleteMotelImage($image->image_url);
-                    $image->delete();
-                }
-
-                $mainImageIndex = request()->input('main_image_index', 0); // Lấy index ảnh chính từ form
-                $failedUploads = $this->processMotelImages($motel->id, $imageFiles, $mainImageIndex);
-            } elseif (request()->has('main_image_index')) {
-                // Cập nhật is_main cho ảnh hiện tại nếu có thay đổi
-                $mainImageId = request()->input('main_image_index');
-                MotelImage::where('motel_id', $id)->update(['is_main' => 0]);
-                MotelImage::where('id', $mainImageId)->update(['is_main' => 1]);
-            }
-
-            if (isset($data['amenities'])) {
-                $motel->amenities()->sync($data['amenities']);
-            }
-
-            DB::commit();
-
-            $result = ['data' => $motel->load(['district', 'images', 'amenities'])];
-            if (!empty($failedUploads)) {
-                $result['warnings'] = ['failed_images' => $failedUploads];
-            }
-            return $result;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật nhà trọ', 'status' => 500];
+        // Cập nhật slug nếu tên thay đổi
+        if (isset($data['name']) && $data['name'] !== $motel->name) {
+            $data['slug'] = $this->generateUniqueSlug($data['name']);
         }
+
+        // Cập nhật thông tin nhà trọ
+        $motel->update(array_filter($data, function ($value) {
+            return $value !== null && $value !== '';
+        }));
+
+        // Xử lý ảnh mới
+        $failedUploads = [];
+        $newMainImageIndex = isset($data['new_main_image_index']) ? (int)$data['new_main_image_index'] : null;
+        if (!empty($imageFiles)) {
+            $failedUploads = $this->processMotelImages($motel->id, $imageFiles, $newMainImageIndex ?? 0);
+        }
+
+        // Cập nhật ảnh chính từ existing images
+        if (isset($data['is_main'])) {
+            MotelImage::where('motel_id', $motel->id)->update(['is_main' => 0]);
+            $mainImage = MotelImage::where('motel_id', $motel->id)->find($data['is_main']);
+            if ($mainImage) {
+                $mainImage->update(['is_main' => 1]);
+            }
+        }
+
+        // Đồng bộ tiện ích
+        if (isset($data['amenities']) && is_array($data['amenities'])) {
+            $motel->amenities()->sync($data['amenities']);
+        }
+
+        DB::commit();
+
+        $result = ['data' => $motel->load(['district', 'images', 'amenities'])];
+        if (!empty($failedUploads)) {
+            $result['warnings'] = ['failed_images' => $failedUploads];
+        }
+        return $result;
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        \Log::error('Error updating motel: ' . $e->getMessage());
+        return ['error' => 'Đã xảy ra lỗi khi cập nhật nhà trọ: ' . $e->getMessage(), 'status' => 500];
     }
+}
 
     public function deleteMotel(int $id): array
     {

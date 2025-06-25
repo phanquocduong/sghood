@@ -1,5 +1,3 @@
-// filepath: d:\DuAnTotNghiep\troviet-platform\backend\public\js\room-edit.js
-// Register FilePond plugins
 FilePond.registerPlugin(
     FilePondPluginImagePreview,
     FilePondPluginFileValidateType
@@ -168,10 +166,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             const imageId = this.getAttribute('data-image-id');
-            const roomId = this.getAttribute('data-room-id');
+            const motelId = this.getAttribute('data-motel-id');
 
             if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
-                deleteExistingImage(imageId, roomId, this);
+                deleteExistingImage(imageId, motelId, this);
             }
         });
     });
@@ -201,7 +199,6 @@ function updateExistingImagesDisplay() {
             }
         } else {
             item.classList.remove('main-selected');
-            // Chỉ xóa badge được tạo động, không xóa badge có sẵn từ server
             if (existingBadge && selectedMainImageType !== 'existing') {
                 existingBadge.remove();
             }
@@ -210,7 +207,7 @@ function updateExistingImagesDisplay() {
 }
 
 // Delete existing image via AJAX with improved error handling
-function deleteExistingImage(imageId, roomId, button) {
+function deleteExistingImage(imageId, motelId, button) {
     const imageItem = button.closest('.existing-image-item');
     const originalButtonHtml = button.innerHTML;
 
@@ -219,7 +216,7 @@ function deleteExistingImage(imageId, roomId, button) {
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     // Tạo URL đúng format
-    const deleteUrl = `/rooms/${roomId}/images/${imageId}/delete`;
+    const deleteUrl = `/motels/${motelId}/images/${imageId}/delete`;
     console.log('Deleting image with URL:', deleteUrl); // Debug log
 
     fetch(deleteUrl, {
@@ -299,28 +296,24 @@ function deleteExistingImage(imageId, roomId, button) {
     });
 }
 
-// Handle main image selection after deleting an image
+// Handle main image after deletion
 function handleMainImageAfterDelete(deletedImageId) {
     const remainingRadios = document.querySelectorAll('.main-image-radio');
 
-    // If the deleted image was the selected main image
     if (selectedMainImageType === 'existing' && selectedMainImageId === deletedImageId) {
         if (remainingRadios.length > 0) {
-            // Select first remaining existing image as main
             remainingRadios[0].checked = true;
             selectedMainImageId = remainingRadios[0].value;
             selectedMainImageType = 'existing';
             updateExistingImagesDisplay();
             showNotification('Đã tự động chọn ảnh chính mới từ ảnh còn lại', 'info');
         } else if (selectedNewFiles.length > 0) {
-            // No existing images left, select first new image as main
             selectedMainImageType = 'new';
             mainImageIndex = 0;
             selectedMainImageId = null;
             updateNewImagePreview();
             showNotification('Đã tự động chọn ảnh chính từ ảnh mới', 'info');
         } else {
-            // No images left at all
             selectedMainImageType = null;
             selectedMainImageId = null;
             mainImageIndex = 0;
@@ -328,9 +321,8 @@ function handleMainImageAfterDelete(deletedImageId) {
     }
 }
 
-// Show notification with better styling
+// Show notification
 function showNotification(message, type = 'info') {
-    // Remove existing notifications
     document.querySelectorAll('.custom-notification').forEach(n => n.remove());
 
     const notification = document.createElement('div');
@@ -352,7 +344,6 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 4 seconds
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
@@ -361,12 +352,10 @@ function showNotification(message, type = 'info') {
 }
 
 // Handle form submit
-document.getElementById('roomForm').addEventListener('submit', function (e) {
-    // Remove existing file inputs to avoid duplicates
+document.getElementById('motelForm').addEventListener('submit', function (e) {
     const existingInputs = this.querySelectorAll('input[name="images[]"]:not(.filepond)');
     existingInputs.forEach(input => input.remove());
 
-    // Add new files to form
     selectedNewFiles.forEach((file, index) => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -378,7 +367,6 @@ document.getElementById('roomForm').addEventListener('submit', function (e) {
         this.appendChild(input);
     });
 
-    // Handle main image selection
     if (selectedMainImageType === 'existing' && selectedMainImageId) {
         const targetRadio = document.querySelector(`input[name="is_main"][value="${selectedMainImageId}"]`);
         if (targetRadio) {
@@ -391,25 +379,21 @@ document.getElementById('roomForm').addEventListener('submit', function (e) {
         mainImageInput.value = mainImageIndex;
         this.appendChild(mainImageInput);
 
-        // Uncheck all existing main image radios
         document.querySelectorAll('.main-image-radio').forEach(radio => {
             radio.checked = false;
         });
     }
 
-    // Show loading state on submit button
     const submitBtn = this.querySelector('button[type="submit"]');
     if (submitBtn) {
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang cập nhật...';
         submitBtn.disabled = true;
-
-        // Store original text for potential restoration
         submitBtn.setAttribute('data-original-text', originalText);
     }
 });
 
-// Cleanup object URLs when page unloads
+// Cleanup object URLs
 window.addEventListener('beforeunload', () => {
     selectedNewFiles.forEach(file => {
         if (file instanceof File) {
@@ -418,14 +402,3 @@ window.addEventListener('beforeunload', () => {
         }
     });
 });
-
-// Add error handling for CSRF token
-function getCSRFToken() {
-    const token = document.querySelector('meta[name="csrf-token"]');
-    if (!token) {
-        console.error('CSRF token not found in page');
-        showNotification('Lỗi bảo mật: Không tìm thấy CSRF token. Vui lòng tải lại trang!', 'danger');
-        return null;
-    }
-    return token.getAttribute('content');
-}

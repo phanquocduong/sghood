@@ -5,7 +5,11 @@ use App\Services\MotelService;
 use App\Services\AmenityService;
 use App\Services\DistrictService;
 use App\Http\Requests\MotelRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Models\Motel;
+use App\Models\MotelImage;
+use Illuminate\Support\Facades\Storage;
 
 class MotelController extends Controller
 {
@@ -54,27 +58,30 @@ class MotelController extends Controller
         return view('motels.create', ['amenities' => $amenities['data'], 'districts' => $districts['data']]);
     }
 
-    public function store(MotelRequest $request)
+    public function store(MotelRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
+        try {
+            $data = $request->validated();
+            $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
+            $mainImageIndex = (int) $request->input('main_image_index', 0);
 
-        $mainImageIndex = (int) $request->input('main_image_index', 0);
+            $result = $this->motelService->createMotel($data, $imageFiles, $mainImageIndex);
 
-        $result = $this->motelService->createMotel($data, $imageFiles, $mainImageIndex);
+            if (isset($result['error'])) {
+                \Log::error('Motel creation error: ' . $result['error']);
+                return redirect()->back()->withInput()->with('error', $result['error']);
+            }
 
-        if (isset($result['error'])) {
-            return redirect()->back()
-                ->withErrors($result['error'])
-                ->withInput();
+            $message = 'Nhà trọ đã được tạo thành công!';
+            if (isset($result['warnings'])) {
+                $message .= ' Tuy nhiên, một số hình ảnh không thể tải lên: ' . implode(', ', $result['warnings']['failed_images']);
+            }
+
+            return redirect()->route('motels.index')->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('Unexpected error in MotelController::store: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Đã xảy ra lỗi không mong muốn: ' . $e->getMessage());
         }
-
-        $message = 'Nhà trọ đã được tạo thành công!';
-        if (isset($result['warnings'])) {
-            $message .= ' Tuy nhiên, một số hình ảnh không thể tải lên.';
-        }
-
-        return redirect()->route('motels.index')->with('success', $message);
     }
 
     public function edit(int $id)
@@ -136,5 +143,33 @@ class MotelController extends Controller
     {
         $this->motelService->forceDeleteMotel($id);
         return redirect()->route('motels.trash')->with('message', 'Nhà trọ đã được xóa vĩnh viễn!');
+    }
+    public function deleteMotelImage(int $motelId, int $imageId)
+    {
+        try {
+            $motel = Motel::findOrFail($motelId);
+            $image = MotelImage::where('motel_id', $motelId)->findOrFail($imageId);
+
+            // Xóa file vật lý
+            if (Storage::disk('public')->exists($image->image_url)) {
+                Storage::disk('public')->delete($image->image_url);
+            }
+
+            // Xóa bản ghi trong database
+            $image->delete();
+
+            // Nếu xóa ảnh chính, chọn ảnh khác làm ảnh chính
+            if ($image->is_main) {
+                $remainingImage = MotelImage::where('motel_id', $motelId)->first();
+                if ($remainingImage) {
+                    $remainingImage->update(['is_main' => 1]);
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Đã xóa ảnh thành công']);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting motel image: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Lỗi khi xóa ảnh'], 500);
+        }
     }
 }

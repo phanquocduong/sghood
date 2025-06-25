@@ -117,51 +117,53 @@ class RoomController extends Controller
 
     // Tạo phòng mới.
     public function store(RoomRequest $request): RedirectResponse|JsonResponse
-{
-    $motelId = $request->input('motel_id', '');
+    {
+        $motelId = $request->input('motel_id', '');
+        $mainImageIndex = $request->input('main_image_index', 0);
 
-    try {
-        $result = $this->roomService->createRoom(
-            $request->validated(),
-            $request->file('images') ?? []
-        );
+        try {
+            $result = $this->roomService->createRoom(
+                $request->validated(),
+                $request->file('images') ?? [],
+                (int)$mainImageIndex
+            );
 
-        if (isset($result['error'])) {
+            if (isset($result['error'])) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $result['error'],
+                        'old' => $request->all()
+                    ], $result['status'] ?? 400);
+                }
+                return redirect()->back()->with('error', $result['error'])->withInput();
+            }
+
+            $message = 'Phòng đã được tạo thành công!';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'redirect_url' => route('rooms.index', ['motel_id' => $motelId])
+                ]);
+            }
+
+            return redirect()
+                ->route('rooms.index', ['motel_id' => $motelId])
+                ->with('success', $message);
+        } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $result['error'],
-                    'old' => $request->all()
-                ], $result['status'] ?? 400);
+                    'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+                ], 500);
             }
-            return redirect()->back()->with('error', $result['error'])->withInput();
-        }
 
-        $message = 'Phòng đã được tạo thành công!';
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'redirect_url' => route('rooms.index', ['motel_id' => $motelId])
-            ]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
-
-        return redirect()
-            ->route('rooms.index', ['motel_id' => $motelId])
-            ->with('success', $message);
-    } catch (\Exception $e) {
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
-            ], 500);
-        }
-
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
     }
-}
 
     // Hiển thị form chỉnh sửa phòng.
     public function edit(string $id): View|RedirectResponse
@@ -181,15 +183,22 @@ class RoomController extends Controller
     }
 
     // Cập nhật thông tin phòng.
+    // Cập nhật thông tin phòng.
     public function update(RoomRequest $request, string $id): RedirectResponse
     {
         $motelId = $request->input('motel_id', '');
         $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
         $mainImageId = $request->input('is_main');
 
+        // Add new main image index to data if provided
+        $data = $request->validated();
+        if ($request->has('new_main_image_index')) {
+            $data['new_main_image_index'] = $request->input('new_main_image_index');
+        }
+
         $result = $this->roomService->updateRoom(
             $id,
-            $request->validated(),
+            $data,
             $imageFiles,
             $mainImageId
         );

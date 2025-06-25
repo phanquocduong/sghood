@@ -3,6 +3,8 @@
 @section('title', 'Chi tiết phòng trọ')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/show-room.css') }}">
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
         {{ session('success') }}
@@ -15,6 +17,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -59,39 +62,107 @@
                     <p><strong class="text-muted">Mô tả:</strong> {{ $room->description ?? 'Không có mô tả.' }}</p>
                     <p><strong class="text-muted">Ghi chú:</strong> {{ $room->note ?? 'Không có ghi chú.' }}</p>
                 </div>
+
+                <!-- Tiện nghi đã cải thiện -->
                 <div class="col-md-6">
-                    <h6 class="text-primary fw-bold mb-3">Tiện nghi</h6>
-                    <ul class="list-unstyled">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-star text-warning me-2"></i>Tiện nghi
+                    </h6>
+                    <div class="amenities-container">
                         @forelse($room->amenities as $amenity)
-                            <li>{{ $amenity->name }}</li>
-                        @empty
-                            <li class="text-muted">Không có tiện nghi.</li>
-                        @endforelse
-                    </ul>
-                </div>
-                <div class="col-12">
-                    <h6 class="text-primary fw-bold">Ảnh phòng trọ</h6>
-                    <div class="row g-2">
-                        @forelse($room->images as $image)
-                            <div class="col-md-3 mb-2 position-relative">
-                                <img src="{{ asset($image->image_url) }}" class="img-fluid rounded shadow-sm motel-image" alt="Room Image" style="max-height: 150px; object-fit: cover; transition: transform 0.3s;">
+                            <div class="amenity-badge">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>{{ $amenity->name }}</span>
                             </div>
                         @empty
-                            <p class="text-muted">Không có ảnh nào.</p>
+                            <div class="no-amenities">
+                                <i class="fas fa-info-circle text-muted me-2"></i>
+                                <span class="text-muted">Không có tiện nghi</span>
+                            </div>
                         @endforelse
+                    </div>
+                </div>
+
+                <!-- Gallery ảnh đã cải thiện -->
+                <div class="col-12">
+                    <div class="image-gallery-section">
+                        <h6 class="text-primary fw-bold mb-3">
+                            <i class="fas fa-images text-info me-2"></i>
+                            Thư viện ảnh
+                            <small class="text-muted">({{ $room->images->count() }} ảnh)</small>
+                        </h6>
+
+                        @if($room->images->count() > 0)
+                            @php
+                                $mainImage = $room->images->where('is_main', 1)->first();
+                                $otherImages = $room->images->where('is_main', 0);
+                            @endphp
+
+                            <div class="compact-gallery">
+                                <!-- Ảnh chính nhỏ gọn -->
+                                @if($mainImage)
+                                    <div class="main-image-compact mb-3">
+                                        <div class="main-image-wrapper-compact">
+                                            <img src="{{ asset($mainImage->image_url) }}"
+                                                 class="main-image-small"
+                                                 alt="Ảnh chính - {{ $room->name }}">
+                                            <div class="main-badge-compact">
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <div class="main-image-label">
+                                            <i class="fas fa-crown text-warning me-1"></i>
+                                            <span class="fw-bold">Ảnh chính</span>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Ảnh phụ nhỏ gọn -->
+                                @if($otherImages->count() > 0)
+                                    <div class="other-images-compact">
+                                        <div class="other-images-label mb-2">
+                                            <i class="fas fa-image text-primary me-1"></i>
+                                            <span class="fw-semibold">Ảnh khác ({{ $otherImages->count() }})</span>
+                                        </div>
+                                        <div class="other-images-grid-compact">
+                                            @foreach($otherImages as $index => $image)
+                                                <div class="other-image-item-compact">
+                                                    <img src="{{ asset($image->image_url) }}"
+                                                         class="other-image-small"
+                                                         alt="Ảnh {{ $index + 2 }}">
+                                                    <div class="image-number-compact">{{ $index + 2 }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="no-images-compact">
+                                <i class="fas fa-image fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Chưa có ảnh nào</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2 p-4">
-            <a href="{{ route('rooms.index', ['motel_id' => $room->motel_id]) }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">Quay lại</a>
-            <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-warning shadow-sm" style="transition: all 0.3s;">Sửa</a>
+            <a href="{{ route('rooms.index', ['motel_id' => $room->motel_id]) }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại
+            </a>
+            <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-warning shadow-sm" style="transition: all 0.3s;">
+                <i class="fas fa-edit me-1"></i>Sửa
+            </a>
             <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">Xóa</button>
+                <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
+                    <i class="fas fa-trash me-1"></i>Xóa
+                </button>
             </form>
         </div>
     </div>
 </div>
+
 @endsection
