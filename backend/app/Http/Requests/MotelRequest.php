@@ -32,6 +32,8 @@ class MotelRequest extends FormRequest
             'amenities' => 'nullable|array',
             'amenities.*' => 'integer|exists:amenities,id',
             'main_image_index' => 'nullable|integer|min:0',
+            'is_main' => 'nullable|string',
+            'new_main_image_index' => 'nullable|integer|min:0',
         ];
     }
 

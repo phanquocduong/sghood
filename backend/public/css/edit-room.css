@@ -16,6 +16,13 @@
     position: relative;
 }
 
+.existing-image-item.main-selected {
+    border: 3px solid #28a745;
+    border-radius: 12px;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
+    transform: scale(1.02);
+}
+
 .image-wrapper {
     position: relative;
     border-radius: 10px;
@@ -62,10 +69,11 @@
 }
 
 .main-image-radio:checked + .main-image-label {
-    background: #ffc107;
-    border-color: #ffc107;
-    color: white;
-    transform: scale(1.1);
+    background: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
+    transform: scale(1.2);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
 }
 
 .main-image-label:hover {
