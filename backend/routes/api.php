@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
+    Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
 
     Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
 });

@@ -17,11 +17,12 @@ class Contract extends Model
         'rental_price',
         'deposit_amount',
         'content',
+        'signature_path',
         'status',
         'file',
         'otp_code',
         'otp_expires_at',
-        'signed_at',
+        'signed_at'
     ];
 
     protected $casts = [

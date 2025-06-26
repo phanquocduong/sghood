@@ -10,21 +10,56 @@
                     <p>Đang quét ảnh căn cước...</p>
                 </div>
                 <div v-else ref="contractContainer" v-html="contract.content"></div>
+
+                <!-- Form chữ ký -->
+                <div v-if="contract.status === 'Chờ ký'" class="signature-section mt-4">
+                    <SignaturePad @signature-saved="handleSignatureSaved" @signature-cleared="handleSignatureCleared" />
+                </div>
+
+                <div v-if="contract.status === 'Chờ chỉnh sửa'" class="d-flex justify-content-center">
+                    <button @click="saveContract" class="button margin-top-15" :disabled="saveLoading">
+                        <span v-if="saveLoading" class="button-spinner"></span>
+                        {{ saveLoading ? 'Đang lưu...' : 'Lưu hợp đồng' }}
+                    </button>
+                </div>
+
+                <div v-if="contract.status === 'Chờ ký'" class="d-flex justify-content-center">
+                    <button
+                        v-if="contract.status === 'Chờ ký'"
+                        @click="signContract"
+                        class="button margin-top-15"
+                        :disabled="saveLoading || !signatureData"
+                    >
+                        <span v-if="saveLoading" class="button-spinner"></span>
+                        {{ saveLoading ? 'Đang ký...' : 'Ký hợp đồng' }}
+                    </button>
+                </div>
             </div>
 
-            <!-- Cột giấy tờ tùy thân (chỉ hiển thị khi cần) -->
-            <div v-if="['Chờ xác nhận', 'Chờ chỉnh sửa'].includes(contract.status)" class="col-lg-3 col-md-3">
+            <!-- Cột giấy tờ tùy thân và nút hành động -->
+            <div v-if="['Chờ xác nhận', 'Chờ chỉnh sửa', 'Chờ ký'].includes(contract.status)" class="col-lg-3 col-md-3">
+                <!-- Form giấy tờ tùy thân -->
                 <div v-if="contract.status === 'Chờ xác nhận'" class="dashboard-list-box margin-top-0">
                     <h4 class="gray">Giấy tờ tùy thân</h4>
                     <div class="dashboard-list-box-static">
+                        <p v-if="identityDocument.has_valid" class="valid-message">Ảnh căn cước đã hợp lệ, không thể tải lên thêm.</p>
                         <div class="edit-profile-photo">
-                            <form id="dropzone-upload" class="dropzone" :class="{ 'dropzone-disabled': identityDocument.has_valid }"></form>
-                            <p v-if="identityDocument.has_valid" class="valid-message">Ảnh căn cước đã hợp lệ, không thể tải lên thêm.</p>
+                            <form
+                                id="dropzone-upload"
+                                class="dropzone"
+                                :class="{ 'dropzone-disabled': identityDocument.has_valid ?? false }"
+                            ></form>
                         </div>
                     </div>
                 </div>
+                <!-- Nút hành động -->
 
-                <button @click="saveContract" class="button margin-top-15" :disabled="saveLoading || (!isFormComplete && !isEditable)">
+                <button
+                    v-if="contract.status === 'Chờ xác nhận'"
+                    @click="saveContract"
+                    class="button margin-top-15"
+                    :disabled="saveLoading || !isFormComplete"
+                >
                     <span v-if="saveLoading" class="button-spinner"></span>
                     {{ saveLoading ? 'Đang lưu...' : 'Lưu hợp đồng' }}
                 </button>
@@ -35,9 +70,10 @@
 
 <script setup>
 import { useHead } from '@unhead/vue';
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useRoute, useRouter } from 'vue-router';
+import SignaturePad from '~/components/SignaturePad.vue';
 
 definePageMeta({
     layout: 'management'
@@ -49,6 +85,12 @@ useHead({
             rel: 'stylesheet',
             href: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
             integrity: 'sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM',
+            crossorigin: 'anonymous'
+        },
+        {
+            rel: 'stylesheet',
+            href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
+            integrity: 'sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==',
             crossorigin: 'anonymous'
         }
     ]
@@ -67,14 +109,14 @@ const contract = ref({ id: '', status: '', content: '' });
 const contractContainer = ref(null);
 const dropzoneInstance = ref(null);
 const identityImages = ref([]);
+const signatureData = ref(null);
 const identityDocument = ref({
     full_name: '',
     year_of_birth: '',
     identity_number: '',
     date_of_issue: '',
     place_of_issue: '',
-    permanent_address: '',
-    has_valid: false
+    permanent_address: ''
 });
 
 // Computed
@@ -84,10 +126,8 @@ const isFormComplete = computed(() =>
         .every(value => value)
 );
 
-const isEditable = ref(false);
-
 const getColumnClass = status => {
-    return ['Chờ xác nhận', 'Chờ chỉnh sửa'].includes(status) ? 'col-lg-9 col-md-9' : 'col-lg-12 col-md-12';
+    return ['Chờ xác nhận'].includes(status) ? 'col-lg-9 col-md-9' : 'col-lg-12 col-md-12';
 };
 
 // Methods
@@ -98,32 +138,27 @@ const fetchContract = async () => {
         contract.value = response.data;
         await nextTick();
 
-        // Xử lý nội dung hợp đồng dựa trên trạng thái
         processContractContent();
-        syncIdentityData();
     } catch (error) {
         console.error('Lỗi khi lấy hợp đồng:', error);
         toast.error('Lỗi khi tải hợp đồng, vui lòng thử lại.');
         router.push('/quan-ly/hop-dong');
     } finally {
         loading.value = false;
+        await nextTick();
+        syncIdentityData();
+        console.log(identityDocument.value);
     }
 };
 
 const processContractContent = () => {
     if (!contract.value.content) return;
 
-    isEditable.value = true;
     let processedContent = contract.value.content;
 
-    // Nếu trạng thái là "Chờ chỉnh sửa", xóa thuộc tính readonly
     if (contract.value.status === 'Chờ chỉnh sửa') {
-        // Xóa thuộc tính readonly khỏi tất cả các input
         processedContent = processedContent.replace(/\s*readonly\s*(?=\s|>|\/)/gi, '');
-
-        // Đảm bảo các input có thể chỉnh sửa được
         processedContent = processedContent.replace(/<input([^>]*type="text"[^>]*)>/gi, (match, attributes) => {
-            // Loại bỏ readonly nếu có
             const cleanAttributes = attributes.replace(/\s*readonly\s*/gi, '');
             return `<input${cleanAttributes}>`;
         });
@@ -139,23 +174,10 @@ const syncIdentityData = () => {
     inputs.forEach(input => {
         const { name } = input;
         if (name in identityDocument.value) {
-            // Đồng bộ từ identityDocument sang input
-            input.value = identityDocument.value[name] || '';
-
-            // Xóa listener cũ để tránh chồng chéo
-            input.removeEventListener('input', input.handlers?.[name]);
-
-            // Thêm listener mới để đồng bộ từ input sang identityDocument
-            const handler = () => {
-                identityDocument.value[name] = input.value || '';
-            };
-            input.handlers = { ...input.handlers, [name]: handler };
-            input.addEventListener('input', handler);
-
-            // Nếu trạng thái là "Chờ chỉnh sửa", đảm bảo input có thể chỉnh sửa
-            if (contract.value.status === 'Chờ chỉnh sửa') {
-                input.removeAttribute('readonly');
-                input.disabled = false;
+            if (identityDocument.value[name]) {
+                input.value = identityDocument.value[name];
+            } else {
+                identityDocument.value[name] = input.value;
             }
         }
     });
@@ -196,10 +218,131 @@ const handleIdentityUpload = async files => {
         }
     } catch (error) {
         handleBackendError(error);
-        dropzoneInstance.value?.removeAllFiles(true);
+        identityDocument.value = {
+            full_name: '',
+            year_of_birth: '',
+            identity_number: '',
+            date_of_issue: '',
+            place_of_issue: '',
+            permanent_address: ''
+        };
         identityImages.value = [];
+        dropzoneInstance.value?.removeAllFiles(true);
     } finally {
         extractLoading.value = false;
+        await nextTick();
+        syncIdentityData();
+    }
+};
+
+const handleSignatureSaved = signature => {
+    signatureData.value = signature;
+};
+
+const handleSignatureCleared = () => {
+    signatureData.value = null;
+};
+
+const updateContractWithSignature = async () => {
+    if (!signatureData.value) return contract.value.content;
+
+    // Thu nhỏ ảnh chữ ký với chất lượng cao
+    const processedSignature = await processSignature(signatureData.value);
+    if (!processedSignature) return contract.value.content;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(contract.value.content, 'text/html');
+    const sideBSections = doc.getElementsByClassName('col-6 text-center');
+    if (sideBSections.length >= 2) {
+        const sideB = sideBSections[1]; // Lấy cột thứ hai (BÊN B)
+        const signatureImg = doc.createElement('img');
+        signatureImg.src = processedSignature;
+        signatureImg.className = 'signature-image';
+        signatureImg.alt = 'Chữ ký Bên B';
+
+        // Tạo thẻ <p> chứa <strong> cho họ tên
+        const nameParagraph = doc.createElement('p');
+        const nameStrong = doc.createElement('strong');
+        nameStrong.textContent = identityDocument.value.full_name;
+        nameParagraph.appendChild(nameStrong);
+        nameParagraph.className = 'signature-name';
+
+        // Tìm placeholder
+        const signaturePlaceholder = sideB.querySelector('p.mb-5');
+        if (signaturePlaceholder) {
+            // Chèn chữ ký và họ tên ngay sau placeholder
+            signaturePlaceholder.after(nameParagraph);
+            signaturePlaceholder.after(signatureImg);
+        } else {
+            // Nếu không tìm thấy placeholder, thêm vào cuối sideB
+            sideB.appendChild(signatureImg);
+            sideB.appendChild(nameParagraph);
+        }
+        return doc.documentElement.innerHTML;
+    }
+    return contract.value.content;
+};
+
+// Hàm thu nhỏ ảnh chữ ký với chất lượng cao
+const processSignature = signature => {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous'; // Để tránh lỗi CORS nếu có
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Sử dụng super-sampling để cải thiện chất lượng
+            const scaleFactor = 2; // Tăng gấp đôi kích thước tạm thời
+            const targetWidth = 200 * scaleFactor;
+            const targetHeight = 100 * scaleFactor;
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            // Vẽ ảnh với kích thước lớn hơn trước, sau đó thu nhỏ
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Tạo canvas mới để thu nhỏ xuống kích thước cuối
+            const outputCanvas = document.createElement('canvas');
+            const outputCtx = outputCanvas.getContext('2d');
+            outputCanvas.width = 200;
+            outputCanvas.height = 100;
+            outputCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight, 0, 0, 200, 100);
+
+            // Chuyển thành base64 với chất lượng cao
+            resolve(outputCanvas.toDataURL('image/png', 0.9));
+        };
+        img.onerror = () => resolve(null);
+        img.src = signature;
+    });
+};
+
+const signContract = async () => {
+    if (!signatureData.value) {
+        toast.error('Vui lòng ký hợp đồng trước khi gửi.');
+        return;
+    }
+
+    saveLoading.value = true;
+    try {
+        const updatedContent = await updateContractWithSignature(); // Chờ xử lý ảnh
+        const response = await $api(`/contracts/${route.params.id}/sign`, {
+            method: 'POST',
+            body: {
+                signature: signatureData.value, // Gửi bản gốc để lưu
+                content: updatedContent
+            },
+            headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
+        });
+        toast.success(response.message);
+        router.push('/quan-ly/hop-dong');
+    } catch (error) {
+        console.error('Lỗi khi ký hợp đồng:', error);
+        handleBackendError(error);
+    } finally {
+        saveLoading.value = false;
     }
 };
 
@@ -207,7 +350,7 @@ const updateContractHtml = () => {
     let html = contract.value.content;
     const inputs = contractContainer.value.querySelectorAll('input[type="text"]');
     const inputWidths = {
-        full_name: '250px',
+        full_name: '200px',
         year_of_birth: '100px',
         identity_number: '150px',
         date_of_issue: '150px',
@@ -239,7 +382,6 @@ const saveContract = async () => {
         const formData = new FormData();
         formData.append('contract_content', updatedHtml);
 
-        // Chỉ gửi ảnh căn cước khi trạng thái là "Chờ xác nhận"
         if (contract.value.status === 'Chờ xác nhận') {
             identityImages.value.forEach(file => formData.append('identity_images[]', file));
         }
@@ -260,15 +402,6 @@ const saveContract = async () => {
         saveLoading.value = false;
     }
 };
-
-// Watch
-watch(
-    identityDocument,
-    () => {
-        nextTick(syncIdentityData);
-    },
-    { deep: true }
-);
 
 // Lifecycle
 onMounted(async () => {
@@ -303,17 +436,37 @@ onMounted(async () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #f7f7f7; /* Nền trắng mờ */
+    background: #f7f7f7;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Đủ cao để che nội dung hợp đồng nhưng không che sidebar */
+    z-index: 1000;
     transition: opacity 0.3s ease;
 }
 
 .extract-loading-overlay p {
     font-size: 16px;
+    color: #333;
+}
+
+.signature-section {
+    margin-top: 20px;
+}
+
+.signature-image {
+    max-width: 80px;
+    max-height: 40px;
+    margin: 10px auto;
+    border: 1px solid #000;
+    border-radius: 4px;
+}
+
+.signature-name {
+    display: block;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 5px;
     color: #333;
 }
 
@@ -331,7 +484,10 @@ onMounted(async () => {
 
 .dropzone {
     border: 2px dashed #ccc;
-    transition: border-color 0.2s;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.2s ease;
 }
 
 .dropzone:hover {
@@ -347,7 +503,8 @@ onMounted(async () => {
 
 .valid-message {
     color: #59b02c;
-    font-size: 14px;
+    font-size: 1.4rem;
+    line-height: 2.2rem;
     margin-top: 10px;
     text-align: center;
 }
@@ -367,10 +524,10 @@ onMounted(async () => {
     margin-bottom: 0;
 }
 
-/* Thêm style cho input khi có thể chỉnh sửa */
 input[type='text']:not([readonly]) {
     background-color: #fff;
     border-color: #ddd;
+    border-radius: 5px;
 }
 
 input[type='text']:not([readonly]):focus {

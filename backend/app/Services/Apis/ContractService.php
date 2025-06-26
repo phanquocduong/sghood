@@ -80,8 +80,6 @@ class ContractService
                 'content' => $contract->content,
                 'status' => $contract->status,
                 'file' => $contract->file ? url($contract->file) : null,
-                'otp_code' => $contract->otp_code,
-                'otp_expires_at' => $contract->otp_expires_at?->toDateTimeString(),
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
                 'created_at' => $contract->created_at->toDateTimeString(),
                 'updated_at' => $contract->updated_at->toDateTimeString(),
@@ -201,47 +199,6 @@ class ContractService
         return $identityDocument;
     }
 
-    public function saveContract(string $content, string $status, int $id): Contract
-    {
-        try {
-            $contract = Contract::where('user_id', Auth::id())
-                ->where('id', $id)
-                ->firstOrFail();
-
-            $oldStatus = $contract->status;
-
-            $contract->update([
-                'content' => $content,
-                'status' => $status,
-                'updated_at' => now()
-            ]);
-
-            // Log hoạt động
-            Log::info('Hợp đồng được cập nhật', [
-                'user_id' => Auth::id(),
-                'contract_id' => $id,
-                'old_status' => $oldStatus,
-                'new_status' => $status
-            ]);
-
-            // Chỉ thông báo admin khi trạng thái chuyển sang "Chờ duyệt"
-            if ($status === 'Chờ duyệt') {
-                $this->notifyAdmins($contract, $oldStatus);
-            }
-
-            return $contract->fresh(); // Reload để lấy dữ liệu mới nhất
-
-        } catch (\Throwable $e) {
-            Log::error('Lỗi cập nhật hợp đồng', [
-                'user_id' => Auth::id(),
-                'contract_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw $e;
-        }
-    }
-
     private function parseCccdFrontText(string $text): array
     {
         $data = [
@@ -322,6 +279,101 @@ class ContractService
         return array_filter($data);
     }
 
+    public function saveContract(string $content, string $status, int $id): Contract
+    {
+        try {
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->firstOrFail();
+
+            $oldStatus = $contract->status;
+
+            $contract->update([
+                'content' => $content,
+                'status' => $status,
+                'updated_at' => now()
+            ]);
+
+            // Log hoạt động
+            Log::info('Hợp đồng được cập nhật', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => $status
+            ]);
+
+            // Chỉ thông báo admin khi trạng thái chuyển sang "Chờ duyệt"
+            if ($status === 'Chờ duyệt') {
+                $this->notifyAdmins($contract, $oldStatus);
+            }
+
+            return $contract->fresh(); // Reload để lấy dữ liệu mới nhất
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi cập nhật hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function signContract(int $contractId, string $signature, string $content): Contract
+    {
+        try {
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $contractId)
+                ->where('status', 'Chờ ký')
+                ->firstOrFail();
+
+            // Lưu chữ ký
+            $signaturePath = $this->saveSignature($signature, $contractId);
+
+            // Cập nhật hợp đồng
+            $contract->update([
+                'status' => 'Hoạt động',
+                'signature' => $signaturePath,
+                'content' => $content,
+                'signed_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Log hoạt động
+            Log::info('Hợp đồng đã được ký', [
+                'user_id' => Auth::id(),
+                'contract_id' => $contractId,
+                'signature' => $signaturePath
+            ]);
+
+            // Thông báo admin
+            $this->notifyAdmins($contract, 'Chờ ký');
+
+            return $contract->fresh();
+
+        } catch (\Throwable $e) {
+            Log::error('Lỗi ký hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $contractId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    private function saveSignature(string $signature, int $contractId): string
+    {
+        $signature = preg_replace('#^data:image/\w+;base64,#i', '', $signature);
+        $signatureData = base64_decode($signature);
+
+        $path = "images/signatures/contract-{$contractId}-" . time() . '.png';
+        Storage::disk('private')->put($path, $signatureData);
+
+        return $path;
+    }
+
     private function notifyAdmins(Contract $contract, string $oldStatus): void
     {
         try {
@@ -332,13 +384,16 @@ class ContractService
                 return;
             }
 
-            // Điều chỉnh tiêu đề và nội dung thông báo dựa trên trạng thái cũ
-            $title = $oldStatus === 'Chờ chỉnh sửa'
-                ? 'Hợp đồng đã được chỉnh sửa'
-                : 'Hợp đồng mới đang chờ duyệt';
-            $body = $oldStatus === 'Chờ chỉnh sửa'
-                ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được chỉnh sửa và gửi lại để duyệt."
-                : "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.";
+            $title = $oldStatus === 'Chờ ký'
+                ? 'Hợp đồng đã được ký'
+                : ($oldStatus === 'Chờ chỉnh sửa'
+                    ? 'Hợp đồng đã được chỉnh sửa'
+                    : 'Hợp đồng mới đang chờ duyệt');
+            $body = $oldStatus === 'Chờ ký'
+                ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được ký và chuyển sang trạng thái Hoạt động."
+                : ($oldStatus === 'Chờ chỉnh sửa'
+                    ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được chỉnh sửa và gửi lại để duyệt."
+                    : "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.");
 
             Mail::to($admins->pluck('email'))->send(new ContractPendingEmail($contract));
 
