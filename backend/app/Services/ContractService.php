@@ -19,19 +19,19 @@ class ContractService
     public function getAllContracts(string $querySearch = '', string $status = '', int $perPage = 10): array
     {
         try {
+            \DB::enableQueryLog();
             $query = Contract::with(['user', 'room', 'booking']);
 
             // Apply search filter
-            if ($querySearch) {
+           if ($querySearch) {
+                $querySearch = trim($querySearch); // Loại bỏ khoảng trắng thừa
                 $query->where(function ($q) use ($querySearch) {
-                    $q->where('content', 'like', "%$querySearch%")
-                        ->orWhere('file', 'like', "%$querySearch%")
-                        ->orWhereHas('user', function ($userQuery) use ($querySearch) {
-                            $userQuery->where('name', 'like', "%$querySearch%");
-                        })
-                        ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
-                            $roomQuery->where('name', 'like', "%$querySearch%");
-                        });
+                    $q->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'like', "%{$querySearch}%");
+                    })
+                    ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
+                        $roomQuery->where('name', 'like', "%{$querySearch}%");
+                    });
                 });
             }
 
@@ -40,6 +40,7 @@ class ContractService
             }
 
             $contracts = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            \Log::info('SQL Query', \DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
