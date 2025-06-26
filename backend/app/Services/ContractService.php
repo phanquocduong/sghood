@@ -831,6 +831,7 @@ class ContractService
         }
     }
 
+    // Lấy hình ảnh căn cước công dân từ hợp đồng
     public function getIdentityDocument(int $contractId, string $imagePath): array
     {
         try {

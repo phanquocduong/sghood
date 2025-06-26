@@ -86,50 +86,51 @@ class ContractController extends Controller
         );
     }
 
+    // Hiển thị hình ảnh căn cước công dân
     public function showIdentityDocument(Request $request, $contractId, $imagePath)
-{
-    try {
-        Log::info('Attempting to show identity document', ['contractId' => $contractId, 'imagePath' => $imagePath]);
+    {
+        try {
+            Log::info('Attempting to show identity document', ['contractId' => $contractId, 'imagePath' => $imagePath]);
 
-        $contract = $this->contractService->getContractById($contractId);
-        if (isset($contract['error'])) {
-            Log::error('Contract not found', ['error' => $contract['error']]);
-            abort(404, $contract['error']);
+            $contract = $this->contractService->getContractById($contractId);
+            if (isset($contract['error'])) {
+                Log::error('Contract not found', ['error' => $contract['error']]);
+                abort(404, $contract['error']);
+            }
+
+            $contract = $contract['data'];
+
+            if (!$contract->user || !$contract->user->identity_document) {
+                Log::error('No identity document found for user');
+                abort(404, 'Không tìm thấy hình ảnh căn cước công dân');
+            }
+
+            $imagePaths = explode('|', $contract->user->identity_document);
+            $fullImagePath = 'images/identity_document/' . $imagePath;
+
+            if (!in_array($fullImagePath, $imagePaths)) {
+                Log::error('Invalid image path', ['fullImagePath' => $fullImagePath, 'imagePaths' => $imagePaths]);
+                abort(404, 'Hình ảnh không hợp lệ');
+            }
+
+            // Đọc file từ disk private
+            Log::info('Reading encrypted file from private disk', ['fullImagePath' => $fullImagePath]);
+            $encryptedContent = Storage::disk('private')->get($fullImagePath);
+            Log::info('Decrypting content', ['contentLength' => strlen($encryptedContent)]);
+
+            $decryptedContent = decrypt($encryptedContent);
+
+            return response($decryptedContent)
+                ->header('Content-Type', 'image/webp')
+                ->header('Cache-Control', 'no-cache, private');
+
+        } catch (\Throwable $e) {
+            Log::error('Error displaying identity document: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'image_path' => $imagePath,
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Đã xảy ra lỗi khi hiển thị hình ảnh căn cước công dân');
         }
-
-        $contract = $contract['data'];
-
-        if (!$contract->user || !$contract->user->identity_document) {
-            Log::error('No identity document found for user');
-            abort(404, 'Không tìm thấy hình ảnh căn cước công dân');
-        }
-
-        $imagePaths = explode('|', $contract->user->identity_document);
-        $fullImagePath = 'images/identity_document/' . $imagePath;
-
-        if (!in_array($fullImagePath, $imagePaths)) {
-            Log::error('Invalid image path', ['fullImagePath' => $fullImagePath, 'imagePaths' => $imagePaths]);
-            abort(404, 'Hình ảnh không hợp lệ');
-        }
-
-        // Đọc file từ disk private
-        Log::info('Reading encrypted file from private disk', ['fullImagePath' => $fullImagePath]);
-        $encryptedContent = Storage::disk('private')->get($fullImagePath);
-        Log::info('Decrypting content', ['contentLength' => strlen($encryptedContent)]);
-
-        $decryptedContent = decrypt($encryptedContent);
-
-        return response($decryptedContent)
-            ->header('Content-Type', 'image/webp')
-            ->header('Cache-Control', 'no-cache, private');
-
-    } catch (\Throwable $e) {
-        Log::error('Error displaying identity document: ' . $e->getMessage(), [
-            'contract_id' => $contractId,
-            'image_path' => $imagePath,
-            'trace' => $e->getTraceAsString()
-        ]);
-        abort(500, 'Đã xảy ra lỗi khi hiển thị hình ảnh căn cước công dân');
     }
-}
 }
