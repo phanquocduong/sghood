@@ -1,28 +1,19 @@
 <?php
-
 namespace App\Services\Apis;
 
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-<<<<<<< HEAD
-=======
-use Illuminate\Support\Facades\Log;
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
 
 class MessageService
 {
     public function sendMessage(array $data)
     {
-    $data['sender_id'] = Auth::id();
+        $data['sender_id'] = Auth::id();
 
-<<<<<<< HEAD
-    \Log::info('Sender ID:', ['id' => $data['sender_id']]); // thêm dòng này
-=======
-    Log::info('Sender ID:', ['id' => $data['sender_id']]); // thêm dòng này
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
+        \Log::info('Sender ID:', ['id' => $data['sender_id']]); // thêm dòng này
 
-    return Message::create($data);
+        return Message::create($data);
     }
 
     public function getChatHistory($userId)
@@ -38,11 +29,7 @@ class MessageService
 
     public function getUsersChattedWithAdmin()
     {
-<<<<<<< HEAD
         $adminId = 1;
-=======
-        $adminId = auth()->id();
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
 
         $userIds = Message::where('sender_id', $adminId)
             ->orWhere('receiver_id', $adminId)
@@ -59,37 +46,44 @@ class MessageService
         return User::whereIn('id', $userIds)->get();
     }
     public function startChatAdmin($adminId, $userId)
-    {
-        $hasMessages = Message::where(function($query) use ($adminId, $userId) {
-            $query->where('sender_id', $adminId)
-                  ->where('receiver_id', $userId);
-        })->orWhere(function($query) use ($adminId, $userId) {
-            $query->where('sender_id', $userId)
-                  ->where('receiver_id', $adminId);
-        })->exists();
+{
+    $query = Message::where(function ($query) use ($adminId, $userId) {
+        $query->where('sender_id', $adminId)
+            ->where('receiver_id', $userId);
+    })->orWhere(function ($query) use ($adminId, $userId) {
+        $query->where('sender_id', $userId)
+            ->where('receiver_id', $adminId);
+    });
 
-        if (!$hasMessages) {
-<<<<<<< HEAD
-            Message::create([
-=======
-          return Message::create([
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
+    // Kiểm tra tin nhắn đã tồn tại
+    $firstMessage = $query->orderBy('created_at', 'asc')->first();
+
+    if (!$firstMessage) {
+        try {
+            // Tạo tin nhắn mới với đầy đủ thông tin
+            $firstMessage = Message::create([
                 'sender_id' => $adminId,
                 'receiver_id' => $userId,
-                'message' => 'Chào bạn! Bạn cần hỗ trợ gì từ chúng tôi?'
+                'message' => 'Chào bạn! Bạn cần hỗ trợ gì từ chúng tôi?',
+                'read' => false,
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
+
+            \Log::info('Tin nhắn chào mừng đã được tạo', ['message_id' => $firstMessage->id]);
+
+        } catch (\Exception $e) {
+            \Log::error('Lỗi khi tạo tin nhắn chào mừng', [
+                'error' => $e->getMessage(),
+                'admin_id' => $adminId,
+                'user_id' => $userId
+            ]);
+
+            // Trả về null nếu có lỗi
+            return null;
         }
-<<<<<<< HEAD
     }
-=======
-        //  đã có message, trả về message đầu tiên
-        return Message::where(function($query) use ($adminId, $userId) {
-            $query->where('sender_id', $adminId)
-                  ->where('receiver_id', $userId);
-        })->orWhere(function($query) use ($adminId, $userId) {
-            $query->where('sender_id', $userId)
-                  ->where('receiver_id', $adminId);
-        })->orderBy('created_at', 'asc')->first();
-         }
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
+
+    return $firstMessage;
+}
 }
