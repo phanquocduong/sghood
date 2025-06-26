@@ -71,10 +71,16 @@
                             <tr class="table-row">
                                 <td>{{ $configs->firstItem() + $index }}</td>
                                 <td>{{ $config->config_key }}</td>
-                                <td>{{ Str::limit($config->config_value, 50) }}</td>
+                                <td>
+                                    @if($config->config_type == 'IMAGE' && $config->config_value)
+                                        <img src="{{ asset($config->config_value) }}" alt="{{ $config->config_key }}" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                    @else
+                                        {{ Str::limit($config->config_value, 50) }}
+                                    @endif
+                                </td>
                                 <td>{{ $config->description ?? 'Không có mô tả' }}</td>
                                 <td>{{ $config->config_type }}</td>
-                                <td>{{ $config->deleted_at->format('d/m/Y H:i') }}</td>
+                                <td>{{ $config->deleted_at->setTimezone('Asia/Ho_Chi_Minh')->locale('vi')->format('d/m/Y H:i') }}</td>
                                 <td>
                                     <form action="{{ route('configs.restore', $config->id) }}" method="POST" style="display:inline-block;">
                                         @csrf
