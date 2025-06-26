@@ -138,10 +138,10 @@
                                 <td class="text-center">
                                     <small class="text-muted">
                                         <i class="fas fa-calendar me-1"></i>
-                                        {{ $note->created_at ? $note->created_at->format('d/m/Y') : 'N/A' }}
+                                        {{ $note->created_at ? $note->created_at->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y') : 'N/A' }}
                                         <br>
                                         <i class="fas fa-clock me-1"></i>
-                                        {{ $note->created_at ? $note->created_at->format('H:i') : 'N/A' }}
+                                        {{ $note->created_at ? $note->created_at->setTimezone('Asia/Ho_Chi_Minh')->format('H:i') : 'N/A' }}
                                     </small>
                                 </td>
                                 <td class="text-center">
