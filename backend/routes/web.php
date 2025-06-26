@@ -155,4 +155,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
     });
+
+    Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
+    ->name('contracts.showIdentityDocument');
 });

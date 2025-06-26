@@ -27,6 +27,27 @@
                     <i class="fas fa-edit me-2"></i>QUẢN LÝ TRẠNG THÁI HỢP ĐỒNG
                 </h5>
 
+                <!-- Identity Document Display -->
+                <div class="card border-0 bg-white shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary">
+                            <i class="fas fa-id-card me-2"></i>Hình ảnh căn cước công dân
+                        </h6>
+                        @if($contract->user && $contract->user->identity_document)
+                            @foreach(explode('|', $contract->user->identity_document) as $imagePath)
+                                <div class="mb-3">
+                                    <img src="{{ route('contracts.showIdentityDocument', ['contractId' => $contract->id, 'imagePath' => basename($imagePath)]) }}"
+                                        alt="Căn cước công dân"
+                                        class="img-fluid rounded"
+                                        style="max-width: 300px; max-height: 200px;">
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="text-muted">Không có hình ảnh căn cước công dân.</p>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Current Status Display -->
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -137,30 +158,29 @@
     </div>
 
 <style>
-    input{
-        pointer-events: none;
-        background-color: #f8f9fa;
-        user-select: none;
-    }
-    .form-control{
-        background-color: rgb(243, 246, 249);
-    }
+        input {
+            pointer-events: none;
+            background-color: #f8f9fa;
+            user-select: none;
+        }
+        .form-control {
+            background-color: rgb(243, 246, 249);
+        }
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 
-</style>
-
-<script>
-function confirmStatusChange() {
-    const status = document.getElementById('status').value;
-    const note = document.getElementById('note')?.value || '';
-
-    if (!status) {
-        alert('Vui lòng chọn trạng thái mới!');
-        return false;
-    }
-
-    let message = `Bạn có chắc muốn thay đổi trạng thái hợp đồng thành "${status}"?`;
-
-    return confirm(message);
-}
-</script>
+    <script>
+        function confirmStatusChange() {
+            const status = document.getElementById('status').value;
+            if (!status) {
+                alert('Vui lòng chọn trạng thái mới!');
+                return false;
+            }
+            let message = `Bạn có chắc muốn thay đổi trạng thái hợp đồng thành "${status}"?`;
+            return confirm(message);
+        }
+    </script>
 @endsection

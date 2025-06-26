@@ -24,7 +24,7 @@ class ContractService
 
             // Apply search filter
            if ($querySearch) {
-                $querySearch = trim($querySearch); // Loại bỏ khoảng trắng thừa
+                $querySearch = trim($querySearch);
                 $query->where(function ($q) use ($querySearch) {
                     $q->orWhereHas('user', function ($userQuery) use ($querySearch) {
                         $userQuery->where('name', 'like', "%{$querySearch}%");
@@ -828,6 +828,45 @@ class ContractService
                 'contract_id' => $id
             ]);
             return ['error' => 'Đã xảy ra lỗi khi tải file PDF'];
+        }
+    }
+
+    public function getIdentityDocument(int $contractId, string $imagePath): array
+    {
+        try {
+            $contract = Contract::with('user')->find($contractId);
+
+            if (!$contract) {
+                return ['error' => 'Không tìm thấy hợp đồng', 'status' => 404];
+            }
+
+            if (!$contract->user || !$contract->user->identity_document) {
+                return ['error' => 'Không tìm thấy hình ảnh căn cước công dân', 'status' => 404];
+            }
+
+            $imagePaths = explode('|', $contract->user->identity_document);
+            $fullImagePath = 'images/identity_document/' . $imagePath;
+
+            if (!in_array($fullImagePath, $imagePaths)) {
+                return ['error' => 'Hình ảnh không hợp lệ', 'status' => 404];
+            }
+
+            $encryptedContent = Storage::disk('public')->get($fullImagePath);
+            $decryptedContent = decrypt($encryptedContent);
+
+            return [
+                'data' => [
+                    'content' => $decryptedContent,
+                    'mime_type' => 'image/webp'
+                ]
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('Error retrieving identity document: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'image_path' => $imagePath
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi lấy hình ảnh căn cước công dân', 'status' => 500];
         }
     }
 
