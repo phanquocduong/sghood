@@ -88,7 +88,7 @@
             });
     }
 
-    // Gọi lần đầu và lặp lại mỗi 30 giây
+    // Gọi lần đầu và lặp lại mỗi 3 giây
     fetchHeaderNotifications();
     setInterval(fetchHeaderNotifications, 3000);
 </script>

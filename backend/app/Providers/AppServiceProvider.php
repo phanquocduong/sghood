@@ -43,9 +43,27 @@ class AppServiceProvider extends ServiceProvider
         // Thiết lập biến môi trường
         putenv("GOOGLE_APPLICATION_CREDENTIALS=$absolutePath");
 
+
+        // Chia sẻ dữ liệu thông báo đến tất cả các view
         View::composer('*', function ($view) {
-            $unreadCount = Notification::where('status', 'Chưa đọc')->count();
-            $latestNotifications = Notification::latest()->take(3)->get();
+            $unreadCount = 0;
+            $latestNotifications = collect();
+            
+            if (auth()->check()) {
+                $unreadCount = Notification::where('status', 'Chưa đọc')
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'Quản trị viên');
+                })
+                ->count();
+                
+                $latestNotifications = Notification::with('user')
+                ->latest()
+                ->whereHas('user', function($query) {
+                    $query->where('role', 'Quản trị viên');
+                })
+                ->take(3)
+                ->get();
+            }
 
             $view->with('unreadCount', $unreadCount)
                 ->with('latestNotifications', $latestNotifications);
