@@ -74,31 +74,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($users as $index => $user)
-                            <tr class="table-row">
-                                <td>{{ $users->firstItem() + $index }}</td>
-                                <td>{{ $user->name }}</td>
-                                <td>{{ $user->phone }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
-                                <td>{{ $user->role }}</td>
-                                <td>
-                                    @php
-                                        $badgeClass = $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger';
-                                        $statusText = $user->status;
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
-                                </td>
-                                <td>
-                                    @if ($user->id !== Auth::id())
-                                        <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
-                                            <i class="fas fa-pen me-1"></i> Sửa
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                    @forelse ($users as $index => $user)
+                        <tr class="table-row">
+                            <td>{{ $users->firstItem() + $index }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->phone }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $user->role }}</td>
+                            <td>
+                                @php
+                                    $badgeClass = $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger';
+                                    $statusText = $user->status;
+                                @endphp
+                                <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
+                            </td>
+                            <td>
+                                @if ($user->id !== Auth::id() && (!$user->is_super_admin || Auth::user()->is_super_admin))
+                                    <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
+                                        <i class="fas fa-pen me-1"></i> Sửa
+                                    </a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Không tìm thấy người dùng phù hợp.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+
                 </table>
             </div>
             <div class="mt-4">
