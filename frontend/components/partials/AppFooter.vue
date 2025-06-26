@@ -65,7 +65,7 @@
 <script setup>
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
-console.log('🧪 Footer config:', config.value);
+
 </script>
 
 <style scoped>

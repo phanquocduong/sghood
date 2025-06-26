@@ -1,46 +1,47 @@
 <template>
     <div id="wrapper">
         <Loading v-if="isLoading" />
-        <template v-else>
+        <div v-else>
             <!-- Header -->
             <header id="header-container" class="no-shadow">
                 <div id="header">
-                    <div class="container">
-                         <div class="loading-overlay" v-show="isLoading">
-            <div class="spinner"></div>
-            <p>Đang tải... </p>
-        </div>
-                        <!-- Left Side Content -->
-                        <div class="left-side">
-                            <!-- Logo -->
-                            <div id="logo">
-                                <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + config.logo_doc" /></NuxtLink>
+                        <div class="container">
+                            <div class="loading-overlay" v-show="isLoading">
+                <div class="spinner"></div>
+                <p>Đang tải... </p>
+            
+                            <!-- Left Side Content -->
+                            <div class="left-side">
+                                <!-- Logo -->
+                                <div id="logo">
+                                    <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + config.logo_doc" /></NuxtLink>
+                                </div>
+
+                                <!-- Mobile Navigation -->
+                                <MobileNavigation />
+
+                                <!-- Main Navigation -->
+                                <MainNavigation />
                             </div>
 
-                            <!-- Mobile Navigation -->
-                            <MobileNavigation />
+                            <UserMenu />
 
-                            <!-- Main Navigation -->
-                            <MainNavigation />
-                        </div>
+                            <div id="sign-in-dialog" class="zoom-anim-dialog mfp-hide">
+                                <div class="small-dialog-header">
+                                    <h3>Đăng ký/Đăng nhập</h3>
+                                </div>
 
-                        <UserMenu />
+                                <div class="sign-in-form style-1">
+                                    <ul class="tabs-nav">
+                                        <li><a href="#login">Đăng nhập</a></li>
+                                        <li><a href="#register">Đăng ký</a></li>
+                                    </ul>
 
-                        <div id="sign-in-dialog" class="zoom-anim-dialog mfp-hide">
-                            <div class="small-dialog-header">
-                                <h3>Đăng ký/Đăng nhập</h3>
-                            </div>
-
-                            <div class="sign-in-form style-1">
-                                <ul class="tabs-nav">
-                                    <li><a href="#login">Đăng nhập</a></li>
-                                    <li><a href="#register">Đăng ký</a></li>
-                                </ul>
-
-                                <div class="tabs-container alt">
-                                    <LoginForm />
-                                    <RegisterForm />
-                                    <ForgotPasswordForm />
+                                    <div class="tabs-container alt">
+                                        <LoginForm />
+                                        <RegisterForm />
+                                        <ForgotPasswordForm />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -48,19 +49,18 @@
                 </div>
             </header>
 
-            <NuxtPage />
+                <NuxtPage />
 
-            <AppFooter />
-            <!-- Back To Top Button -->
-            <div id="backtotop"><a href="#"></a></div>
-            
-            <!-- chatbox -->
-            <div>
-                
-                <ChatIcon v-if="user" @toggle = "toggleChat"/>
-                <ChatBox  v-if=" isChatOpen" @close = "isChatOpen=false"></ChatBox>
-            </div>
-        </template>
+                <AppFooter />
+                <!-- Back To Top Button -->
+                <div id="backtotop"><a href="#"></a></div>
+
+                <!-- chatbox -->
+                <div>
+                    <ChatIcon v-if="user" @toggle="toggleChat" />
+                    <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false"></ChatBox>
+                </div>
+         </div>       
     </div>
 </template>
 

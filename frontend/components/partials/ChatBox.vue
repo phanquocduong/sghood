@@ -1,145 +1,174 @@
 <template>
-  <div class="chat-box">
-    <!-- Header Chat -->
-    <div class="chat-header">
-      <span class="chat-title">Hỗ trợ người dùng</span>
-      <button class="chat-close" @click="$emit('close')">✕</button>
-    </div>
-
-    <!-- Nội dung tin nhắn -->
-    <div class="chat-messages" ref="messageContainer">
-      <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']"
-      >
-        <span class="chat-text">{{ msg.text }}</span>
+  <ClientOnly>
+    <div class="chat-box">
+      <!-- Header Chat -->
+      <div class="chat-header">
+        <span class="chat-title">Hỗ trợ người dùng</span>
+        <button class="chat-close" @click="$emit('close')">✕</button>
+      </div>
+  
+      <!-- Nội dung tin nhắn -->
+      <div class="chat-messages" ref="messageContainer">
+        <div
+          v-for="(msg, index) in messages"
+          :key="index"
+          :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']"
+        >
+          <span class="chat-text">{{ msg.text }}</span>
+        </div>
+      </div>
+  
+      <!-- Nhập tin nhắn -->
+      <div class="chat-input">
+        <input
+          type="text"
+          v-model="newMessage"
+          @keyup.enter="sendMessage"
+          placeholder="Nhập tin nhắn..."
+        />
+        <button @click="sendMessage">Gửi</button>
       </div>
     </div>
-
-    <!-- Nhập tin nhắn -->
-    <div class="chat-input">
-      <input
-        type="text"
-        v-model="newMessage"
-        @keyup.enter="sendMessage"
-        placeholder="Nhập tin nhắn..."
-      />
-      <button @click="sendMessage">Gửi</button>
-    </div>
-  </div>
+  </ClientOnly>
 </template>
 
 
 <script setup>
-import { ref,nextTick,onMounted } from 'vue';
-import api from '~/plugins/api';
-import { useAuthStore } from '~/stores/auth';
-const authStore = useAuthStore();
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { useAuthStore } from '~/stores/auth'
+import { useCookie } from '#app'
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore'
+
+const authStore = useAuthStore()
 const currentUserId = ref(authStore.user?.id || null)
-const token =ref( authStore.token || '')
-const {$api} = useNuxtApp()
+const token = ref(authStore.token || '')
+const { $api, $firebaseDb } = useNuxtApp()
 const newMessage = ref('')
-const chatMessage = ref([])
-const AdminId = ref()
- const messages = ref([
-   /*  {from:'admin',text:'Chào bạn! Bạn cần hỗ trợ gì'} */
-]) 
-// auto Keo
+const messages = ref([])
+const AdminId = ref(null)
 const messageContainer = ref(null)
-const scrollToBottom = ()=>{
-    nextTick(()=>{
-        if(messageContainer.value){
-            messageContainer.value.scrollTop = messageContainer.value.scrollHeight
-        }
-    })
-}
- 
-onMounted (()=>{
-  
-  initChat();
-  
-})
-const sendMessage = async ()=>{
-  const text = newMessage.value.trim()
-  if(!text) return
-  scrollToBottom()
-  try {
-    await $api('/messages/send',{
-      method:'POST',
-      headers:{
-        Authorization:`Bearer ${token.value}`,
-      'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+let unsubscribe = null // để dừng listener khi unmount
 
-      },
-      body:{
-        receiver_id:AdminId.value,
-        message:text
-      }
-    })
-    await fetchMessage();
-    newMessage.value = ' ' 
-    scrollToBottom()
-  } catch (error) {
-    console.error('Loi',error)
-  }
-}
-
-const fetchMessage = async() =>{
-  try {
-    const parnerId =AdminId.value;
-     if (!parnerId) {
-      console.warn('PartnerId bị null → không gọi API.');
-      return;
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messageContainer.value) {
+      messageContainer.value.scrollTop = messageContainer.value.scrollHeight
     }
-     const res = await $api(`/messages/history/${parnerId}`, {
-      method: 'GET',
+  })
+}
+
+const initChat = async () => {
+  try {
+    const res = await $api('/users/admins', {
       headers: {
         Authorization: `Bearer ${token.value}`
       }
+    })
+    const admins = res.data || []
+    if (admins.length === 0) return
 
-    });
-    const messagesData = res.data || [];
-    messages.value= messagesData.map(item =>({
-      from : item.sender_id === currentUserId.value ? 'user':'admin',
-      text : item.message
-    }));
-    scrollToBottom();
-      } catch (error) {
-      console.error('Loi', error)
-    }
-  };
-const initChat = async ()=>{
-  const res = await $api (`/users/admins`,{
-    headers:({   Authorization:`Bearer ${token.value}`, })
-  })
-  const admins = res.data || [];
-  if (admins.length === 0) return
-  const random = Math.floor(Math.random() * admins.length);
-  const admin = admins[random];
-  
-  AdminId.value = admin.id
-  console.log(admin)
+    const random = Math.floor(Math.random() * admins.length)
+    const admin = admins[random]
+    AdminId.value = admin.id
+    const chatId = [currentUserId.value, admin.id].sort().join('_')
 
-   const respone =  await $api(`/messages/start-chat`,{
-    method :'POST',
-    headers:{
-       Authorization:`Bearer ${token.value}`,
-      'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-    },body:{
-      receiver_id:admin.id,
-      sender_id : currentUserId.value,
-      AdminId:admin.id
+    // 1. Gọi API start-chat
+    await $api('/messages/start-chat', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+      },
+      body: {
+        receiver_id: admin.id,
+        sender_id: currentUserId.value
+      }
+    })
+
+    // 2. Gọi API lịch sử
+    const history = await $api(`/messages/history/${admin.id}`, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    })
+    if (Array.isArray(history.data)) {
+      messages.value = history.data.map(msg => ({
+        from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
+        text: msg.message
+      }))
     }
-  })
-  if(res?.data?.data){
-    chatMessage.value.push(respone.data.data)
+    console.log(currentUserId)
+    // 3. Lắng nghe Firestore realtime
+    const msgQuery = query(
+      collection($firebaseDb, 'messages'),
+      where('chatId', '==', chatId),
+      orderBy('createdAt', 'asc')
+    )
+
+    unsubscribe = onSnapshot(msgQuery, snapshot => {
+      const newMessages = snapshot.docs.map(doc => {
+        const data = doc.data()
+        return {
+          from: data.sender_id === currentUserId.value ? 'user' : 'admin',
+          text: data.text
+        }
+      })
+      messages.value = [...messages.value, ...newMessages]
+      scrollToBottom()
+    })
+
+  } catch (error) {
+    console.error('initChat error:', error)
   }
-  await fetchMessage();
-
-  setInterval(fetchMessage,1000)
 }
+
+
+const sendMessage = async () => {
+  const text = newMessage.value.trim()
+  if (!text || !AdminId.value) return
+
+  try {
+    const chatId = [currentUserId.value, AdminId.value].sort().join('_')
+    // Gửi tin nhắn lên Firestore (realtime)
+ await addDoc(collection($firebaseDb, 'messages'), {
+  text,
+  sender_id: currentUserId.value,
+  receiver_id: AdminId.value,
+  createdAt: serverTimestamp(),
+  chatId: [currentUserId.value, AdminId.value].sort().join('_')
+})
+
+
+    // Optionally: gọi API gửi nữa nếu backend cần lưu
+    await $api('/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+      },
+      body: {
+        receiver_id: AdminId.value,
+        message: text
+      }
+    })
+
+    newMessage.value = ''
+    scrollToBottom()
+  } catch (err) {
+    console.error('sendMessage error:', err)
+  }
+}
+
+onMounted(() => {
+  initChat()
+})
+
+onBeforeUnmount(() => {
+  if (unsubscribe) unsubscribe()
+})
+
 </script>
+
 
 <style scoped>
 .chat-box {

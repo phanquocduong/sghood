@@ -26,6 +26,11 @@ class MessageService
         })->orWhere(function ($query) use ($authId, $userId) {
             $query->where('sender_id', $userId)->where('receiver_id', $authId);
         })->orderBy('created_at', 'asc')->get();
+
+        return respone()->json([
+            'status' =>true,
+            'data'=>$messages
+        ]);
     }
 
     public function getUsersChattedWithAdmin()
