@@ -1,7 +1,7 @@
 <template>
     <div class="tab-content" id="register" style="display: none">
         <div v-show="!showRegisterFields">
-            <form @submit.prevent="authStore.sendOTP">
+            <form @submit.prevent="handleSendOTP">
                 <div class="form-row form-row-wide">
                     <label for="phone">
                         Số điện thoại:
@@ -102,7 +102,6 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '~/stores/auth';
-import { watch } from 'vue';
 
 const authStore = useAuthStore();
 const { phone, otp, otpSent, showRegisterFields, name, email, password, confirmPassword, loading } = storeToRefs(authStore);
@@ -124,13 +123,14 @@ const normalizePhoneNumber = value => {
     return cleaned;
 };
 
-// Theo dõi sự thay đổi của phone và chuẩn hóa
-watch(phone, newValue => {
-    const normalized = normalizePhoneNumber(newValue);
-    if (normalized !== newValue) {
-        phone.value = normalized;
-    }
-});
+// Hàm xử lý gửi OTP
+const handleSendOTP = async () => {
+    // Chuẩn hóa số điện thoại trước khi gửi
+    phone.value = normalizePhoneNumber(phone.value);
+
+    // Gọi hàm gửi OTP từ authStore
+    await authStore.sendOTP();
+};
 </script>
 
 <style scoped>

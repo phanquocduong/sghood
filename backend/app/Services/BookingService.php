@@ -4,9 +4,13 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\Booking;
 use App\Mail\BookingRejected;
+use App\Mail\BookingAccepted;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class BookingService
 {
@@ -38,12 +42,12 @@ class BookingService
     {
         if ($querySearch !== '') {
             $query->where(function ($q) use ($querySearch) {
-                $q->whereHas('room', function($roomQuery) use ($querySearch) {
-                        $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                    })
-                ->orWhereHas('user', function($userQuery) use ($querySearch) {
-                    $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
-                });
+                $q->whereHas('room', function ($roomQuery) use ($querySearch) {
+                    $roomQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                })
+                    ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'LIKE', '%' . $querySearch . '%');
+                    });
             });
         }
     }
@@ -76,7 +80,7 @@ class BookingService
         }
     }
 
-   // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
+    // Tính số tháng hợp đồng dựa trên ngày bắt đầu và kết thúc
     private function calculateContractMonths($startDate, $endDate)
     {
         try {
@@ -91,7 +95,7 @@ class BookingService
             $months = ceil($start->floatDiffInMonths($end));
 
             // Đảm bảo ít nhất là 1 tháng
-            return max(1, (int)$months);
+            return max(1, (int) $months);
 
         } catch (\Throwable $e) {
             Log::error('Error calculating contract months: ' . $e->getMessage(), [
@@ -138,19 +142,15 @@ class BookingService
             // Thông tin bên A (chủ nhà) - có thể lấy từ config hoặc database
             'landlord' => [
                 'name' => 'Phan Quốc Dương',
-                'identity_number' => '083205001354',
                 'year_of_birth' => '2005',
-                'date_of_issue' => '01/01/2020',
-                'place_of_issue' => 'Cục CSQLHC về TTXH',
-                'permanent_address' => '123 Đường ABC, TP Hồ Chí Minh'
+                'identity_number' => '083205001354',
+                'date_of_issue' => '11/04/2021',
+                'place_of_issue' => 'Cục Trưởng Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội',
+                'permanent_address' => '132/2, Khu Phố 2, Phường 4, Thành phố Bến Tre, Bến Tre'
             ],
 
             // Thông tin bên B (người thuê)
             'tenant' => [
-                'name' => $booking->user->name ?? '',
-                'identity_document' => $booking->user->identity_document ?? '',
-                'birthdate' => $booking->user->birthdate ? \Carbon\Carbon::parse($booking->user->birthdate)->format('d/m/Y') : '',
-                'address' => $booking->user->address ?? '',
                 'phone' => $booking->user->phone ?? '',
                 'email' => $booking->user->email ?? ''
             ],
@@ -197,7 +197,7 @@ class BookingService
 
         $content = '
         <div class="container-fluid p-0">
-            <div class="contract-document mx-auto" style="max-width: 210mm; min-height: 297mm; background: white; font-family: \'Times New Roman\', serif; font-size: 13px; line-height: 1.4; padding: 15mm 20mm;">
+            <div class="contract-document mx-auto" style="max-width: 210mm; min-height: 297mm; background: white; font-size: 14px; line-height: 1.5; padding: 15mm 20mm;">
 
                 <!-- Header -->
                 <div class="text-center mb-4">
@@ -213,12 +213,6 @@ class BookingService
                             HỢP ĐỒNG CHO THUÊ
                         </h3>
                     </div>
-
-                    <div class="text-end mb-4">
-                        <div class="d-inline-block border border-dark px-2 py-1">
-                            <strong>SGHood</strong>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Thông tin ngày tháng và bên ký -->
@@ -230,27 +224,50 @@ class BookingService
                     </p>
 
                     <div class="row mb-3">
-                        <div class="col-6">
+                        <div class="col-10">
                             <p class="mb-1"><strong>CHỦ CHO THUÊ (Chủ nhà):</strong> (Gọi tắt là Bên A)</p>
-                            <p class="mb-1">Họ và tên: <strong>' . $contractData['landlord']['name'] . '</strong> Sinh năm: <strong>' . $contractData['landlord']['year_of_birth'] . '</strong></p>
-                            <p class="mb-1">CCCD số: <strong>' . $contractData['landlord']['identity_number'] . '</strong> Ngày cấp: <strong>' . $contractData['landlord']['date_of_issue'] . '</strong> Nơi cấp: <strong>' . $contractData['landlord']['place_of_issue'] . '</strong></p>
+                            <p class="mb-1">Họ và tên: <strong>' . $contractData['landlord']['name'] . '</strong> <span class="ms-3">Sinh năm: <strong>' . $contractData['landlord']['year_of_birth'] . '</strong></span></p>
+                            <p class="mb-1">CCCD số: <strong>' . $contractData['landlord']['identity_number'] . '</strong> <span class="ms-3">Ngày cấp: <strong>' . $contractData['landlord']['date_of_issue'] . '</strong></span></p>
+                            <p class="mb-1"> Nơi cấp: <strong>' . $contractData['landlord']['place_of_issue'] . '</strong></p>
                             <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['landlord']['permanent_address'] . '</strong></p>
                         </div>
 
-                        <div class="col-6">
+                        <div class="col-2">
                             <div class="text-end">
-                                <div class="border border-dark px-2 py-1 d-inline-block">
-                                    <small>Mẫu số: 01/...</small>
+                                <div class="d-inline-block border border-dark px-2 py-1">
+                                    <strong>SGHood</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Thông tin bên B với các trường trống -->
                     <div class="mb-3">
-                        <p class="mb-1"><strong>BÊN THUÊ:</strong> (Gọi tắt là Bên B)</p>
-                        <p class="mb-1">Họ và tên: <strong>' . $contractData['tenant']['name'] . '</strong> Sinh: <strong>' . ($contractData['tenant']['birthdate'] ? date('Y', strtotime($contractData['tenant']['birthdate'])) : '1995') . '</strong></p>
-                        <p class="mb-1">CCCD Số: <strong>' . $contractData['tenant']['identity_document'] . '</strong> Ngày cấp: <strong>01/01/2021</strong> Nơi cấp: <strong>Cục CSQLHC về TTXH</strong></p>
-                        <p class="mb-0">Địa chỉ thường trú: <strong>' . $contractData['tenant']['address'] . '</strong></p>
+                        <p class="mb-2"><strong>BÊN THUÊ:</strong> (Gọi tắt là Bên B)</p>
+
+                        <div class="mb-2">
+                            <span>Họ và tên: </span>
+                            <input type="text" name="full_name" class="form-control flat-line d-inline-block" style="width: 200px;">
+                            <span class="ms-3">Sinh năm: </span>
+                            <input type="text" name="year_of_birth" class="form-control flat-line d-inline-block" style="width: 100px;">
+                        </div>
+
+                        <div class="mb-2">
+                            <span>CCCD Số: </span>
+                            <input type="text" name="identity_number" class="form-control flat-line d-inline-block" style="width: 150px;">
+                            <span class="ms-3">Ngày cấp: </span>
+                            <input type="text" name="date_of_issue" class="form-control flat-line d-inline-block" style="width: 150px;">
+                        </div>
+
+                        <div class="mb-2">
+                            <span>Nơi cấp: </span>
+                            <input type="text" name="place_of_issue" class="form-control flat-line d-inline-block" style="width: 500px;">
+                        </div>
+
+                        <div class="mb-0">
+                            <span>Địa chỉ thường trú: </span>
+                            <input type="text" name="permanent_address" class="form-control flat-line d-inline-block" style="width: 500px;">
+                        </div>
                     </div>
                 </div>
 
@@ -332,9 +349,6 @@ class BookingService
                     <div class="col-6 text-center">
                         <p class="mb-1"><strong>BÊN B</strong></p>
                         <p class="mb-5"><em>(Ký, ghi rõ họ tên)</em></p>
-                        <div class="mt-5 pt-3">
-                            <p class="mb-0"><strong>' . $contractData['tenant']['name'] . '</strong></p>
-                        </div>
                     </div>
                 </div>
 
@@ -374,9 +388,28 @@ class BookingService
                 text-align: justify;
             }
 
-            /* Đảm bảo font Times New Roman hiển thị đúng */
             .contract-document * {
                 font-family: \'Times New Roman\', serif !important;
+                color: #212529 !important;
+            }
+
+            .form-control.flat-line {
+                border: none;
+                border-bottom: 1px dotted #666;
+                border-radius: 0;
+                outline: none;
+                background: transparent;
+                height: 25px;
+                box-shadow: none !important;
+                font-weight: bold;
+                display: inline-block;
+                vertical-align: bottom;
+                margin: 0 0 5px 0;
+            }
+
+            .form-control.flat-line:focus {
+                border: none;
+                border-bottom: 1px dotted #666;
             }
         </style>
         ';
@@ -388,15 +421,33 @@ class BookingService
     private function convertNumberToWords($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $tens = array(
-            '', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi',
-            'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'
+            '',
+            '',
+            'hai mươi',
+            'ba mươi',
+            'bốn mươi',
+            'năm mươi',
+            'sáu mươi',
+            'bảy mươi',
+            'tám mươi',
+            'chín mươi'
         );
 
-        if ($number == 0) return 'không';
+        if ($number == 0)
+            return 'không';
 
         $result = '';
 
@@ -425,7 +476,16 @@ class BookingService
     private function convertHundreds($number)
     {
         $ones = array(
-            '', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'
+            '',
+            'một',
+            'hai',
+            'ba',
+            'bốn',
+            'năm',
+            'sáu',
+            'bảy',
+            'tám',
+            'chín'
         );
 
         $result = '';
@@ -479,6 +539,7 @@ class BookingService
         }
     }
 
+
     public function updateBookingStatus($id, $status, $cancellation_reason = null)
     {
         try {
@@ -500,9 +561,11 @@ class BookingService
             $booking->update($updateData);
             $booking->refresh();
 
+            // Xử lý khi status được chấp nhận
             if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                 $contractPreviewData = $this->generateContractPreviewData($booking);
 
+                // Tạo hợp đồng
                 $contractData = [
                     'booking_id' => $id,
                     'user_id' => $booking->user_id,
@@ -517,16 +580,79 @@ class BookingService
                     'status' => 'Chờ xác nhận',
                 ];
 
+                // Tạo thông báo cho người dùng
+                $notificationData = [
+                    'user_id' => $booking->user_id,
+                    'title' => 'Đặt phòng đã được chấp nhận',
+                    'content' => 'Đặt phòng của bạn tại ' . $booking->room->motel->name . ' đã được chấp nhận. Vui lòng kiểm tra hợp đồng.',
+                    'status' => 'Chưa đọc',
+                ];
+
                 try {
                     $contract = Contract::create($contractData);
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+                    // Tạo thông báo cho người dùng
+                    $notification = Notification::create($notificationData);
+
+                    // gửi FCM
+                    $user = $booking->user;
+
+                    if ($user && $user->fcm_token) {
+                        Log::info('⏳ Chuẩn bị gửi FCM', ['user_id' => $user->id, 'token' => $user->fcm_token]);
+
+                        $messaging = app('firebase.messaging');
+
+                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                            ->withNotification(FirebaseNotification::create(
+                                $notificationData['title'],
+                                $notificationData['content']
+                            ));
+
+                        try {
+                            $messaging->send($fcmMessage);
+                            Log::info('✅ FCM sent to user', ['user_id' => $user->id]);
+                        } catch (\Exception $e) {
+                            Log::error('❌ FCM send error', [
+                                'user_id' => $user->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    } else {
+                        Log::warning('⚠️ Không tìm thấy user hoặc user chưa có fcm_token', [
+                            'user_id' => $notificationData['user_id'],
+                            'user_found' => !!$user,
+                            'fcm_token' => $user->fcm_token ?? null
+                        ]);
+                    }
+
+                    Log::info('Notification created successfully', ['notification_id' => $notification->id, 'booking_id' => $id]);
+
+
+                    // Gửi email thông báo chấp nhận với link hợp đồng
+                    if ($booking->user && $booking->user->email) {
+                        try {
+                            $contractUrl = url('/contract/preview/' . $booking->id);
+                            Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                            Log::info('Acceptance email sent successfully', [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email,
+                                'contract_url' => $contractUrl
+                            ]);
+                        } catch (\Exception $mailException) {
+                            Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                'booking_id' => $id,
+                                'user_email' => $booking->user->email
+                            ]);
+                        }
+                    }
+
                 } catch (\Throwable $e) {
                     Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     // Không dừng toàn bộ quá trình, chỉ ghi log lỗi
                 }
             }
 
-            // Send email if status changed to "Từ chối" and user has email
+            // Gửi email từ chối (giữ nguyên logic cũ)
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                 try {
                     Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
@@ -608,6 +734,7 @@ class BookingService
                 $booking->update($updateData);
                 $booking->refresh();
 
+                // Xử lý khi status được chấp nhận
                 if ($status === 'Chấp nhận' && $oldStatus !== 'Chấp nhận') {
                     $contractPreviewData = $this->generateContractPreviewData($booking);
 
@@ -628,11 +755,31 @@ class BookingService
                     try {
                         $contract = Contract::create($contractData);
                         Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
+
+                        // Gửi email thông báo chấp nhận với link hợp đồng
+                        if ($booking->user && $booking->user->email) {
+                            try {
+                                $contractUrl = url('/contract/preview/' . $booking->id);
+                                Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
+                                Log::info('Acceptance email sent successfully', [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email,
+                                    'contract_url' => $contractUrl
+                                ]);
+                            } catch (\Exception $mailException) {
+                                Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
+                                    'booking_id' => $id,
+                                    'user_email' => $booking->user->email
+                                ]);
+                            }
+                        }
+
                     } catch (\Throwable $e) {
                         Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     }
                 }
 
+                // Gửi email từ chối
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                     try {
                         Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));

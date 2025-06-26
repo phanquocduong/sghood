@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
     const { $api } = useNuxtApp();
     const { sendOTP, verifyOTP, getIdToken, signOut } = useFirebaseAuth();
     const config = useRuntimeConfig();
+    const nuxtApp = useNuxtApp();
 
     // State
     const username = ref('');
@@ -76,9 +77,17 @@ export const useAuthStore = defineStore('auth', () => {
             });
 
             user.value = response.data;
+
+            const tokenSaved = await saveFcmToken();
+            if (!tokenSaved) {
+                user.value = null;
+                toast.error('Đã có lỗi xảy ra! Vui lòng tải lại trang và đăng nhập lại');
+            } else {
+                toast.success(response.message);
+            }
+
             resetForm();
             closePopup();
-            toast.success(response.message);
         } catch (error) {
             handleBackendError(error);
         } finally {
@@ -95,16 +104,10 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             loading.value = true;
             await getCsrfCookie();
-            const idToken = await getIdToken();
-            if (!idToken) {
-                toast.error('Không thể lấy token xác thực!');
-                return;
-            }
 
             const response = await $api('/register', {
                 method: 'POST',
                 body: {
-                    id_token: idToken,
                     phone: phone.value,
                     name: name.value,
                     email: email.value,
@@ -154,7 +157,6 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await $api('/user', { method: 'GET' });
             user.value = response.data;
         } catch (error) {
-            console.error('Failed to fetch user:', error);
             user.value = null;
         }
     };
@@ -195,6 +197,35 @@ export const useAuthStore = defineStore('auth', () => {
         } finally {
             loading.value = false;
         }
+    };
+
+    const saveFcmToken = async () => {
+        if (process.client && user.value) {
+            try {
+                const token = await nuxtApp.$getFcmToken();
+                if (token) {
+                    console.log('Saving FCM token for user:', user.value.id);
+
+                    const response = await $api('/save-fcm-token', {
+                        method: 'POST',
+                        body: { fcm_token: token },
+                        headers: {
+                            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                        }
+                    });
+
+                    console.log('FCM token saved successfully');
+                    return true;
+                } else {
+                    console.log('No FCM token available to save');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error saving FCM token:', error);
+                return false;
+            }
+        }
+        return false;
     };
 
     return {

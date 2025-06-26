@@ -30,6 +30,13 @@ return [
 
     'disks' => [
 
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'), // Đường dẫn thư mục lưu trữ
+            'url' => env('APP_URL').'/storage/private', // Không cần nếu không public
+            'visibility' => 'private', // Đảm bảo file không public
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

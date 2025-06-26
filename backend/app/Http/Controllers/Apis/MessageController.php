@@ -49,6 +49,7 @@ class MessageController extends Controller
     }
     public function startChat(StartChatRequest $request)
     {
+<<<<<<< HEAD
         $userId = $request->receiver_id;
         $adminId = 1; // hoặc chỉ định ID cụ thể
 
@@ -57,6 +58,17 @@ class MessageController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Bắt đầu cuộc trò chuyện thành công'
+=======
+        $userId = auth()->id();
+        $adminId =$request->receiver_id;
+
+      $message =  $this->messageService->startChatAdmin($adminId, $userId);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Bắt đầu cuộc trò chuyện thành công',
+           'data' => $message
+>>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
         ]);
     }
 }

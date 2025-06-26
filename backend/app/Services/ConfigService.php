@@ -6,133 +6,191 @@ use App\Models\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class ConfigService
 {
-    public function getConfigs($search)
+    /**
+    * Lấy danh sách cấu hình có phân trang với tùy chọn tìm kiếm.
+     */
+    public function getConfigs(?string $search = null, int $perPage = 10)
     {
         return Config::when($search, function ($query, $search) {
             return $query->where('config_key', 'like', "%{$search}%")
                 ->orWhere('config_value', 'like', "%{$search}%");
-        })->paginate(10);
+        })->paginate($perPage);
     }
 
-    public function createConfig(array $data)
+    /**
+    * Lấy danh sách cấu hình đã xóa có phân trang với tùy chọn tìm kiếm.
+     */
+    public function getTrashedConfigs(?string $search = null, int $perPage = 10)
     {
-        try {
-            $config = Config::create($data);
-            return ['data' => $config];
-        } catch (\Throwable $e) {
-            Log::error('Lỗi khi tạo cấu hình: ' . $e->getMessage());
-            return ['error' => `Đã xảy ra lỗi khi tạo cấu hình! `, 'status' => 500];
-        }
+        return Config::onlyTrashed()
+            ->when($search, function ($query, $search) {
+                return $query->where('config_key', 'like', "%{$search}%")
+                    ->orWhere('config_value', 'like', "%{$search}%");
+            })->paginate($perPage);
     }
 
-    public function storeConfig(array $data, $imageFile = null): array
-    {
-        try {
-            // Nếu là kiểu IMAGE và có file ảnh
-            if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
-                $fileName = time() . '_' . $imageFile->getClientOriginalName();
-                $path = $imageFile->storeAs('images/configs', $fileName, 'public');
-                $data['config_value'] = '/storage/' . $path;
-            }
-
-            // Tạo bản ghi trong database
-            $config = Config::create($data);
-
-            return ['data' => $config];
-        } catch (\Exception $e) {
-            Log::error('Lỗi lưu cấu hình: ' . $e->getMessage());
-           return ['error' => 'Đã xảy ra lỗi khi lưu cấu hình.', 'status' => 500];
-        }
-    }
-
-    public function getConfigById($id)
+    /**
+    * Lấy cấu hình theo ID.
+     */
+    public function getConfigById(int $id): Config
     {
         return Config::findOrFail($id);
     }
 
-    public function updateConfig($id, array $data, $imageFile = null): array
+    /**
+    * Tạo một cấu hình mới.
+     */
+    public function createConfig(array $data, ?UploadedFile $imageFile = null): array
+    {
+        return $this->storeOrUpdateConfig($data, $imageFile);
+    }
+
+    /**
+    * Cập nhật một cấu hình hiện có.
+     */
+    public function updateConfig(int $id, array $data, ?UploadedFile $imageFile = null): array
+    {
+        return $this->storeOrUpdateConfig($data, $imageFile, $id);
+    }
+
+    /**
+    * Lưu hoặc cập nhật cấu hình với xử lý hình ảnh.
+     */
+    protected function storeOrUpdateConfig(array $data, ?UploadedFile $imageFile = null, ?int $id = null): array
     {
         try {
-            $config = Config::findOrFail($id);
+            DB::beginTransaction();
+
+            $config = $id ? Config::findOrFail($id) : new Config();
 
             if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
-                // Delete old image if exists
-                if ($config->config_type === 'IMAGE' && $config->config_value && Storage::disk('public')->exists(str_replace('storage/', '', $config->config_value))) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $config->config_value));
+                // Delete old image if updating
+                if ($id && $config->config_type === 'IMAGE' && $config->config_value) {
+                    $this->deleteImage($config->config_value);
                 }
 
-                $fileName = time() . '_' . \Illuminate\Support\Str::slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $imageFile->getClientOriginalExtension();
-                $path = $imageFile->storeAs('config_images', $fileName, 'public');
-                $data['config_value'] = 'storage/' . $path;
+                // Convert and store image as WebP
+                $data['config_value'] = $this->storeImageAsWebp($imageFile);
             } elseif ($data['config_type'] !== 'IMAGE') {
-                // Use provided config_value for non-IMAGE types
-                $data['config_value'] = $data['config_value'] ?? $config->config_value;
+                $data['config_value'] = $data['config_value'] ?? ($config->config_value ?? null);
             } else {
-                // Keep existing config_value if no new image is uploaded
-                $data['config_value'] = $config->config_value;
+                $data['config_value'] = $config->config_value ?? null;
             }
 
-            $config->update($data);
+            $id ? $config->update($data) : $config = Config::create($data);
+
+            DB::commit();
             return ['data' => $config];
         } catch (\Throwable $e) {
-            Log::error('Lỗi khi cập nhật cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật cấu hình: ' . $e->getMessage(), 'status' => 500];
+            DB::rollBack();
+            Log::error('Lỗi khi lưu/cập nhật cấu hình: ' . $e->getMessage(), ['id' => $id]);
+            return ['error' => 'Đã xảy ra lỗi khi lưu/cập nhật cấu hình.', 'status' => 500];
         }
     }
 
-    public function deleteConfig($id)
+    /**
+    * Chuyển đổi và lưu trữ hình ảnh tải lên dưới định dạng WebP.
+     */
+    protected function storeImageAsWebp(UploadedFile $imageFile): string
+    {
+        $fileName = time() . '_' . Str::slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.webp';
+        $tempPath = $imageFile->getPathname();
+
+        // Convert image to WebP using GD
+        $image = $this->createImageResource($imageFile);
+        $webpPath = storage_path('app/public/images/configs/' . $fileName);
+        imagewebp($image, $webpPath, 80); // Quality set to 80
+        imagedestroy($image);
+
+        return '/storage/images/configs/' . $fileName;
+    }
+
+    /**
+    * Tạo tài nguyên hình ảnh dựa trên loại tệp.
+     */
+    protected function createImageResource(UploadedFile $imageFile)
+    {
+        $extension = strtolower($imageFile->getClientOriginalExtension());
+        switch ($extension) {
+            case 'jpeg':
+            case 'jpg':
+                return imagecreatefromjpeg($imageFile->getPathname());
+            case 'png':
+                return imagecreatefrompng($imageFile->getPathname());
+            case 'gif':
+                return imagecreatefromgif($imageFile->getPathname());
+            default:
+                throw new \Exception('Định dạng ảnh không được hỗ trợ.');
+        }
+    }
+
+    /**
+    * Xóa hình ảnh khỏi storage.
+     */
+    protected function deleteImage(string $imagePath): void
+    {
+        $path = str_replace('/storage/', '', $imagePath);
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+
+    /**
+    * Xóa mềm cấu hình.
+     */
+    public function deleteConfig(int $id): array
     {
         try {
             $config = Config::findOrFail($id);
             $config->delete();
             return ['success' => true];
         } catch (\Throwable $e) {
-            Log::error('Lỗi khi xóa cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa cấu hình!', 'status' => 500];
+            Log::error('Lỗi khi xóa cấu hình: ' . $e->getMessage(), ['id' => $id]);
+            return ['error' => 'Đã xảy ra lỗi khi xóa cấu hình.', 'status' => 500];
         }
     }
 
-    public function getTrashedConfigs($search)
+    /**
+     * Khôi phục cấu hình đã xóa mềm.
+     */
+    public function restoreConfig(int $id): array
     {
-        return Config::onlyTrashed()
-            ->when($search, function ($query, $search) {
-                return $query->where('config_key', 'like', "%{$search}%")
-                    ->orWhere('config_value', 'like', "%{$search}%");
-            })->paginate(10);
-    }
-
-    public function restoreConfig($id)
-    {
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
             $config = Config::onlyTrashed()->findOrFail($id);
             $config->restore();
-
             DB::commit();
             return ['success' => true];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Lỗi khi khôi phục cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi khôi phục cấu hình!', 'status' => 500];
+            Log::error('Lỗi khi khôi phục cấu hình: ' . $e->getMessage(), ['id' => $id]);
+            return ['error' => 'Đã xảy ra lỗi khi khôi phục cấu hình.', 'status' => 500];
         }
     }
 
-    public function forceDeleteConfig($id)
+    /**
+     * Xóa vĩnh viễn cấu hình đã xóa mềm.
+     */
+    public function forceDeleteConfig(int $id): array
     {
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
             $config = Config::onlyTrashed()->findOrFail($id);
+            if ($config->config_type === 'IMAGE' && $config->config_value) {
+                $this->deleteImage($config->config_value);
+            }
             $config->forceDelete();
-
             DB::commit();
             return ['success' => true];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Lỗi khi xóa vĩnh viễn cấu hình: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa vĩnh viễn cấu hình!', 'status' => 500];
+            Log::error('Lỗi khi xóa vĩnh viễn cấu hình: ' . $e->getMessage(), ['id' => $id]);
+            return ['error' => 'Đã xảy ra lỗi khi xóa vĩnh viễn cấu hình.', 'status' => 500];
         }
     }
 }

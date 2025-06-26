@@ -9,7 +9,6 @@ use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ConfigController;
 use App\Http\Controllers\Apis\ContractController;
-use App\Http\Controllers\Apis\OcrController;
 use App\Http\Controllers\Apis\NotificationController;
 use App\Http\Controllers\Apis\ScheduleBookingController;
 use Illuminate\Http\Request;
@@ -31,6 +30,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/schedules-bookings', [ScheduleBookingController::class, 'index']);
     Route::post('/schedules-bookings', [ScheduleBookingController::class, 'store']);
     Route::post('/schedules-bookings/{id}/{type}/reject', [ScheduleBookingController::class, 'reject']);
+
+    Route::get('/contracts', [ContractController::class, 'index']);
+    Route::get('/contracts/{id}', [ContractController::class, 'show']);
+    Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
+
+    Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
+    Route::patch('/contracts/{id}', [ContractController::class, 'update']);
+    Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
+
+    Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
 });
 
 // Email verification routes
@@ -52,17 +61,29 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
-Route::post('/extract-cccd', [OcrController::class, 'extractCccdData']);
 
-Route::get('/users/{userId}/contract', [ContractController::class, 'getContractsByUser']);
+// Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
+// Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
 
+<<<<<<< HEAD
 Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
 Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
+=======
+// Notification Routes
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser']);
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId']);
+});
+>>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
 
 // Message Routes
 Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageController::class, 'startChat']);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);

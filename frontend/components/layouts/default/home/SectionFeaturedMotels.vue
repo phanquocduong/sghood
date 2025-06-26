@@ -4,7 +4,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h3 class="headline centered margin-bottom-45">
+                        <h3 class="headline centered margin-bottom-40">
                             <strong class="headline-with-separator">Nhà Trọ Nổi Bật</strong>
                         </h3>
                     </div>

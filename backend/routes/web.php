@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
@@ -136,7 +137,22 @@ Route::middleware('admin')->group(function () {
     Route::prefix('contracts')->name('contracts.')->group(function () {
         Route::get('/', [ContractController::class, 'index'])->name('index');
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
-        Route::match(['put', 'patch'],'/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+        Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
+    });
+
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+
+    // Route notification for navbar
+    Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
+        ->name('notifications.header');
+
+    // Message routes group
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
     });
 
     // Message routes group

@@ -18,7 +18,9 @@
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Người dùng') }}</h6>
+            <h6 class="mb-0 fw-bold">{{ __('Danh sách người dùng') }}
+                <span class="badge bg-light text-primary ms-2">{{ $users->total() ?? 0 }} người dùng</span>
+            </h6>
         </div>
         <div class="card-body p-4">
             <form action="" method="GET" class="row g-3 mb-4">
