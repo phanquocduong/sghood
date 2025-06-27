@@ -76,6 +76,7 @@
     <script src="{{ asset('js/room.js') }}"></script>
     <script src="{{ asset('js/schedule.js') }}"></script>
     @stack('scripts')
+    @yield('scripts')
 </body>
 
 </html>

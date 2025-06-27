@@ -53,7 +53,7 @@
                 @csrf
                 <input type="hidden" name="receiver_id" value="{{ $selectedUserId }}">
                 <input type="text" name="message" id="messageInput" class="form-control me-2" placeholder="Nhập tin nhắn..." required>
-                <button type="submit" class="btn btn-primary">Gửi</button>
+                <button type="submit" class="btn btn-primary" id="sendBtn">Gửi</button>
             </form>
         @else
             <div style="padding: 20px;">Chọn một người dùng để bắt đầu trò chuyện.</div>
@@ -67,21 +67,14 @@
 
 @if ($selectedUser)
 <script>
-    const chatBox = $('.chat-box');
-
-    // Tự động scroll xuống cuối khi load
-    $(document).ready(function () {
-        chatBox.scrollTop(chatBox[0].scrollHeight);
-    });
-
-    // Gửi tin nhắn qua AJAX
+$(document).ready(function () {
     $('#sendMessageForm').on('submit', function (e) {
-        e.preventDefault();
+        e.preventDefault(); // Ngăn reload trang
 
-        const form = $(this);
-        const data = form.serialize();
-        const messageInput = $('#messageInput');
-        const messageText = messageInput.val();
+        let form = $(this);
+        let data = form.serialize();
+        let chatBox = $('.chat-box');
+        let messageInput = $('#messageInput');
 
         $.ajax({
             url: '{{ route("messages.send") }}',
@@ -91,8 +84,7 @@
                 if (response.status) {
                     const msgHtml = `
                         <div style="text-align: right; margin: 5px 0;">
-                            <span style="display: inline-block; padding: 8px 12px; border-radius: 10px;
-                                         background: #007bff; color: #fff;">
+                            <span style="background: #007bff; color: #fff; padding: 8px 12px; border-radius: 10px;">
                                 ${response.data.message}
                             </span>
                         </div>
@@ -101,14 +93,16 @@
                     messageInput.val('');
                     chatBox.scrollTop(chatBox[0].scrollHeight);
                 } else {
-                    alert('Gửi thất bại!');
+                    alert("Gửi thất bại");
                 }
             },
             error: function () {
-                alert('Lỗi khi gửi tin nhắn.');
+                alert("Lỗi khi gửi");
             }
         });
     });
+});
 </script>
 @endif
 @endsection
+
