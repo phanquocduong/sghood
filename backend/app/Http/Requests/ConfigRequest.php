@@ -35,16 +35,25 @@ class ConfigRequest extends FormRequest
             'description' => 'nullable|string|max:255',
         ];
 
-        if ($this->input('config_type') === 'IMAGE') {
-            $rules['config_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
-            $rules['config_value'] = 'nullable|string|max:1000';
-        } else {
-            $rules['config_value'] = 'required|string|max:1000';
-            $rules['config_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+        switch ($this->input('config_type')) {
+            case 'IMAGE':
+                $rules['config_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
+                break;
+
+            case 'JSON':
+                $rules['config_json'] = 'required|array|min:1';
+                $rules['config_json.*'] = 'required|string|max:1000';
+                break;
+
+            default:
+                $rules['config_value'] = 'required|string|max:1000';
+                $rules['config_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+                break;
         }
 
         return $rules;
     }
+
 
     /**
      * Get custom error messages for validation.
@@ -62,6 +71,11 @@ class ConfigRequest extends FormRequest
             'config_image.image' => 'Ảnh cấu hình phải là một tệp hình ảnh.',
             'config_image.mimes' => 'Ảnh cấu hình phải có định dạng: jpeg, png, jpg, gif.',
             'config_image.max' => 'Ảnh cấu hình không được lớn hơn 2MB.',
+            'config_json.required' => 'Vui lòng thêm ít nhất một lựa chọn JSON.',
+            'config_json.array' => 'Dữ liệu JSON phải là một mảng.',
+            'config_json.*.required' => 'Không được để trống lựa chọn JSON.',
+            'config_json.*.string' => 'Mỗi lựa chọn JSON phải là chuỗi.',
+            'config_json.*.max' => 'Mỗi lựa chọn JSON không được dài quá 1000 ký tự.',
             'description.string' => 'Mô tả phải là chuỗi ký tự.',
             'description.max' => 'Mô tả không được dài quá 255 ký tự.',
             'config_type.required' => 'Loại cấu hình là bắt buộc.',

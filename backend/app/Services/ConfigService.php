@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class ConfigService
 {
     /**
-    * Lấy danh sách cấu hình có phân trang với tùy chọn tìm kiếm.
+     * Lấy danh sách cấu hình có phân trang với tùy chọn tìm kiếm.
      */
     public function getConfigs(?string $search = null, int $perPage = 10)
     {
@@ -23,7 +23,7 @@ class ConfigService
     }
 
     /**
-    * Lấy danh sách cấu hình đã xóa có phân trang với tùy chọn tìm kiếm.
+     * Lấy danh sách cấu hình đã xóa có phân trang với tùy chọn tìm kiếm.
      */
     public function getTrashedConfigs(?string $search = null, int $perPage = 10)
     {
@@ -35,7 +35,7 @@ class ConfigService
     }
 
     /**
-    * Lấy cấu hình theo ID.
+     * Lấy cấu hình theo ID.
      */
     public function getConfigById(int $id): Config
     {
@@ -43,58 +43,67 @@ class ConfigService
     }
 
     /**
-    * Tạo một cấu hình mới.
+     * Tạo một cấu hình mới.
      */
-    public function createConfig(array $data, ?UploadedFile $imageFile = null): array
+    public function createConfig(array $data, ?UploadedFile $imageFile = null, $jsonData = null): array
     {
-        return $this->storeOrUpdateConfig($data, $imageFile);
+        return $this->storeOrUpdateConfig($data, $imageFile, null, $jsonData);
     }
 
     /**
-    * Cập nhật một cấu hình hiện có.
+     * Cập nhật một cấu hình hiện có.
      */
-    public function updateConfig(int $id, array $data, ?UploadedFile $imageFile = null): array
+    public function updateConfig(int $id, array $data, ?UploadedFile $imageFile = null, $jsonData = null): array
     {
-        return $this->storeOrUpdateConfig($data, $imageFile, $id);
+        return $this->storeOrUpdateConfig($data, $imageFile, $id, $jsonData);
     }
 
     /**
-    * Lưu hoặc cập nhật cấu hình với xử lý hình ảnh.
+     * Lưu hoặc cập nhật cấu hình với xử lý hình ảnh.
      */
-    protected function storeOrUpdateConfig(array $data, ?UploadedFile $imageFile = null, ?int $id = null): array
+    protected function storeOrUpdateConfig(array $data, ?UploadedFile $imageFile = null, ?int $id = null, ?array $jsonData = null): array
     {
         try {
             DB::beginTransaction();
 
             $config = $id ? Config::findOrFail($id) : new Config();
 
+            // Xử lý IMAGE
             if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
-                // Delete old image if updating
                 if ($id && $config->config_type === 'IMAGE' && $config->config_value) {
                     $this->deleteImage($config->config_value);
                 }
 
-                // Convert and store image as WebP
                 $data['config_value'] = $this->storeImageAsWebp($imageFile);
-            } elseif ($data['config_type'] !== 'IMAGE') {
+            }
+            // Xử lý JSON
+            elseif ($data['config_type'] === 'JSON' && $jsonData) {
+                $data['config_value'] = json_encode($jsonData, JSON_UNESCAPED_UNICODE);
+            }
+            // Xử lý TEXT, URL, HTML
+            else {
                 $data['config_value'] = $data['config_value'] ?? ($config->config_value ?? null);
-            } else {
-                $data['config_value'] = $config->config_value ?? null;
             }
 
+            // Tạo mới hoặc cập nhật
             $id ? $config->update($data) : $config = Config::create($data);
 
             DB::commit();
             return ['data' => $config];
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Lỗi khi lưu/cập nhật cấu hình: ' . $e->getMessage(), ['id' => $id]);
-            return ['error' => 'Đã xảy ra lỗi khi lưu/cập nhật cấu hình.', 'status' => 500];
+            Log::error('Lỗi khi lưu/cập nhật cấu hình: ' . $e->getMessage(), [
+                'id' => $id,
+                'data' => $data,
+                'jsonData' => $jsonData,
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi lưu/cập nhật cấu hình: ' . $e->getMessage(), 'status' => 500];
         }
     }
 
+
     /**
-    * Chuyển đổi và lưu trữ hình ảnh tải lên dưới định dạng WebP.
+     * Chuyển đổi và lưu trữ hình ảnh tải lên dưới định dạng WebP.
      */
     protected function storeImageAsWebp(UploadedFile $imageFile): string
     {
@@ -111,7 +120,7 @@ class ConfigService
     }
 
     /**
-    * Tạo tài nguyên hình ảnh dựa trên loại tệp.
+     * Tạo tài nguyên hình ảnh dựa trên loại tệp.
      */
     protected function createImageResource(UploadedFile $imageFile)
     {
@@ -130,7 +139,7 @@ class ConfigService
     }
 
     /**
-    * Xóa hình ảnh khỏi storage.
+     * Xóa hình ảnh khỏi storage.
      */
     protected function deleteImage(string $imagePath): void
     {
@@ -141,7 +150,7 @@ class ConfigService
     }
 
     /**
-    * Xóa mềm cấu hình.
+     * Xóa mềm cấu hình.
      */
     public function deleteConfig(int $id): array
     {
