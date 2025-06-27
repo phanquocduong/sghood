@@ -314,6 +314,14 @@ class ContractService
                 size: A4;
             }
 
+            /* Đảm bảo khoảng cách đầu trang giống nhau trên mọi trang */
+            @page {
+                @top {
+                    content: "";
+                    height: 15mm; /* Đảm bảo khoảng cách 15mm từ mép trên */
+                }
+            }
+
             * {
                 font-family: "Noto Serif", "DejaVu Serif", serif;
                 box-sizing: border-box;
@@ -584,6 +592,14 @@ class ContractService
 
             .vietnamese-text {
                 font-family: "Noto Serif", "DejaVu Serif", serif;
+            }
+
+            /* Đảm bảo nội dung đầu tiên trên mỗi trang mới có khoảng cách phù hợp */
+            .contract-document > *:first-child {
+                margin-top: 0;
+            }
+            .contract-document > div:not(:first-child) {
+                margin-top: 15mm;
             }
         </style>';
 
