@@ -306,7 +306,7 @@ class ContractService
     // Tạo file PDF từ nội dung hợp đồng với font hỗ trợ tốt tiếng Việt
     private function prepareHtmlContent(string $content): string
     {
-        // CSS được thiết kế để khớp với giao diện generateContractContent và hỗ trợ tiếng Việt tốt nhất
+        // CSS được thiết kế để khớp với giao diện generateContractContent và sử dụng Noto Serif
         $css = '
         <style>
             @page {
@@ -315,7 +315,7 @@ class ContractService
             }
 
             * {
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
@@ -328,7 +328,7 @@ class ContractService
                 background: white;
                 padding: 0;
                 margin: 0;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .container-fluid {
@@ -344,11 +344,11 @@ class ContractService
                 line-height: 1.4;
                 padding: 15mm 20mm;
                 margin: 0 auto;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             h1, h2, h3, h4, h5, h6 {
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
                 font-weight: bold;
                 margin: 0;
             }
@@ -358,18 +358,18 @@ class ContractService
                 font-weight: bold;
                 letter-spacing: 0.3px;
                 margin: 0;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             p {
                 margin-bottom: 0.4rem;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
                 line-height: 1.4;
             }
 
             strong, b {
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             u {
@@ -378,7 +378,7 @@ class ContractService
 
             em, i {
                 font-style: italic;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .text-center {
@@ -484,27 +484,27 @@ class ContractService
                 margin: 0 0 5px 0;
                 padding: 0 0 2px 0;
                 min-width: 100px;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-center.mb-4 > div:first-child strong {
                 font-size: 12px;
                 letter-spacing: 0.2px;
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-center.mb-4 > div:nth-child(2) u strong {
                 font-weight: bold;
                 text-decoration: underline;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-center.mb-4 > div .my-4 h3 {
                 font-size: 16px;
                 font-weight: bold;
                 letter-spacing: 0.3px;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-end .border {
@@ -513,23 +513,23 @@ class ContractService
                 padding: 0.2rem 0.4rem;
                 font-weight: bold;
                 font-size: 11px;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-content-section p {
                 margin-bottom: 0.4rem;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-content-section .ms-3 p {
                 margin-left: 1rem;
                 margin-bottom: 0.4rem;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .party-section p {
                 margin-bottom: 0.2rem;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .signature-row {
@@ -548,7 +548,7 @@ class ContractService
                 padding: 0 0 2px 0;
                 outline: none;
                 box-shadow: none;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .input-placeholder {
@@ -558,7 +558,7 @@ class ContractService
                 height: 22px;
                 margin: 0 5px;
                 vertical-align: bottom;
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .input-placeholder.wide {
@@ -574,7 +574,7 @@ class ContractService
             }
 
             div, span, td, th, input, label, select, textarea {
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif !important;
+                font-family: "Noto Serif", "DejaVu Serif", serif !important;
                 color: #212529;
             }
 
@@ -583,7 +583,7 @@ class ContractService
             }
 
             .vietnamese-text {
-                font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
         </style>';
 
@@ -632,10 +632,10 @@ class ContractService
             $content = htmlspecialchars_decode($content, ENT_QUOTES);
         }
 
-        // Đảm bảo font hỗ trợ tiếng Việt tốt nhất với fallback
+        // Đảm bảo font Noto Serif với fallback DejaVu Serif
         $content = preg_replace(
             '/font-family:\s*["\']?[^"\']*["\']?[^;]*/i',
-            'font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif',
+            'font-family: "Noto Serif", "DejaVu Serif", serif',
             $content
         );
 
@@ -654,7 +654,7 @@ class ContractService
         return $content;
     }
 
-    // [Other methods remain unchanged]
+    // [Các phương thức khác không thay đổi]
 
     // Tạo file PDF từ nội dung hợp đồng
     public function generateContractPdf(Contract $contract): array
@@ -691,7 +691,7 @@ class ContractService
             $pdf = Pdf::loadHTML($htmlContent)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
-                    'defaultFont' => 'DejaVu Sans',
+                    'defaultFont' => 'Noto Serif',
                     'fontCache' => storage_path('fonts/'),
                     'isRemoteEnabled' => false,
                     'isHtml5ParserEnabled' => true,
