@@ -61,7 +61,7 @@ const initChat = async () => {
   try {
     const res = await $api('/users/admins', {
       headers: {
-        Authorization: `Bearer ${token.value}`
+        Authorization: `Bearer ${token.value}`  
       }
     })
     const admins = res.data || []
@@ -84,7 +84,7 @@ const initChat = async () => {
         sender_id: currentUserId.value
       }
     })
-
+console.log(admin)
     // 2. Gọi API lịch sử
     const history = await $api(`/messages/history/${admin.id}`, {
       headers: {
