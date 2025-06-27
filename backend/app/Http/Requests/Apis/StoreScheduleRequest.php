@@ -23,7 +23,7 @@ class StoreScheduleRequest extends FormRequest
     {
         return [
             'date' => 'required|date_format:d/m/Y',
-            'timeSlot' => 'required|in:8:30 sáng - 9:00 sáng,9:00 sáng - 9:30 sáng,9:30 sáng - 10:00 sáng,10:00 sáng - 10:30 sáng,13:00 chiều - 13:30 chiều,13:30 chiều - 14:00 chiều,14:00 chiều - 14:30 chiều',
+            'timeSlot' => 'required|in:8:00 sáng - 8:30 sáng,9:00 sáng - 9:30 sáng,10:00 sáng - 10:30 sáng,11:00 sáng - 11:30 sáng,13:00 sáng - 13:30 chiều,14:00 chiều - 14:30 chiều,15:00 chiều - 15:30 chiều,16:00 chiều - 16:30 chiều,17:00 chiều - 17:30 chiều',
             'message' => 'nullable|string|max:255',
             'user_id' => 'required|exists:users,id',
             'room_id' => 'required|exists:rooms,id',

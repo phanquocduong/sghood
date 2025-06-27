@@ -13,7 +13,7 @@
                         <div class="user-name">
                             <span>
                                 <img
-                                    :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/dashboard-avatar.jpg'"
+                                    :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/default-avatar.webp'"
                                     alt="Avatar"
                                 />
                             </span>

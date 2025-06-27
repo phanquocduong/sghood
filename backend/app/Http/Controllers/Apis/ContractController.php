@@ -194,6 +194,55 @@ class ContractController extends Controller
         }
     }
 
+    public function sign(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'signature' => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
+                'content' => ['required', 'string'],
+            ]);
+
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->where('status', 'Chờ ký')
+                ->firstOrFail();
+
+            $updatedContract = $this->contractService->signContract(
+                $id,
+                $request->input('signature'),
+                $request->input('content')
+            );
+
+            return response()->json([
+                'message' => 'Hợp đồng đã được ký thành công.',
+                'data' => $updatedContract,
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors(),
+                'status' => 422,
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Hợp đồng không tồn tại hoặc không ở trạng thái chờ ký.',
+                'status' => 404,
+            ], 404);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi ký hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Đã có lỗi xảy ra khi ký hợp đồng. Vui lòng thử lại.',
+                'status' => 500,
+            ], 500);
+        }
+    }
+
      /**
      * Xác định trạng thái mới dựa trên trạng thái hiện tại
      */

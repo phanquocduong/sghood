@@ -19,6 +19,8 @@
                             <option value="1 năm">1 năm</option>
                             <option value="2 năm">2 năm</option>
                             <option value="3 năm">3 năm</option>
+                            <option value="4 năm">4 năm</option>
+                            <option value="5 năm">5 năm</option>
                         </select>
                     </div>
                 </div>
@@ -159,11 +161,14 @@ onMounted(() => {
     fetchItems();
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
+            // Tính ngày mai
+            const tomorrow = window.moment().add(15, 'days');
             window
                 .jQuery('#date-picker')
                 .daterangepicker({
                     opens: 'left',
                     singleDatePicker: true,
+                    minDate: tomorrow, // Chỉ cho phép chọn từ ngày mai trở đi
                     locale: {
                         format: 'DD/MM/YYYY',
                         applyLabel: 'Xác nhận',

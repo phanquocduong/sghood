@@ -21,14 +21,11 @@ const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage(function (payload) {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
-
-    // Customize notification here
-    const notificationTitle = payload.notification?.title || 'Background Message';
+    const notificationTitle = payload.notification?.title;
     const notificationOptions = {
-        body: payload.notification?.body || 'Background Message body.',
-        icon: '/icon-192x192.png', // Add your app icon
-        badge: '/icon-72x72.png',
+        body: payload.notification?.body,
+        icon: '/images/sghood_logo1.png',
+        badge: '/images/sghood_logo2.png',
         tag: 'background-message',
         data: payload.data || {}
     };
@@ -36,12 +33,27 @@ messaging.onBackgroundMessage(function (payload) {
     return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Handle notification click
+// Handle notification click with link
 self.addEventListener('notificationclick', function (event) {
-    console.log('[firebase-messaging-sw.js] Notification click received.');
-
     event.notification.close();
 
-    // Handle click action
-    event.waitUntil(clients.openWindow('/'));
+    const link = event.notification.data?.link;
+    console.log('Notification click data:', event.notification.data);
+
+    if (link) {
+        event.waitUntil(
+            clients.matchAll({ type: 'window' }).then(windowClients => {
+                for (let client of windowClients) {
+                    if (client.url === link && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                if (clients.openWindow) {
+                    return clients.openWindow(link);
+                }
+            })
+        );
+    } else {
+        event.waitUntil(clients.openWindow('/'));
+    }
 });

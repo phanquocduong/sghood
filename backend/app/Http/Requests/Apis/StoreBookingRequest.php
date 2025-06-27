@@ -24,7 +24,7 @@ class StoreBookingRequest extends FormRequest
        return [
             'room_id' => 'required|exists:rooms,id',
             'start_date' => 'required|date_format:d/m/Y',
-            'duration' => 'required|string|in:1 năm,2 năm,3 năm',
+            'duration' => 'required|string|in:1 năm,2 năm,3 năm,4 năm,5 năm',
             'note' => 'nullable|string|max:500'
         ];
     }
@@ -37,7 +37,7 @@ class StoreBookingRequest extends FormRequest
             'start_date.required' => 'Vui lòng chọn ngày bắt đầu',
             'start_date.date_format' => 'Ngày bắt đầu phải có định dạng DD/MM/YYYY.',
             'duration.required' => 'Vui lòng chọn thời gian thuê',
-            'duration.in' => 'Thời gian thuê phải là 1 năm, 2 năm hoặc 3 năm',
+            'duration.in' => 'Thời gian thuê phải là 1 năm, 2 năm, 3 năm, 4 năm hoặc 5 năm',
             'note.max' => 'Ghi chú không được vượt quá 500 ký tự'
         ];
     }
