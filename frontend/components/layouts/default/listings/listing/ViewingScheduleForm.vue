@@ -62,13 +62,15 @@ const loading = ref(false);
 
 // Dữ liệu mẫu cho time slots
 const timeSlots = ref([
-    { time: '8:30 sáng - 9:00 sáng' },
+    { time: '8:00 sáng - 8:30 sáng' },
     { time: '9:00 sáng - 9:30 sáng' },
-    { time: '9:30 sáng - 10:00 sáng' },
     { time: '10:00 sáng - 10:30 sáng' },
-    { time: '13:00 chiều - 13:30 chiều' },
-    { time: '13:30 chiều - 14:00 chiều' },
-    { time: '14:00 chiều - 14:30 chiều' }
+    { time: '11:00 sáng - 11:30 sáng' },
+    { time: '13:00 sáng - 13:30 chiều' },
+    { time: '14:00 chiều - 14:30 chiều' },
+    { time: '15:00 chiều - 15:30 chiều' },
+    { time: '16:00 chiều - 16:30 chiều' },
+    { time: '17:00 chiều - 17:30 chiều' }
 ]);
 
 // Dữ liệu form
@@ -150,11 +152,14 @@ const submitForm = async () => {
 onMounted(() => {
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
+            // Tính ngày mai
+            const tomorrow = window.moment().add(2, 'days');
             window
                 .jQuery('#date-picker')
                 .daterangepicker({
                     opens: 'left',
                     singleDatePicker: true,
+                    minDate: tomorrow, // Chỉ cho phép chọn từ ngày mai trở đi
                     locale: {
                         format: 'DD/MM/YYYY',
                         applyLabel: 'Xác nhận',

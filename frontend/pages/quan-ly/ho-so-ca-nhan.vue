@@ -142,7 +142,7 @@ const avatarUrl = computed(() => {
     if (user.value?.avatar) {
         return `${config.public.baseUrl}${user.value.avatar}`;
     }
-    return '/images/user-avatar.jpg';
+    return '/images/default-avatar.webp';
 });
 
 // Định dạng birthDate cho input type="date"

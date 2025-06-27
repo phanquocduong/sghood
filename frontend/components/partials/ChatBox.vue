@@ -59,45 +59,41 @@ const scrollToBottom = () => {
 
 const initChat = async () => {
   try {
-    const res = await $api('/users/admins', {
-      headers: {
-        Authorization: `Bearer ${token.value}`  
-      }
-    })
-    const admins = res.data || []
-    if (admins.length === 0) return
-
-    const random = Math.floor(Math.random() * admins.length)
-    const admin = admins[random]
-    AdminId.value = admin.id
-    const chatId = [currentUserId.value, admin.id].sort().join('_')
-
-    // 1. Gọi API start-chat
-    await $api('/messages/start-chat', {
+    // 1) Gọi trực tiếp API start-chat để backend gán admin
+    const res = await $api('/messages/start-chat', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token.value}`,
         'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
       },
       body: {
-        receiver_id: admin.id,
-        sender_id: currentUserId.value
+        message: 'Xin chào, tôi cần hỗ trợ' // gửi để backend tạo tin nhắn đầu tiên
       }
     })
-console.log(admin)
-    // 2. Gọi API lịch sử
-    const history = await $api(`/messages/history/${admin.id}`, {
+
+    if (!res?.status || !res?.admin_id) {
+      console.warn('Không lấy được admin từ phản hồi start-chat')
+      return
+    }
+
+    AdminId.value = res.admin_id
+
+    // 2) Lấy lịch sử chat
+    const history = await $api(`/messages/history/${AdminId.value}`, {
       headers: {
         Authorization: `Bearer ${token.value}`
       }
     })
+
     if (Array.isArray(history.data)) {
       messages.value = history.data.map(msg => ({
         from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
         text: msg.message
       }))
     }
-    // 3. Lắng nghe Firestore realtime
+
+    // 3) Lắng nghe realtime Firestore
+    const chatId = [currentUserId.value, AdminId.value].sort().join('_')
     const msgQuery = query(
       collection($firebaseDb, 'messages'),
       where('chatId', '==', chatId),
@@ -106,20 +102,20 @@ console.log(admin)
 
     unsubscribe = onSnapshot(msgQuery, snapshot => {
       const newMessages = snapshot.docs.map(doc => {
-        const data = doc.data()
+        const d = doc.data()
         return {
-          from: data.sender_id === currentUserId.value ? 'user' : 'admin',
-          text: data.text
+          from: d.sender_id === currentUserId.value ? 'user' : 'admin',
+          text: d.text
         }
       })
-      messages.value = [...messages.value, ...newMessages]
+      messages.value = newMessages
       scrollToBottom()
     })
-
   } catch (error) {
     console.error('initChat error:', error)
   }
 }
+
 
 
 const sendMessage = async () => {

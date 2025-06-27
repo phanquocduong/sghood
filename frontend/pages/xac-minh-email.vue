@@ -1,15 +1,34 @@
 <template>
-    <div class="container">
-        <h2>Xác minh Email</h2>
-        <div v-if="loading" class="text-center">
-            <span class="spinner"></span>
-            Đang xác minh...
+    <div class="page-container">
+        <div class="container">
+            <!-- Header -->
+            <h2 class="header-title">Xác Minh Email</h2>
+
+            <!-- Loading State -->
+            <div v-if="loading" class="loading-container">
+                <div class="spinner"></div>
+                <p class="loading-text">Đang xác minh...</p>
+            </div>
+
+            <!-- Message State -->
+            <div v-else-if="message" class="notification" :class="{ success: !error, error: error }">
+                <div class="notification-content">
+                    <span class="notification-icon">{{ error ? '❌' : '✅' }}</span>
+                    <p class="notification-text">{{ message }}</p>
+                </div>
+            </div>
+
+            <!-- Invalid Link State -->
+            <div v-else class="notification error">
+                <div class="notification-content">
+                    <span class="notification-icon">❌</span>
+                    <p class="notification-text">Liên kết xác minh không hợp lệ.</p>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <NuxtLink v-if="!redirecting" to="/" class="back-button">Quay lại trang chủ</NuxtLink>
         </div>
-        <div v-else-if="message" class="notification" :class="{ success: !error, error: error }">
-            {{ message }}
-        </div>
-        <div v-else class="notification error">Liên kết xác minh không hợp lệ.</div>
-        <NuxtLink to="/" class="button border margin-top-10" v-if="!redirecting">Quay lại trang chủ</NuxtLink>
     </div>
 </template>
 
@@ -55,26 +74,180 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    text-align: center;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.notification {
-    padding: 15px;
-    border-radius: 5px;
+.page-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fff1f1, #ffe1e3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 40px 30px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d2d2d;
     margin-bottom: 20px;
 }
 
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    animation: pulse 1.5s infinite;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid #f91942;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    color: #4a4a4a;
+}
+
+.notification {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+}
+
+.notification-text {
+    font-size: 1.6rem;
+    flex: 1;
+}
+
 .success {
-    background-color: #d4edda;
-    color: #155724;
+    background: #e6f4ea;
+    border-color: #34c759;
+    color: #1a3c1f;
+}
+
+.success .notification-icon {
+    color: #34c759;
 }
 
 .error {
-    background-color: #f8d7da;
-    color: #721c24;
+    background: #ffe6e8;
+    border-color: #f91942;
+    color: #5c1c24;
+}
+
+.error .notification-icon {
+    color: #f91942;
+}
+
+.back-button {
+    display: inline-block;
+    width: 100%;
+    padding: 14px 0;
+    background: #f91942;
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(249, 25, 66, 0.3);
+}
+
+.back-button:hover {
+    background: #d11236;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249, 25, 66, 0.4);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    .header-title {
+        font-size: 1.5rem;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+    }
+
+    .loading-text {
+        font-size: 1rem;
+    }
+
+    .notification-text {
+        font-size: 1rem;
+    }
+
+    .back-button {
+        padding: 12px 0;
+        font-size: 1rem;
+    }
 }
 </style>

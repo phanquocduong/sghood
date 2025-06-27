@@ -19,17 +19,15 @@ class SendMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'receiver_id' => 'nullable|exists:users,id',
-            
+            'message' => 'required|string',
         ];
     }
     
     public function messages(): array
     {
         return [
-        
-            'receiver_id.exists' => 'Người nhận không tồn tại',
-           
+            'message.required' => 'Vui lòng nhập tin nhắn',
+            'message.string' => 'Tin nhắn phải là chuỗi ký tự',
         ];
     }
 }

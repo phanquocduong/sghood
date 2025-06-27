@@ -2,12 +2,9 @@
     <h4>Quản lý lịch xem phòng/yêu cầu đặt phòng</h4>
 
     <!-- Hiển thị loading spinner -->
-    <div v-if="isLoading" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Đang tải...</p>
-    </div>
+    <Loading :is-loading="isLoading" />
 
-    <ul v-else>
+    <ul v-if="!isLoading">
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status, item.type)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
@@ -166,44 +163,6 @@ const openPopup = roomId => {
     max-width: 150px;
     max-height: none;
     border-radius: 4px;
-}
-
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #f91942;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-p {
-    color: #333;
-    margin-top: 10px;
-    font-size: 16px;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
 }
 
 .item-type {

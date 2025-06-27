@@ -1,20 +1,16 @@
 <template>
-    <div id="wrapper">
-             <Loading v-if="isLoading" />
+    <Loading :is-loading="isLoading" />
+    <div v-if="!isLoading" id="wrapper">
         <!-- Header Container -->
         <header id="header-container" class="fixed fullwidth dashboard">
             <div id="header" class="not-sticky">
-                 <div class="loading-overlay" v-show="isLoading">
-            <div class="spinner"></div>
-            <p>Đang tải ... </p>
-        </div>
-
                 <div class="container">
-                    <!-- Left Side Content -->
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/" class="dashboard-logo"><img v-if="config && config.logo_ngang"  :src=" baseUrl  + config.logo_ngang " alt="" /></NuxtLink>
+                            <NuxtLink to="/" class="dashboard-logo"
+                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt=""
+                            /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -58,8 +54,8 @@ const router = useRouter();
 const toast = useToast();
 const route = useRoute();
 const isLoading = ref(false);
-const config = useState('configs')
-const baseUrl = useRuntimeConfig().public.baseUrl
+const config = useState('configs');
+const baseUrl = useRuntimeConfig().public.baseUrl;
 watch(
     () => route.fullPath,
     async () => {
@@ -140,5 +136,9 @@ onMounted(() => {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.container {
+    max-width: 100% !important;
 }
 </style>

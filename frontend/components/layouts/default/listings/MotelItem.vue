@@ -23,3 +23,12 @@
 const config = useRuntimeConfig();
 defineProps(['item']);
 </script>
+
+<style>
+.listing-item-content span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+</style>

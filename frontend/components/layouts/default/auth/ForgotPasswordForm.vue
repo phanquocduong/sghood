@@ -1,7 +1,7 @@
 <template>
     <div class="tab-content" id="forgot-password" style="display: none">
         <div v-show="!showResetFields">
-            <form @submit.prevent="authStore.sendOTP">
+            <form @submit.prevent="handleSendOTP">
                 <div class="form-row form-row-wide">
                     <label for="phone2">
                         Số điện thoại:
@@ -96,13 +96,14 @@ const normalizePhoneNumber = value => {
     return cleaned;
 };
 
-// Theo dõi sự thay đổi của phone và chuẩn hóa
-watch(phone, newValue => {
-    const normalized = normalizePhoneNumber(newValue);
-    if (normalized !== newValue) {
-        phone.value = normalized;
-    }
-});
+// Hàm xử lý gửi OTP
+const handleSendOTP = async () => {
+    // Chuẩn hóa số điện thoại trước khi gửi
+    phone.value = normalizePhoneNumber(phone.value);
+
+    // Gọi hàm gửi OTP từ authStore
+    await authStore.sendOTP();
+};
 </script>
 
 <style scoped>

@@ -52,6 +52,7 @@
         <div>
             <ChatIcon v-if="user" @toggle="toggleChat" />
             <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false"></ChatBox>
+
         </div>
     </div>
 </template>
@@ -81,4 +82,6 @@ watch(
     },
     { immediate: true }
 );
+
 </script>
+

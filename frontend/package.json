@@ -12,12 +12,13 @@
     "dependencies": {
         "@nuxtjs/google-fonts": "^3.2.0",
         "@pinia/nuxt": "^0.11.0",
+        "@vueuse/core": "^13.4.0",
         "dropzone": "^6.0.0-beta.2",
-        "firebase": "^11.6.1",
+        "firebase": "^11.9.1",
         "lucide-vue-next": "^0.518.0",
         "nuxt": "^3.17.1",
         "pinia": "^3.0.2",
-        "sweetalert2": "^11.22.0",
+        "sweetalert2": "^11.6.13",
         "vue": "^3.5.13",
         "vue-router": "^4.5.0",
         "vue-toastification": "^2.0.0-rc.5"

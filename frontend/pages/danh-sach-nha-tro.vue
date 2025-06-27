@@ -33,12 +33,9 @@
                         </div>
                     </div>
 
-                    <div v-if="isLoading" class="loading-overlay">
-                        <div class="spinner"></div>
-                        <p>Đang tải ...</p>
-                    </div>
+                    <Loading :is-loading="isLoading" />
 
-                    <div v-else class="row">
+                    <div class="row">
                         <div v-if="listings.length" v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
                             <MotelItem :item="item" />
                         </div>
@@ -189,29 +186,34 @@ onMounted(async () => {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(255, 255, 255, 0.85);
+    width: 100%;
+    height: 100%;
+    background: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    transition: opacity 0.3s ease;
 }
 
 .spinner {
     width: 50px;
     height: 50px;
-    border: 5px solid #ddd;
+    border: 5px solid #f3f3f3;
     border-top: 5px solid #f91942;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
+p {
+    color: #333;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
 @keyframes spin {
     0% {
-        transform: rotate(0);
+        transform: rotate(0deg);
     }
     100% {
         transform: rotate(360deg);
