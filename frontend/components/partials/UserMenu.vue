@@ -22,6 +22,9 @@
                       <small style="color: #888;">{{ noti.time }}</small>
                     </a>
                   </li>
+                      <li v-if="!showDropdown.length" >
+                <p>Chưa có thông báo nào.</p>
+              </li>
                   <li>
                     <NuxtLink to="quan-ly/thong-bao"><i class="fa fa-eye"></i> Xem tất cả</NuxtLink>
                   </li>
@@ -36,6 +39,7 @@
                     <img
                       :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/dashboard-avatar.jpg'"
                       alt="Avatar"
+                      
                     />
                   </span>
                   Xin chào, {{ user?.name || 'Người dùng' }}!
@@ -92,10 +96,16 @@ const topNoti = computed(()=>{
 </script>
 
 <style scoped>
+.user-name img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+ 
+}
 .header-widget {
     display: flex;
 }
-
 .auth-container {
     margin-left: auto;
     display: flex;
@@ -117,7 +127,7 @@ const topNoti = computed(()=>{
     background-color: #f1f1f1;
     transition: all 0.2s;
     cursor: pointer;
-    margin-left: -50px;
+    margin-left: -20px;
 }
 
 .notification-icon:hover {
@@ -153,10 +163,12 @@ const topNoti = computed(()=>{
     border-radius: 4px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     z-index: 100;
+   
 }
 
 .user-menu .dropdown li {
     border-bottom: 1px solid #eee;
+    justify-items: center;
 }
 
 .user-menu .dropdown li:last-child {
@@ -169,10 +181,12 @@ const topNoti = computed(()=>{
     font-size: 14px;
     color: #333;
     transition: all 0.2s;
+    
 }
 
 .user-menu .dropdown li a:hover {
     background-color: #f7f7f7;
     color: #f91942;
+    
 }
 </style>

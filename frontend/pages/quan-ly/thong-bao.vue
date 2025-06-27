@@ -40,6 +40,9 @@
               <button class="delete-btn" @click.stop="removeNotification(index)">✕</button>
             </div>
           </div>
+          <div v-if="notifications.length === 0" class="box-title-bar ">
+            <p>Chưa có thông báo nào.</p>
+          </div>
         </div>
       </div>
     </div>

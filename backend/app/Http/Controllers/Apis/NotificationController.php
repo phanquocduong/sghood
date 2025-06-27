@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
@@ -15,20 +14,38 @@ class NotificationController extends Controller
         $this->notificationService = $notificationService;
     }
 
-    public function getAllNotificationByUser($userId)
+    public function getAllNotificationByUser(Request $request, $userId)
     {
-        $notifications = $this->notificationService->getUserNotifications($userId);
+        $sortOrder = $request->query('sort', 'desc') === 'asc' ? 'asc' : 'desc';
+        $status = $request->query('status', '');
+        $perPage = $request->query('per_page', 10);
+
+        $notifications = $this->notificationService->getUserNotifications($userId, $sortOrder, $status, $perPage);
 
         if ($notifications->isEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Không có thông báo nào cho người dùng này.'
+                'message' => 'Không có thông báo nào.'
             ], 404);
         }
 
+        // Trả về dữ liệu đã phân trang
         return response()->json([
             'status' => true,
-            'data' => $notifications
+            'data' => [
+                'current_page' => $notifications->currentPage(), // Trang hiện tại
+                'data' => $notifications->items(), // Dữ liệu thông báo của trang hiện tại
+                'first_page_url' => $notifications->url(1), // URL của trang đầu tiên
+                'from' => $notifications->firstItem(), // Mục đầu tiên của trang hiện tại
+                'last_page' => $notifications->lastPage(), // Tổng số trang
+                'last_page_url' => $notifications->url($notifications->lastPage()), // URL của trang cuối cùng
+                'next_page_url' => $notifications->nextPageUrl(), // URL của trang kế tiếp
+                'path' => $notifications->path(), // Đường dẫn của trang hiện tại
+                'per_page' => $notifications->perPage(), // Số mục trên mỗi trang
+                'prev_page_url' => $notifications->previousPageUrl(), // URL của trang trước đó
+                'to' => $notifications->lastItem(), // Mục cuối cùng của trang hiện tại
+                'total' => $notifications->total(), // Tổng số thông báo
+            ]
         ]);
     }
 
@@ -48,5 +65,4 @@ class NotificationController extends Controller
             'data' => $notification
         ]);
     }
-
 }

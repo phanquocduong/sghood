@@ -1,16 +1,19 @@
 <?php
-
 namespace App\Services\Apis;
 
 use App\Models\Notification;
 
 class NotificationService
 {
-    public function getUserNotifications($userId)
+    public function getUserNotifications($userId, $sortOrder = 'desc', $status = '', $perPage = 10)
     {
-        return Notification::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Notification::where('user_id', $userId);
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        return $query->orderBy('created_at', $sortOrder)->paginate($perPage);
     }
 
     public function getNotificationById($notificationId)

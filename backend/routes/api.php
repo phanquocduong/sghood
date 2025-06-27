@@ -66,3 +66,7 @@ Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageControl
 Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageController::class, 'startChat']);
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});

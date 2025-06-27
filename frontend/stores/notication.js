@@ -20,24 +20,32 @@ export const useNotificationStore = defineStore('notification', () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-     
           'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
         },
       });
 
-      if (res?.status === true) {
-        notifications.value = (res.data.data || []).map(item => ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          unread: item.status === 'Chưa đọc',
-          time: new Date(item.created_at).toLocaleString(),
-        }));
-      } else {
-        toast.error('❌ Không lấy được danh sách thông báo!');
-      }
-    } catch (err) {
-      toast.error('❌ Lỗi kết nối máy chủ khi lấy thông báo.');
+     if (!res || !res.data || !Array.isArray(res.data.data)) {
+    notifications.value = []; // ← Đảm bảo luôn là mảng
+    return;
+  }
+   if (res?.status === false) {
+      toast.error(` ${res.message || 'Lỗi khi lấy thông báo.'}`);
+      return;
+    }
+
+  const list = res.data.data
+  notifications.value = list.map(item => ({
+    id: item.id,
+    title: item.title,
+    content: item.content,
+    unread: item.status === 'Chưa đọc',
+    time: new Date(item.created_at).toLocaleString(),
+  }));
+      }catch (err) {
+      
+      console.log(err)
+    }finally{
+      loading.value = false
     }
   };
 const removeNotification = index => {

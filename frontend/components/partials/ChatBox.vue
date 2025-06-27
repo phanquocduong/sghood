@@ -97,7 +97,6 @@ const initChat = async () => {
         text: msg.message
       }))
     }
-    console.log(currentUserId)
     // 3. Lắng nghe Firestore realtime
     const msgQuery = query(
       collection($firebaseDb, 'messages'),
@@ -129,6 +128,10 @@ const sendMessage = async () => {
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
+    messages.value.push({from:'user' , text:text})
+    scrollToBottom()
+    newMessage.value =''
+
     // Gửi tin nhắn lên Firestore (realtime)
  await addDoc(collection($firebaseDb, 'messages'), {
   text,
@@ -137,14 +140,12 @@ const sendMessage = async () => {
   createdAt: serverTimestamp(),
   chatId: [currentUserId.value, AdminId.value].sort().join('_')
 })
-
-
     // Optionally: gọi API gửi nữa nếu backend cần lưu
     await $api('/messages/send', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token.value}`,
-    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
       },
       body: {
         receiver_id: AdminId.value,
