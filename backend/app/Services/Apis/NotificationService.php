@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Apis;
 
 use App\Models\Notification;

@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'Quản lý hợp đồng')
@@ -180,10 +184,10 @@
                                            title="Xem chi tiết">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </a>
-                                        @if($contractItem->file && file_exists(storage_path('app/contracts/' . $contractItem->file)))
+                                        @if($contractItem->file && Storage::disk('public')->exists($contractItem->file))
                                             <a href="{{ route('contracts.download', $contractItem->id) }}"
-                                               class="btn btn-outline-primary btn-sm shadow-sm"
-                                               title="Tải xuống PDF">
+                                            class="btn btn-outline-primary btn-sm shadow-sm"
+                                            title="Tải xuống PDF">
                                                 <i class="fas fa-download me-1"></i>PDF
                                             </a>
                                         @else

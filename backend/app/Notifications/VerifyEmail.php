@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\VerifyEmail as BaseVerifyEmail;
@@ -14,12 +15,12 @@ class VerifyEmail extends BaseVerifyEmail
         $verificationUrl = $this->verificationUrl($notifiable);
 
         return (new MailMessage)
-            ->subject('Xác minh địa chỉ email')
-            ->greeting('Xin chào ' . $notifiable->name . ',')
-            ->line('Vui lòng nhấn vào nút bên dưới để xác minh địa chỉ email của bạn.')
-            ->action('Xác minh Email', $verificationUrl)
-            ->line('Nếu bạn không tạo tài khoản, vui lòng bỏ qua email này.')
-            ->salutation('Trân trọng, ' . Config::get('app.name'));
+            ->subject('🔐 Xác minh địa chỉ email của bạn')
+            ->view('emails.verify-email', [
+                'user' => $notifiable,
+                'verificationUrl' => $verificationUrl,
+                'appName' => Config::get('app.name')
+            ]);
     }
 
     protected function verificationUrl($notifiable)
@@ -31,7 +32,7 @@ class VerifyEmail extends BaseVerifyEmail
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ],
-            true // URL tuyệt đối
+            true
         );
     }
 }

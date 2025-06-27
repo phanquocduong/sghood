@@ -19,7 +19,12 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = $this->userService->getFilteredUsers($request);
-        return view('users.user', compact('users'));
+        $message = $users->isEmpty() ? 'Không tìm thấy người dùng phù hợp.' : null;
+        return view('users.user', compact('users', 'message'))
+            ->with('keyword', $request->keyword)
+            ->with('role', $request->role)
+            ->with('status', $request->status)
+            ->with('sort', $request->sort);
     }
 
     /**
