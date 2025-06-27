@@ -73,6 +73,7 @@
     <script src="{{ asset('js/main.js') }}"></script>
     <script src="{{ asset('js/system.js') }}"></script>
     <script src="{{ asset('js/room-edit.js') }}"></script>
+    <script src="{{ asset('js/room.js') }}"></script>
     <script src="{{ asset('js/schedule.js') }}"></script>
     @stack('scripts')
 </body>

@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Services\Apis;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Models\UserAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -11,10 +11,39 @@ class MessageService
 {
     public function sendMessage(int $senderId, int $receiverId, string $messageText)
     {
-        // Ghi log kiểm tra
         Log::info('Sender ID:', ['id' => $senderId]);
 
-        // Kiểm tra đã có đoạn chat giữa 2 người chưa
+        // Kiểm tra xem người gửi có phải là User (không phải admin)
+        $sender = User::find($senderId);
+        $receiver = User::find($receiverId);
+
+        // Nếu sender là user, chưa từng có admin gán thì gán admin ngẫu nhiên
+        if ($sender && $sender->role !== 'Quản trị viên') {
+            $userAdmin = UserAdmin::where('user_id', $senderId)->first();
+
+            if (!$userAdmin) {
+                // Gán admin ngẫu nhiên
+                $admin = User::where('role', 'Quản trị viên')->inRandomOrder()->first();
+                if (!$admin) {
+                    Log::error('Không tìm thấy admin để gán.');
+                    return null;
+                }
+
+                // Lưu vào bảng user_admins
+                $userAdmin = UserAdmin::create([
+                    'user_id' => $senderId,
+                    'admin_id' => $admin->id,
+                ]);
+
+                // Gán lại receiverId là admin đó (bỏ qua receiver ban đầu nếu khác)
+                $receiverId = $admin->id;
+            } else {
+                // Nếu đã có admin thì ép receiverId về admin đã gán
+                $receiverId = $userAdmin->admin_id;
+            }
+        }
+
+        // Kiểm tra đã từng chat chưa
         $exists = Message::where(function ($query) use ($senderId, $receiverId) {
             $query->where('sender_id', $senderId)
                 ->where('receiver_id', $receiverId);
@@ -24,7 +53,7 @@ class MessageService
         })->exists();
 
         try {
-            // Tạo tin nhắn chính
+            // Gửi tin nhắn chính
             $userMessage = Message::create([
                 'sender_id' => $senderId,
                 'receiver_id' => $receiverId,
@@ -34,8 +63,8 @@ class MessageService
                 'updated_at' => now()
             ]);
 
-            // Nếu chưa từng chat thì gửi auto-reply
-            if ($exists) {
+            // Nếu là lần đầu (chưa tồn tại đoạn chat), gửi auto-reply từ admin
+            if (!$exists && $sender->role !== 'Quản trị viên') {
                 Message::create([
                     'sender_id' => $receiverId, // admin
                     'receiver_id' => $senderId, // user
@@ -129,4 +158,5 @@ class MessageService
 
         return $firstMessage;
     }
+
 }

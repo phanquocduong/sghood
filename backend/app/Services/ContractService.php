@@ -337,24 +337,20 @@ class ContractService
             $pdf = Pdf::loadHTML($htmlContent)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
-                    'defaultFont' => 'DejaVu Sans',
+                    'defaultFont' => 'DejaVu Sans', // Thay đổi font chính
                     'isRemoteEnabled' => false,
                     'isHtml5ParserEnabled' => true,
                     'isPhpEnabled' => false,
                     'dpi' => 150,
                     'defaultPaperSize' => 'a4',
-                    'fontHeightRatio' => 1.1,
+                    'fontHeightRatio' => 1.1, // Giảm tỷ lệ font
                     'isFontSubsettingEnabled' => true,
                     'debugKeepTemp' => false,
                     'debugCss' => false,
                     'debugLayout' => false,
                     'chroot' => public_path(),
-                    'enable_font_subsetting' => true,
-                    'font_cache' => storage_path('fonts/'),
-                    'fontDir' => storage_path('fonts/'),
-                    'tempDir' => storage_path('app/dompdf/'),
-                    'isUnicode' => true,
-                    'enable_html5_parser' => true,
+                    'enable_font_subsetting' => true, // Thêm option này
+                    'font_cache' => storage_path('fonts/'), // Cache font
                 ]);
 
             $pdfContent = $pdf->output();
@@ -380,11 +376,11 @@ class ContractService
     }
 
     /**
-     * Chuẩn bị HTML content với CSS khớp với giao diện gốc - Fixed Vietnamese Font Issues
+     * Chuẩn bị HTML content với CSS khớp với giao diện gốc - Fixed Font Issues
      */
     private function prepareHtmlContent(string $content): string
     {
-        // CSS được thiết kế để khớp với giao diện generateContractContent và hỗ trợ tiếng Việt
+        // CSS được cải thiện với font hỗ trợ tiếng Việt tốt hơn
         $css = '
         <style>
             @page {
@@ -393,20 +389,20 @@ class ContractService
             }
 
             * {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "DejaVu Sans", "Arial", sans-serif;
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
             }
 
             body {
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
-                color: #212529;
+                font-size: 24px;
+                line-height: 1.5;
+                color: #000;
                 background: white;
                 padding: 0;
                 margin: 0;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "DejaVu Sans", "Arial", sans-serif;
             }
 
             .container-fluid {
@@ -418,52 +414,14 @@ class ContractService
                 max-width: 210mm;
                 min-height: 297mm;
                 background: white;
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
+                font-family: "DejaVu Sans", "Arial", sans-serif;
+                font-size: 16px;
+                line-height: 1.5;
                 padding: 15mm 20mm;
                 margin: 0 auto;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
             }
 
-            /* Typography - Sử dụng font hỗ trợ tiếng Việt */
-            h1, h2, h3, h4, h5, h6 {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-weight: bold;
-                margin: 0;
-            }
-
-            h3 {
-                font-size: 20px; /* Tăng từ 18px lên 20px */
-                font-weight: bold;
-                letter-spacing: 1px;
-                margin: 0;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-            }
-
-            p {
-                margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                line-height: 1.6;
-                font-size: 16px; /* Tăng font size cho paragraph */
-            }
-
-            strong, b {
-                font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Đảm bảo strong text cũng có font size lớn */
-            }
-
-            u {
-                text-decoration: underline;
-            }
-
-            em, i {
-                font-style: italic;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
-            }
-
-            /* Layout utilities */
+            /* Header styling */
             .text-center {
                 text-align: center;
             }
@@ -472,27 +430,42 @@ class ContractService
                 text-align: right;
             }
 
-            .text-justify {
-                text-align: justify;
+            .mb-2 {
+                margin-bottom: 0.5rem;
             }
 
-            .mb-0 { margin-bottom: 0; }
-            .mb-1 { margin-bottom: 0.25rem; }
-            .mb-2 { margin-bottom: 0.5rem; }
-            .mb-3 { margin-bottom: 1rem; }
-            .mb-4 { margin-bottom: 1.5rem; }
-            .mb-5 { margin-bottom: 3rem; }
+            .mb-3 {
+                margin-bottom: 1rem;
+            }
 
-            .mt-3 { margin-top: 1rem; }
-            .mt-5 { margin-top: 3rem; }
+            .mb-4 {
+                margin-bottom: 1.5rem;
+            }
+
+            .mb-5 {
+                margin-bottom: 3rem;
+            }
 
             .my-4 {
                 margin-top: 1.5rem;
                 margin-bottom: 1.5rem;
             }
 
-            .pt-3 { padding-top: 1rem; }
-            .pt-4 { padding-top: 1.5rem; }
+            .mt-3 {
+                margin-top: 1rem;
+            }
+
+            .mt-5 {
+                margin-top: 3rem;
+            }
+
+            .pt-3 {
+                padding-top: 1rem;
+            }
+
+            .pt-4 {
+                padding-top: 1.5rem;
+            }
 
             .px-2 {
                 padding-left: 0.5rem;
@@ -508,6 +481,39 @@ class ContractService
                 margin-left: 1rem;
             }
 
+            /* Typography - Font được cải thiện */
+            strong, b {
+                font-weight: bold;
+                font-family: "DejaVu Sans", "Arial", sans-serif;
+            }
+
+            u {
+                text-decoration: underline;
+            }
+
+            em, i {
+                font-style: italic;
+            }
+
+            h1, h2, h3, h4, h5, h6 {
+                font-family: "DejaVu Sans", "Arial", sans-serif;
+                font-weight: bold;
+                margin: 0;
+            }
+
+            h3 {
+                font-size: 20px;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                margin: 0;
+            }
+
+            p {
+                margin-bottom: 0.5rem;
+                font-family: "DejaVu Sans", "Arial", sans-serif;
+                line-height: 1.5;
+            }
+
             /* Border utilities */
             .border {
                 border: 1px solid #000;
@@ -521,18 +527,11 @@ class ContractService
                 display: inline-block;
             }
 
-            /* Grid system for PDF */
+            /* Row/Column system for PDF */
             .row {
                 display: table;
                 width: 100%;
                 margin-bottom: 1rem;
-            }
-
-            .col-2 {
-                display: table-cell;
-                width: 16.66%;
-                vertical-align: top;
-                padding-right: 15px;
             }
 
             .col-6 {
@@ -542,58 +541,25 @@ class ContractService
                 padding-right: 15px;
             }
 
-            .col-10 {
-                display: table-cell;
-                width: 83.33%;
-                vertical-align: top;
-                padding-right: 15px;
-            }
-
-            .col-6:last-child,
-            .col-2:last-child {
+            .col-6:last-child {
                 padding-right: 0;
                 padding-left: 15px;
             }
 
-            /* Form controls - chuyển đổi input thành text với gạch chân */
-            .form-control.flat-line {
-                border: none;
-                border-bottom: 1px dotted #666;
-                border-radius: 0;
-                outline: none;
-                background: transparent;
-                height: auto;
-                box-shadow: none;
+            /* Header specific styles */
+            .contract-document .text-center.mb-4 > div:first-child {
+                font-size: 17px;
                 font-weight: bold;
-                display: inline-block;
-                vertical-align: bottom;
-                margin: 0 0 5px 0;
-                padding: 0 0 2px 0;
-                min-width: 100px;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho form control */
+                letter-spacing: 0.3px;
+                margin-bottom: 0.5rem;
             }
 
-            /* Header specific styles */
-            .contract-document .text-center.mb-4 > div:first-child strong {
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                letter-spacing: 0.5px;
-                font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+            .contract-document .text-center.mb-4 > div:nth-child(2) {
+                margin-bottom: 1rem;
             }
 
             .contract-document .text-center.mb-4 > div:nth-child(2) u strong {
                 font-weight: bold;
-                text-decoration: underline;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
-            }
-
-            .contract-document .text-center.mb-4 > div .my-4 h3 {
-                font-size: 20px; /* Tăng từ 18px lên 20px */
-                font-weight: bold;
-                letter-spacing: 1px;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
             }
 
             /* Contract title box */
@@ -602,8 +568,11 @@ class ContractService
                 border: 1px solid #000;
                 padding: 0.25rem 0.5rem;
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho title box */
+            }
+
+            /* Form number box */
+            .contract-document .text-end .border small {
+                font-size: 14px;
             }
 
             /* Content sections */
@@ -613,15 +582,11 @@ class ContractService
 
             .contract-content-section p {
                 margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho content section */
             }
 
             .contract-content-section .ms-3 p {
                 margin-left: 1rem;
                 margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
             }
 
             /* Party information styling */
@@ -631,105 +596,160 @@ class ContractService
 
             .party-section p {
                 margin-bottom: 0.25rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho party section */
+            }
+
+            .party-section strong {
+                font-weight: bold;
             }
 
             /* Signature section */
             .signature-row {
                 margin-top: 3rem;
                 padding-top: 1.5rem;
+                display: table;
+                width: 100%;
             }
 
-            /* Input field replacement for PDF */
-            input[type="text"], .form-control {
-                border: none;
-                border-bottom: 1px dotted #666;
-                background: transparent;
+            .signature-col {
+                display: table-cell;
+                width: 50%;
+                text-align: center;
+                vertical-align: top;
+                padding: 0 15px;
+            }
+
+            .signature-col p {
+                margin-bottom: 0.25rem;
+            }
+
+            .signature-col .mb-5 {
+                margin-bottom: 3rem;
+            }
+
+            .signature-col .mt-5 {
+                margin-top: 3rem;
+            }
+
+            /* Ensure proper spacing for signature names */
+            .signature-name {
+                margin-top: 3rem;
+                padding-top: 1rem;
+            }
+
+            /* Money amounts highlighting */
+            .money-highlight {
                 font-weight: bold;
-                display: inline-block;
-                vertical-align: bottom;
-                margin: 0 5px;
-                padding: 0 0 2px 0;
-                outline: none;
-                box-shadow: none;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho input */
             }
 
-            /* Style for input placeholders in PDF */
-            .input-placeholder {
-                display: inline-block;
-                border-bottom: 1px dotted #666;
-                min-width: 150px;
-                height: 22px; /* Tăng height để phù hợp với font lớn hơn */
-                margin: 0 5px;
-                vertical-align: bottom;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
+            /* List styling */
+            .contract-list {
+                margin-left: 1rem;
             }
 
-            .input-placeholder.wide {
-                min-width: 300px;
+            .contract-list p {
+                margin-bottom: 0.25rem;
+                text-indent: -15px;
+                padding-left: 15px;
             }
 
-            .input-placeholder.medium {
-                min-width: 200px;
+            /* Special formatting for specific sections */
+            .date-info {
+                margin-bottom: 1.5rem;
             }
 
-            .input-placeholder.small {
-                min-width: 100px;
+            .contract-terms {
+                margin-bottom: 1.5rem;
             }
 
-            /* Đảm bảo font nhất quán cho tất cả các phần tử */
-            div, span, td, th, input, label, select, textarea {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif !important;
-                color: #212529;
-                font-size: 16px; /* Tăng font size cho tất cả elements */
+            .responsibilities {
+                margin-bottom: 1.5rem;
             }
 
-            /* Loại bỏ box shadow để in sạch */
-            .contract-document {
-                box-shadow: none;
+            .general-terms {
+                margin-bottom: 1.5rem;
             }
 
-            /* Đặc biệt xử lý các ký tự tiếng Việt */
+            /* Page break control */
+            .no-break {
+                page-break-inside: avoid;
+            }
+
+            /* Font fallback cho các ký tự đặc biệt */
             .vietnamese-text {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
+                font-family: "DejaVu Sans", "Arial Unicode MS", "Arial", sans-serif;
             }
 
-            /* Các class size đặc biệt nếu cần điều chỉnh riêng */
-            .font-large {
-                font-size: 18px !important;
+            /* Ensure proper line height for Vietnamese text */
+            .contract-document {
+                line-height: 1.5;
             }
 
-            .font-extra-large {
-                font-size: 20px !important;
+            /* Remove any conflicting Bootstrap styles that might not work in PDF */
+            .container-fluid {
+                padding: 0 !important;
             }
 
-            .font-small {
-                font-size: 14px !important;
+            /* Additional spacing for better readability */
+            .section-break {
+                margin: 1.5rem 0;
+            }
+
+            /* Specific styles for contract elements */
+            .contract-document > .text-center.mb-4 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .contract-document > .text-center.mb-4 > .mb-2 > strong {
+                font-size: 17px;
+                letter-spacing: 0.3px;
+                font-weight: bold;
+            }
+
+            .contract-document > .text-center.mb-4 > .mb-3 > u > strong {
+                font-weight: bold;
+                text-decoration: underline;
+            }
+
+            .contract-document > .text-center.mb-4 > .my-4 > h3 {
+                font-size: 20px;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                margin: 0;
+            }
+
+            .contract-document > .text-center.mb-4 > .text-end.mb-4 > .d-inline-block.border.border-dark.px-2.py-1 > strong {
+                font-weight: bold;
+            }
+
+            /* Cải thiện hiển thị số và ký tự đặc biệt */
+            .numeric {
+                font-family: "DejaVu Sans Mono", monospace;
+            }
+
+            /* Đảm bảo tất cả text đều sử dụng font phù hợp */
+            div, span, td, th {
+                font-family: "DejaVu Sans", "Arial", sans-serif;
             }
         </style>';
 
-        // Xử lý content để tạo giao diện tương tự generateContractContent
+        // Xử lý content để đảm bảo encoding UTF-8
         $processedContent = $this->processContent($content);
 
-        // Tạo HTML hoàn chỉnh với meta charset UTF-8
+        // Tạo HTML hoàn chỉnh với meta UTF-8 được cải thiện
         $htmlContent = '<!DOCTYPE html>
         <html lang="vi">
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-            <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Hợp đồng cho thuê</title>
             ' . $css . '
         </head>
-        <body class="vietnamese-text">';
+        <body>';
 
-        $htmlContent .= $processedContent;
+        // Thêm content đã được xử lý với class vietnamese-text
+        $htmlContent .= '<div class="vietnamese-text">' . $processedContent . '</div>';
+
         $htmlContent .= '</body></html>';
 
         return $htmlContent;

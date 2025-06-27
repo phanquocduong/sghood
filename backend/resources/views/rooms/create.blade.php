@@ -3,13 +3,7 @@
 @section('title', 'Thêm phòng trọ')
 
 @section('content')
-<!-- Adding FilePond CSS -->
-<link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
-<!-- Adding FilePond Image Preview CSS -->
-<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
-
 <div class="container-fluid py-5 px-4">
-    <!-- Display session flash messages -->
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
             <h6 class="mb-0 fw-bold">{{ __('Thêm phòng trọ') }}</h6>
@@ -40,7 +34,7 @@
                     <div class="col-md-6">
                         <label for="area" class="form-label fw-bold text-primary">Diện tích (m²) <span class="text-danger">*</span></label>
                         <input type="number" class="form-control shadow-sm @error('area') is-invalid @enderror" id="area" name="area" value="{{ old('area') }}" step="0.01" min="0" required>
-                        @error('area')
+                        @error('price')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -90,13 +84,13 @@
                         </div>
                     </div>
                     <div class="col-12">
-                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh</label>
-                        <!-- FilePond input -->
-                        <input type="file" class="filepond form-control shadow-sm @error('images') is-invalid @enderror" name="images[]" multiple accept="image/*" required>
+                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control shadow-sm @error('images') is-invalid @enderror" id="images" name="images[]" accept="image/*" multiple required>
                         <small class="form-text text-muted">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Bạn có thể thêm 1 hình hoặc nhiều hình. Định dạng hỗ trợ: JPG, PNG, GIF, Webp.
-                        </small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Bạn có thể thêm 1 hình hoặc nhiều hình. Định dạng hỗ trợ: JPG, PNG, GIF, Webp. Tối đa 5MB mỗi file.
+                            </small>
+                        <div id="image-preview" class="row g-2 mt-3"></div>
                         @error('images')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -110,12 +104,4 @@
         </div>
     </div>
 </div>
-
-
-<!-- Adding FilePond JS and Plugins -->
-<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-<script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
-<script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
-<script src="{{ asset('js/room.js') }}"></script>
 @endsection
-

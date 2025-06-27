@@ -1,4 +1,3 @@
-
 <?php
 
 use App\Http\Controllers\Apis\RoomController;
@@ -62,9 +61,6 @@ Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
 
-Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
-Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
-
 // Message Routes
 Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
@@ -74,7 +70,6 @@ Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageControlle
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
 
 // Notification Routes
-
 Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
     Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');

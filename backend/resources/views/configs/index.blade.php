@@ -3,15 +3,23 @@
 @section('title', 'Danh sách cấu hình')
 
 @section('content')
-
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
     <div class="container-fluid py-5 px-4">
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
                 style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-                <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}
-                <span class="badge bg-light text-primary ms-2">{{ $configs->total() ?? 0 }} cấu hình</span>
-
-                </h6>
+                <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}</h6>
                 <div class="d-flex gap-2">
                     <a href="{{ route('configs.create') }}" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">
                         <i class="fas fa-plus me-1"></i> {{ __('Thêm cấu hình') }}
@@ -38,18 +46,6 @@
                 </form>
 
                 <div class="table-responsive">
-                      @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                                {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                                {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
                     <table class="table table-hover table-bordered align-middle text-center">
                         <thead class="table-dark">
                             <tr>

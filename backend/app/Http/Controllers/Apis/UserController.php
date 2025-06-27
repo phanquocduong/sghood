@@ -37,11 +37,6 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Đổi mật khẩu thành công']);
     }
-<<<<<<< HEAD
-    public function getAdmins(){
-        $user = User::where('role','Quản trị viên')->get();
-        return response()->json($user);
-=======
 
     public function saveFcmToken(Request $request)
     {
@@ -50,13 +45,11 @@ class UserController extends Controller
         return response()->json(['message' => 'FCM token saved successfully']);
     }
 
-    public function getAdmins()
-    {
+    public function getAdmins(){
         $user = User::where('role','Quản trị viên')->get();
         return response()->json([
             'status' =>true,
             'data'=> $user
         ]);
->>>>>>> 46c71a99232ed9963c2be3989a8e454ec6dc2858
     }
 }

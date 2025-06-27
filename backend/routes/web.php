@@ -141,6 +141,12 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
     });
 
+    // Message routes group
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
+    });
+
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
@@ -148,17 +154,4 @@ Route::middleware('admin')->group(function () {
     // Route notification for navbar
     Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
         ->name('notifications.header');
-
-    // Message routes group
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [MessageController::class, 'index'])->name('index');
-        Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
-    });
-
-    // Message routes group
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [MessageController::class, 'index'])->name('index');
-        Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
-
-    });
 });

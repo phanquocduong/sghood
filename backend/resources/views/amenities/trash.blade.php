@@ -14,19 +14,6 @@
             </div>
         </div>
         <div class="card-body p-4">
-            <!-- Breadcrumb navigation -->
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('amenities.index') }}" class="text-decoration-none">
-                                <i class="fas fa-home me-1"></i>Tiện ích
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            <i class="fas fa-door-open me-1"></i>Thùng rác
-                        </li>
-                    </ol>
-                </nav>
             <div class="mb-4">
                 <form action="{{ route('amenities.trash') }}" method="GET" class="row g-3">
                     <div class="col-md-6">
