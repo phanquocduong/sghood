@@ -62,39 +62,39 @@ class MessageController extends Controller
         ]);
     }
     public function startChat(StartChatRequest $request)
-    {
-        // $userId = $request->seeder_id;
-        $userId = Auth::id(); // Lấy ID người dùng đã đăng nhập
-        if ($request->has('receiver_id')) {
-            $adminId = $request->receiver_id;
-        } else {
-        // Lấy 1 admin ngẫu nhiên từ bảng users (giả sử role = 'Quản trị viên')
-        $admin = User::where('role', 'Quản trị viên')->inRandomOrder()->first();
+{
+    $userId = Auth::id(); // người dùng hiện tại
 
-        if (!$admin) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không tìm thấy admin để bắt đầu cuộc trò chuyện.'
-            ], 404);
+    $adminId = null;
+
+    if ($request->has('receiver_id')) {
+        $requestedId = $request->receiver_id;
+
+        // Nếu receiver là chính user thì bỏ qua
+        if ($requestedId != $userId) {
+            $adminId = $requestedId;
         }
-
-        $adminId = $admin->id;
-        }
-
-        $message = $this->messageService->startChatAdmin($adminId, $userId);
-
-        if (!$message) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không thể bắt đầu cuộc trò chuyện, vui lòng thử lại sau.'
-            ], 500);
-        }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Bắt đầu cuộc trò chuyện thành công',
-            'data' => $message,
-            'admin_id' => $adminId
-        ]);
     }
+
+    // Gọi service
+    $message = $this->messageService->startChatAdmin($adminId, $userId);
+
+    if (!$message) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Không thể bắt đầu cuộc trò chuyện, vui lòng thử lại sau.'
+        ], 500);
+    }
+
+    // adminId có thể được gán lại trong service
+    return response()->json([
+        'status' => true,
+        'message' => 'Bắt đầu cuộc trò chuyện thành công',
+        'data' => $message,
+        'admin_id' => $message->sender_id == $userId
+            ? $message->receiver_id
+            : $message->sender_id
+    ]);
+}
+
 }

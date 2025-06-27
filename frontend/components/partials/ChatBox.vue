@@ -85,60 +85,62 @@ const sendMessage = async ()=>{
   }
 }
 
-const fetchMessage = async() =>{
+const fetchMessage = async () => {
   try {
-    const parnerId =AdminId.value;
-     if (!parnerId) {
+    const partnerId = AdminId.value;
+    if (!partnerId) {
       console.warn('PartnerId bị null → không gọi API.');
       return;
     }
-     const res = await $api(`/messages/history/${parnerId}`, {
+    const res = await $api(`/messages/history/${partnerId}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token.value}`
       }
-
     });
     const messagesData = res.data || [];
-    messages.value= messagesData.map(item =>({
-      from : item.sender_id === currentUserId.value ? 'user':'admin',
-      text : item.message
+    messages.value = messagesData.map(item => ({
+      from: item.sender_id === currentUserId.value ? 'user' : 'admin',
+      text: item.message
     }));
     scrollToBottom();
-      } catch (error) {
-      console.error('Loi', error)
-    }
-  };
-const initChat = async ()=>{
-  const res = await $api (`/users/admins`,{
-    headers:({   Authorization:`Bearer ${token.value}`, })
-  })
-  const admins = res.data || [];
-  if (admins.length === 0) return
-  const random = Math.floor(Math.random() * admins.length);
-  const admin = admins[random];
-  
-  AdminId.value = admin.id
-  console.log(admin)
-
-   const respone =  await $api(`/messages/start-chat`,{
-    method :'POST',
-    headers:{
-       Authorization:`Bearer ${token.value}`,
-      'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-    },body:{
-      receiver_id:admin.id,
-      sender_id : currentUserId.value,
-      AdminId:admin.id
-    }
-  })
-  if(res?.data?.data){
-    chatMessage.value.push(respone.data.data)
+  } catch (error) {
+    console.error('Loi', error);
   }
-  await fetchMessage();
+};
+const initChat = async () => {
+  try {
+    const response = await $api(`/messages/start-chat`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+      },
+      body: {
+       
+      }
+    });
+    console.log('Start chat response:', response);
+    const message = response?.data;
+    if (!message) {
+      console.warn('Không nhận được tin nhắn khởi tạo.');
+      return;
+    }
 
-  setInterval(fetchMessage,1000)
-}
+    // Gán Admin ID dựa vào vai trò
+    AdminId.value = message.sender_id === currentUserId.value
+      ? message.receiver_id // user gửi => receiver là admin
+      : message.sender_id;
+
+    await fetchMessage();
+    setInterval(fetchMessage, 1000); // nên dùng clearInterval như nói ở trên
+
+  } catch (error) {
+    console.error('Lỗi khi khởi tạo chat:', error);
+  }
+};
+
+
 </script>
 
 <style scoped>

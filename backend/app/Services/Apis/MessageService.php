@@ -9,51 +9,45 @@ use Illuminate\Support\Facades\Log;
 
 class MessageService
 {
-    public function sendMessage(int $senderId, int $receiverId, string $messageText)
+    public function sendMessage(int $senderId, ?int $receiverId, string $messageText)
     {
         Log::info('Sender ID:', ['id' => $senderId]);
 
-        // Kiểm tra xem người gửi có phải là User (không phải admin)
         $sender = User::find($senderId);
-        $receiver = User::find($receiverId);
-
-        // Nếu sender là user, chưa từng có admin gán thì gán admin ngẫu nhiên
-        if ($sender && $sender->role !== 'Quản trị viên') {
-            $userAdmin = UserAdmin::where('user_id', $senderId)->first();
-
-            if (!$userAdmin) {
-                // Gán admin ngẫu nhiên
-                $admin = User::where('role', 'Quản trị viên')->inRandomOrder()->first();
-                if (!$admin) {
-                    Log::error('Không tìm thấy admin để gán.');
-                    return null;
-                }
-
-                // Lưu vào bảng user_admins
-                $userAdmin = UserAdmin::create([
-                    'user_id' => $senderId,
-                    'admin_id' => $admin->id,
-                ]);
-
-                // Gán lại receiverId là admin đó (bỏ qua receiver ban đầu nếu khác)
-                $receiverId = $admin->id;
-            } else {
-                // Nếu đã có admin thì ép receiverId về admin đã gán
-                $receiverId = $userAdmin->admin_id;
-            }
+        if (!$sender) {
+            Log::error('Sender không tồn tại.');
+            return null;
         }
 
-        // Kiểm tra đã từng chat chưa
+        // Nếu sender là user, xử lý gán admin nếu cần
+        if ($sender->role !== 'Quản trị viên') {
+            $userAdmin = UserAdmin::firstOrCreate(
+                ['user_id' => $senderId],
+                ['admin_id' => $this->getRandomAdmin()?->id]
+            );
+
+            if (!$userAdmin->admin_id) {
+                Log::error('Không tìm thấy admin để gán.');
+                return null;
+            }
+
+            $receiverId = $userAdmin->admin_id;
+        }
+
+        if (!$receiverId || $senderId === $receiverId) {
+            Log::error('Receiver không hợp lệ.', ['receiver_id' => $receiverId]);
+            return null;
+        }
+
+        // Kiểm tra xem đã từng chat giữa 2 người chưa
         $exists = Message::where(function ($query) use ($senderId, $receiverId) {
-            $query->where('sender_id', $senderId)
-                ->where('receiver_id', $receiverId);
+            $query->where('sender_id', $senderId)->where('receiver_id', $receiverId);
         })->orWhere(function ($query) use ($senderId, $receiverId) {
-            $query->where('sender_id', $receiverId)
-                ->where('receiver_id', $senderId);
+            $query->where('sender_id', $receiverId)->where('receiver_id', $senderId);
         })->exists();
 
         try {
-            // Gửi tin nhắn chính
+            // Tạo tin nhắn chính
             $userMessage = Message::create([
                 'sender_id' => $senderId,
                 'receiver_id' => $receiverId,
@@ -63,17 +57,25 @@ class MessageService
                 'updated_at' => now()
             ]);
 
-            // Nếu là lần đầu (chưa tồn tại đoạn chat), gửi auto-reply từ admin
-            if (!$exists && $sender->role !== 'Quản trị viên') {
-                Message::create([
-                    'sender_id' => $receiverId, // admin
-                    'receiver_id' => $senderId, // user
-                    'message' => 'Cảm ơn bạn đã nhắn tin, admin sẽ phản hồi sớm nhất có thể.',
-                    'read' => false,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+            // Gửi auto-reply nếu lần đầu
+            // Nếu sender là user → kiểm tra sender_id là user và chưa từng gửi trước đó
+            if ($sender->role !== 'Quản trị viên') {
+                $userSentBefore = Message::where('sender_id', $senderId)
+                    ->where('receiver_id', $receiverId)
+                    ->exists();
+
+                if (!$userSentBefore) {
+                    Message::create([
+                        'sender_id' => $receiverId,
+                        'receiver_id' => $senderId,
+                        'message' => 'Cảm ơn bạn đã nhắn tin, admin sẽ phản hồi sớm nhất có thể.',
+                        'read' => false,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
             }
+
 
             return $userMessage;
 
@@ -85,6 +87,17 @@ class MessageService
             ]);
             return null;
         }
+    }
+
+    private function getRandomAdmin(?int $excludeUserId = null)
+    {
+        $query = User::where('role', 'Quản trị viên');
+
+        if ($excludeUserId) {
+            $query->where('id', '!=', $excludeUserId);
+        }
+
+        return $query->inRandomOrder()->first();
     }
 
 
@@ -101,8 +114,7 @@ class MessageService
 
     public function getUsersChattedWithAdmin()
     {
-        $adminId = 2; // Giả sử ID của admin là 2, bạn có thể thay đổi theo nhu cầu
-
+        $adminId = Auth::id();
         $userIds = Message::where('sender_id', $adminId)
             ->orWhere('receiver_id', $adminId)
             ->pluck('sender_id')
@@ -117,22 +129,36 @@ class MessageService
 
         return User::whereIn('id', $userIds)->get();
     }
-    public function startChatAdmin($adminId, $userId)
+    public function startChatAdmin(?int $adminId, int $userId)
     {
+        // Nếu không có admin truyền vào, tự gán hoặc lấy admin đã gán
+        if (!$adminId) {
+            $adminId = $this->assignOrGetAdminForUser($userId);
+            if (!$adminId) {
+                return null; // Không có admin khả dụng
+            }
+        }
+
+        // Tránh gán chính user làm admin
+        if ($adminId == $userId) {
+            Log::error('Admin ID trùng với user ID, không thể tạo cuộc trò chuyện chính mình.', [
+                'admin_id' => $adminId,
+                'user_id' => $userId,
+            ]);
+            return null;
+        }
+
+        // Kiểm tra đã có đoạn chat chưa
         $query = Message::where(function ($query) use ($adminId, $userId) {
-            $query->where('sender_id', $adminId)
-                ->where('receiver_id', $userId);
+            $query->where('sender_id', $adminId)->where('receiver_id', $userId);
         })->orWhere(function ($query) use ($adminId, $userId) {
-            $query->where('sender_id', $userId)
-                ->where('receiver_id', $adminId);
+            $query->where('sender_id', $userId)->where('receiver_id', $adminId);
         });
 
-        // Kiểm tra tin nhắn đã tồn tại
         $firstMessage = $query->orderBy('created_at', 'asc')->first();
 
         if (!$firstMessage) {
             try {
-                // Tạo tin nhắn mới với đầy đủ thông tin
                 $firstMessage = Message::create([
                     'sender_id' => $adminId,
                     'receiver_id' => $userId,
@@ -142,7 +168,7 @@ class MessageService
                     'updated_at' => now()
                 ]);
 
-                Log::info('Tin nhắn chào mừng đã được tạo', ['message_id' => $firstMessage->id]);
+                Log::info('Đã tạo tin nhắn chào mừng', ['message_id' => $firstMessage->id]);
 
             } catch (\Exception $e) {
                 Log::error('Lỗi khi tạo tin nhắn chào mừng', [
@@ -151,12 +177,34 @@ class MessageService
                     'user_id' => $userId
                 ]);
 
-                // Trả về null nếu có lỗi
                 return null;
             }
         }
 
         return $firstMessage;
+    }
+
+    private function assignOrGetAdminForUser(int $userId): ?int
+    {
+        $userAdmin = UserAdmin::where('user_id', $userId)->first();
+
+        if ($userAdmin) {
+            return $userAdmin->admin_id;
+        }
+
+        $admin = $this->getRandomAdmin($userId); // 💡 exclude chính user
+
+        if (!$admin || $admin->id === $userId) {
+            Log::error('Không tìm thấy admin hợp lệ để gán cho user ID: ' . $userId);
+            return null;
+        }
+
+        UserAdmin::create([
+            'user_id' => $userId,
+            'admin_id' => $admin->id,
+        ]);
+
+        return $admin->id;
     }
 
 }
