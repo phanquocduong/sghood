@@ -261,7 +261,7 @@ class BookingService
 
                         <div class="mb-2">
                             <span>Nơi cấp: </span>
-                            <input type="text" name="place_of_issue" class="form-control flat-line d-inline-block" style="width: 500px;">
+                            <input type="text" name="place_of_issue" class="form-control flat-line d-inline-block" style="width: 600px;">
                         </div>
 
                         <div class="mb-0">
