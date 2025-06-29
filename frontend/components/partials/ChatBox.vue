@@ -93,8 +93,12 @@ watch(newMessage,(val)=>{
 
 const actions = computed(()=>{
  const path = route.path
-  const matchKey = Object.keys(questionMap).find(k=>path.includes(k))
-  return questionMap[matchKey]|| []
+ if(path === '/') return questionMap['/']
+
+ const Filter = path.split('/').filter(Boolean)
+ const matchKey = Object.keys(questionMap).find(k=>Filter.includes(k))
+
+  return questionMap[matchKey] || questionMap['default']
 })
 const send =(text)=>{
   sendMessage(text)

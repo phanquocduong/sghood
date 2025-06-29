@@ -14,5 +14,8 @@ export const questionMap = {
     '/':[
         "Tôi có thể đặt cọc online không?",
         "Có được xem phòng trước khi thuê không?"
+    ],
+    default:[
+        "Tôi cần hỗ trợ",
     ]
 };
