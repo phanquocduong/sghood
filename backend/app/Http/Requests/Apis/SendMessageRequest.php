@@ -19,6 +19,7 @@ class SendMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'receiver_id'=> 'nullable|exits:user, id',
             'message' => 'required|string',
         ];
     }

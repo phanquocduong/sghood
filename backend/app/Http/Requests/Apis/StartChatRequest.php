@@ -20,15 +20,14 @@ class StartChatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'receiver_id' => 'required|exists:users,id',
+            'receiver_id' => 'nuallable|exists:users,id',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'receiver_id.required' => 'Vui lòng chọn người nhận',
-            'receiver_id.exists' => 'Người nhận không tồn tại',
+            
         ];
     }
 }
