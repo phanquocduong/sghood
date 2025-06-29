@@ -50,8 +50,8 @@
 
         <!-- chatbox -->
         <div>
-            <ChatIcon v-if="user" @toggle="toggleChat" />
-            <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false"></ChatBox>
+            <ChatIcon v-if="user"  :unreadMessages="unreadMessages" @toggle="toggleChat" />
+            <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false" @unread= "onUnreadMessage"></ChatBox>
 
         </div>
     </div>
@@ -61,15 +61,30 @@
 import { useRoute } from 'vue-router';
 import { ref, watch, nextTick } from 'vue';
 import { useAuthStore } from '~/stores/auth';
-
+import ChatIcon from '~/components/partials/ChatIcon.vue';
+import ChatBox from '~/components/partials/ChatBox.vue';
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const isChatOpen = ref(false);
+const unreadMessages = ref(0)
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-const toggleChat = () => (isChatOpen.value = !isChatOpen.value);
+
+
+
+const toggleChat = () => {
+    (isChatOpen.value = !isChatOpen.value)
+    if(isChatOpen.value){
+        unreadMessages.value=0
+    }
+};
+const onUnreadMessage = ()=>{
+    if(!isChatOpen.value){
+        unreadMessages.value ++
+    }
+}
 
 watch(
     () => route.fullPath,

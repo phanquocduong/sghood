@@ -10,7 +10,8 @@ export default defineNuxtConfig({
         '~/plugins/auth.js',
         '~/plugins/dropzone.client.js',
         '~/plugins/service-worker.client.js',
-        '~/plugins/firebase-messaging.client.js'
+        '~/plugins/firebase-messaging.client.js',
+       
     ],
     devServer: {
         host: '0.0.0.0',

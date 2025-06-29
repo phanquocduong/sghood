@@ -1,11 +1,18 @@
 <template>
   <div class="chat-icon" @click="$emit('toggle')">
     <MessageSquare class="icon" />
+    <span v-if="unreadMessages > 0 " class="unread-badge">
+      {{ unreadMessages > 9 ? '9+':unreadMessages }}
+    </span>
   </div>
 </template>
 
 <script setup>
 import { MessageSquare } from 'lucide-vue-next';
+
+defineProps({
+  unreadMessages:Number
+})
 </script>
 
 <style scoped>
@@ -33,5 +40,22 @@ import { MessageSquare } from 'lucide-vue-next';
 .icon {
   width: 28px;
   height: 28px;
+}
+.unread-badge-number {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: #ff3b30;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px white;
+}
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1 }
+  50% { transform: scale(1.3); opacity: 0.7 }
+  100% { transform: scale(1); opacity: 1 }
 }
 </style>
