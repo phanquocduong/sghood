@@ -70,7 +70,6 @@ const initChat = async () => {
         message: 'Xin chào, tôi cần hỗ trợ' // gửi để backend tạo tin nhắn đầu tiên
       }
     })
-
     if (!res?.status || !res?.admin_id) {
       console.warn('Không lấy được admin từ phản hồi start-chat')
       return

@@ -20,7 +20,10 @@ class StartChatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'receiver_id' => 'nuallable|exists:users,id',
+            'receiver_id' => [
+                $this->user()->role === 'Quản trị viên' ? 'required|exists:users,id' : 'nullable',
+                'exists:users,id'
+            ],
         ];
     }
 
