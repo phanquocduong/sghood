@@ -7,6 +7,7 @@
 <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
 <!-- Adding FilePond Image Preview CSS -->
 <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+<link rel="stylesheet" href="{{ asset('css/create-room.css') }}">
 
 <div class="container-fluid py-5 px-4">
     <!-- Display session flash messages -->
@@ -90,13 +91,24 @@
                         </div>
                     </div>
                     <div class="col-12">
-                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh</label>
+                        <label for="images" class="form-label fw-bold text-primary">Hình ảnh <span class="text-danger">*</span></label>
                         <!-- FilePond input -->
                         <input type="file" class="filepond form-control shadow-sm @error('images') is-invalid @enderror" name="images[]" multiple accept="image/*" required>
-                        <small class="form-text text-muted">
+                        <small class="form-text text-muted mb-2 d-block">
                             <i class="fas fa-info-circle me-1"></i>
                             Bạn có thể thêm 1 hình hoặc nhiều hình. Định dạng hỗ trợ: JPG, PNG, GIF, Webp.
                         </small>
+
+                        <!-- Preview container cho selected images với main image selector -->
+                        <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+                            <label class="form-label fw-bold text-success">
+                                <i class="fas fa-images me-1"></i>
+                                Hình ảnh đã chọn (Click vào ảnh để chọn làm ảnh chính)
+                            </label>
+                            <div id="imagePreviewGrid" class="row g-2"></div>
+                            <input type="hidden" name="main_image_index" id="mainImageIndex" value="0">
+                        </div>
+
                         @error('images')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -118,4 +130,3 @@
 <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
 <script src="{{ asset('js/room.js') }}"></script>
 @endsection
-

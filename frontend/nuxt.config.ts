@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
+    // ssr:false, // khi up lên server thì bỏ comment dòng này
     css: ['public/css/fonts.css', 'public/css/style.css', 'public/css/main-color.css'],
     plugins: [
         '~/plugins/firebase.js',

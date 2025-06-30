@@ -11,6 +11,7 @@ use App\Mail\ContractRevisionNotification;
 use App\Mail\ContractSignNotification;
 use App\Mail\ContractConfirmNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
@@ -19,19 +20,19 @@ class ContractService
     public function getAllContracts(string $querySearch = '', string $status = '', int $perPage = 10): array
     {
         try {
+            DB::enableQueryLog();
             $query = Contract::with(['user', 'room', 'booking']);
 
             // Apply search filter
-            if ($querySearch) {
+           if ($querySearch) {
+                $querySearch = trim($querySearch);
                 $query->where(function ($q) use ($querySearch) {
-                    $q->where('content', 'like', "%$querySearch%")
-                        ->orWhere('file', 'like', "%$querySearch%")
-                        ->orWhereHas('user', function ($userQuery) use ($querySearch) {
-                            $userQuery->where('name', 'like', "%$querySearch%");
-                        })
-                        ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
-                            $roomQuery->where('name', 'like', "%$querySearch%");
-                        });
+                    $q->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'like', "%{$querySearch}%");
+                    })
+                    ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
+                        $roomQuery->where('name', 'like', "%{$querySearch}%");
+                    });
                 });
             }
 
@@ -40,6 +41,7 @@ class ContractService
             }
 
             $contracts = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            \Log::info('SQL Query', \DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
@@ -302,89 +304,10 @@ class ContractService
         }
     }
 
-    // Tạo file PDF từ nội dung hợp đồng
-    public function generateContractPdf(Contract $contract): array
-    {
-        try {
-            $filename = 'contracts/hopdong-' . $contract->id . '-' . time() . '-' . uniqid() . '.pdf';
-
-            if ($contract->file && Storage::disk('public')->exists(str_replace('/storage/', '', $contract->file))) {
-                Log::info('PDF file already exists for contract', ['contract_id' => $contract->id]);
-                return ['data' => '/storage/' . str_replace('/storage/', '', $contract->file)];
-            }
-
-            if (!$contract->content) {
-                return ['error' => 'Nội dung hợp đồng không tồn tại'];
-            }
-
-            // Debug: Log content trước khi xử lý
-            Log::info('Original content preview', [
-                'contract_id' => $contract->id,
-                'content_length' => strlen($contract->content),
-                'content_preview' => substr($contract->content, 0, 200)
-            ]);
-
-            // Chuẩn bị HTML content với CSS khớp giao diện gốc
-            $htmlContent = $this->prepareHtmlContent($contract->content);
-
-            // Debug: Log processed content
-            Log::info('Processed HTML preview', [
-                'contract_id' => $contract->id,
-                'html_length' => strlen($htmlContent),
-                'html_preview' => substr($htmlContent, 0, 500)
-            ]);
-
-            $pdf = Pdf::loadHTML($htmlContent)
-                ->setPaper('a4', 'portrait')
-                ->setOptions([
-                    'defaultFont' => 'DejaVu Sans',
-                    'isRemoteEnabled' => false,
-                    'isHtml5ParserEnabled' => true,
-                    'isPhpEnabled' => false,
-                    'dpi' => 150,
-                    'defaultPaperSize' => 'a4',
-                    'fontHeightRatio' => 1.1,
-                    'isFontSubsettingEnabled' => true,
-                    'debugKeepTemp' => false,
-                    'debugCss' => false,
-                    'debugLayout' => false,
-                    'chroot' => public_path(),
-                    'enable_font_subsetting' => true,
-                    'font_cache' => storage_path('fonts/'),
-                    'fontDir' => storage_path('fonts/'),
-                    'tempDir' => storage_path('app/dompdf/'),
-                    'isUnicode' => true,
-                    'enable_html5_parser' => true,
-                ]);
-
-            $pdfContent = $pdf->output();
-            Storage::disk('public')->put($filename, $pdfContent);
-
-            $contract->update(['file' => $filename]);
-
-            Log::info('PDF generated successfully', [
-                'contract_id' => $contract->id,
-                'file_name' => $filename,
-                'file_size' => strlen($pdfContent)
-            ]);
-
-            return ['data' => '/storage/' . $filename];
-
-        } catch (\Throwable $e) {
-            Log::error('Error generating contract PDF: ' . $e->getMessage(), [
-                'contract_id' => $contract->id,
-                'trace' => $e->getTraceAsString()
-            ]);
-            return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
-        }
-    }
-
-    /**
-     * Chuẩn bị HTML content với CSS khớp với giao diện gốc - Fixed Vietnamese Font Issues
-     */
+    // Tạo file PDF từ nội dung hợp đồng với font hỗ trợ tốt tiếng Việt
     private function prepareHtmlContent(string $content): string
     {
-        // CSS được thiết kế để khớp với giao diện generateContractContent và hỗ trợ tiếng Việt
+        // CSS được thiết kế để khớp với giao diện generateContractContent và sử dụng Noto Serif
         $css = '
         <style>
             @page {
@@ -392,21 +315,29 @@ class ContractService
                 size: A4;
             }
 
+            /* Đảm bảo khoảng cách đầu trang giống nhau trên mọi trang */
+            @page {
+                @top {
+                    content: "";
+                    height: 15mm; /* Đảm bảo khoảng cách 15mm từ mép trên */
+                }
+            }
+
             * {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
             }
 
             body {
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
+                font-size: 12px;
+                line-height: 1.4;
                 color: #212529;
                 background: white;
                 padding: 0;
                 margin: 0;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .container-fluid {
@@ -418,39 +349,36 @@ class ContractService
                 max-width: 210mm;
                 min-height: 297mm;
                 background: white;
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
+                font-size: 12px;
+                line-height: 1.4;
                 padding: 15mm 20mm;
                 margin: 0 auto;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Typography - Sử dụng font hỗ trợ tiếng Việt */
             h1, h2, h3, h4, h5, h6 {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
                 font-weight: bold;
                 margin: 0;
             }
 
             h3 {
-                font-size: 20px; /* Tăng từ 18px lên 20px */
+                font-size: 16px;
                 font-weight: bold;
-                letter-spacing: 1px;
+                letter-spacing: 0.3px;
                 margin: 0;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             p {
-                margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                line-height: 1.6;
-                font-size: 16px; /* Tăng font size cho paragraph */
+                margin-bottom: 0.4rem;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
+                line-height: 1.4;
             }
 
             strong, b {
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Đảm bảo strong text cũng có font size lớn */
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             u {
@@ -459,11 +387,9 @@ class ContractService
 
             em, i {
                 font-style: italic;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Layout utilities */
             .text-center {
                 text-align: center;
             }
@@ -508,7 +434,6 @@ class ContractService
                 margin-left: 1rem;
             }
 
-            /* Border utilities */
             .border {
                 border: 1px solid #000;
             }
@@ -521,7 +446,6 @@ class ContractService
                 display: inline-block;
             }
 
-            /* Grid system for PDF */
             .row {
                 display: table;
                 width: 100%;
@@ -555,7 +479,6 @@ class ContractService
                 padding-left: 15px;
             }
 
-            /* Form controls - chuyển đổi input thành text với gạch chân */
             .form-control.flat-line {
                 border: none;
                 border-bottom: 1px dotted #666;
@@ -570,78 +493,59 @@ class ContractService
                 margin: 0 0 5px 0;
                 padding: 0 0 2px 0;
                 min-width: 100px;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho form control */
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Header specific styles */
             .contract-document .text-center.mb-4 > div:first-child strong {
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                letter-spacing: 0.5px;
+                font-size: 12px;
+                letter-spacing: 0.2px;
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-center.mb-4 > div:nth-child(2) u strong {
                 font-weight: bold;
                 text-decoration: underline;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-document .text-center.mb-4 > div .my-4 h3 {
-                font-size: 20px; /* Tăng từ 18px lên 20px */
+                font-size: 16px;
                 font-weight: bold;
-                letter-spacing: 1px;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
+                letter-spacing: 0.3px;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Contract title box */
             .contract-document .text-end .border {
                 display: inline-block;
                 border: 1px solid #000;
-                padding: 0.25rem 0.5rem;
+                padding: 0.2rem 0.4rem;
                 font-weight: bold;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho title box */
-            }
-
-            /* Content sections */
-            .contract-content-section {
-                margin-bottom: 1.5rem;
+                font-size: 11px;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-content-section p {
-                margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho content section */
+                margin-bottom: 0.4rem;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .contract-content-section .ms-3 p {
                 margin-left: 1rem;
-                margin-bottom: 0.5rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
-            }
-
-            /* Party information styling */
-            .party-section {
-                margin-bottom: 1rem;
+                margin-bottom: 0.4rem;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .party-section p {
-                margin-bottom: 0.25rem;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho party section */
+                margin-bottom: 0.2rem;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Signature section */
             .signature-row {
                 margin-top: 3rem;
                 padding-top: 1.5rem;
             }
 
-            /* Input field replacement for PDF */
             input[type="text"], .form-control {
                 border: none;
                 border-bottom: 1px dotted #666;
@@ -653,20 +557,17 @@ class ContractService
                 padding: 0 0 2px 0;
                 outline: none;
                 box-shadow: none;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng font size cho input */
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Style for input placeholders in PDF */
             .input-placeholder {
                 display: inline-block;
                 border-bottom: 1px dotted #666;
                 min-width: 150px;
-                height: 22px; /* Tăng height để phù hợp với font lớn hơn */
+                height: 22px;
                 margin: 0 5px;
                 vertical-align: bottom;
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
             .input-placeholder.wide {
@@ -681,36 +582,25 @@ class ContractService
                 min-width: 100px;
             }
 
-            /* Đảm bảo font nhất quán cho tất cả các phần tử */
             div, span, td, th, input, label, select, textarea {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif !important;
+                font-family: "Noto Serif", "DejaVu Serif", serif !important;
                 color: #212529;
-                font-size: 16px; /* Tăng font size cho tất cả elements */
             }
 
-            /* Loại bỏ box shadow để in sạch */
             .contract-document {
                 box-shadow: none;
             }
 
-            /* Đặc biệt xử lý các ký tự tiếng Việt */
             .vietnamese-text {
-                font-family: "DejaVu Sans", "Arial Unicode MS", "Lucida Sans Unicode", sans-serif;
-                font-size: 16px; /* Tăng từ 14px lên 16px */
-                line-height: 1.6;
+                font-family: "Noto Serif", "DejaVu Serif", serif;
             }
 
-            /* Các class size đặc biệt nếu cần điều chỉnh riêng */
-            .font-large {
-                font-size: 18px !important;
+            /* Đảm bảo nội dung đầu tiên trên mỗi trang mới có khoảng cách phù hợp */
+            .contract-document > *:first-child {
+                margin-top: 0;
             }
-
-            .font-extra-large {
-                font-size: 20px !important;
-            }
-
-            .font-small {
-                font-size: 14px !important;
+            .contract-document > div:not(:first-child) {
+                margin-top: 15mm;
             }
         </style>';
 
@@ -736,7 +626,7 @@ class ContractService
     }
 
     /**
-     * Xử lý nội dung để tối ưu cho PDF - Cải thiện xử lý font
+     * Xử lý nội dung để tối ưu cho PDF - Đảm bảo hỗ trợ tiếng Việt
      */
     private function processContent(string $content): string
     {
@@ -759,10 +649,10 @@ class ContractService
             $content = htmlspecialchars_decode($content, ENT_QUOTES);
         }
 
-        // Thay thế font Times New Roman bằng DejaVu Sans trong inline styles
+        // Đảm bảo font Noto Serif với fallback DejaVu Serif
         $content = preg_replace(
-            '/font-family:\s*["\']?Times New Roman["\']?[^;]*/i',
-            'font-family: "DejaVu Sans", Arial, sans-serif',
+            '/font-family:\s*["\']?[^"\']*["\']?[^;]*/i',
+            'font-family: "Noto Serif", "DejaVu Serif", serif',
             $content
         );
 
@@ -779,6 +669,86 @@ class ContractService
         }, $content);
 
         return $content;
+    }
+
+    // [Các phương thức khác không thay đổi]
+
+    // Tạo file PDF từ nội dung hợp đồng
+    public function generateContractPdf(Contract $contract): array
+    {
+        try {
+            $filename = 'contracts/hopdong-' . $contract->id . '-' . time() . '-' . uniqid() . '.pdf';
+
+            if ($contract->file && Storage::disk('public')->exists(str_replace('/storage/', '', $contract->file))) {
+                Log::info('PDF file already exists for contract', ['contract_id' => $contract->id]);
+                return ['data' => '/storage/' . str_replace('/storage/', '', $contract->file)];
+            }
+
+            if (!$contract->content) {
+                return ['error' => 'Nội dung hợp đồng không tồn tại'];
+            }
+
+            // Debug: Log content trước khi xử lý
+            Log::info('Original content preview', [
+                'contract_id' => $contract->id,
+                'content_length' => strlen($contract->content),
+                'content_preview' => substr($contract->content, 0, 200)
+            ]);
+
+            // Chuẩn bị HTML content với CSS khớp giao diện gốc
+            $htmlContent = $this->prepareHtmlContent($contract->content);
+
+            // Debug: Log processed content
+            Log::info('Processed HTML preview', [
+                'contract_id' => $contract->id,
+                'html_length' => strlen($htmlContent),
+                'html_preview' => substr($htmlContent, 0, 500)
+            ]);
+
+            $pdf = Pdf::loadHTML($htmlContent)
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'Noto Serif',
+                    'fontCache' => storage_path('fonts/'),
+                    'isRemoteEnabled' => false,
+                    'isHtml5ParserEnabled' => true,
+                    'isPhpEnabled' => false,
+                    'dpi' => 96,
+                    'defaultPaperSize' => 'a4',
+                    'fontHeightRatio' => 1.0,
+                    'isFontSubsettingEnabled' => true,
+                    'debugKeepTemp' => false,
+                    'debugCss' => false,
+                    'debugLayout' => false,
+                    'chroot' => public_path(),
+                    'enable_font_subsetting' => true,
+                    'tempDir' => storage_path('app/dompdf/'),
+                    'isUnicode' => true,
+                    'enable_html5_parser' => true,
+                    'enable_remote' => false,
+                    'logOutputFile' => storage_path('logs/dompdf.log'),
+                ]);
+
+            $pdfContent = $pdf->output();
+            Storage::disk('public')->put($filename, $pdfContent);
+
+            $contract->update(['file' => $filename]);
+
+            Log::info('PDF generated successfully', [
+                'contract_id' => $contract->id,
+                'file_name' => $filename,
+                'file_size' => strlen($pdfContent)
+            ]);
+
+            return ['data' => '/storage/' . $filename];
+
+        } catch (\Throwable $e) {
+            Log::error('Error generating contract PDF: ' . $e->getMessage(), [
+                'contract_id' => $contract->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
+        }
     }
 
     // Tải file PDF hợp đồng
@@ -827,6 +797,46 @@ class ContractService
                 'contract_id' => $id
             ]);
             return ['error' => 'Đã xảy ra lỗi khi tải file PDF'];
+        }
+    }
+
+    // Lấy hình ảnh căn cước công dân từ hợp đồng
+    public function getIdentityDocument(int $contractId, string $imagePath): array
+    {
+        try {
+            $contract = Contract::with('user')->find($contractId);
+
+            if (!$contract) {
+                return ['error' => 'Không tìm thấy hợp đồng', 'status' => 404];
+            }
+
+            if (!$contract->user || !$contract->user->identity_document) {
+                return ['error' => 'Không tìm thấy hình ảnh căn cước công dân', 'status' => 404];
+            }
+
+            $imagePaths = explode('|', $contract->user->identity_document);
+            $fullImagePath = 'images/identity_document/' . $imagePath;
+
+            if (!in_array($fullImagePath, $imagePaths)) {
+                return ['error' => 'Hình ảnh không hợp lệ', 'status' => 404];
+            }
+
+            $encryptedContent = Storage::disk('public')->get($fullImagePath);
+            $decryptedContent = decrypt($encryptedContent);
+
+            return [
+                'data' => [
+                    'content' => $decryptedContent,
+                    'mime_type' => 'image/webp'
+                ]
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('Error retrieving identity document: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'image_path' => $imagePath
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi lấy hình ảnh căn cước công dân', 'status' => 500];
         }
     }
 

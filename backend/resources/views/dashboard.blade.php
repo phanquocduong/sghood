@@ -158,7 +158,7 @@
                                             <small class="text-muted">
                                                 <span class="badge bg-primary bg-opacity-10 text-primary me-2 text-white">{{ $note->type ?? 'Không xác định' }}</span>
                                                 bởi <strong class="text-primary">{{ $note->user->name ?? 'Người dùng không tồn tại' }}</strong> -
-                                                {{ $note->created_at ? $note->created_at->format('d/m/Y, H:i') : 'Chưa có thời gian' }}
+                                                {{ $note->created_at ? $note->created_at->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y, H:i') : 'Chưa có thời gian' }}
                                             </small>
                                         </div>
                                     </div>

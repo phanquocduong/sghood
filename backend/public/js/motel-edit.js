@@ -1,5 +1,3 @@
-// filepath: d:\DuAnTotNghiep\troviet-platform\backend\public\js\room-edit.js
-// Register FilePond plugins
 FilePond.registerPlugin(
     FilePondPluginImagePreview,
     FilePondPluginFileValidateType
@@ -150,17 +148,40 @@ function removeNewImage(index) {
 
 // Handle existing image main selection
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing image selection...');
+
     document.querySelectorAll('.main-image-radio').forEach(radio => {
         radio.addEventListener('change', function() {
+            console.log('Radio changed:', this.value, 'checked:', this.checked);
             if (this.checked) {
                 selectedMainImageType = 'existing';
                 selectedMainImageId = this.value;
                 mainImageIndex = 0;
+
+                // Uncheck other radios
+                document.querySelectorAll('.main-image-radio').forEach(otherRadio => {
+                    if (otherRadio !== this) {
+                        otherRadio.checked = false;
+                    }
+                });
+
                 updateNewImagePreview();
                 updateExistingImagesDisplay();
                 showNotification('Đã chọn ảnh chính từ ảnh hiện có!', 'success');
             }
         });
+
+        // Add click event to the whole image item for easier selection
+        const imageItem = radio.closest('.existing-image-item');
+        if (imageItem) {
+            imageItem.addEventListener('click', function(e) {
+                // Don't trigger if clicking delete button
+                if (!e.target.closest('.delete-existing-btn')) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
+            });
+        }
     });
 
     document.querySelectorAll('.delete-existing-btn').forEach(btn => {
@@ -168,10 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             const imageId = this.getAttribute('data-image-id');
-            const roomId = this.getAttribute('data-room-id');
+            const motelId = this.getAttribute('data-motel-id');
 
             if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
-                deleteExistingImage(imageId, roomId, this);
+                deleteExistingImage(imageId, motelId, this);
             }
         });
     });
@@ -179,9 +200,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize existing main image selection
     const checkedRadio = document.querySelector('.main-image-radio:checked');
     if (checkedRadio) {
+        console.log('Found checked radio:', checkedRadio.value);
         selectedMainImageType = 'existing';
         selectedMainImageId = checkedRadio.value;
         updateExistingImagesDisplay();
+    } else {
+        console.log('No checked radio found');
+        // If no main image is selected, try to select the first one
+        const firstRadio = document.querySelector('.main-image-radio');
+        if (firstRadio) {
+            firstRadio.checked = true;
+            selectedMainImageType = 'existing';
+            selectedMainImageId = firstRadio.value;
+            updateExistingImagesDisplay();
+        }
     }
 });
 
@@ -189,28 +221,37 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateExistingImagesDisplay() {
     document.querySelectorAll('.existing-image-item').forEach(item => {
         const radio = item.querySelector('.main-image-radio');
-        const existingBadge = item.querySelector('.main-image-badge');
+
+        // Remove existing main-selected class and badges
+        item.classList.remove('main-selected');
+        const existingBadges = item.querySelectorAll('.main-image-badge');
+        existingBadges.forEach(badge => {
+            // Only remove badges that are NOT hardcoded in the HTML
+            if (!badge.innerHTML.includes('Ảnh chính')) {
+                badge.remove();
+            }
+        });
 
         if (radio && radio.checked && selectedMainImageType === 'existing') {
             item.classList.add('main-selected');
+            // Add a temporary badge if no existing badge
+            const existingBadge = item.querySelector('.main-image-badge');
             if (!existingBadge) {
                 const newBadge = document.createElement('div');
-                newBadge.className = 'main-image-badge';
+                newBadge.className = 'main-image-badge temp-badge';
                 newBadge.innerHTML = '<i class="fas fa-crown"></i><span>Ảnh chính</span>';
                 item.querySelector('.image-wrapper').appendChild(newBadge);
             }
         } else {
-            item.classList.remove('main-selected');
-            // Chỉ xóa badge được tạo động, không xóa badge có sẵn từ server
-            if (existingBadge && selectedMainImageType !== 'existing') {
-                existingBadge.remove();
-            }
+            // Remove only temporary badges, keep original ones
+            const tempBadges = item.querySelectorAll('.main-image-badge.temp-badge');
+            tempBadges.forEach(badge => badge.remove());
         }
     });
 }
 
 // Delete existing image via AJAX with improved error handling
-function deleteExistingImage(imageId, roomId, button) {
+function deleteExistingImage(imageId, motelId, button) {
     const imageItem = button.closest('.existing-image-item');
     const originalButtonHtml = button.innerHTML;
 
@@ -219,7 +260,7 @@ function deleteExistingImage(imageId, roomId, button) {
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     // Tạo URL đúng format
-    const deleteUrl = `/rooms/${roomId}/images/${imageId}/delete`;
+    const deleteUrl = `/motels/${motelId}/images/${imageId}/delete`;
     console.log('Deleting image with URL:', deleteUrl); // Debug log
 
     fetch(deleteUrl, {
@@ -299,28 +340,24 @@ function deleteExistingImage(imageId, roomId, button) {
     });
 }
 
-// Handle main image selection after deleting an image
+// Handle main image after deletion
 function handleMainImageAfterDelete(deletedImageId) {
     const remainingRadios = document.querySelectorAll('.main-image-radio');
 
-    // If the deleted image was the selected main image
     if (selectedMainImageType === 'existing' && selectedMainImageId === deletedImageId) {
         if (remainingRadios.length > 0) {
-            // Select first remaining existing image as main
             remainingRadios[0].checked = true;
             selectedMainImageId = remainingRadios[0].value;
             selectedMainImageType = 'existing';
             updateExistingImagesDisplay();
             showNotification('Đã tự động chọn ảnh chính mới từ ảnh còn lại', 'info');
         } else if (selectedNewFiles.length > 0) {
-            // No existing images left, select first new image as main
             selectedMainImageType = 'new';
             mainImageIndex = 0;
             selectedMainImageId = null;
             updateNewImagePreview();
             showNotification('Đã tự động chọn ảnh chính từ ảnh mới', 'info');
         } else {
-            // No images left at all
             selectedMainImageType = null;
             selectedMainImageId = null;
             mainImageIndex = 0;
@@ -328,9 +365,8 @@ function handleMainImageAfterDelete(deletedImageId) {
     }
 }
 
-// Show notification with better styling
+// Show notification
 function showNotification(message, type = 'info') {
-    // Remove existing notifications
     document.querySelectorAll('.custom-notification').forEach(n => n.remove());
 
     const notification = document.createElement('div');
@@ -352,7 +388,6 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 4 seconds
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
@@ -361,8 +396,15 @@ function showNotification(message, type = 'info') {
 }
 
 // Handle form submit
-document.getElementById('roomForm').addEventListener('submit', function (e) {
-    // Remove existing file inputs to avoid duplicates
+document.getElementById('motelForm').addEventListener('submit', function (e) {
+    console.log('Form submitting...', {
+        selectedMainImageType,
+        selectedMainImageId,
+        mainImageIndex,
+        selectedNewFilesLength: selectedNewFiles.length
+    });
+
+    // Remove existing hidden image inputs
     const existingInputs = this.querySelectorAll('input[name="images[]"]:not(.filepond)');
     existingInputs.forEach(input => input.remove());
 
@@ -380,36 +422,55 @@ document.getElementById('roomForm').addEventListener('submit', function (e) {
 
     // Handle main image selection
     if (selectedMainImageType === 'existing' && selectedMainImageId) {
-        const targetRadio = document.querySelector(`input[name="is_main"][value="${selectedMainImageId}"]`);
-        if (targetRadio) {
-            targetRadio.checked = true;
+        console.log('Setting existing main image:', selectedMainImageId);
+
+        // Make sure the correct radio is checked
+        document.querySelectorAll('.main-image-radio').forEach(radio => {
+            radio.checked = (radio.value === selectedMainImageId);
+        });
+
+        // Remove any new main image index
+        const existingMainInput = this.querySelector('input[name="new_main_image_index"]');
+        if (existingMainInput) {
+            existingMainInput.remove();
         }
     } else if (selectedMainImageType === 'new' && selectedNewFiles.length > 0) {
+        console.log('Setting new main image index:', mainImageIndex);
+
         const mainImageInput = document.createElement('input');
         mainImageInput.type = 'hidden';
         mainImageInput.name = 'new_main_image_index';
         mainImageInput.value = mainImageIndex;
         this.appendChild(mainImageInput);
 
-        // Uncheck all existing main image radios
+        // Uncheck all existing radios when new image is main
         document.querySelectorAll('.main-image-radio').forEach(radio => {
             radio.checked = false;
         });
     }
 
-    // Show loading state on submit button
+    // Debug: Log form data before submit
+    console.log('Final form state before submit:', {
+        'selectedMainImageType': selectedMainImageType,
+        'selectedMainImageId': selectedMainImageId,
+        'mainImageIndex': mainImageIndex,
+        'checkedRadios': Array.from(document.querySelectorAll('.main-image-radio:checked')).map(r => ({
+            value: r.value,
+            name: r.name,
+            checked: r.checked
+        }))
+    });
+
     const submitBtn = this.querySelector('button[type="submit"]');
     if (submitBtn) {
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang cập nhật...';
         submitBtn.disabled = true;
-
-        // Store original text for potential restoration
         submitBtn.setAttribute('data-original-text', originalText);
     }
 });
 
-// Cleanup object URLs when page unloads
+// Cleanup object URLs
 window.addEventListener('beforeunload', () => {
     selectedNewFiles.forEach(file => {
         if (file instanceof File) {
@@ -418,14 +479,3 @@ window.addEventListener('beforeunload', () => {
         }
     });
 });
-
-// Add error handling for CSRF token
-function getCSRFToken() {
-    const token = document.querySelector('meta[name="csrf-token"]');
-    if (!token) {
-        console.error('CSRF token not found in page');
-        showNotification('Lỗi bảo mật: Không tìm thấy CSRF token. Vui lòng tải lại trang!', 'danger');
-        return null;
-    }
-    return token.getAttribute('content');
-}

@@ -54,6 +54,7 @@ Route::middleware('admin')->group(function () {
         Route::delete('/{id}', [MotelController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [MotelController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [MotelController::class, 'forceDestroy'])->name('forceDelete');
+        Route::post('/{motel_id}/images/{image_id}/delete', [MotelController::class, 'deleteMotelImage'])->name('motels.delete-image');
     });
 
     // District Routes Group
@@ -155,6 +156,9 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
     });
+
+    Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
+    ->name('contracts.showIdentityDocument');
 });
 
 // Signature
