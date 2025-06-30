@@ -2,38 +2,39 @@
 
 namespace App\Services\Apis;
 
-use App\Mail\ContractPendingEmail;
 use App\Models\Contract;
-use App\Models\Notification;
-use App\Models\User;
-use Google\Cloud\Vision\V1\AnnotateImageRequest;
-use Google\Cloud\Vision\V1\BatchAnnotateImagesRequest;
-use Google\Cloud\Vision\V1\Feature;
-use Google\Cloud\Vision\V1\Image as VisionImage;
-use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Kreait\Firebase\Messaging\CloudMessage;
 
 class ContractService
 {
-    private const IDENTITY_FIELDS = [
-        'full_name' => '',
-        'year_of_birth' => '',
-        'identity_number' => '',
-        'date_of_issue' => '',
-        'place_of_issue' => '',
-        'permanent_address' => '',
-        'has_valid' => false,
-    ];
+    public function __construct(
+        private readonly IdentityDocumentService $identityDocumentService,
+        private readonly NotificationService $notificationService,
+    ) {}
+
+    public function getSuccessMessage(string $oldStatus): string
+    {
+        return match ($oldStatus) {
+            'Chờ xác nhận' => 'Hợp đồng đã được lưu và đang chờ duyệt',
+            'Chờ chỉnh sửa' => 'Hợp đồng đã được chỉnh sửa và gửi lại để duyệt',
+            default => 'Hợp đồng đã được cập nhật thành công',
+        };
+    }
 
     public function getUserContracts(): array
     {
         try {
-            return Contract::with(['room.motel', 'room.mainImage'])
-                ->where('user_id', Auth::id())
+            return Contract::where('user_id', Auth::id())
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status')
+                ->with([
+                    'room' => fn($query) => $query->select('id', 'name', 'motel_id')
+                        ->with(['motel' => fn($query) => $query->select('id', 'name')]),
+                    'room.mainImage' => fn($query) => $query->select('id', 'room_id', 'image_url')
+                ])
                 ->get()
                 ->map(fn ($contract) => [
                     'id' => $contract->id,
@@ -78,11 +79,10 @@ class ContractService
                 'rental_price' => $contract->rental_price,
                 'deposit_amount' => $contract->deposit_amount,
                 'content' => $contract->content,
+                'signature' => $contract->signature,
                 'status' => $contract->status,
                 'file' => $contract->file ? url($contract->file) : null,
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
-                'created_at' => $contract->created_at->toDateTimeString(),
-                'updated_at' => $contract->updated_at->toDateTimeString(),
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
@@ -141,145 +141,10 @@ class ContractService
 
     public function extractIdentityImages(array $images): array
     {
-        if (count($images) !== 2) {
-            throw new \Exception('Vui lòng upload đúng 2 ảnh: mặt trước và mặt sau CCCD.');
-        }
-
-        $identityDocument = self::IDENTITY_FIELDS;
-        $imageAnnotator = new ImageAnnotatorClient();
-
-        foreach ($images as $imageFile) {
-            $imagePath = $imageFile->store('images/temp', 'private');
-            $fullImagePath = storage_path('app/private/' . $imagePath);
-
-            try {
-                $imageContent = file_get_contents($fullImagePath);
-                $visionImage = (new VisionImage())->setContent($imageContent);
-                $feature = (new Feature())->setType(Feature\Type::TEXT_DETECTION);
-                $request = (new AnnotateImageRequest())->setImage($visionImage)->setFeatures([$feature]);
-                $batchRequest = (new BatchAnnotateImagesRequest())->setRequests([$request]);
-
-                $response = $imageAnnotator->batchAnnotateImages($batchRequest);
-                $annotations = $response->getResponses()[0]->getTextAnnotations();
-
-                if (empty($annotations)) {
-                    throw new \Exception('Ảnh CCCD không hợp lệ.');
-                }
-
-                $text = $annotations[0]->getDescription();
-
-                if (str_contains($text, 'Họ và tên') || str_contains($text, 'Full name')) {
-                    $frontData = $this->parseCccdFrontText($text);
-                    $identityDocument = array_merge($identityDocument, array_filter($frontData));
-                    $identityDocument['year_of_birth'] = $frontData['birthdate']
-                        ? date('Y', strtotime(str_replace('/', '-', $frontData['birthdate'])))
-                        : $identityDocument['year_of_birth'];
-                } elseif (str_contains($text, 'Ngày, tháng, năm') || str_contains($text, 'Cục Trưởng')) {
-                    $backData = $this->parseCccdBackText($text);
-                    $identityDocument = array_merge($identityDocument, array_filter($backData));
-                }
-            } catch (\Throwable $e) {
-                Log::error('Lỗi Google Vision API', ['error' => $e->getMessage()]);
-                throw new \Exception('Lỗi phân tích ảnh CCCD.');
-            } finally {
-                Storage::disk('private')->delete($imagePath);
-            }
-        }
-
-        $requiredFields = ['identity_number', 'full_name', 'year_of_birth', 'date_of_issue'];
-        if (array_diff($requiredFields, array_keys(array_filter($identityDocument)))) {
-            throw new \Exception('Không thể trích xuất đầy đủ thông tin CCCD.');
-        }
-
-        if (!preg_match('/^\d{9}|\d{12}$/', $identityDocument['identity_number'])) {
-            throw new \Exception('Số CCCD không hợp lệ.');
-        }
-
-        $identityDocument['has_valid'] = true;
-        return $identityDocument;
+        return $this->identityDocumentService->extractIdentityImages($images);
     }
 
-    private function parseCccdFrontText(string $text): array
-    {
-        $data = [
-            'identity_number' => '',
-            'full_name' => '',
-            'birthdate' => '',
-            'permanent_address' => '',
-        ];
-
-        $lines = explode("\n", trim($text));
-        $addressStarted = false;
-        $addressLines = [];
-
-        foreach ($lines as $index => $line) {
-            $line = trim($line);
-            if (!$line) continue;
-
-            if (preg_match('/\b\d{12}\b/', $line, $matches)) {
-                $data['identity_number'] = $matches[0];
-            }
-
-            if (preg_match('/^(Họ và tên|Full name)[:\s]*/iu', $line) && isset($lines[$index + 1])) {
-                $data['full_name'] = trim($lines[$index + 1]);
-            }
-
-            if (preg_match('/\b(\d{2}\/\d{2}\/\d{4})\b/', $line, $matches)) {
-                $data['birthdate'] = $matches[1];
-            }
-
-            if (preg_match('/^(Nơi thường trú|Place of residence)[:\s]*/iu', $line)) {
-                $addressStarted = true;
-            } elseif ($addressStarted && !preg_match('/^(Họ và tên|Full name|Nơi thường trú|Place of residence|Ngày sinh|Date of birth|Quốc tịch|Nationality|Giới tính|Sex)/iu', $line)) {
-                $addressLines[] = $line;
-            } elseif ($addressStarted && preg_match('/^(Họ và tên|Full name|Nơi thường trú|Place of residence|Ngày sinh|Date of birth|Quốc tịch|Nationality|Giới tính|Sex)/iu', $line)) {
-                $addressStarted = false;
-            }
-        }
-
-        $data['permanent_address'] = implode(', ', array_unique(array_filter($addressLines)));
-        return $data;
-    }
-
-    private function parseCccdBackText(string $text): array
-    {
-        $data = [
-            'date_of_issue' => '',
-            'place_of_issue' => '',
-        ];
-
-        $lines = explode("\n", trim($text));
-
-        foreach ($lines as $index => $line) {
-            $line = trim($line);
-            if (!$line) continue;
-
-            if (preg_match('/^Ngày, tháng, năm[:\s]*(\d{2}\/\d{2}\/\d{4})/iu', $line, $matches)) {
-                $data['date_of_issue'] = $matches[1];
-            }
-
-            if (preg_match('/^Cục Trưởng Cục Cảnh Sát/i', $line)) {
-                $data['place_of_issue'] = $line;
-            } elseif (preg_match('/^Cục Trưởng/i', $line) && isset($lines[$index + 1])) {
-                $data['place_of_issue'] = trim($line . ' ' . $lines[$index + 1]);
-            } elseif (preg_match('/^DIRECTOR GENERAL/i', $line)) {
-                $data['place_of_issue'] = 'Cục Trưởng Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội';
-            }
-        }
-
-        if (!$data['date_of_issue']) {
-            foreach ($lines as $line) {
-                if (preg_match('/\b(\d{2}\/\d{2}\/\d{4})\b/', trim($line), $matches)) {
-                    $data['date_of_issue'] = $matches[1];
-                    break;
-                }
-            }
-        }
-
-        return array_filter($data);
-    }
-
-    public function saveContract(string $content, string $status, int $id): Contract
+    public function saveContract(string $content, int $id): Contract
     {
         try {
             $contract = Contract::where('user_id', Auth::id())
@@ -290,31 +155,17 @@ class ContractService
 
             $contract->update([
                 'content' => $content,
-                'status' => $status,
-                'updated_at' => now()
+                'status' => 'Chờ duyệt'
             ]);
 
-            // Log hoạt động
-            Log::info('Hợp đồng được cập nhật', [
-                'user_id' => Auth::id(),
-                'contract_id' => $id,
-                'old_status' => $oldStatus,
-                'new_status' => $status
-            ]);
+            $this->notificationService->notifyContractForAdmins($contract, $oldStatus);
 
-            // Chỉ thông báo admin khi trạng thái chuyển sang "Chờ duyệt"
-            if ($status === 'Chờ duyệt') {
-                $this->notifyAdmins($contract, $oldStatus);
-            }
-
-            return $contract->fresh(); // Reload để lấy dữ liệu mới nhất
-
+            return $contract->fresh();
         } catch (\Throwable $e) {
             Log::error('Lỗi cập nhật hợp đồng', [
                 'user_id' => Auth::id(),
                 'contract_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
             throw $e;
         }
@@ -333,25 +184,16 @@ class ContractService
 
             // Cập nhật hợp đồng
             $contract->update([
-                'status' => 'Hoạt động',
                 'signature' => $signaturePath,
                 'content' => $content,
+                'status' => 'Chờ thanh toán tiền cọc',
                 'signed_at' => now(),
-                'updated_at' => now()
-            ]);
-
-            // Log hoạt động
-            Log::info('Hợp đồng đã được ký', [
-                'user_id' => Auth::id(),
-                'contract_id' => $contractId,
-                'signature' => $signaturePath
             ]);
 
             // Thông báo admin
-            $this->notifyAdmins($contract, 'Chờ ký');
+            $this->notificationService->notifyContractForAdmins($contract, 'Chờ ký');
 
             return $contract->fresh();
-
         } catch (\Throwable $e) {
             Log::error('Lỗi ký hợp đồng', [
                 'user_id' => Auth::id(),
@@ -374,52 +216,38 @@ class ContractService
         return $path;
     }
 
-    private function notifyAdmins(Contract $contract, string $oldStatus): void
+    public function generateAndSaveContractPdf(int $contractId): string
     {
         try {
-            $admins = User::where('role', 'Quản trị viên')->get();
+            // Lấy thông tin hợp đồng
+            $contract = Contract::where('id', $contractId)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
 
-            if ($admins->isEmpty()) {
-                Log::warning('Không tìm thấy admin với role Quản trị viên');
-                return;
-            }
+            // Lấy nội dung HTML của hợp đồng
+            $content = $contract->content;
 
-            $title = $oldStatus === 'Chờ ký'
-                ? 'Hợp đồng đã được ký'
-                : ($oldStatus === 'Chờ chỉnh sửa'
-                    ? 'Hợp đồng đã được chỉnh sửa'
-                    : 'Hợp đồng mới đang chờ duyệt');
-            $body = $oldStatus === 'Chờ ký'
-                ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được ký và chuyển sang trạng thái Hoạt động."
-                : ($oldStatus === 'Chờ chỉnh sửa'
-                    ? "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được chỉnh sửa và gửi lại để duyệt."
-                    : "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.");
+            // Tạo PDF từ nội dung HTML
+            $pdf = Pdf::loadHTML($content);
 
-            Mail::to($admins->pluck('email'))->send(new ContractPendingEmail($contract));
+            // Tạo tên file dựa trên contract_id và timestamp
+            $fileName = "contracts/contract-{$contractId}-" . time() . '.pdf';
+            $pdfPath = 'pdf/' . $fileName;
 
-            $messaging = app('firebase.messaging');
+            // Lưu file PDF vào storage private
+            Storage::disk('private')->put($pdfPath, $pdf->output());
 
-            foreach ($admins as $admin) {
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'title' => $title,
-                    'content' => $body,
-                ]);
+            // Cập nhật field file trong contract
+            $contract->update(['file' => $pdfPath]);
 
-                if ($admin->fcm_token) {
-                    $message = CloudMessage::fromArray([
-                        'token' => $admin->fcm_token,
-                        'notification' => ['title' => $title, 'body' => $body],
-                    ]);
-
-                    $messaging->send($message);
-                }
-            }
+            return $pdfPath;
         } catch (\Throwable $e) {
-            Log::error('Lỗi gửi thông báo cho admin', [
-                'contract_id' => $contract->id,
+            Log::error('Lỗi tạo và lưu PDF hợp đồng', [
+                'contract_id' => $contractId,
+                'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
+            throw $e;
         }
     }
 }

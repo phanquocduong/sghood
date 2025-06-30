@@ -14,9 +14,10 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MessageController;
-
+use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -155,3 +156,27 @@ Route::middleware('admin')->group(function () {
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
     });
 });
+
+// Signature
+Route::get('/signature/{filename}', function ($filename) {
+    $path = 'images/signatures/' . $filename;
+
+    if (Storage::disk('private')->exists($path)) {
+        return response()->file(Storage::disk('private')->path($path));
+    }
+
+    abort(404, 'File không tồn tại');
+});
+
+// File PDF
+Route::get('/contract/pdf/{id}', function ($id) {
+    $contract = Contract::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+    if ($contract->file && Storage::disk('private')->exists($contract->file)) {
+        $filePath = Storage::disk('private')->path($contract->file);
+        return response()->download($filePath, "contract-{$id}.pdf");
+    }
+
+    abort(404, 'File không tồn tại');
+});
+

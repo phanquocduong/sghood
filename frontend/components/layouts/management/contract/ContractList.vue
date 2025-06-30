@@ -43,6 +43,9 @@
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
                 </a>
+                <a v-if="item.status === 'Hoạt động'" href="#" class="button gray approve" @click.prevent="downloadPdf(item.id)">
+                    <i class="im im-icon-File-Download"></i> Tải hợp đồng
+                </a>
                 <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve popup-with-zoom-anim">
                     <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
                 </NuxtLink>
@@ -56,6 +59,10 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { useToast } from 'vue-toastification';
+
+const { $api } = useNuxtApp();
+const toast = useToast();
 
 const config = useRuntimeConfig();
 const props = defineProps({
@@ -82,6 +89,7 @@ const getItemClass = status => {
         case 'Chờ duyệt':
         case 'Chờ chỉnh sửa':
         case 'Chờ ký':
+        case 'Chờ thanh toán tiền cọc':
             return 'pending-booking';
         case 'Hoạt động':
             return 'approved-booking';
@@ -101,6 +109,8 @@ const getActText = status => {
             return 'Chỉnh sửa thông tin';
         case 'Chờ ký':
             return 'Ký hợp đồng';
+        case 'Chờ thanh toán tiền cọc':
+            return 'Thanh toán tiền đặt cọc';
         case 'Chờ duyệt':
         case 'Hoạt động':
         case 'Kết thúc':
@@ -137,6 +147,21 @@ const openConfirmRejectPopup = async id => {
 
     if (result.isConfirmed) {
         emit('rejectItem', { id });
+    }
+};
+
+const downloadPdf = async id => {
+    try {
+        const response = await $api(`/contracts/${id}/download-pdf`, { method: 'GET' });
+        const fileUrl = response.data.file_url;
+        window.open(fileUrl, '_blank');
+    } catch (error) {
+        const data = error.response?._data;
+        if (data?.error) {
+            toast.error(data.error);
+        } else {
+            toast.error('Đã có lỗi xảy ra khi tải PDF.');
+        }
     }
 };
 </script>

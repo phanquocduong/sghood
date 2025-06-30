@@ -9,19 +9,25 @@ use App\Http\Controllers\Apis\MotelController;
 use App\Http\Controllers\Apis\UserController;
 use App\Http\Controllers\Apis\ConfigController;
 use App\Http\Controllers\Apis\ContractController;
+use App\Http\Controllers\Apis\InvoiceController;
 use App\Http\Controllers\Apis\NotificationController;
 use App\Http\Controllers\Apis\ScheduleBookingController;
+use App\Http\Controllers\Apis\SepayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Authentication Routes
-Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::get('/xac-minh-email', function (Request $request) {
+    return redirect()->to('/xac-minh-email?' . http_build_query($request->query()));
+})->name('verification.redirect');
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::patch('/user/profile', [UserController::class, 'updateProfile']);
@@ -34,21 +40,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/contracts', [ContractController::class, 'index']);
     Route::get('/contracts/{id}', [ContractController::class, 'show']);
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
-
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
-
-    Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
+    Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
+    Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
 });
 
-// Email verification routes
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::post('/sepay/webhook', [SepayWebhookController::class, 'handleWebhook']);
 
-// Redirect route for frontend
-Route::get('/xac-minh-email', function (Request $request) {
-    return redirect()->to('/xac-minh-email?' . http_build_query($request->query()));
-})->name('verification.redirect');
 
 Route::get('/districts', [DistrictController::class, 'index']);
 Route::get('/motels/featured', [MotelController::class, 'featured']);
@@ -59,11 +59,7 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 
 // Contact Routes
 Route::post('/contact', [ContactController::class, 'send']);
-// Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
-
-// Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
-// Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
 
 // Notification Routes
 Route::prefix('notifications')->group(function () {
