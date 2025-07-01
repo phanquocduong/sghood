@@ -36,7 +36,10 @@ export default defineNuxtConfig({
     runtimeConfig: {
         public: {
             baseUrl: 'http://127.0.0.1:8000',
-            apiBaseUrl: 'http://127.0.0.1:8000/api'
+            apiBaseUrl: 'http://127.0.0.1:8000/api',
+            sepayBank: 'ACB',
+            sepayAccountNumber: '31214717',
+            sepayTemplate: 'compact'
         }
     }
 });

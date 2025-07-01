@@ -1,47 +1,49 @@
 <template>
-    <div class="signature-container">
-        <div class="signature-header">
-            <h4>Chữ Ký Điện Tử</h4>
-            <p>Vui lòng ký tên vào khung bên dưới</p>
-        </div>
-
-        <div class="signature-pad-wrapper">
-            <canvas
-                ref="canvas"
-                class="signature-pad"
-                :width="canvasWidth"
-                :height="canvasHeight"
-                @mousedown="startDrawing"
-                @mousemove="draw"
-                @mouseup="stopDrawing"
-                @mouseleave="stopDrawing"
-                @touchstart="handleTouch"
-                @touchmove="handleTouch"
-                @touchend="stopDrawing"
-            ></canvas>
-
-            <div v-if="isEmpty" class="signature-placeholder">
-                <i class="fas fa-signature"></i>
-                <span>Ký tên tại đây</span>
+    <div class="signature-section mt-4">
+        <div class="signature-container">
+            <div class="signature-header">
+                <h4>Chữ Ký Điện Tử</h4>
+                <p>Vui lòng ký tên vào khung bên dưới</p>
             </div>
-        </div>
 
-        <div class="signature-actions">
-            <button type="button" class="btn btn-clear" @click="clearSignature">
-                <i class="fas fa-eraser"></i>
-                Xóa chữ ký
-            </button>
+            <div class="signature-pad-wrapper">
+                <canvas
+                    ref="canvas"
+                    class="signature-pad"
+                    :width="canvasWidth"
+                    :height="canvasHeight"
+                    @mousedown="startDrawing"
+                    @mousemove="draw"
+                    @mouseup="stopDrawing"
+                    @mouseleave="stopDrawing"
+                    @touchstart="handleTouch"
+                    @touchmove="handleTouch"
+                    @touchend="stopDrawing"
+                ></canvas>
 
-            <button type="button" class="btn btn-confirm" @click="saveSignature" :disabled="isEmpty">
-                <i class="fas fa-check"></i>
-                Xác nhận chữ ký
-            </button>
+                <div v-if="isEmpty" class="signature-placeholder">
+                    <i class="fas fa-signature"></i>
+                    <span>Ký tên tại đây</span>
+                </div>
+            </div>
+
+            <div class="signature-actions">
+                <button type="button" class="btn btn-clear" @click="clearSignature">
+                    <i class="fas fa-eraser"></i>
+                    Xóa chữ ký
+                </button>
+
+                <button type="button" class="btn btn-confirm" @click="saveSignature" :disabled="isEmpty">
+                    <i class="fas fa-check"></i>
+                    Xác nhận chữ ký
+                </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted } from 'vue';
 
 const props = defineProps({
     width: {
@@ -70,6 +72,8 @@ let lastY = 0;
 
 // Methods
 const initCanvas = () => {
+    if (!canvas.value) return;
+
     ctx = canvas.value.getContext('2d');
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
@@ -79,39 +83,65 @@ const initCanvas = () => {
     // Set white background
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value);
+
+    // Ensure proper pixel ratio for crisp lines
+    const rect = canvas.value.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.value.width = rect.width * dpr;
+    canvas.value.height = rect.height * dpr;
+
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Reset background after scaling
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, rect.width, rect.height);
 };
 
-const getMousePos = e => {
+const getEventPos = e => {
     const rect = canvas.value.getBoundingClientRect();
-    return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
-};
+    const scaleX = canvas.value.width / rect.width;
+    const scaleY = canvas.value.height / rect.height;
 
-const getTouchPos = e => {
-    const rect = canvas.value.getBoundingClientRect();
+    let clientX, clientY;
+
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
     return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
+        x: ((clientX - rect.left) * scaleX) / (window.devicePixelRatio || 1),
+        y: ((clientY - rect.top) * scaleY) / (window.devicePixelRatio || 1)
     };
 };
 
 const startDrawing = e => {
+    e.preventDefault();
     isDrawing = true;
-    const pos = getMousePos(e);
+    const pos = getEventPos(e);
     lastX = pos.x;
     lastY = pos.y;
     isEmpty.value = false;
+
+    // Start the path
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
 };
 
 const draw = e => {
     if (!isDrawing) return;
+    e.preventDefault();
 
-    const pos = getMousePos(e);
+    const pos = getEventPos(e);
 
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
 
@@ -119,41 +149,41 @@ const draw = e => {
     lastY = pos.y;
 };
 
-const stopDrawing = () => {
+const stopDrawing = e => {
+    if (!isDrawing) return;
+    e.preventDefault();
     isDrawing = false;
+    ctx.beginPath(); // Reset path for next stroke
 };
 
 const handleTouch = e => {
     e.preventDefault();
 
-    if (e.type === 'touchstart') {
-        isDrawing = true;
-        const pos = getTouchPos(e);
-        lastX = pos.x;
-        lastY = pos.y;
-        isEmpty.value = false;
-    } else if (e.type === 'touchmove' && isDrawing) {
-        const pos = getTouchPos(e);
-
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-
-        lastX = pos.x;
-        lastY = pos.y;
+    switch (e.type) {
+        case 'touchstart':
+            startDrawing(e);
+            break;
+        case 'touchmove':
+            draw(e);
+            break;
+        case 'touchend':
+            stopDrawing(e);
+            break;
     }
 };
 
 const clearSignature = () => {
+    if (!canvas.value || !ctx) return;
+
+    const rect = canvas.value.getBoundingClientRect();
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvasWidth.value, canvasHeight.value);
+    ctx.fillRect(0, 0, rect.width, rect.height);
     isEmpty.value = true;
     emit('signature-cleared');
 };
 
 const saveSignature = () => {
-    if (isEmpty.value) return;
+    if (isEmpty.value || !canvas.value) return;
 
     const signatureData = canvas.value.toDataURL('image/png');
     emit('signature-saved', signatureData);
@@ -161,13 +191,23 @@ const saveSignature = () => {
 
 // Responsive canvas
 const updateCanvasSize = () => {
-    const container = canvas.value?.parentElement;
+    if (!canvas.value) return;
+
+    const container = canvas.value.parentElement;
     if (container) {
-        const containerWidth = container.offsetWidth;
+        const containerWidth = container.offsetWidth - 32; // Account for padding
         if (containerWidth < props.width) {
-            canvasWidth.value = containerWidth - 16;
-            canvasHeight.value = Math.floor((canvasWidth.value * props.height) / props.width);
+            canvasWidth.value = containerWidth;
+            canvasHeight.value = Math.floor((containerWidth * props.height) / props.width);
+        } else {
+            canvasWidth.value = props.width;
+            canvasHeight.value = props.height;
         }
+
+        // Reinitialize canvas after size change
+        nextTick(() => {
+            initCanvas();
+        });
     }
 };
 
@@ -175,9 +215,12 @@ const updateCanvasSize = () => {
 onMounted(async () => {
     await nextTick();
     updateCanvasSize();
-    initCanvas();
 
     window.addEventListener('resize', updateCanvasSize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', updateCanvasSize);
 });
 </script>
 
@@ -230,6 +273,7 @@ onMounted(async () => {
     border-radius: 8px;
     background: #ffffff;
     cursor: crosshair;
+    touch-action: none; /* Prevent scrolling on touch */
 }
 
 .signature-placeholder {

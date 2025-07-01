@@ -216,7 +216,7 @@ class ScheduleBookingService
                 ]);
 
                 if ($admin->fcm_token) {
-                    $baseUrl = config('app.url'); // Đảm bảo cấu hình app.url trong .env
+                    $baseUrl = config('app.url');
                     $link = $type === 'schedule' ? "$baseUrl/schedules" : "$baseUrl/bookings";
                     $message = CloudMessage::fromArray([
                         'token' => $admin->fcm_token,

@@ -11,6 +11,7 @@ use App\Mail\ContractRevisionNotification;
 use App\Mail\ContractSignNotification;
 use App\Mail\ContractConfirmNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
@@ -19,7 +20,7 @@ class ContractService
     public function getAllContracts(string $querySearch = '', string $status = '', int $perPage = 10): array
     {
         try {
-            \DB::enableQueryLog();
+            DB::enableQueryLog();
             $query = Contract::with(['user', 'room', 'booking']);
 
             // Apply search filter
