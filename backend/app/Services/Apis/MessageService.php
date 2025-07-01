@@ -57,25 +57,38 @@ class MessageService
                 'updated_at' => now()
             ]);
 
-            // Gửi auto-reply nếu lần đầu
-            // Nếu sender là user → kiểm tra sender_id là user và chưa từng gửi trước đó
-            if ($sender->role !== 'Quản trị viên') {
-                $userSentBefore = Message::where('sender_id', $senderId)
-                    ->where('receiver_id', $receiverId)
-                    ->exists();
+            // ✅ Đẩy lên Firebase
+            try {
+                $chatPath = $senderId < $receiverId
+                    ? "chats/{$senderId}_{$receiverId}"
+                    : "chats/{$receiverId}_{$senderId}";
 
-                if (!$userSentBefore) {
-                    Message::create([
-                        'sender_id' => $receiverId,
-                        'receiver_id' => $senderId,
-                        'message' => 'Cảm ơn bạn đã nhắn tin, admin sẽ phản hồi sớm nhất có thể.',
-                        'read' => false,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
+                $firebase = (new \Kreait\Firebase\Factory)
+                    ->withServiceAccount(storage_path('firebase/firebase_credentials.json'))
+                    ->withDatabaseUri('https://tro-viet-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+
+                $firebase->getReference($chatPath)->push([
+                    'sender_id' => $senderId,
+                    'receiver_id' => $receiverId,
+                    'message' => $messageText,
+                    'timestamp' => now()->timestamp,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Lỗi khi đẩy Firebase: ' . $e->getMessage());
             }
 
+            // Auto-reply nếu lần đầu
+            if ($sender->role !== 'Quản trị viên' && !$exists) {
+                Message::create([
+                    'sender_id' => $receiverId,
+                    'receiver_id' => $senderId,
+                    'message' => 'Cảm ơn bạn đã nhắn tin, admin sẽ phản hồi sớm nhất có thể.',
+                    'read' => false,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
 
             return $userMessage;
 
@@ -88,6 +101,7 @@ class MessageService
             return null;
         }
     }
+
 
     private function getRandomAdmin(?int $excludeUserId = null)
     {

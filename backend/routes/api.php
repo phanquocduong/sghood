@@ -72,5 +72,6 @@ Route::get('/users/admins', [UserController::class, 'getAdmins']);
 // Notification Routes
 Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');  // API mark as read: http://localhost:8000/api/notifications/{userID}/mark-as-read
     Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
 });

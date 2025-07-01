@@ -29,23 +29,6 @@ class MessageService
             'receiver_id' => $receiverId,
             'message' => $text,
         ]);
-
-        // 2. Đẩy lên Firebase để client nhận real-time
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase.json')) // Đường dẫn file service account
-                ->createDatabase();
-
-            $firebase->getReference('messages/' . $receiverId)->push([
-                'sender_id' => $senderId,
-                'receiver_id' => $receiverId,
-                'message' => $text,
-                'timestamp' => now()->timestamp,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Firebase error: ' . $e->getMessage());
-        }
-
         return $message;
     }
 
