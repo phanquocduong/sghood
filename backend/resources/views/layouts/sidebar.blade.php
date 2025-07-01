@@ -35,7 +35,7 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="invoice.html" class="dropdown-item {{ request()->is('invoice.html') ? 'active' : '' }}">Hoá đơn</a>
                     <a href="transaction.html" class="dropdown-item {{ request()->is('transaction.html') ? 'active' : '' }}">Lịch sử giao dịch</a>
-                    <a href="utility.html" class="dropdown-item {{ request()->is('utility.html') ? 'active' : '' }}">Chỉ số điện nước</a>
+                    <a href="{{ route('meter_readings.index') }}" class="dropdown-item {{ request()->routeIs('meter_readings.*') ? 'active' : '' }}">Chỉ số điện nước</a>
                 </div>
             </div>
 

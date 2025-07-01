@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MeterReading extends Model
 {
+    protected $table = 'meter_readings';
     protected $fillable = [
         'room_id',
         'month',
