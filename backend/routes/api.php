@@ -15,7 +15,6 @@ use App\Http\Controllers\Apis\ScheduleBookingController;
 use App\Http\Controllers\Apis\SepayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 // Authentication Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -45,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+
+    Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
 });
 
 Route::post('/sepay/webhook', [SepayWebhookController::class, 'handleWebhook']);

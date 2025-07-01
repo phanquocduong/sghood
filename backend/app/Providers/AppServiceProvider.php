@@ -6,10 +6,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 use App\Models\Notification;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\View;
 use Kreait\Firebase\Auth as FirebaseAuth;
-use Dompdf\Font;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,14 +50,5 @@ class AppServiceProvider extends ServiceProvider
             $view->with('unreadCount', $unreadCount)
                 ->with('latestNotifications', $latestNotifications);
         });
-
-        // // Đăng ký font Times New Roman
-        // $fontPath = storage_path('fonts/times-new-roman.ttf');
-        // if (file_exists($fontPath)) {
-        //     Font::register($fontPath, 'times-new-roman');
-        // }
-
-        // // Đặt font mặc định cho DomPDF
-        // PDF::setOptions(['defaultFont' => 'times-new-roman']);
     }
 }

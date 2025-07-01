@@ -41,7 +41,7 @@ class ContractService
             }
 
             $contracts = $query->orderBy('created_at', 'desc')->paginate($perPage);
-            \Log::info('SQL Query', \DB::getQueryLog());
+            Log::info('SQL Query', DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
@@ -671,13 +671,11 @@ class ContractService
         return $content;
     }
 
-    // [Các phương thức khác không thay đổi]
-
     // Tạo file PDF từ nội dung hợp đồng
     public function generateContractPdf(Contract $contract): array
     {
         try {
-            $filename = 'contracts/hopdong-' . $contract->id . '-' . time() . '-' . uniqid() . '.pdf';
+            $filename = 'contracts/contract-' . $contract->id . '-' . time() . '-' . uniqid() . '.pdf';
 
             if ($contract->file && Storage::disk('public')->exists(str_replace('/storage/', '', $contract->file))) {
                 Log::info('PDF file already exists for contract', ['contract_id' => $contract->id]);
