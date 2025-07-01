@@ -22,7 +22,7 @@
                       <small style="color: #888;">{{ noti.time }}</small>
                     </a>
                   </li>
-                      <li v-if="!showDropdown.length" >
+                      <li v-if="!topNoti.length === 0" >
                 <p>Chưa có thông báo nào.</p>
               </li>
                   <li>

@@ -13,6 +13,7 @@
         "@nuxtjs/google-fonts": "^3.2.0",
         "@pinia/nuxt": "^0.11.0",
         "@vueuse/core": "^13.4.0",
+        "dayjs": "^1.11.13",
         "dropzone": "^6.0.0-beta.2",
         "firebase": "^11.9.1",
         "lucide-vue-next": "^0.518.0",

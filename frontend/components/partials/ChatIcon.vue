@@ -1,7 +1,7 @@
 <template>
   <div class="chat-icon" @click="$emit('toggle')">
     <MessageSquare class="icon" />
-    <span v-if="unreadMessages > 0 " class="unread-badge">
+    <span v-if="unreadMessages > 0 " class="unread-badge-number">
       {{ unreadMessages > 9 ? '9+':unreadMessages }}
     </span>
   </div>
@@ -52,6 +52,9 @@ defineProps({
   padding: 2px 4px;
   border-radius: 12px;
   box-shadow: 0 0 0 1px white;
+  animation: pulse 1.2s infinite;
+
+
 }
 @keyframes pulse {
   0% { transform: scale(1); opacity: 1 }

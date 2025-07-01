@@ -38,7 +38,7 @@
           <ul class="suggestion-list">
             <li
               v-for="hint in actions"
-              :key="hint"
+              :key="hint  "
               class="suggestion-item"
               @click="send(hint)"
             >
@@ -52,7 +52,7 @@
           <input
             type="text"
             v-model="newMessage"
-            @keyup.enter="sendMessage"
+            @keyup.enter="sendMessage($event)"
             placeholder="Nhập tin nhắn..."
           />
           <button @click="sendMessage">Gửi</button>
@@ -102,6 +102,7 @@ const actions = computed(()=>{
 })
 const send =(text)=>{
   sendMessage(text)
+  console.log(text)
 }
 
 
@@ -169,8 +170,9 @@ const initChat = async () => {
     )
 
     unsubscribe = onSnapshot(msgQuery, snapshot => {
-      const newMessages = snapshot.docs.map(doc => {
-        const d = doc.data()
+      const changes =  snapshot.docChanges().filter(change => change.type === 'added')
+      const newMessages = changes.map(change => {
+        const d = change.doc.data()
         return {
           from: d.sender_id === currentUserId.value ? 'user' : 'admin',
           text: d.text
@@ -184,10 +186,9 @@ const initChat = async () => {
         messages.value = unique
         scrollToBottom()
 
-        const lastMess =newMessages.at(-1)
-        if(lastMess?.from ==='admin'){
-          emit('unread')
-        }
+        if (newMessages.some(m => m.from === 'admin')) {
+      emit('unread')
+    }
       }
     })
   } catch (error) {
@@ -199,8 +200,13 @@ const initChat = async () => {
 
 
 
-const sendMessage = async () => {
-  const text = newMessage.value.trim()
+const sendMessage = async (Textover =null) => {
+
+  if(Textover instanceof KeyboardEvent){
+    Textover =null
+  }
+  const Rawtext =(Textover !== null ? Textover:newMessage.value)
+  const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
   try {
@@ -238,12 +244,8 @@ const sendMessage = async () => {
 }
 
 onMounted(() => {
-  initChat().then(()=>{
-    const fistSuggetion = actions.value[0]
-    if(fistSuggetion){
-      send(fistSuggetion)
-    }
-  })
+  initChat() 
+  
 })
 
 onBeforeUnmount(() => {
