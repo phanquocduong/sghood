@@ -69,6 +69,9 @@
 <!-- Firebase SDK dùng phiên bản compat để hoạt động với script thường -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAnEYDqg-BwdYKJLoz1bDG1x62JnRsVVB0",
@@ -94,48 +97,80 @@
     console.log("💬 chatUserId:", chatUserId);
     console.log("📦 Chat key đang lắng:", chatKey);
 
-   const dbRef = firebase.firestore();
-    const chatRef = db.collection('chats').doc(chatKey);
+    const db = firebase.firestore();
+const chatQuery = db.collection('messages')
+  .where('chatId', '==', chatKey)
+  .orderBy('createdAt', 'asc');
 
-let isInitialLoaded = false;
+chatQuery.onSnapshot(snapshot => {
+  snapshot.docChanges().forEach(change => {
+    if (change.type === 'added') {
+      const msg = change.doc.data();
+      if (msg.sender_id !== currentUserId) {
+        const chatBox = document.querySelector('.chat-box');
+        const msgHtml = `
+          <div style="text-align: left; margin: 5px 0;">
+              <span style="background: #e2e3e5; color: #000; padding: 8px 12px; border-radius: 10px;">
+                  ${msg.text}
+              </span>
+          </div>
+        `;
+        chatBox.innerHTML += msgHtml;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+  });
+});
+</script>
+<script>
+document.getElementById('sendMessageForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-chatRef.onSnapshot(function(snapshot) {
-    const msg = snapshot.data();
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    if (!message) return;
 
-    if (!isInitialLoaded) {
-        // Lần đầu load toàn bộ tin nhắn
-        console.log("🌀 Đang tải tin nhắn ban đầu...");
-        // (Có thể bỏ qua nếu bạn đã render ban đầu bằng Blade)
+    const formData = new FormData(this);
+
+    // Gửi API lưu DB
+    const response = await fetch("{{ route('messages.send') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+    });
+
+    const result = await response.json();
+    if (result.status) {
+        // Gửi Firebase (Firestore)
+        const db = firebase.firestore();
+        await db.collection('messages').add({
+            chatId: chatKey,
+            sender_id: currentUserId,
+            receiver_id: chatUserId,
+            text: message,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Append ra UI ngay lập tức
+        const chatBox = document.querySelector('.chat-box');
+        const msgHtml = `
+          <div style="text-align: right; margin: 5px 0;">
+              <span style="background: #007bff; color: #fff; padding: 8px 12px; border-radius: 10px;">
+                  ${message}
+              </span>
+          </div>
+        `;
+        chatBox.innerHTML += msgHtml;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Xoá input
+        messageInput.value = '';
     } else {
-        // Realtime khi có tin nhắn mới
-        console.log("🔥 Đã vào child_added!");
-        console.log("✉️ Tin nhắn mới:", msg);
-
-        if (msg.sender_id !== currentUserId) {
-            const chatBox = document.querySelector('.chat-box');
-            const msgHtml = `
-                <div style="text-align: left; margin: 5px 0;">
-                    <span style="background: #e2e3e5; color: #000; padding: 8px 12px; border-radius: 10px;">
-                        ${msg.message}
-                    </span>
-                </div>
-            `;
-            chatBox.innerHTML += msgHtml;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        alert("Gửi tin nhắn thất bại");
     }
 });
-
-// Đánh dấu lần đầu load xong (delay 1 chút để chắc chắn)
-setTimeout(() => {
-    isInitialLoaded = true;
-    console.log("✅ Đã load xong dữ liệu cũ, bắt đầu lắng tin mới");
-}, 1000);
-
 </script>
 
-
 @endsection
-
-
-

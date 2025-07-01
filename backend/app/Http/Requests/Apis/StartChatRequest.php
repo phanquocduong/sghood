@@ -30,8 +30,7 @@ class StartChatRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'receiver_id.required' => 'Vui lòng chọn người nhận',
-            'receiver_id.exists' => 'Người nhận không tồn tại',
+            
         ];
     }
 }

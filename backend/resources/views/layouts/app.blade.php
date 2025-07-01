@@ -79,4 +79,7 @@
     @yield('scripts')
 </body>
 
+
+
 </html>
+

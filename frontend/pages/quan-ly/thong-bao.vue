@@ -28,22 +28,20 @@
             </div>
 
             <div class="notification-inner">
-              <!-- Ảnh đại diện -->
-              <div class="notification-thumb">
-                <img :src="noti.avatar || defaultAvatar" alt="avatar" />
-              </div>
-
               <!-- Nội dung -->
               <div class="notification-content">
                 <h4 class="notification-title">
                   {{ noti.title }}
                 </h4>
-                <p class="notification-text">{{ noti.text }}</p>
+                <p class="notification-text">{{ noti.content }}</p>
               </div>
 
               <!-- Nút xoá -->
               <button class="delete-btn" @click.stop="removeNotification(index)">✕</button>
             </div>
+          </div>
+          <div v-if="notifications.length === 0" class="box-title-bar ">
+            <p>Chưa có thông báo nào.</p>
           </div>
         </div>
       </div>
@@ -56,53 +54,23 @@
 
 <script setup>
 definePageMeta({ layout: 'management' });
+import { useToast } from 'vue-toastification';
+import { useNotificationStore } from '~/stores/notication';
+const NotiStore = useNotificationStore(); 
+const noti = useToast();
+const {notifications} = storeToRefs(useNotificationStore());
 
-const defaultAvatar = '/images/default-user.png';
-
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Hệ thống',
-    text: 'Bạn có 1 hợp đồng mới cần xác nhận.',
-    time: '5 phút trước',
-    unread: true,
-    avatar: ''
-  },
-  {
-    id: 2,
-    title: 'Nguyễn Văn A',
-    text: 'Yêu cầu xem phòng ngày 28/06 đã được duyệt.',
-    time: '1 giờ trước',
-    unread: true,
-    avatar: ''
-  },
-  {
-    id: 3,
-    title: 'Hệ thống',
-    text: 'Cập nhật điều khoản sử dụng. Vui lòng xem lại.',
-    time: 'Hôm qua',
-    unread: false,
-    avatar: ''
-  },
-  {
-    id: 4,
-    title: 'Admin',
-    text: 'Chúng tôi đã nhận được thanh toán của bạn.',
-    time: '20/06/2025',
-    unread: false,
-    avatar: ''
-  },
-]);
-
-const removeNotification = index => {
-  notifications.value.splice(index, 1);
+onMounted(()=>{
+  NotiStore.fetchNotifications()
+})
+const markAsRead = (index) => {
+  NotiStore.markAsRead(index);
 };
 
-const markAsRead = index => {
-  if (notifications.value[index].unread) {
-    notifications.value[index].unread = false;
-  }
+const removeNotification = (index) => {
+  NotiStore.removeNotification(index);
 };
+
 </script>
 
 <style scoped>
@@ -128,7 +96,7 @@ const markAsRead = index => {
 
 /* Item thông báo */
 .notification-item {
-  padding: 24px;
+  padding: 20px;
   border-bottom: 1px solid #eee;
   transition: background-color 0.3s ease;
   cursor: pointer;
@@ -185,7 +153,7 @@ const markAsRead = index => {
 
 .notification-thumb img {
   width: 150px;
-  height: 112.41;
+  height: 112.41px;
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid #eee;
@@ -208,7 +176,7 @@ const markAsRead = index => {
 
 .notification-text {
   font-size: 18px;
-  color: #444;
+  color: #716868;
   line-height: 1.5;
 }
 
