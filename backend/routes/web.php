@@ -105,6 +105,9 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user');
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
+        Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
+        Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
+
     });
 
     // Booking Routes Group
@@ -126,6 +129,7 @@ Route::middleware('admin')->group(function () {
         Route::patch('/{id}/restore', [ConfigController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('forceDelete');
     });
+
 
     // schedule routes group
     Route::prefix('schedules')->name('schedules.')->group(function () {
