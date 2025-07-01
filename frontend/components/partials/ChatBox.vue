@@ -15,6 +15,7 @@
         <!-- Nội dung chat -->
         <div class="chat-body">
           <div class="chat-messages" ref="messageContainer">
+
             <div
               v-for="(msg, index) in messages"
               :key="index"
@@ -26,6 +27,7 @@
                 alt="avatar"
                 class="chat-avatar"
               />
+
               <div :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']">
                 <span class="chat-text">{{ msg.text }}</span>
               </div>
@@ -36,12 +38,14 @@
         <!-- Gợi ý câu hỏi -->
         <div v-if="actions.length > 0" class="chat-suggestions">
           <ul class="suggestion-list">
+
             <li
               v-for="hint in actions"
               :key="hint  "
               class="suggestion-item"
               @click="send(hint)"
             >
+
               {{ hint }}
             </li>
           </ul>
@@ -49,6 +53,7 @@
 
         <!-- Nhập tin nhắn -->
         <div class="chat-input">
+
           <input
             type="text"
             v-model="newMessage"
@@ -56,6 +61,7 @@
             placeholder="Nhập tin nhắn..."
           />
           <button @click="sendMessage()">Gửi</button>
+
         </div>
       </template>
     </div>
@@ -72,7 +78,7 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
 import { useRouter } from 'vue-router'
-const emit = defineEmits(['close' ,'unread'])
+const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const currentUserId = ref(authStore.user?.id || null)
 const token = ref(authStore.token || '')
@@ -86,23 +92,25 @@ let unsubscribe = null // để dừng listener khi unmount
 const { user } = storeToRefs(authStore)
 const config = useRuntimeConfig()
 const isLoading = ref(false);
+
 let initialized =ref (false)
 
 const route =useRoute()
 watch(newMessage,(val)=>{
+
   behavior.updateChat(val)
-})  
+})
 
-const actions = computed(()=>{
- const path = route.path
- if(path === '/') return questionMap['/']
+const actions = computed(() => {
+  const path = route.path
+  if (path === '/') return questionMap['/']
 
- const Filter = path.split('/').filter(Boolean)
- const matchKey = Object.keys(questionMap).find(k=>Filter.includes(k))
+  const Filter = path.split('/').filter(Boolean)
+  const matchKey = Object.keys(questionMap).find(k => Filter.includes(k))
 
   return questionMap[matchKey] || questionMap['default']
 })
-const send =(text)=>{
+const send = (text) => {
   sendMessage(text)
   console.log(text)
 }
@@ -114,8 +122,8 @@ const avatarUrl = computed(() =>
     : '/images/dashboard-avatar.jpg'
 )
 
-const lastVisitedPage = computed(()=>{
- return behavior.visitedPages.at(-1) || '/'
+const lastVisitedPage = computed(() => {
+  return behavior.visitedPages.at(-1) || '/'
 })
 
 
@@ -128,8 +136,10 @@ const scrollToBottom = () => {
 }
 
 const initChat = async () => {
+
   
   isLoading.value=true
+
   try {
     // 1) Gọi trực tiếp API start-chat để backend gán admin
     const res = await $api('/messages/start-chat', {
@@ -156,6 +166,7 @@ const initChat = async () => {
       }
     })
 
+
    const incoming = history.data.map(msg => ({
   from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
   text: msg.message
@@ -164,6 +175,7 @@ const initChat = async () => {
 const all = [...messages.value, ...incoming]
 messages.value = all
 scrollToBottom()
+
 
     // 3) Lắng nghe realtime Firestore
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
@@ -182,6 +194,7 @@ scrollToBottom()
           text: d.text
         }
       })
+
       if(newMessages.length>0){
        // Gộp tin nhắn từ SQL + Firebase nếu cần
          const unique = [...messages.value, ...newMessages]
@@ -191,24 +204,28 @@ scrollToBottom()
         if (newMessages.some(m => m.from === 'admin')) {
       emit('unread')
     }
+
       }
     })
   } catch (error) {
     console.error('initChat error:', error)
-  }finally{
-     isLoading.value=false
+  } finally {
+    isLoading.value = false
   }
 }
 
 
 
 const sendMessage = async (Textover = null) => {
+
   const Rawtext =(typeof Textover === 'string' ? Textover:newMessage.value)
+
   const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
+
     
     
     scrollToBottom()
@@ -223,6 +240,7 @@ const sendMessage = async (Textover = null) => {
   createdAt: serverTimestamp(),
   chatId
 })
+
     // Optionally: gọi API gửi nữa nếu backend cần lưu
     await $api('/messages/send', {
       method: 'POST',
@@ -236,7 +254,7 @@ const sendMessage = async (Textover = null) => {
       }
     })
     behavior.clearChat()
-    
+
     scrollToBottom()
   } catch (err) {
     console.error('sendMessage error:', err)
@@ -244,8 +262,10 @@ const sendMessage = async (Textover = null) => {
 }
 
 onMounted(() => {
+
   initChat() 
   
+
 })
 
 onBeforeUnmount(() => {
@@ -258,10 +278,12 @@ onBeforeUnmount(() => {
 <style scoped>
 .chat-message-wrapper {
   display: flex;
-  align-items: flex-end; /* Cho avatar và text thẳng hàng dưới */
+  align-items: flex-end;
+  /* Cho avatar và text thẳng hàng dưới */
   margin-bottom: 10px;
   gap: 8px; /* khoảng cách giữa avatar và tin nhắn */
    
+
 }
 
 .align-right {
@@ -280,8 +302,8 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-   align-self: flex-start;
-   transform: translateY(4px);
+  align-self: flex-start;
+  transform: translateY(4px);
 }
 
 .chat-message {
@@ -317,7 +339,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   z-index: 10001;
   height: 500px;
- 
+
 }
 
 /* Header */
@@ -329,10 +351,12 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
 }
+
 .chat-title {
   font-weight: bold;
   font-size: 16px;
 }
+
 .chat-close {
   background: transparent;
   border: none;
@@ -349,6 +373,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   align-items: flex-start;
 }
+
 .suggestion-title {
   width: 100%;
   font-weight: 500;
@@ -356,6 +381,7 @@ onBeforeUnmount(() => {
   margin-bottom: 4px;
   color: #444;
 }
+
 .suggestion-list {
   list-style: none;
   padding: 0;
@@ -364,6 +390,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 6px;
 }
+
 .suggestion-item {
   background-color: #f1f1f1;
   color: #333;
@@ -371,10 +398,11 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   font-size: 13px;
   cursor: pointer;
-  max-width:100%;
+  max-width: 100%;
   word-break: break-word;
   transition: background-color 0.2s;
 }
+
 .suggestion-item:hover {
   background-color: #ddd;
 }
@@ -386,14 +414,17 @@ onBeforeUnmount(() => {
   flex-direction: column;
   overflow: hidden;
 }
+
 .chat-messages {
   flex: 1;
   display: flex;
-  flex-direction: column; /* ✅ dùng hướng bình thường */
+  flex-direction: column;
+  /* ✅ dùng hướng bình thường */
   padding: 12px;
   overflow-y: auto;
   background-color: #f8f8f8;
 }
+
 .chat-message {
   margin-bottom: 10px;
   max-width: 80%;
@@ -401,12 +432,14 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   border-radius: 12px;
 }
+
 .from-user {
   background-color: #f1f1f1;
   align-self: flex-end;
   margin-left: auto;
   color: #333;
 }
+
 .from-admin {
   align-self: flex-start;
   margin-right: auto;
@@ -421,8 +454,9 @@ onBeforeUnmount(() => {
   padding: 8px 16px;
   background: #fff;
   align-items: center;
-    height: 60px;
+  height: 60px;
 }
+
 .chat-input input {
   flex: 1;
   border: 1px solid #ccc;
@@ -432,6 +466,7 @@ onBeforeUnmount(() => {
   height: 40px;
   margin-top: 15px;
 }
+
 .chat-input button {
   background-color: #e53935;
   color: white;
@@ -441,8 +476,8 @@ onBeforeUnmount(() => {
   cursor: pointer;
   height: 40px;
 }
+
 .chat-input button:hover {
   background-color: #d32f2f;
 }
-
 </style>
