@@ -158,7 +158,7 @@ Route::middleware('admin')->group(function () {
     });
 
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
-    ->name('contracts.showIdentityDocument');
+        ->name('contracts.showIdentityDocument');
 });
 
 // File PDF
@@ -173,3 +173,7 @@ Route::get('/contract/pdf/{id}', function ($id) {
     abort(404, 'File không tồn tại');
 });
 
+// Route for meter reading index
+Route::get('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'index'])->name('meter_readings.index');
+Route::put('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'store'])->name('meter_readings.store');
+// Route for updating an existing meter reading

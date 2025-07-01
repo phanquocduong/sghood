@@ -35,7 +35,7 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="invoice.html" class="dropdown-item {{ request()->is('invoice.html') ? 'active' : '' }}">Hoá đơn</a>
                     <a href="transaction.html" class="dropdown-item {{ request()->is('transaction.html') ? 'active' : '' }}">Lịch sử giao dịch</a>
-                    <a href="utility.html" class="dropdown-item {{ request()->is('utility.html') ? 'active' : '' }}">Chỉ số điện nước</a>
+                    <a href="{{ route('meter_readings.index') }}" class="dropdown-item {{ request()->routeIs('meter_readings.*') ? 'active' : '' }}">Chỉ số điện nước</a>
                 </div>
             </div>
 
@@ -44,11 +44,11 @@
 
             <!-- Quản lý hệ thống -->
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') || request()->routeIs('rooms.index') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Cấu hình</a>
                     <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
-                    <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') ? 'active' : '' }}">Nhà trọ</a>
+                    <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}">Nhà trọ</a>
                    <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Tiện ích</a>
                 </div>
             </div>

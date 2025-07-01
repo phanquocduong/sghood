@@ -48,7 +48,7 @@
                         <label for="status" class="form-label fw-bold text-primary">Trạng thái</label>
                         <select class="form-select shadow-sm mb-3" name="status" id="status" aria-label="Default select example">
                             <option value="Hoạt động" {{ $user->status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
-                            <option value="Khóa" {{ $user->status == 'Khóa' ? 'selected' : '' }}>Khóa</option>
+                            <option value="Khoá" {{ $user->status == 'Khoá' ? 'selected' : '' }}>Khoá</option>
                         </select>
                     </div>
                 </div>

@@ -15,7 +15,7 @@ class MotelRequest extends FormRequest
         $isUpdate = $this->method() === 'PUT' || $this->method() === 'PATCH';
 
         return [
-            'name' => $isUpdate ? 'sometimes|required|string|max:255' : 'required|string|max:255',
+            'name' => $isUpdate ? 'sometimes|required|string|max:255|unique:motels,name,'.$this->route('motel') : 'required|string|max:255|unique:motels,name',
             'address' => $isUpdate ? 'sometimes|required|string|max:100' : 'required|string|max:100',
             'district_id' => $isUpdate ? 'sometimes|required|integer|exists:districts,id' : 'required|integer|exists:districts,id',
             'map_embed_url' => $isUpdate ? 'sometimes|required|url|max:1000' : 'required|url|max:1000',
@@ -40,9 +40,10 @@ class MotelRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required' => 'Vui lòng nhập tên dãy trọ.',
-            'name.string' => 'Tên dãy trọ phải là chuỗi ký tự.',
-            'name.max' => 'Tên dãy trọ không được vượt quá 255 ký tự.',
+            'name.required' => 'Vui lòng nhập tên.',
+            'name.unique' => 'Tên đã tồn tại. Vui lòng chọn tên khác.',
+            'name.string' => 'Tên phải là một chuỗi.',
+            'name.max' => 'Tên không được vượt quá 255 ký tự.',
             'address.required' => 'Vui lòng nhập địa chỉ.',
             'address.string' => 'Địa chỉ phải là chuỗi ký tự.',
             'address.max' => 'Địa chỉ không được vượt quá 100 ký tự.',

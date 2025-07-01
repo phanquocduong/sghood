@@ -42,8 +42,26 @@ class ConfigController extends Controller
     {
         $data = $request->validated();
         $imageFile = $data['config_type'] === 'IMAGE' ? $request->file('config_image') : null;
+        $jsonData = null;
 
-        $result = $this->configService->createConfig($data, $imageFile);
+        // Improved JSON handling
+        if ($data['config_type'] === 'JSON' && $request->has('config_json')) {
+            $jsonArray = $request->input('config_json');
+            $jsonArray = array_filter($jsonArray, fn($v) => trim($v) !== '');
+
+            try {
+                json_encode($jsonArray, JSON_UNESCAPED_UNICODE); // chỉ để kiểm tra
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return back()->with('error', 'JSON không hợp lệ: ' . json_last_error_msg())->withInput();
+                }
+
+                $jsonData = $jsonArray; // ✨ giữ là mảng
+            } catch (\Exception $e) {
+                return back()->with('error', 'Lỗi xử lý JSON: ' . $e->getMessage())->withInput();
+            }
+        }
+
+        $result = $this->configService->createConfig($data, $imageFile, $jsonData);
 
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error'])->withInput();
@@ -68,8 +86,23 @@ class ConfigController extends Controller
     {
         $data = $request->validated();
         $imageFile = $data['config_type'] === 'IMAGE' && $request->hasFile('config_image') ? $request->file('config_image') : null;
+        $jsonData = null;
 
-        $result = $this->configService->updateConfig($id, $data, $imageFile);
+        if ($data['config_type'] === 'JSON' && isset($data['config_json'])) {
+            try {
+                $decodedJson = $data['config_json'];
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return redirect()->back()->with('error', 'JSON không hợp lệ: ' . json_last_error_msg())->withInput();
+                }
+
+                $jsonData = $decodedJson; // ✅ Dùng mảng
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Lỗi xử lý JSON: ' . $e->getMessage())->withInput();
+            }
+        }
+
+        $result = $this->configService->updateConfig($id, $data, $imageFile, $jsonData);
 
         if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error'])->withInput();
@@ -77,6 +110,7 @@ class ConfigController extends Controller
 
         return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công!');
     }
+
 
     /**
      * Soft delete a configuration.
