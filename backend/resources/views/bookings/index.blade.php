@@ -21,6 +21,9 @@
     <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
             <div class="d-flex align-items-center">
+                <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại dashboard">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
                 <h5 class="mb-0 fw-bold">
                     <i class="fas fa-calendar-alt me-2"></i>Quản lý đặt phòng
                     <span class="badge bg-light text-primary ms-2">{{ $booking->total() ?? 0 }} đặt phòng</span>
@@ -29,6 +32,20 @@
         </div>
 
         <div class="card-body p-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-calendar-alt me-1"></i>Quản lý đặt phòng
+                    </li>
+                </ol>
+            </nav>
+
             <!-- Filter Form -->
             <div class="mb-4">
                 <form action="{{ route('bookings.index') }}" method="GET" class="row g-3">
@@ -96,6 +113,9 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-info text-white me-2" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                            {{ strtoupper(substr($bookingItem->user->name ?? 'U', 0, 1)) }}
+                                        </div>
                                         <span class="fw-medium">{{ $bookingItem->user->name ?? 'N/A' }}</span>
                                     </div>
                                 </td>

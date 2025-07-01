@@ -79,6 +79,19 @@ class NotificationService
         return $query->orderBy('created_at', $sortOrder)->paginate($perPage);
     }
 
+    public function markNotificationAsRead($notificationId)
+    {
+        $notification = Notification::find($notificationId);
+
+        if ($notification) {
+            $notification->status = 'Đã đọc';
+            $notification->save();
+            return true;
+        }
+
+        return false;
+    }
+
     public function getNotificationById($notificationId)
     {
         return Notification::where('id', $notificationId)

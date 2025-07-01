@@ -64,12 +64,6 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/configs', [ConfigController::class, 'index']);
 
-// Notification Routes
-Route::prefix('notifications')->group(function () {
-    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser']);
-    Route::get('/{id}', [NotificationController::class, 'getByNotificationId']);
-});
-
 // Message Routes
 Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
@@ -78,3 +72,10 @@ Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageControlle
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
+
+// Notification Routes
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');  // API mark as read: http://localhost:8000/api/notifications/{userID}/mark-as-read
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});

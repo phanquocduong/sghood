@@ -18,9 +18,7 @@
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Danh sách người dùng') }}
-                <span class="badge bg-light text-primary ms-2">{{ $users->total() ?? 0 }} người dùng</span>
-            </h6>
+            <h6 class="mb-0 fw-bold">{{ __('Người dùng') }}</h6>
         </div>
         <div class="card-body p-4">
             <form action="" method="GET" class="row g-3 mb-4">
@@ -76,31 +74,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($users as $index => $user)
-                            <tr class="table-row">
-                                <td>{{ $users->firstItem() + $index }}</td>
-                                <td>{{ $user->name }}</td>
-                                <td>{{ $user->phone }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
-                                <td>{{ $user->role }}</td>
-                                <td>
-                                    @php
-                                        $badgeClass = $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger';
-                                        $statusText = $user->status;
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
-                                </td>
-                                <td>
-                                    @if ($user->id !== Auth::id())
-                                        <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
-                                            <i class="fas fa-pen me-1"></i> Sửa
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                    @forelse ($users as $index => $user)
+                        <tr class="table-row">
+                            <td>{{ $users->firstItem() + $index }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->phone }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->created_at->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
+                            <td>{{ $user->role }}</td>
+                            <td>
+                                @php
+                                    $badgeClass = $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger';
+                                    $statusText = $user->status;
+                                @endphp
+                                <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
+                            </td>
+                            <td>
+                                @if ($user->id !== Auth::id() && (!$user->is_super_admin || Auth::user()->is_super_admin))
+                                    <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
+                                        <i class="fas fa-pen me-1"></i> Sửa
+                                    </a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Không tìm thấy người dùng phù hợp.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+
                 </table>
             </div>
             <div class="mt-4">
