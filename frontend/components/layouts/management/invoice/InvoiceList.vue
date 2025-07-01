@@ -33,7 +33,7 @@
                 <NuxtLink :to="`/quan-ly/hoa-don/${item.id}`" class="button gray approve">
                     <i class="im im-icon-Preview"></i> Xem chi tiết
                 </NuxtLink>
-                <NuxtLink v-if="item.status !== 'Đã trả'" to="/" class="button gray approve">
+                <NuxtLink v-if="item.status !== 'Đã trả'" :to="`/quan-ly/hoa-don/${item?.id}/thanh-toan`" class="button gray approve">
                     <i class="im im-icon-Paypal"></i> Thanh toán
                 </NuxtLink>
             </div>

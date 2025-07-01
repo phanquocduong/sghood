@@ -3,6 +3,28 @@
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
+                    <select v-model="filter.month" name="month" class="chosen-select">
+                        <option value="">Tất cả tháng</option>
+                        <option v-for="month in months" :key="month" :value="month">Tháng {{ month }}</option>
+                    </select>
+                </div>
+            </div>
+        </ClientOnly>
+
+        <ClientOnly>
+            <div class="sort-by">
+                <div class="sort-by-select">
+                    <select v-model="filter.year" name="year" class="chosen-select">
+                        <option value="">Tất cả năm</option>
+                        <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+                    </select>
+                </div>
+            </div>
+        </ClientOnly>
+
+        <ClientOnly>
+            <div class="sort-by">
+                <div class="sort-by-select">
                     <select v-model="filter.sort" name="sort" class="chosen-select">
                         <option value="default">Sắp xếp mặc định</option>
                         <option value="oldest">Cũ nhất</option>
@@ -19,28 +41,6 @@
                         <option value="">Tất cả loại</option>
                         <option value="Đặt cọc">Đặt cọc</option>
                         <option value="Hàng tháng">Hàng tháng</option>
-                    </select>
-                </div>
-            </div>
-        </ClientOnly>
-
-        <ClientOnly>
-            <div class="sort-by">
-                <div class="sort-by-select">
-                    <select v-model="filter.month" name="month" class="chosen-select">
-                        <option value="">Tất cả tháng</option>
-                        <option v-for="month in months" :key="month" :value="month">Tháng {{ month }}</option>
-                    </select>
-                </div>
-            </div>
-        </ClientOnly>
-
-        <ClientOnly>
-            <div class="sort-by">
-                <div class="sort-by-select">
-                    <select v-model="filter.year" name="year" class="chosen-select">
-                        <option value="">Tất cả năm</option>
-                        <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
                     </select>
                 </div>
             </div>

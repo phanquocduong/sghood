@@ -222,7 +222,6 @@ class InvoiceService
         }
 
         $invoice = Invoice::where('code', $data->code)
-            ->where('type', 'Đặt cọc')
             ->where('status', 'Chưa trả')
             ->firstOrFail();
 
@@ -242,11 +241,13 @@ class InvoiceService
 
         $invoice->update(['status' => 'Đã trả']);
 
-        if ($contract = $invoice->contract) {
-            $contract->update(['status' => 'Hoạt động']);
+        if ($invoice->type === 'Đặt cọc') {
+            $invoice->contract->update(['status' => 'Hoạt động']);
+            $invoice->contract->room->update(['status' => 'Đã thuê']);
+            $invoice->contract->user->update(['role' => 'Người thuê']);
         }
 
-        Log::info('Thanh toán thành công', ['invoice_id' => $invoice->id, 'transaction_id' => $transaction->id]);
+        Log::info('Thanh toán thành công', ['invoice_id' => $invoice->id, 'transaction_id' => $transaction]);
         return $invoice;
     }
 }
