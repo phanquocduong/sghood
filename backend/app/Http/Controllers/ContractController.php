@@ -98,7 +98,7 @@ class ContractController extends Controller
             // Kiểm tra cache trước
             $cachedContent = Cache::get($cacheKey);
             if ($cachedContent) {
-                Log::info('Serving identity document from cache', [
+                Log::info('Đang phục vụ tài liệu nhận dạng từ bộ nhớ đệm', [
                     'contractId' => $contractId,
                     'imagePath' => $imagePath
                 ]);
@@ -109,7 +109,7 @@ class ContractController extends Controller
                     ->header('Expires', now()->addHour()->toRfc7231String());
             }
 
-            Log::info('Attempting to show identity document', [
+            Log::info('Cố gắng xuất trình giấy tờ tùy thân', [
                 'contractId' => $contractId,
                 'imagePath' => $imagePath
             ]);
@@ -123,7 +123,7 @@ class ContractController extends Controller
             $contract = $contract['data'];
 
             if (!$contract->user || !$contract->user->identity_document) {
-                Log::error('No identity document found for user');
+                Log::error('Không tìm thấy giấy tờ tùy thân cho người dùng');
                 abort(404, 'Không tìm thấy hình ảnh căn cước công dân');
             }
 
@@ -140,26 +140,26 @@ class ContractController extends Controller
 
             // Kiểm tra file tồn tại trước khi đọc
             if (!Storage::disk('private')->exists($fullImagePath)) {
-                Log::error('Identity document file not found', ['fullImagePath' => $fullImagePath]);
+                Log::error('Không tìm thấy tệp giấy tờ tùy thân', ['fullImagePath' => $fullImagePath]);
                 abort(404, 'File hình ảnh không tồn tại');
             }
 
             // Đọc file từ disk private
-            Log::info('Reading encrypted file from private disk', ['fullImagePath' => $fullImagePath]);
+            Log::info('Đọc tập tin được mã hóa từ đĩa riêng', ['fullImagePath' => $fullImagePath]);
             $encryptedContent = Storage::disk('private')->get($fullImagePath);
 
             if (!$encryptedContent) {
-                Log::error('Failed to read encrypted content');
+                Log::error('Không đọc được nội dung được mã hóa');
                 abort(500, 'Không thể đọc file hình ảnh');
             }
 
-            Log::info('Decrypting content', ['contentLength' => strlen($encryptedContent)]);
+            Log::info('Giải mã nội dung', ['contentLength' => strlen($encryptedContent)]);
             $decryptedContent = decrypt($encryptedContent);
 
             // Cache decrypted content trong 1 giờ
             Cache::put($cacheKey, $decryptedContent, 3600);
 
-            Log::info('Identity document served successfully', [
+            Log::info('Đã gửi thành công giấy tờ tùy thân', [
                 'contractId' => $contractId,
                 'imagePath' => $imagePath,
                 'contentSize' => strlen($decryptedContent)
@@ -172,14 +172,14 @@ class ContractController extends Controller
                 ->header('Last-Modified', now()->toRfc7231String());
 
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            Log::error('Decryption failed for identity document', [
+            Log::error('Giải mã không thành công cho tài liệu nhận dạng', [
                 'contract_id' => $contractId,
                 'image_path' => $imagePath,
                 'error' => $e->getMessage()
             ]);
             abort(500, 'Không thể giải mã hình ảnh căn cước công dân');
         } catch (\Throwable $e) {
-            Log::error('Error displaying identity document: ' . $e->getMessage(), [
+            Log::error('Lỗi hiển thị giấy tờ tùy thân: ' . $e->getMessage(), [
                 'contract_id' => $contractId,
                 'image_path' => $imagePath,
                 'trace' => $e->getTraceAsString()
