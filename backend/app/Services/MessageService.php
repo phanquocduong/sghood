@@ -23,20 +23,24 @@ class MessageService
 
     public function sendMessage(int $senderId, int $receiverId, string $text): Message
     {
-        // 1. Lưu vào DB như cũ
         $message = Message::create([
             'sender_id' => $senderId,
             'receiver_id' => $receiverId,
             'message' => $text,
         ]);
 
-        // 2. Đẩy lên Firebase để client nhận real-time
         try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase.json')) // Đường dẫn file service account
+            $firebase = (new \Kreait\Firebase\Factory)
+                ->withServiceAccount(storage_path('firebase/firebase_credentials.json'))
+                ->withDatabaseUri('https://tro-viet-default-rtdb.firebaseio.com') // ✅ đúng URI
                 ->createDatabase();
 
-            $firebase->getReference('messages/' . $receiverId)->push([
+
+            $chatPath = $senderId < $receiverId
+                ? "chats/{$senderId}_{$receiverId}"
+                : "chats/{$receiverId}_{$senderId}";
+
+            $firebase->getReference($chatPath)->push([
                 'sender_id' => $senderId,
                 'receiver_id' => $receiverId,
                 'message' => $text,
@@ -48,5 +52,13 @@ class MessageService
 
         return $message;
     }
+    private function getChatKey($senderId, $receiverId): string
+    {
+        return $senderId < $receiverId
+            ? "{$senderId}_{$receiverId}"
+            : "{$receiverId}_{$senderId}";
+    }
+
+
 
 }
