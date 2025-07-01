@@ -1,1 +1,0 @@
-export { default } from "file:///C:/xampp/htdocs/troviet-platform/frontend/node_modules/@nuxt/vite-builder/dist/runtime/vite-node.mjs"
