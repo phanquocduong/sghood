@@ -170,8 +170,5 @@ const removeNotification = (index) => {
 .delete-btn:hover {
   color: #f44336;
 }
-.box-title-bar{
-  
-}
 
 </style>

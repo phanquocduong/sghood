@@ -21,8 +21,8 @@
               :class="['chat-message-wrapper', msg.from === 'user' ? 'align-right' : 'align-left']"
             >
               <img
-                v-if="msg.from === 'user'"
-                :src="avatarUrl"
+                :src="msg.from === 'user' ? avatarUrl : '/images/sghood_logo1.png'"
+                
                 alt="avatar"
                 class="chat-avatar"
               />
@@ -52,10 +52,10 @@
           <input
             type="text"
             v-model="newMessage"
-            @keyup.enter="sendMessage($event)"
+            @keyup.enter="sendMessage"
             placeholder="Nhập tin nhắn..."
           />
-          <button @click="sendMessage">Gửi</button>
+          <button @click="sendMessage()">Gửi</button>
         </div>
       </template>
     </div>
@@ -86,6 +86,8 @@ let unsubscribe = null // để dừng listener khi unmount
 const { user } = storeToRefs(authStore)
 const config = useRuntimeConfig()
 const isLoading = ref(false);
+let initialized =ref (false)
+
 const route =useRoute()
 watch(newMessage,(val)=>{
   behavior.updateChat(val)
@@ -126,6 +128,7 @@ const scrollToBottom = () => {
 }
 
 const initChat = async () => {
+  
   isLoading.value=true
   try {
     // 1) Gọi trực tiếp API start-chat để backend gán admin
@@ -153,13 +156,14 @@ const initChat = async () => {
       }
     })
 
-    if (Array.isArray(history.data) && history.data.length>0) {
-      messages.value = history.data.map(msg => ({
-        from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
-        text: msg.message
-      }))
-      scrollToBottom()
-    }
+   const incoming = history.data.map(msg => ({
+  from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
+  text: msg.message
+}))
+// Gộp lịch sử với hiện tại
+const all = [...messages.value, ...incoming]
+messages.value = all
+scrollToBottom()
 
     // 3) Lắng nghe realtime Firestore
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
@@ -180,9 +184,7 @@ const initChat = async () => {
       })
       if(newMessages.length>0){
        // Gộp tin nhắn từ SQL + Firebase nếu cần
-         const unique = [...messages.value, ...newMessages].filter((v, i, a) =>
-      i === a.findIndex(t => t.text === v.text && t.from === v.from)
-    )
+         const unique = [...messages.value, ...newMessages]
         messages.value = unique
         scrollToBottom()
 
@@ -200,20 +202,18 @@ const initChat = async () => {
 
 
 
-const sendMessage = async (Textover =null) => {
-
-  if(Textover instanceof KeyboardEvent){
-    Textover =null
-  }
-  const Rawtext =(Textover !== null ? Textover:newMessage.value)
+const sendMessage = async (Textover = null) => {
+  const Rawtext =(typeof Textover === 'string' ? Textover:newMessage.value)
   const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
-    messages.value.push({from:'user' , text:text})
+    
+    
     scrollToBottom()
     newMessage.value =''
+    
 
     // Gửi tin nhắn lên Firestore (realtime)
  await addDoc(collection($firebaseDb, 'messages'), {
@@ -221,7 +221,7 @@ const sendMessage = async (Textover =null) => {
   sender_id: currentUserId.value,
   receiver_id: AdminId.value,
   createdAt: serverTimestamp(),
-  chatId: [currentUserId.value, AdminId.value].sort().join('_')
+  chatId
 })
     // Optionally: gọi API gửi nữa nếu backend cần lưu
     await $api('/messages/send', {
@@ -261,6 +261,7 @@ onBeforeUnmount(() => {
   align-items: flex-end; /* Cho avatar và text thẳng hàng dưới */
   margin-bottom: 10px;
   gap: 8px; /* khoảng cách giữa avatar và tin nhắn */
+   
 }
 
 .align-right {
