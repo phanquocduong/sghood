@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
+use App\Models\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\View;
 use Kreait\Firebase\Auth as FirebaseAuth;
+use Dompdf\Font;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,9 +28,9 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot()
     {
-        // Lấy đường dẫn tương đối từ .env
+       // Lấy đường dẫn tương đối từ .env
         $googleCredentialsPath = env('GOOGLE_APPLICATION_CREDENTIALS');
 
         // Chuyển thành đường dẫn tuyệt đối
@@ -43,30 +45,21 @@ class AppServiceProvider extends ServiceProvider
         // Thiết lập biến môi trường
         putenv("GOOGLE_APPLICATION_CREDENTIALS=$absolutePath");
 
-
-        // Chia sẻ dữ liệu thông báo đến tất cả các view
         View::composer('*', function ($view) {
-            $unreadCount = 0;
-            $latestNotifications = collect();
-            
-            if (auth()->check()) {
-                $unreadCount = Notification::where('status', 'Chưa đọc')
-                ->whereHas('user', function($query) {
-                    $query->where('role', 'Quản trị viên');
-                })
-                ->count();
-                
-                $latestNotifications = Notification::with('user')
-                ->latest()
-                ->whereHas('user', function($query) {
-                    $query->where('role', 'Quản trị viên');
-                })
-                ->take(3)
-                ->get();
-            }
+            $unreadCount = Notification::where('status', 'Chưa đọc')->count();
+            $latestNotifications = Notification::latest()->take(3)->get();
 
             $view->with('unreadCount', $unreadCount)
                 ->with('latestNotifications', $latestNotifications);
         });
+
+        // // Đăng ký font Times New Roman
+        // $fontPath = storage_path('fonts/times-new-roman.ttf');
+        // if (file_exists($fontPath)) {
+        //     Font::register($fontPath, 'times-new-roman');
+        // }
+
+        // // Đặt font mặc định cho DomPDF
+        // PDF::setOptions(['defaultFont' => 'times-new-roman']);
     }
 }

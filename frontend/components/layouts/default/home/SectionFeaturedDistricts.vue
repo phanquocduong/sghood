@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h3 class="headline centered margin-bottom-35 margin-top-70">
+                <h3 class="headline centered margin-bottom-40 margin-top-80">
                     <strong class="headline-with-separator">Khu Vực Nổi Bật</strong>
                 </h3>
             </div>

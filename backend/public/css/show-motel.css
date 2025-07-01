@@ -1,0 +1,345 @@
+.fees-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fee-item {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 10px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.fee-item:hover {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.fee-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    margin-right: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.fee-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.fee-label {
+    font-size: 13px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.fee-value {
+    font-size: 14px;
+    color: #495057;
+    font-weight: 700;
+}
+
+/* Amenities Styling */
+.amenities-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.amenity-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #e8f5e8, #f0fff0);
+    border: 1px solid #28a745;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #155724;
+    transition: all 0.3s ease;
+}
+
+.amenity-badge:hover {
+    background: linear-gradient(135deg, #d4edda, #e8f5e8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.no-amenities {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-style: italic;
+}
+
+/* Map Section */
+.map-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.map-container {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Compact Image Gallery */
+.image-gallery-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Main Image Compact */
+.main-image-compact {
+    display: inline-block;
+    margin-right: 15px;
+    vertical-align: top;
+}
+
+.main-image-wrapper-compact {
+    position: relative;
+    width: 120px;
+    height: 90px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.main-image-wrapper-compact:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+.main-image-small {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.main-image-wrapper-compact:hover .main-image-small {
+    transform: scale(1.05);
+}
+
+.main-badge-compact {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: linear-gradient(45deg, #ffc107, #ff8c00);
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.main-image-label {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* Other Images Compact */
+.other-images-compact {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.other-images-label {
+    font-size: 13px;
+    color: #495057;
+}
+
+.other-images-grid-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 500px;
+}
+
+.other-image-item-compact {
+    position: relative;
+    width: 80px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.other-image-item-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.other-image-small {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.other-image-item-compact:hover .other-image-small {
+    transform: scale(1.05);
+}
+
+.image-number-compact {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* No Images */
+.no-images-compact {
+    text-align: center;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 30px;
+    color: #6c757d;
+}
+
+/* General Card Styling */
+.card {
+    border-radius: 15px;
+}
+
+.card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success, .alert-danger {
+    border-left: 5px solid #28a745;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .compact-gallery {
+        text-align: center;
+    }
+
+    .main-image-compact {
+        display: block;
+        margin: 0 auto 15px;
+    }
+
+    .other-images-compact {
+        display: block;
+    }
+
+    .other-images-grid-compact {
+        justify-content: center;
+        max-width: none;
+    }
+
+    .amenities-container {
+        justify-content: center;
+    }
+
+    .fees-container {
+        gap: 8px;
+    }
+
+    .fee-item {
+        padding: 10px 12px;
+    }
+
+    .fee-icon {
+        width: 35px;
+        height: 35px;
+        margin-right: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-image-wrapper-compact {
+        width: 100px;
+        height: 75px;
+    }
+
+    .other-image-item-compact {
+        width: 70px;
+        height: 50px;
+    }
+
+    .amenity-badge {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+
+    .image-gallery-section, .map-section {
+        padding: 15px;
+    }
+
+    .fee-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .fee-icon {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+}
+
+/* Animation */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.compact-gallery, .fees-container, .amenities-container {
+    animation: fadeInScale 0.5s ease-out;
+}

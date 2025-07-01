@@ -148,7 +148,7 @@ class RoomService
     }
 
     // Tạo phòng trọ mới
-    public function createRoom(array $data, array $imageFiles): array
+    public function createRoom(array $data, array $imageFiles, int $mainImageIndex = 0): array
     {
         // Kiểm tra nhà trọ trước khi tạo phòng
         $motelResult = $this->validateMotel($data['motel_id'] ?? null);
@@ -160,7 +160,7 @@ class RoomService
         try {
             $room = Room::create($data);
 
-            $failedUploads = $this->processRoomImages($room->id, $imageFiles);
+            $failedUploads = $this->processRoomImages($room->id, $imageFiles, $mainImageIndex);
 
             if (isset($data['amenities'])) {
                 $room->amenities()->sync($data['amenities']);
@@ -213,35 +213,54 @@ class RoomService
     }
 
     // Xử lý hình ảnh phòng trọ
-    private function processRoomImages(int $roomId, array $imageFiles): array
+    private function processRoomImages(int $roomId, array $imageFiles, int $mainImageIndex = 0): array
     {
         $failedUploads = [];
         $uploadedImages = [];
 
-        foreach ($imageFiles as $file) {
+        foreach ($imageFiles as $index => $file) {
             try {
                 $imagePath = $this->uploadRoomImage($file);
                 if ($imagePath) {
                     $image = RoomImage::create([
                         'room_id' => $roomId,
                         'image_url' => $imagePath,
-                        'is_main' => 0 // Mặc định không phải hình ảnh chính
+                        'is_main' => $index === $mainImageIndex ? 1 : 0
                     ]);
                     $uploadedImages[] = $image;
                 } else {
                     $failedUploads[] = $file->getClientOriginalName();
+
+                    // Adjust main image index if the main image failed to upload
+                    if ($index === $mainImageIndex && $index < count($imageFiles) - 1) {
+                        $mainImageIndex = $index + 1;
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::error($e->getMessage());
                 $failedUploads[] = $file->getClientOriginalName();
+
+                // Adjust main image index if the main image failed to upload
+                if ($index === $mainImageIndex && $index < count($imageFiles) - 1) {
+                    $mainImageIndex = $index + 1;
+                }
             }
         }
 
-        // Nếu chưa có hình ảnh chính, đặt hình đầu tiên là hình chính
-        if (!empty($uploadedImages) && RoomImage::where('room_id', $roomId)->where('is_main', 1)->count() === 0) {
-            $firstImage = $uploadedImages[0];
-            $firstImage->is_main = 1;
-            $firstImage->save();
+        // Ensure at least one image is marked as main if uploads were successful
+        if (!empty($uploadedImages)) {
+            $hasMainImage = false;
+            foreach ($uploadedImages as $image) {
+                if ($image->is_main == 1) {
+                    $hasMainImage = true;
+                    break;
+                }
+            }
+
+            if (!$hasMainImage) {
+                $uploadedImages[0]->is_main = 1;
+                $uploadedImages[0]->save();
+            }
         }
 
         return $failedUploads;
@@ -267,68 +286,71 @@ class RoomService
 
     // Cập nhật thông tin phòng trọ
     public function updateRoom(string $id, array $data, array $imageFiles, ?string $mainImageId = null): array
-    {
-        // Kiểm tra phòng tồn tại
-        $roomResult = $this->getRoom($id);
-        if (isset($roomResult['error'])) {
-            return $roomResult;
+{
+    // Kiểm tra phòng tồn tại
+    $roomResult = $this->getRoom($id);
+    if (isset($roomResult['error'])) {
+        return $roomResult;
+    }
+
+    // Kiểm tra nhà trọ nếu thay đổi motel_id
+    if (isset($data['motel_id']) && $data['motel_id'] != $roomResult['data']->motel_id) {
+        $motelResult = $this->validateMotel($data['motel_id']);
+        if (isset($motelResult['error'])) {
+            return $motelResult;
+        }
+    }
+
+    DB::beginTransaction();
+    try {
+        $room = Room::findOrFail($id);
+        $room->update($data);
+
+        // Xử lý thêm hình ảnh mới
+        $failedUploads = [];
+        $newMainImageIndex = isset($data['new_main_image_index']) ? (int)$data['new_main_image_index'] : 0;
+
+        if (!empty($imageFiles)) {
+            $failedUploads = $this->processRoomImages($room->id, $imageFiles, $newMainImageIndex);
         }
 
-        // Kiểm tra nhà trọ nếu thay đổi motel_id
-        if (isset($data['motel_id']) && $data['motel_id'] != $roomResult['data']->motel_id) {
-            $motelResult = $this->validateMotel($data['motel_id']);
-            if (isset($motelResult['error'])) {
-                return $motelResult;
-            }
-        }
-
-        DB::beginTransaction();
-        try {
-            $room = Room::findOrFail($id);
-
-            $room->update($data);
-
-            // Xử lý xóa hình ảnh từ select box
-            if (isset($data['delete_images']) && is_array($data['delete_images'])) {
-                foreach ($data['delete_images'] as $imageId) {
-                    $image = RoomImage::where('id', $imageId)->where('room_id', $room->id)->first();
-                    if ($image) {
-                        $this->deleteRoomImage($image->image_url);
-                        $image->delete();
-                    }
-                }
-            }
-
-            // Xử lý thêm hình ảnh mới
-            $failedUploads = [];
-            if (!empty($imageFiles)) {
-                $failedUploads = $this->processRoomImages($room->id, $imageFiles);
-            }
-
-            // Xử lý cập nhật ảnh chính (is_main)
+        // Xử lý cập nhật ảnh chính
+        if ($mainImageId) {
+            // Existing image selected as main
             $mainImageResult = $this->processMainImage($room->id, $mainImageId);
             if (isset($mainImageResult['error'])) {
                 DB::rollBack();
                 return $mainImageResult;
             }
-
-            if (isset($data['amenities'])) {
-                $room->amenities()->sync($data['amenities']);
-            }
-
-            DB::commit();
-
-            $result = $this->successResponse($room->load(['motel', 'images', 'amenities']));
-            if (!empty($failedUploads)) {
-                $result['warnings'] = ['failed_images' => $failedUploads];
-            }
-            return $result;
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-            return $this->errorResponse('Đã xảy ra lỗi khi cập nhật phòng trọ: ' . $e->getMessage(), 500);
+        } elseif (!empty($imageFiles) && isset($data['new_main_image_index'])) {
+            // New image selected as main
+            // The processRoomImages already handled this with $newMainImageIndex
+            // Just ensure no existing image is marked as main
+            RoomImage::where('room_id', $room->id)
+                    ->where('created_at', '<', now()->subSeconds(5)) // Only existing images
+                    ->update(['is_main' => 0]);
+        } else {
+            // No specific main image selected, ensure at least one image is main
+            $this->ensureMainImage($room->id);
         }
+
+        if (isset($data['amenities'])) {
+            $room->amenities()->sync($data['amenities']);
+        }
+
+        DB::commit();
+
+        $result = $this->successResponse($room->load(['motel', 'images', 'amenities']));
+        if (!empty($failedUploads)) {
+            $result['warnings'] = ['failed_images' => $failedUploads];
+        }
+        return $result;
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        Log::error($e->getMessage());
+        return $this->errorResponse('Đã xảy ra lỗi khi cập nhật phòng trọ: ' . $e->getMessage(), 500);
     }
+}
 
     // Xóa phòng trọ
     public function deleteRoom(string $id): array
@@ -456,6 +478,19 @@ class RoomService
             // Ghi log lỗi nhưng vẫn trả về true để xóa được record
             Log::error('Error deleting image (continuing anyway): ' . $e->getMessage());
             return true;
+        }
+    }
+    // Đảm bảo có ít nhất một ảnh chính
+    private function ensureMainImage($roomId)
+    {
+        $hasMainImage = RoomImage::where('room_id', $roomId)->where('is_main', 1)->exists();
+
+        if (!$hasMainImage) {
+            $firstImage = RoomImage::where('room_id', $roomId)->first();
+            if ($firstImage) {
+                $firstImage->is_main = 1;
+                $firstImage->save();
+            }
         }
     }
 }

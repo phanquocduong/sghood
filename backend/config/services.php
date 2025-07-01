@@ -38,4 +38,8 @@ return [
     'firebase' => [
         'credentials' => env('FIREBASE_CREDENTIALS'),
     ],
+
+    'sepay' => [
+        'api_key' => env('SEPAY_API_KEY'),
+    ],
 ];

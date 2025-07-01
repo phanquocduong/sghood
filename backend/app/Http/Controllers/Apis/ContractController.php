@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Apis\UpdateContractRequest;
 use App\Models\Contract;
 use App\Services\Apis\ContractService;
+use App\Services\Apis\InvoiceService;
 use App\Services\Apis\UserService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +19,8 @@ class ContractController extends Controller
 {
     public function __construct(
         private readonly ContractService $contractService,
-        private readonly UserService $userService
+        private readonly UserService $userService,
+        private readonly InvoiceService $invoiceService,
     ) {}
 
     public function index(): JsonResponse
@@ -25,20 +28,14 @@ class ContractController extends Controller
         try {
             $contracts = $this->contractService->getUserContracts();
 
-            return response()->json([
-                'data' => $contracts,
-                'status' => 200,
-            ]);
+            return response()->json(['data' => $contracts]);
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy danh sách hợp đồng', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Đã xảy ra lỗi khi lấy danh sách hợp đồng',
-                'status' => 500,
-            ], 500);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi lấy danh sách hợp đồng'], 500);
         }
     }
 
@@ -54,10 +51,7 @@ class ContractController extends Controller
                 ], $contract['status']);
             }
 
-            return response()->json([
-                'data' => $contract,
-                'status' => 200,
-            ]);
+            return response()->json(['data' => $contract]);
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
                 'contract_id' => $id,
@@ -65,10 +59,7 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Đã xảy ra lỗi khi lấy chi tiết hợp đồng',
-                'status' => 500,
-            ], 500);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi lấy chi tiết hợp đồng'], 500);
         }
     }
 
@@ -84,10 +75,7 @@ class ContractController extends Controller
                 ], $result['status']);
             }
 
-            return response()->json([
-                'message' => 'Hủy hợp đồng thành công',
-                'status' => 200,
-            ]);
+            return response()->json(['message' => 'Hủy hợp đồng thành công'], 200);
         } catch (\Throwable $e) {
             Log::error('Lỗi hủy hợp đồng', [
                 'contract_id' => $id,
@@ -95,10 +83,7 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Đã xảy ra lỗi khi hủy hợp đồng',
-                'status' => 500,
-            ], 500);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi hủy hợp đồng'], 500);
         }
     }
 
@@ -133,30 +118,12 @@ class ContractController extends Controller
         }
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateContractRequest $request, int $id): JsonResponse
     {
         try {
-            $request->validate([
-                'contract_content' => ['required', 'string'],
-                'identity_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            ]);
+            $contract = Contract::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
+            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id);
 
-            // Lấy thông tin hợp đồng hiện tại
-            $contract = Contract::where('user_id', Auth::id())
-                ->where('id', $id)
-                ->firstOrFail();
-
-            // Xác định trạng thái mới dựa trên trạng thái hiện tại
-            $newStatus = $this->determineNewStatus($contract->status);
-
-            // Lưu hợp đồng với trạng thái mới
-            $updatedContract = $this->contractService->saveContract(
-                $request->input('contract_content'),
-                $newStatus,
-                $id
-            );
-
-            // Chỉ xử lý ảnh căn cước khi trạng thái là "Chờ xác nhận" và có file được gửi lên
             if ($contract->status === 'Chờ xác nhận' && $request->hasFile('identity_images')) {
                 $this->userService->extractAndSaveIdentityImages(
                     Auth::user(),
@@ -165,20 +132,11 @@ class ContractController extends Controller
             }
 
             return response()->json([
-                'message' => $this->getSuccessMessage($contract->status),
+                'message' => $this->contractService->getSuccessMessage($contract->status),
                 'data' => $updatedContract,
             ]);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'errors' => $e->errors(),
-                'status' => 422,
-            ], 422);
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Hợp đồng không tồn tại hoặc bạn không có quyền truy cập.',
-                'status' => 404,
-            ], 404);
+            return response()->json(['error' => 'Hợp đồng không tồn tại hoặc bạn không có quyền truy cập.'], 404);
         } catch (\Throwable $e) {
             Log::error('Lỗi cập nhật hợp đồng', [
                 'user_id' => Auth::id(),
@@ -186,40 +144,71 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi cập nhật hợp đồng.'], 500);
+        }
+    }
+
+    public function sign(Request $request, int $id): JsonResponse
+    {
+        try {
+            $contract = Contract::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->where('status', 'Chờ ký')
+                ->firstOrFail();
+
+            $updatedContract = $this->contractService->signContract(
+                $id,
+                $request->input('signature'),
+                $request->input('content')
+            );
+
+            $invoice = $this->invoiceService->createDepositInvoice($contract);
 
             return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi cập nhật hợp đồng. Vui lòng thử lại.',
-                'status' => 500,
-            ], 500);
+                'message' => 'Hợp đồng đã được ký thành công. Vui lòng thanh toán tiền cọc.',
+                'data' => $updatedContract,
+                'invoice' => $invoice
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Hợp đồng không tồn tại hoặc không ở trạng thái chờ ký.'], 404);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi ký hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi ký hợp đồng. Vui lòng thử lại.'], 500);
         }
     }
 
-     /**
-     * Xác định trạng thái mới dựa trên trạng thái hiện tại
-     */
-    private function determineNewStatus(string $currentStatus): string
+    public function downloadPdf(int $id): JsonResponse
     {
-        switch ($currentStatus) {
-            case 'Chờ xác nhận':
-                return 'Chờ duyệt';
-            case 'Chờ chỉnh sửa':
-                return 'Chờ duyệt';
-            default:
-                return $currentStatus; // Giữ nguyên trạng thái nếu không phải 2 trạng thái trên
-        }
-    }
+        try {
+            $contract = Contract::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
 
-    /**
-     * Lấy thông báo thành công phù hợp
-     */
-    private function getSuccessMessage(string $oldStatus): string
-    {
-        if ($oldStatus === 'Chờ xác nhận') {
-            return 'Hợp đồng đã được lưu và đang chờ duyệt';
-        } elseif ($oldStatus === 'Chờ chỉnh sửa') {
-            return 'Hợp đồng đã được chỉnh sửa và gửi lại để duyệt';
-        } else {
-            return 'Hợp đồng đã được cập nhật thành công';
+            if ($contract->status !== 'Hoạt động') {
+                return response()->json(['error' => 'Hợp đồng chưa thể tải PDF.'], 400);
+            }
+
+            // Tạo và lưu PDF nếu chưa có
+            if (!$contract->file) {
+                $this->contractService->generateAndSaveContractPdf($id);
+                $contract->refresh();
+            }
+
+            // Trả về URL của file (sử dụng route để phục vụ file private)
+            $fileUrl = url('/contract/pdf/' . $id);
+
+            return response()->json(['data' => ['file_url' => $fileUrl]]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Hợp đồng không tồn tại hoặc bạn không có quyền truy cập.'], 404);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi tải PDF hợp đồng', [
+                'user_id' => Auth::id(),
+                'contract_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi tải PDF.'], 500);
         }
     }
 }

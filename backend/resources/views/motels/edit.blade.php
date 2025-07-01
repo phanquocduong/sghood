@@ -3,6 +3,13 @@
 @section('title', 'Sửa nhà trọ')
 
 @section('content')
+<!-- Adding FilePond CSS -->
+<link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+<!-- Adding FilePond Image Preview CSS -->
+<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="{{ asset('css/edit-room.css') }}">
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
         {{ session('success') }}
@@ -15,13 +22,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
+
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
-        <div class="card-header bg-gradient text-white d-flex align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <a href="{{ route('motels.index') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại danh sách phòng trọ">
-                <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
-            </a>
-            <h6 class="mb-0 fw-bold">{{ __('Sửa nhà trọ') }}</h6>
+        <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+            <div class="d-flex align-items-center">
+                <a href="{{ route('motels.index') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại danh sách nhà trọ">
+                    <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
+                </a>
+                <h6 class="mb-0 fw-bold">{{ __('Sửa nhà trọ') }}</h6>
+            </div>
         </div>
         <div class="card-body p-4">
             <form action="{{ route('motels.update', $motel->id) }}" method="POST" enctype="multipart/form-data" id="motelForm" novalidate>
@@ -29,26 +39,22 @@
                 @method('PUT')
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="name" class="form-label fw-bold text-primary">Tên dãy trọ</label>
-                        <input type="text" class="form-control shadow-sm {{ $errors->has('name') ? 'is-invalid' : '' }}" id="name" name="name" value="{{ old('name', $motel->name) }}" required>
-                        @if ($errors->has('name'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('name') }}
-                            </div>
-                        @endif
+                        <label for="name" class="form-label fw-bold text-primary">Tên dãy trọ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control shadow-sm @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $motel->name) }}" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="address" class="form-label fw-bold text-primary">Địa chỉ</label>
-                        <input type="text" class="form-control shadow-sm {{ $errors->has('address') ? 'is-invalid' : '' }}" id="address" name="address" value="{{ old('address', $motel->address) }}" required>
-                        @if ($errors->has('address'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('address') }}
-                            </div>
-                        @endif
+                        <label for="address" class="form-label fw-bold text-primary">Địa chỉ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control shadow-sm @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address', $motel->address) }}" required>
+                        @error('address')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="district_id" class="form-label fw-bold text-primary">Quận/Huyện</label>
-                        <select class="form-select shadow-sm {{ $errors->has('district_id') ? 'is-invalid' : '' }}" id="district_id" name="district_id" required>
+                        <label for="district_id" class="form-label fw-bold text-primary">Quận/Huyện <span class="text-danger">*</span></label>
+                        <select class="form-select shadow-sm @error('district_id') is-invalid @enderror" id="district_id" name="district_id" required>
                             <option value="">Chọn quận/huyện</option>
                             @if(isset($districts) && $districts->count() > 0)
                                 @foreach($districts as $district)
@@ -58,196 +64,186 @@
                                 <option value="">Không có quận/huyện nào.</option>
                             @endif
                         </select>
-                        @if ($errors->has('district_id'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('district_id') }}
-                            </div>
-                        @endif
+                        @error('district_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
                         <label for="map_embed_url" class="form-label fw-bold text-primary">URL nhúng bản đồ</label>
-                        <input type="url" class="form-control shadow-sm {{ $errors->has('map_embed_url') ? 'is-invalid' : '' }}" id="map_embed_url" name="map_embed_url" value="{{ old('map_embed_url', $motel->map_embed_url) }}" placeholder="https://maps.google.com/...">
-                        @if ($errors->has('map_embed_url'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('map_embed_url') }}
-                            </div>
-                        @endif
+                        <input type="url" class="form-control shadow-sm @error('map_embed_url') is-invalid @enderror" id="map_embed_url" name="map_embed_url" value="{{ old('map_embed_url', $motel->map_embed_url) }}" placeholder="https://maps.google.com/...">
+                        @error('map_embed_url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-12">
                         <label for="description" class="form-label fw-bold text-primary">Mô tả</label>
-                        <textarea class="form-control shadow-sm {{ $errors->has('description') ? 'is-invalid' : '' }}" id="description" name="description" rows="3">{{ old('description', $motel->description) }}</textarea>
-                        @if ($errors->has('description'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('description') }}
-                            </div>
-                        @endif
+                        <textarea class="form-control shadow-sm @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description', $motel->description) }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="electricity_fee" class="form-label fw-bold text-primary">Tiền điện (VNĐ/kWh)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('electricity_fee') ? 'is-invalid' : '' }}" id="electricity_fee" name="electricity_fee" value="{{ old('electricity_fee', $motel->electricity_fee) }}" step="1" min="0">
-                        @if ($errors->has('electricity_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('electricity_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('electricity_fee') is-invalid @enderror" id="electricity_fee" name="electricity_fee" value="{{ old('electricity_fee', $motel->electricity_fee) }}" step="1" min="0">
+                        @error('electricity_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="water_fee" class="form-label fw-bold text-primary">Tiền nước (VNĐ/m³)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('water_fee') ? 'is-invalid' : '' }}" id="water_fee" name="water_fee" value="{{ old('water_fee', $motel->water_fee) }}" step="1" min="0">
-                        @if ($errors->has('water_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('water_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('water_fee') is-invalid @enderror" id="water_fee" name="water_fee" value="{{ old('water_fee', $motel->water_fee) }}" step="1" min="0">
+                        @error('water_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="parking_fee" class="form-label fw-bold text-primary">Phí giữ xe (VNĐ/tháng)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('parking_fee') ? 'is-invalid' : '' }}" id="parking_fee" name="parking_fee" value="{{ old('parking_fee', $motel->parking_fee) }}" step="1" min="0">
-                        @if ($errors->has('parking_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('parking_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('parking_fee') is-invalid @enderror" id="parking_fee" name="parking_fee" value="{{ old('parking_fee', $motel->parking_fee) }}" step="1" min="0">
+                        @error('parking_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="junk_fee" class="form-label fw-bold text-primary">Phí rác (VNĐ/tháng)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('junk_fee') ? 'is-invalid' : '' }}" id="junk_fee" name="junk_fee" value="{{ old('junk_fee', $motel->junk_fee) }}" step="1" min="0">
-                        @if ($errors->has('junk_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('junk_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('junk_fee') is-invalid @enderror" id="junk_fee" name="junk_fee" value="{{ old('junk_fee', $motel->junk_fee) }}" step="1" min="0">
+                        @error('junk_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="internet_fee" class="form-label fw-bold text-primary">Phí internet (VNĐ/tháng)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('internet_fee') ? 'is-invalid' : '' }}" id="internet_fee" name="internet_fee" value="{{ old('internet_fee', $motel->internet_fee) }}" step="1" min="0">
-                        @if ($errors->has('internet_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('internet_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('internet_fee') is-invalid @enderror" id="internet_fee" name="internet_fee" value="{{ old('internet_fee', $motel->internet_fee) }}" step="1" min="0">
+                        @error('internet_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label for="service_fee" class="form-label fw-bold text-primary">Phí dịch vụ (VNĐ/tháng)</label>
-                        <input type="number" class="form-control shadow-sm {{ $errors->has('service_fee') ? 'is-invalid' : '' }}" id="service_fee" name="service_fee" value="{{ old('service_fee', $motel->service_fee) }}" step="1" min="0">
-                        @if ($errors->has('service_fee'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('service_fee') }}
-                            </div>
-                        @endif
+                        <input type="number" class="form-control shadow-sm @error('service_fee') is-invalid @enderror" id="service_fee" name="service_fee" value="{{ old('service_fee', $motel->service_fee) }}" step="1" min="0">
+                        @error('service_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-6">
-                        <label for="status" class="form-label fw-bold text-primary">Trạng thái</label>
-                        <select class="form-select shadow-sm {{ $errors->has('status') ? 'is-invalid' : '' }}" id="status" name="status" required>
+                        <label for="status" class="form-label fw-bold text-primary">Trạng thái <span class="text-danger">*</span></label>
+                        <select class="form-select shadow-sm @error('status') is-invalid @enderror" id="status" name="status" required>
                             <option value="Hoạt động" {{ old('status', $motel->status) == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="Không hoạt động" {{ old('status', $motel->status) == 'Không hoạt động' ? 'selected' : '' }}>Không hoạt động</option>
                         </select>
-                        @if ($errors->has('status'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('status') }}
-                            </div>
-                        @endif
+                        @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-12">
                         <label for="amenities" class="form-label fw-bold text-primary">Tiện ích</label>
                         <div class="row g-2">
-                            @if(isset($amenities) && count($amenities) > 0)
-                                @foreach($amenities as $amenity)
-                                   @if($amenity->type == 'Nhà trọ')
+                            @forelse($amenities as $amenity)
+                                @if($amenity->type == 'Nhà trọ')
                                     <div class="col-md-4">
                                         <div class="form-check">
-                                            <input type="checkbox" class="form-check-input {{ $errors->has('amenities') ? 'is-invalid' : '' }}" id="amenity_{{ $amenity->id }}"
+                                            <input type="checkbox" class="form-check-input @error('amenities') is-invalid @enderror" id="amenity_{{ $amenity->id }}"
                                                 name="amenities[]" value="{{ $amenity->id }}"
                                                 {{ in_array($amenity->id, old('amenities', $motel->amenities->pluck('id')->toArray())) ? 'checked' : '' }}>
                                             <label class="form-check-label" for="amenity_{{ $amenity->id }}">{{ $amenity->name }}</label>
                                         </div>
                                     </div>
-                                   @endif
-                                @endforeach
-                            @else
+                                @endif
+                            @empty
                                 <div class="col-12">
                                     <p class="text-muted">Không có tiện ích nào.</p>
                                 </div>
-                            @endif
+                            @endforelse
                         </div>
-                        @if ($errors->has('amenities'))
-                            <div class="invalid-feedback d-block mt-2">
-                                {{ $errors->first('amenities') }}
+                        @error('amenities')
+                            <div class="invalid-feedback d-block mt-2">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <!-- Hình ảnh hiện tại -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-primary">Hình ảnh hiện tại</label>
+                        @if(isset($motel->images) && $motel->images->count() > 0)
+                            <div class="existing-images-section">
+                                <div class="existing-images-grid">
+                                    @foreach($motel->images as $image)
+                                        <div class="existing-image-item" data-image-id="{{ $image->id }}">
+                                            <div class="image-wrapper">
+                                                <img src="{{ asset($image->image_url) }}"
+                                                     class="existing-image"
+                                                     alt="Motel image">
+                                                <div class="main-image-selector">
+                                                    <input type="radio"
+                                                           class="form-check-input main-image-radio"
+                                                           id="main_image_{{ $image->id }}"
+                                                           name="is_main"
+                                                           value="{{ $image->id }}"
+                                                           {{ ($image->is_main == 1) ? 'checked' : '' }}>
+                                                    <label class="main-image-label" for="main_image_{{ $image->id }}">
+                                                        <i class="fas fa-star"></i>
+                                                    </label>
+                                                </div>
+                                                <button type="button"
+                                                        class="delete-existing-btn"
+                                                        data-image-id="{{ $image->id }}"
+                                                        data-motel-id="{{ $motel->id }}">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                                @if($image->is_main == 1)
+                                                    <div class="main-image-badge">
+                                                        <i class="fas fa-crown"></i>
+                                                        <span>Ảnh chính</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <div class="no-images-alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Chưa có hình ảnh nào cho nhà trọ này.
                             </div>
                         @endif
                     </div>
+                    <!-- Thêm hình ảnh mới với FilePond -->
                     <div class="col-12">
-                        <label for="existing_images" class="form-label fw-bold text-primary">Hình ảnh hiện tại</label>
-                        <div id="existing-image-preview" class="row g-2 mb-3" data-images="{{ json_encode($motel->images ?? []) }}">
-                            @if($motel->images && count($motel->images) > 0)
-                                <!-- Dữ liệu đã được JavaScript xử lý -->
-                            @else
-                                <p class="text-muted">Chưa có hình ảnh nào.</p>
-                            @endif
-                        </div>
                         <label for="images" class="form-label fw-bold text-primary">Thêm hình ảnh mới</label>
-                        <input type="file" class="form-control shadow-sm {{ $errors->has('images') ? 'is-invalid' : '' }}" id="images" name="images[]" accept="image/*" multiple>
-                        @if ($errors->has('images'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('images') }}
-                            </div>
-                        @endif
-                        <div id="image-preview" class="row g-2 mt-3"></div>
+                        <!-- FilePond input -->
+                        <input type="file" class="filepond form-control shadow-sm @error('images') is-invalid @enderror" name="images[]" multiple accept="image/*">
+                        <small class="form-text text-muted mb-2 d-block">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Bạn có thể thêm hình ảnh mới hoặc giữ nguyên hình ảnh hiện tại. Định dạng hỗ trợ: JPG, PNG, GIF, Webp.
+                        </small>
+                        <!-- Preview container cho new images với main image selector -->
+                        <div id="newImagePreviewContainer" class="mt-3" style="display: none;">
+                            <label class="form-label fw-bold text-success">
+                                <i class="fas fa-images me-1"></i>
+                                Hình ảnh mới (Click vào ảnh để chọn làm ảnh chính)
+                            </label>
+                            <div id="newImagePreviewGrid" class="row g-2"></div>
+                        </div>
+                        @error('images')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-4 gap-2">
-                    <a href="{{ route('motels.index') }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">Hủy</a>
-                    <button type="submit" name="submit" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">Cập nhật nhà trọ</button>
+                    <a href="{{ route('motels.index') }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">
+                        <i class="fas fa-times me-1"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">
+                        <i class="fas fa-save me-1"></i>Cập nhật nhà trọ
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    .card {
-        border-radius: 15px;
-    }
+<!-- Adding FilePond JS and Plugins -->
+<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+<script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+<script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+<script src="{{ asset('js/motel-edit.js') }}"></script>
 
-    .card-header {
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    #image-preview img, #existing-image-preview img {
-        max-height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-right: 10px;
-        transition: transform 0.3s;
-    }
-
-    /* #image-preview img:hover, #existing-image-preview img:hover {
-        transform: scale(1.1);
-    } */
-
-    .image-item .delete-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        z-index: 10;
-    }
-
-    .alert-success, .alert-danger {
-        border-left: 5px solid #28a745;
-    }
-
-    .alert-danger {
-        border-left-color: #dc3545;
-    }
-</style>
-
-@section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-@endsection
 @endsection

@@ -7,6 +7,12 @@ use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Mail\ScheduleBookingPendingEmail;
+use App\Models\Notification;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleBookingService
 {
@@ -86,7 +92,6 @@ class ScheduleBookingService
             $timeParts = explode(' - ', $data['timeSlot']);
             $startTime = trim($timeParts[0]);
 
-            // Chuyển đổi thời gian sáng/chiều sang định dạng 24h
             $timeParts = explode(' ', $startTime);
             $time = $timeParts[0];
             $period = isset($timeParts[1]) ? $timeParts[1] : '';
@@ -100,7 +105,6 @@ class ScheduleBookingService
 
             $dateTime = $date->setTime($hour, $minute)->format('Y-m-d H:i:s');
 
-            // Kiểm tra lịch xem phòng chưa hoàn thành cho phòng này
             $existingSchedule = Schedule::where('user_id', $data['user_id'])
                 ->where('room_id', $data['room_id'])
                 ->whereNotIn('status', ['Hoàn thành'])
@@ -112,7 +116,6 @@ class ScheduleBookingService
                 ], 422));
             }
 
-            // Kiểm tra lịch xem phòng trùng khung giờ
             $timeSlotStart = $date->setTime($hour, $minute);
             $timeSlotEnd = (clone $timeSlotStart)->modify('+30 minutes');
 
@@ -128,7 +131,7 @@ class ScheduleBookingService
                 ], 422));
             }
 
-            return Schedule::create([
+            $item = Schedule::create([
                 'user_id' => $data['user_id'],
                 'room_id' => $data['room_id'],
                 'scheduled_at' => $dateTime,
@@ -137,12 +140,16 @@ class ScheduleBookingService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            $this->notifyAdmins($item, $type, null);
+
+            return $item;
         } elseif ($type === 'booking') {
             $startDate = Carbon::createFromFormat('d/m/Y', $data['start_date']);
             $duration = (int) str_replace(' năm', '', $data['duration']);
             $endDate = $startDate->copy()->addYears($duration);
 
-            return Booking::create([
+            $item = Booking::create([
                 'user_id' => $data['user_id'],
                 'room_id' => $data['room_id'],
                 'start_date' => $startDate,
@@ -150,6 +157,10 @@ class ScheduleBookingService
                 'note' => $data['note'] ?? null,
                 'status' => 'Chờ xác nhận'
             ]);
+
+            $this->notifyAdmins($item, $type, null);
+
+            return $item;
         }
 
         throw new HttpResponseException(response()->json([
@@ -176,5 +187,54 @@ class ScheduleBookingService
             'latest', 'default' => 'desc',
             default => 'desc',
         };
+    }
+
+    private function notifyAdmins($item, string $type, ?string $oldStatus): void
+    {
+        try {
+            $admins = User::where('role', 'Quản trị viên')->get();
+
+            if ($admins->isEmpty()) {
+                Log::warning('Không tìm thấy admin với role Quản trị viên');
+                return;
+            }
+
+            $title = $type === 'schedule' ? 'Lịch xem phòng mới' : 'Đặt phòng mới';
+            $body = $type === 'schedule'
+                ? "Lịch xem phòng #{$item->id} từ người dùng {$item->user->name} đang chờ xác nhận."
+                : "Đặt phòng #{$item->id} từ người dùng {$item->user->name} đang chờ xác nhận.";
+
+            Mail::to($admins->pluck('email'))->send(new ScheduleBookingPendingEmail($item, $type));
+
+            $messaging = app('firebase.messaging');
+
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => $title,
+                    'content' => $body,
+                ]);
+
+                if ($admin->fcm_token) {
+                    $baseUrl = config('app.url');
+                    $link = $type === 'schedule' ? "$baseUrl/schedules" : "$baseUrl/bookings";
+                    $message = CloudMessage::fromArray([
+                        'token' => $admin->fcm_token,
+                        'notification' => ['title' => $title, 'body' => $body],
+                        'data' => [
+                            'link' => $link, // Sử dụng URL tuyệt đối
+                        ],
+                    ]);
+
+                    $messaging->send($message);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Lỗi gửi thông báo cho admin', [
+                'item_id' => $item->id,
+                'type' => $type,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
