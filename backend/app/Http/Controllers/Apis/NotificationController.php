@@ -49,6 +49,22 @@ class NotificationController extends Controller
             ]
         ]);
     }
+    public function markAsRead(Request $request, $id)
+    {
+        $result = $this->notificationService->markNotificationAsRead($id);
+
+        if (!$result) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Thông báo không tồn tại hoặc đã được đánh dấu là đã đọc.'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Thông báo đã được đánh dấu là đã đọc.'
+        ]);
+    }
 
     public function getByNotificationId($id)
     {
