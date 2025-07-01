@@ -15,17 +15,9 @@
         <!-- Nội dung chat -->
         <div class="chat-body">
           <div class="chat-messages" ref="messageContainer">
-            <div
-              v-for="(msg, index) in messages"
-              :key="index"
-              :class="['chat-message-wrapper', msg.from === 'user' ? 'align-right' : 'align-left']"
-            >
-              <img
-                v-if="msg.from === 'user'"
-                :src="avatarUrl"
-                alt="avatar"
-                class="chat-avatar"
-              />
+            <div v-for="(msg, index) in messages" :key="index"
+              :class="['chat-message-wrapper', msg.from === 'user' ? 'align-right' : 'align-left']">
+              <img v-if="msg.from === 'user'" :src="avatarUrl" alt="avatar" class="chat-avatar" />
               <div :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']">
                 <span class="chat-text">{{ msg.text }}</span>
               </div>
@@ -36,12 +28,7 @@
         <!-- Gợi ý câu hỏi -->
         <div v-if="actions.length > 0" class="chat-suggestions">
           <ul class="suggestion-list">
-            <li
-              v-for="hint in actions"
-              :key="hint"
-              class="suggestion-item"
-              @click="send(hint)"
-            >
+            <li v-for="hint in actions" :key="hint" class="suggestion-item" @click="send(hint)">
               {{ hint }}
             </li>
           </ul>
@@ -49,12 +36,7 @@
 
         <!-- Nhập tin nhắn -->
         <div class="chat-input">
-          <input
-            type="text"
-            v-model="newMessage"
-            @keyup.enter="sendMessage"
-            placeholder="Nhập tin nhắn..."
-          />
+          <input type="text" v-model="newMessage" @keyup.enter="sendMessage($event)" placeholder="Nhập tin nhắn..." />
           <button @click="sendMessage">Gửi</button>
         </div>
       </template>
@@ -72,7 +54,7 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
 import { useRouter } from 'vue-router'
-const emit = defineEmits(['close' ,'unread'])
+const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const currentUserId = ref(authStore.user?.id || null)
 const token = ref(authStore.token || '')
@@ -86,22 +68,23 @@ let unsubscribe = null // để dừng listener khi unmount
 const { user } = storeToRefs(authStore)
 const config = useRuntimeConfig()
 const isLoading = ref(false);
-const route =useRoute()
-watch(newMessage,(val)=>{
+const route = useRoute()
+watch(newMessage, (val) => {
   behavior.updateChat(val)
-})  
+})
 
-const actions = computed(()=>{
- const path = route.path
- if(path === '/') return questionMap['/']
+const actions = computed(() => {
+  const path = route.path
+  if (path === '/') return questionMap['/']
 
- const Filter = path.split('/').filter(Boolean)
- const matchKey = Object.keys(questionMap).find(k=>Filter.includes(k))
+  const Filter = path.split('/').filter(Boolean)
+  const matchKey = Object.keys(questionMap).find(k => Filter.includes(k))
 
   return questionMap[matchKey] || questionMap['default']
 })
-const send =(text)=>{
+const send = (text) => {
   sendMessage(text)
+  console.log(text)
 }
 
 
@@ -111,8 +94,8 @@ const avatarUrl = computed(() =>
     : '/images/dashboard-avatar.jpg'
 )
 
-const lastVisitedPage = computed(()=>{
- return behavior.visitedPages.at(-1) || '/'
+const lastVisitedPage = computed(() => {
+  return behavior.visitedPages.at(-1) || '/'
 })
 
 
@@ -125,7 +108,7 @@ const scrollToBottom = () => {
 }
 
 const initChat = async () => {
-  isLoading.value=true
+  isLoading.value = true
   try {
     // 1) Gọi trực tiếp API start-chat để backend gán admin
     const res = await $api('/messages/start-chat', {
@@ -152,7 +135,7 @@ const initChat = async () => {
       }
     })
 
-    if (Array.isArray(history.data) && history.data.length>0) {
+    if (Array.isArray(history.data) && history.data.length > 0) {
       messages.value = history.data.map(msg => ({
         from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
         text: msg.message
@@ -176,47 +159,51 @@ const initChat = async () => {
           text: d.text
         }
       })
-      if(newMessages.length>0){
-       // Gộp tin nhắn từ SQL + Firebase nếu cần
-         const unique = [...messages.value, ...newMessages].filter((v, i, a) =>
-      i === a.findIndex(t => t.text === v.text && t.from === v.from)
-    )
+      if (newMessages.length > 0) {
+        // Gộp tin nhắn từ SQL + Firebase nếu cần
+        const unique = [...messages.value, ...newMessages].filter((v, i, a) =>
+          i === a.findIndex(t => t.text === v.text && t.from === v.from)
+        )
         messages.value = unique
         scrollToBottom()
 
-        const lastMess =newMessages.at(-1)
-        if(lastMess?.from ==='admin'){
+        const lastMess = newMessages.at(-1)
+        if (lastMess?.from === 'admin') {
           emit('unread')
         }
       }
     })
   } catch (error) {
     console.error('initChat error:', error)
-  }finally{
-     isLoading.value=false
+  } finally {
+    isLoading.value = false
   }
 }
 
 
 
-const sendMessage = async () => {
-  const text = newMessage.value.trim()
+const sendMessage = async (Textover = null) => {
+  if (Textover instanceof KeyboardEvent) {
+    Textover = null
+  }
+  const Rawtext = (Textover !== null ? Textover : newMessage.value)
+  const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
-    messages.value.push({from:'user' , text:text})
+    messages.value.push({ from: 'user', text: text })
     scrollToBottom()
-    newMessage.value =''
+    newMessage.value = ''
 
     // Gửi tin nhắn lên Firestore (realtime)
- await addDoc(collection($firebaseDb, 'messages'), {
-  text,
-  sender_id: currentUserId.value,
-  receiver_id: AdminId.value,
-  createdAt: serverTimestamp(),
-  chatId: [currentUserId.value, AdminId.value].sort().join('_')
-})
+    await addDoc(collection($firebaseDb, 'messages'), {
+      text,
+      sender_id: currentUserId.value,
+      receiver_id: AdminId.value,
+      createdAt: serverTimestamp(),
+      chatId: [currentUserId.value, AdminId.value].sort().join('_')
+    })
     // Optionally: gọi API gửi nữa nếu backend cần lưu
     await $api('/messages/send', {
       method: 'POST',
@@ -230,7 +217,7 @@ const sendMessage = async () => {
       }
     })
     behavior.clearChat()
-    
+
     scrollToBottom()
   } catch (err) {
     console.error('sendMessage error:', err)
@@ -238,12 +225,8 @@ const sendMessage = async () => {
 }
 
 onMounted(() => {
-  initChat().then(()=>{
-    const fistSuggetion = actions.value[0]
-    if(fistSuggetion){
-      send(fistSuggetion)
-    }
-  })
+  initChat()
+
 })
 
 onBeforeUnmount(() => {
@@ -256,9 +239,11 @@ onBeforeUnmount(() => {
 <style scoped>
 .chat-message-wrapper {
   display: flex;
-  align-items: flex-end; /* Cho avatar và text thẳng hàng dưới */
+  align-items: flex-end;
+  /* Cho avatar và text thẳng hàng dưới */
   margin-bottom: 10px;
-  gap: 8px; /* khoảng cách giữa avatar và tin nhắn */
+  gap: 8px;
+  /* khoảng cách giữa avatar và tin nhắn */
 }
 
 .align-right {
@@ -277,8 +262,8 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-   align-self: flex-start;
-   transform: translateY(4px);
+  align-self: flex-start;
+  transform: translateY(4px);
 }
 
 .chat-message {
@@ -314,7 +299,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   z-index: 10001;
   height: 500px;
- 
+
 }
 
 /* Header */
@@ -326,10 +311,12 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
 }
+
 .chat-title {
   font-weight: bold;
   font-size: 16px;
 }
+
 .chat-close {
   background: transparent;
   border: none;
@@ -346,6 +333,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   align-items: flex-start;
 }
+
 .suggestion-title {
   width: 100%;
   font-weight: 500;
@@ -353,6 +341,7 @@ onBeforeUnmount(() => {
   margin-bottom: 4px;
   color: #444;
 }
+
 .suggestion-list {
   list-style: none;
   padding: 0;
@@ -361,6 +350,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 6px;
 }
+
 .suggestion-item {
   background-color: #f1f1f1;
   color: #333;
@@ -368,10 +358,11 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   font-size: 13px;
   cursor: pointer;
-  max-width:100%;
+  max-width: 100%;
   word-break: break-word;
   transition: background-color 0.2s;
 }
+
 .suggestion-item:hover {
   background-color: #ddd;
 }
@@ -383,14 +374,17 @@ onBeforeUnmount(() => {
   flex-direction: column;
   overflow: hidden;
 }
+
 .chat-messages {
   flex: 1;
   display: flex;
-  flex-direction: column; /* ✅ dùng hướng bình thường */
+  flex-direction: column;
+  /* ✅ dùng hướng bình thường */
   padding: 12px;
   overflow-y: auto;
   background-color: #f8f8f8;
 }
+
 .chat-message {
   margin-bottom: 10px;
   max-width: 80%;
@@ -398,12 +392,14 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   border-radius: 12px;
 }
+
 .from-user {
   background-color: #f1f1f1;
   align-self: flex-end;
   margin-left: auto;
   color: #333;
 }
+
 .from-admin {
   align-self: flex-start;
   margin-right: auto;
@@ -418,8 +414,9 @@ onBeforeUnmount(() => {
   padding: 8px 16px;
   background: #fff;
   align-items: center;
-    height: 60px;
+  height: 60px;
 }
+
 .chat-input input {
   flex: 1;
   border: 1px solid #ccc;
@@ -429,6 +426,7 @@ onBeforeUnmount(() => {
   height: 40px;
   margin-top: 15px;
 }
+
 .chat-input button {
   background-color: #e53935;
   color: white;
@@ -438,8 +436,8 @@ onBeforeUnmount(() => {
   cursor: pointer;
   height: 40px;
 }
+
 .chat-input button:hover {
   background-color: #d32f2f;
 }
-
 </style>
