@@ -61,9 +61,6 @@ Route::post('/contact', [ContactController::class, 'send']);
 // Get all config
 Route::get('/configs', [ConfigController::class, 'index']);
 
-// Route::get('/users/{userId}/notifications', [NotificationController::class, 'getAllNotificationByUser']);
-// Route::get('/notifications/{id}', [NotificationController::class, 'getByNotificationId']);
-
 // Notification Routes
 Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser']);
