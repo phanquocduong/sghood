@@ -4,4 +4,8 @@
 
 <script setup></script>
 
-<style scoped></style>
+<style>
+body {
+    background: #f4f4f4;
+}
+</style>

@@ -176,27 +176,31 @@ export function useContract({
         const parser = new DOMParser();
         const doc = parser.parseFromString(contract.value.content, 'text/html');
 
-        const sideB = doc.querySelector('.side-B');
-        const signatureImg = doc.createElement('img');
-        signatureImg.src = processedSignature;
-        signatureImg.className = 'signature-image';
-        signatureImg.alt = 'Chữ ký Bên B';
+        const sideBSections = doc.getElementsByClassName('col-6 text-center');
+        if (sideBSections.length >= 2) {
+            const sideB = sideBSections[1];
+            const signatureImg = doc.createElement('img');
+            signatureImg.src = processedSignature;
+            signatureImg.className = 'signature-image';
+            signatureImg.alt = 'Chữ ký Bên B';
 
-        const nameParagraph = doc.createElement('p');
-        const nameStrong = doc.createElement('strong');
-        nameStrong.textContent = identityDocument.value.full_name;
-        nameParagraph.appendChild(nameStrong);
-        nameParagraph.className = 'signature-name';
+            const nameParagraph = doc.createElement('p');
+            const nameStrong = doc.createElement('strong');
+            nameStrong.textContent = identityDocument.value.full_name;
+            nameParagraph.appendChild(nameStrong);
+            nameParagraph.className = 'signature-name';
 
-        const signaturePlaceholder = sideB.querySelector('p.mark-sign');
-        if (signaturePlaceholder) {
-            signaturePlaceholder.after(nameParagraph);
-            signaturePlaceholder.after(signatureImg);
-        } else {
-            sideB.appendChild(signatureImg);
-            sideB.appendChild(nameParagraph);
+            const signaturePlaceholder = sideB.querySelector('p.mark-sign');
+            if (signaturePlaceholder) {
+                signaturePlaceholder.after(nameParagraph);
+                signaturePlaceholder.after(signatureImg);
+            } else {
+                sideB.appendChild(signatureImg);
+                sideB.appendChild(nameParagraph);
+            }
+            return doc.documentElement.innerHTML;
         }
-        return doc.documentElement.innerHTML;
+        return contract.value.content;
     };
 
     const signContract = async () => {

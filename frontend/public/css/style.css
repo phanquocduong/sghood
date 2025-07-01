@@ -1178,7 +1178,7 @@ body #navigation.style-1 ul ul li:hover ul li a:hover {
 body .dashboard-nav ul li a i.fa.fa-calendar-check-o:before,
 body .user-menu ul li a i.fa.fa-calendar-check-o:before {
     content: '\e040';
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
 }
 
 @media (max-width: 360px) {
@@ -6164,7 +6164,7 @@ a.button.add-review-btn i {
 }
 
 .back-to-listings:before {
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     content: '\e605';
     font-size: 20px;
     line-height: 60px;
@@ -9737,7 +9737,7 @@ a.read-more:hover i {
     color: #a0a0a0;
     position: absolute;
     display: inline-block;
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     right: 18px;
     top: 13px;
     margin-bottom: 0;
@@ -10738,7 +10738,7 @@ body .style-2 .trigger a {
 
 #posts-nav li.prev-post a:before,
 #posts-nav li.next-post a:before {
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     font-size: 20px;
     position: absolute;
     color: inherit;
@@ -18244,7 +18244,7 @@ text-overflow: ellipsis; */
 #geoLocation:before,
 #scrollEnabling:before {
     content: '\e015';
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     position: relative;
     top: 2px;
     margin: 0 6px 0 0;
@@ -19178,7 +19178,7 @@ button.mfp-close {
 
 .mfp-arrow.mfp-arrow-left,
 .mfp-arrow.mfp-arrow-right {
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     font-size: 20px;
 }
 
@@ -19714,7 +19714,7 @@ img.mfp-img {
 
 .slick-prev:before,
 .slick-next:before {
-    font-family: 'simple-line-icons';
+    font-family: 'simple-line-icons' !important;
     font-size: 32px;
     line-height: 1;
     opacity: 1;

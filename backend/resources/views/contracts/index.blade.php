@@ -164,7 +164,7 @@ use Illuminate\Support\Facades\Storage;
                                            title="Xem chi tiết">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </a>
-                                        @if($contractItem->file && Storage::disk('public')->exists($contractItem->file))
+                                        @if($contractItem->file && Storage::disk('private')->exists($contractItem->file))
                                             <a href="{{ route('contracts.download', $contractItem->id) }}"
                                             class="btn btn-outline-primary btn-sm shadow-sm"
                                             title="Tải xuống PDF">
