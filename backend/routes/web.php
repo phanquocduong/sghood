@@ -15,6 +15,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\TransactionController;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -165,6 +166,11 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
         Route::put('/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
+    });
+
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
     });
 });
 
