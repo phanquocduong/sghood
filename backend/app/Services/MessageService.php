@@ -32,4 +32,36 @@ class MessageService
         return $message;
     }
 
+    public function getTotalUnreadFor($userId)
+    {
+        return Message::where('receiver_id', $userId)
+            ->where('is_read', 0)
+            ->count();
+    }
+
+    public function getUserListWithUnread($authId)
+    {
+        return User::where('role', '!=', 'Quản trị viên')
+            ->whereHas('sentMessages', function ($q) {
+                $q->whereIn('receiver_id', function ($subQuery) {
+                    $subQuery->select('id')->from('users')->where('role', 'Quản trị viên');
+                });
+            })
+            ->withCount([
+                'sentMessages as unread_count' => function ($q) use ($authId) {
+                    $q->where('receiver_id', $authId)
+                    ->where('is_read', 0);
+                }
+            ])->get();
+    }
+
+    public function markAsRead(int $senderId, int $receiverId)
+    {
+        return Message::where('sender_id', $senderId)
+            ->where('receiver_id', $receiverId)
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+    }
+
+
 }

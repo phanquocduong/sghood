@@ -159,6 +159,8 @@ Route::middleware('admin')->group(function () {
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
+        Route::get('/chat-box', [MessageController::class, 'showChat'])->name('chat-box');
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('mark-as-read');
     });
 
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])

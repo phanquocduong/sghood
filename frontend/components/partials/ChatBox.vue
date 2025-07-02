@@ -192,6 +192,7 @@ const sendMessage = async (Textover = null) => {
         // Gửi tin nhắn lên Firestore (realtime)
         await addDoc(collection($firebaseDb, 'messages'), {
             text,
+            is_read: false,
             sender_id: currentUserId.value,
             receiver_id: AdminId.value,
             createdAt: serverTimestamp(),

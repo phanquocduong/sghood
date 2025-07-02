@@ -56,7 +56,19 @@
             <!-- Quản lý người dùng -->
             <a href="{{ route('users.user') }}" class="nav-item nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"><i class="fa fa-users me-2"></i>Người dùng</a>
             <!-- Quản lý tin nhắn -->
-            <a href="{{ route('messages.index') }}" class="nav-item nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"><i class="fa fa-envelope me-2"></i>Tin nhắn</a>
+            <a href="{{ route('messages.index') }}" class="nav-item nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"><i class="fa fa-envelope me-2"></i>
+                Tin nhắn
+                @if(isset($totalUnread) && $totalUnread > 0)
+                    <span id="navbarUnreadTotal" class="unread-badge-navbar" style="
+                    background: red;
+                    color: white;
+                    font-size: 11px;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    margin-left: 6px;
+                    ">{{ $totalUnread }}</span>
+                @endif
+            </a>
         </div>
     </nav>
 </div>
