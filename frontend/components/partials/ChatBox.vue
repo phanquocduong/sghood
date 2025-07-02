@@ -1,3 +1,4 @@
+
 <template>
     <ClientOnly>
         <div class="chat-box">

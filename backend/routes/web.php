@@ -132,6 +132,7 @@ Route::middleware('admin')->group(function () {
         Route::delete('/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('forceDelete');
     });
 
+
     // schedule routes group
     Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
