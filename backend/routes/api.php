@@ -41,9 +41,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
+
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
@@ -69,6 +71,7 @@ Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::cla
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageController::class, 'startChat']);
+
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);

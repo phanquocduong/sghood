@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'Người dùng')
@@ -70,7 +71,7 @@
                             <th scope="col" style="width: 15%;">Ngày tạo</th>
                             <th scope="col" style="width: 15%;">Vai trò</th>
                             <th scope="col" style="width: 15%;">Trạng thái</th>
-                            <th scope="col" style="width: 15%;">Chức năng</th>
+                            {{-- <th scope="col" style="width: 15%;">Chức năng</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -81,21 +82,40 @@
                             <td>{{ $user->phone }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->created_at->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
-                            <td>{{ $user->role }}</td>
+                            {{-- <td>{{ $user->role }}</td> --}}
                             <td>
-                                @php
-                                    $badgeClass = $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger';
-                                    $statusText = $user->status;
-                                @endphp
-                                <span class="badge {{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
+                                <form action="{{ route('users.updateRole', $user->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select name="role" class="form-select form-select-sm" onchange="confirmRoleChange(this)" >
+                                        <option value="Người đăng ký" {{ $user->role == 'Người đăng ký' ? 'selected' : '' }}>Người đăng ký</option>
+                                        <option value="Người thuê" {{ $user->role == 'Người thuê' ? 'selected' : '' }}>Người thuê</option>
+                                        <option value="Quản trị viên" {{ $user->role == 'Quản trị viên' ? 'selected' : '' }}>Quản trị viên</option>
+                                    </select>
+                                </form>
                             </td>
                             <td>
-                                @if ($user->id !== Auth::id() && (!$user->is_super_admin || Auth::user()->is_super_admin))
-                                    <a href="{{ route('users.editUser', $user->id) }}" class="btn btn-sm btn-warning action-btn" style="transition: all 0.3s;">
-                                        <i class="fas fa-pen me-1"></i> Sửa
-                                    </a>
+                                 @php
+                                    $canEditStatus = Auth::user()->is_super_admin || $user->role !== 'Quản trị viên';
+                                @endphp
+
+                                @if (Auth::id() !== $user->id && $canEditStatus)
+                                    <form action="{{ route('users.updateStatus', $user->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?')">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select name="status" class="form-select form-select-sm" onchange="confirmStatusChange(this)">
+                                            <option value="Hoạt động" {{ $user->status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
+                                            <option value="Khoá" {{ $user->status == 'Khoá' ? 'selected' : '' }}>Khoá</option>
+                                        </select>
+                                    </form>
+
+                                @else
+                                    <span class="badge {{ $user->status === 'Hoạt động' ? 'bg-success' : 'bg-danger' }} py-2 px-3">
+                                        {{ $user->status }}
+                                    </span>
                                 @endif
                             </td>
+
                         </tr>
                     @empty
                         <tr>
@@ -146,4 +166,26 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
 @endsection
+@endsection
+@section('scripts')
+<script>
+function confirmRoleChange(selectElement) {
+    const confirmed = confirm("Bạn có chắc chắn muốn thay đổi vai trò của người dùng này?");
+    if (confirmed) {
+        selectElement.form.submit();
+    } else {
+        // Reload lại trang hoặc khôi phục giá trị cũ nếu cần (tùy chọn)
+        window.location.reload(); // đơn giản
+    }
+}
+
+function confirmStatusChange(selectElement) {
+    const confirmed = confirm("Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?");
+    if (confirmed) {
+        selectElement.form.submit();
+    } else {
+        window.location.reload();
+    }
+}
+</script>
 @endsection

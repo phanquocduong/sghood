@@ -176,6 +176,7 @@ class ContractController extends Controller
                 'user_id' => Auth::id(),
                 'contract_id' => $id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['error' => 'Đã có lỗi xảy ra khi ký hợp đồng. Vui lòng thử lại.'], 500);
         }
