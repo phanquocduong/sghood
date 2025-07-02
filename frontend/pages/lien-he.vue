@@ -135,13 +135,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useToast } from 'vue-toastification';
+import { useBehaviorStore } from '~/stores/behavior';
+import { useRoute } from 'vue-router'
 // api config
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
 console.log('Config:', config.value);
+const behavior = useBehaviorStore();
+const route = useRoute()
+
+onMounted(() => {
+  behavior.addVisitedPage(route.path)
+  behavior.logAction(route.path, 'lien-he')
+})
 // api lien he
 const toast = useToast();
 const { $api } = useNuxtApp();

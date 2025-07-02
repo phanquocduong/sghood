@@ -13,27 +13,30 @@ let mainImageIndex = 0;
 const inputElement = document.querySelector('input[type="file"].filepond');
 const pond = FilePond.create(inputElement, {
     allowMultiple: true,
-    acceptedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    acceptedFileTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
     instantUpload: false,
-    labelIdle: 'Kéo và thả hình ảnh hoặc <span class="filepond--label-action">Chọn tệp</span>',
+    labelIdle:
+        'Kéo và thả hình ảnh hoặc <span class="filepond--label-action">Chọn tệp</span>',
     credits: false,
     imagePreviewHeight: 100,
     allowImagePreview: true,
     maxFiles: 10,
-    maxFileSize: '2MB',
+    maxFileSize: "2MB",
     onaddfile: (error, file) => {
         if (error) {
-            console.error('FilePond error on add file:', error);
+            console.error("FilePond error on add file:", error);
             return;
         }
 
         selectedFiles.push(file.file);
         updateImagePreview();
-        console.log('File added:', file.filename);
+        console.log("File added:", file.filename);
     },
     onremovefile: (error, file) => {
         if (file && file.file) {
-            const index = selectedFiles.findIndex(f => f.name === file.file.name);
+            const index = selectedFiles.findIndex(
+                (f) => f.name === file.file.name
+            );
             if (index > -1) {
                 selectedFiles.splice(index, 1);
 
@@ -45,57 +48,65 @@ const pond = FilePond.create(inputElement, {
                 updateImagePreview();
             }
         }
-        console.log('File removed:', file ? file.filename : 'unknown');
-    }
+        console.log("File removed:", file ? file.filename : "unknown");
+    },
 });
 
 // Update image preview with main image selector
 function updateImagePreview() {
-    const container = document.getElementById('imagePreviewContainer');
-    const grid = document.getElementById('imagePreviewGrid');
-    const mainImageInput = document.getElementById('mainImageIndex');
+    const container = document.getElementById("imagePreviewContainer");
+    const grid = document.getElementById("imagePreviewGrid");
+    const mainImageInput = document.getElementById("mainImageIndex");
 
     if (selectedFiles.length === 0) {
-        container.style.display = 'none';
+        container.style.display = "none";
         return;
     }
 
-    container.style.display = 'block';
-    grid.innerHTML = '';
+    container.style.display = "block";
+    grid.innerHTML = "";
 
     selectedFiles.forEach((file, index) => {
-        const colDiv = document.createElement('div');
-        colDiv.className = 'col-6 col-md-4 col-lg-3';
+        const colDiv = document.createElement("div");
+        colDiv.className = "col-6 col-md-4 col-lg-3";
 
-        const imageDiv = document.createElement('div');
-        imageDiv.className = `image-preview-item ${index === mainImageIndex ? 'main-image' : ''}`;
+        const imageDiv = document.createElement("div");
+        imageDiv.className = `image-preview-item ${
+            index === mainImageIndex ? "main-image" : ""
+        }`;
         imageDiv.onclick = () => setMainImage(index);
 
         // Create image element
-        const img = document.createElement('img');
+        const img = document.createElement("img");
         img.src = URL.createObjectURL(file);
         img.alt = file.name;
 
         // Create main image badge
-        const badge = document.createElement('div');
-        badge.className = 'main-image-badge';
-        badge.innerHTML = index === mainImageIndex ? '<i class="fas fa-star"></i>' : (index + 1);
-        badge.title = index === mainImageIndex ? 'Ảnh chính' : 'Click để chọn làm ảnh chính';
+        const badge = document.createElement("div");
+        badge.className = "main-image-badge";
+        badge.innerHTML =
+            index === mainImageIndex
+                ? '<i class="fas fa-star"></i>'
+                : index + 1;
+        badge.title =
+            index === mainImageIndex
+                ? "Ảnh chính"
+                : "Click để chọn làm ảnh chính";
 
         // Create remove button
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'image-remove-btn';
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "image-remove-btn";
         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-        removeBtn.title = 'Xóa ảnh';
-        removeBtn.type = 'button';
+        removeBtn.title = "Xóa ảnh";
+        removeBtn.type = "button";
         removeBtn.onclick = (e) => {
             e.stopPropagation();
             removeImage(index);
         };
 
         // Create filename label
-        const filename = document.createElement('div');
-        filename.className = 'image-filename';
+        const filename = document.createElement("div");
+        filename.className = "image-filename";
         filename.textContent = file.name;
 
         imageDiv.appendChild(img);
@@ -117,7 +128,7 @@ function setMainImage(index) {
         updateImagePreview();
 
         // Show success message
-        showNotification('Đã chọn ảnh chính!', 'success');
+        showNotification("Đã chọn ảnh chính!", "success");
     }
 }
 
@@ -143,14 +154,14 @@ function removeImage(index) {
         updateImagePreview();
 
         // Show success message
-        showNotification('Đã xóa ảnh!', 'info');
+        showNotification("Đã xóa ảnh!", "info");
     }
 }
 
 // Show notification
-function showNotification(message, type = 'info') {
+function showNotification(message, type = "info") {
     // Create notification element
-    const notification = document.createElement('div');
+    const notification = document.createElement("div");
     notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
     notification.style.cssText = `
         top: 20px;
@@ -175,7 +186,7 @@ function showNotification(message, type = 'info') {
 }
 
 // Handle form submit
-document.getElementById('roomForm').addEventListener('submit', function (e) {
+document.getElementById("roomForm").addEventListener("submit", function (e) {
     // Validate at least one image
     // if (selectedFiles.length === 0) {
     //     e.preventDefault();
@@ -184,15 +195,17 @@ document.getElementById('roomForm').addEventListener('submit', function (e) {
     // }
 
     // Clear existing file inputs
-    const existingInputs = this.querySelectorAll('input[name="images[]"]:not(.filepond)');
-    existingInputs.forEach(input => input.remove());
+    const existingInputs = this.querySelectorAll(
+        'input[name="images[]"]:not(.filepond)'
+    );
+    existingInputs.forEach((input) => input.remove());
 
     // Create file inputs for each selected file
     selectedFiles.forEach((file, index) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.name = 'images[]';
-        input.style.display = 'none';
+        const input = document.createElement("input");
+        input.type = "file";
+        input.name = "images[]";
+        input.style.display = "none";
 
         // Create new FileList with single file
         const dataTransfer = new DataTransfer();
@@ -203,20 +216,21 @@ document.getElementById('roomForm').addEventListener('submit', function (e) {
     });
 
     // Set main image index
-    document.getElementById('mainImageIndex').value = mainImageIndex;
+    document.getElementById("mainImageIndex").value = mainImageIndex;
 
     // Show loading state
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+    submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
     submitBtn.disabled = true;
 
     // Form will submit normally
 });
 
 // Cleanup object URLs when page unloads
-window.addEventListener('beforeunload', () => {
-    selectedFiles.forEach(file => {
+window.addEventListener("beforeunload", () => {
+    selectedFiles.forEach((file) => {
         if (file instanceof File) {
             URL.revokeObjectURL(URL.createObjectURL(file));
         }
@@ -224,9 +238,11 @@ window.addEventListener('beforeunload', () => {
 });
 
 // Initialize tooltips if Bootstrap is available
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof bootstrap !== 'undefined') {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof bootstrap !== "undefined") {
+        const tooltipTriggerList = [].slice.call(
+            document.querySelectorAll("[title]")
+        );
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });

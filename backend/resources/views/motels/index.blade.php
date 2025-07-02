@@ -8,9 +8,7 @@
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #6a11cb, #2575fc); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Danh sách nhà trọ') }}
-                <span class="badge bg-light text-primary ms-2">{{ $motels->total() ?? 0 }} nhà trọ</span>
-            </h6>
+            <h6 class="mb-0 fw-bold">{{ __('Danh sách nhà trọ') }}</h6>
             <div>
                 <a href="{{ route('motels.create') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-plus me-1"></i> {{ __('Thêm nhà trọ') }}

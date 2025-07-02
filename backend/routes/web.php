@@ -162,17 +162,6 @@ Route::middleware('admin')->group(function () {
         ->name('contracts.showIdentityDocument');
 });
 
-// Signature
-Route::get('/signature/{filename}', function ($filename) {
-    $path = 'images/signatures/' . $filename;
-
-    if (Storage::disk('private')->exists($path)) {
-        return response()->file(Storage::disk('private')->path($path));
-    }
-
-    abort(404, 'File không tồn tại');
-});
-
 // File PDF
 Route::get('/contract/pdf/{id}', function ($id) {
     $contract = Contract::where('id', $id)->where('user_id', Auth::id())->firstOrFail();

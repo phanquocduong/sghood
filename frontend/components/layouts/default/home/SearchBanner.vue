@@ -53,7 +53,7 @@
 import { onMounted, watch, nextTick } from 'vue';
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
-console.log('config', config.value);
+
 const props = defineProps({
     search: { type: Object, default: () => ({ keyword: '', district: '', priceRange: '' }) },
     districts: { type: Array, default: () => [] },

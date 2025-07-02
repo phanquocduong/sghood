@@ -19,10 +19,7 @@ class Contract extends Model
         'content',
         'signature',
         'status',
-        'payment_status',
         'file',
-        'otp_code',
-        'otp_expires_at',
         'signed_at'
     ];
 
@@ -31,7 +28,6 @@ class Contract extends Model
         'end_date' => 'date',
         'rental_price' => 'integer',
         'deposit_amount' => 'integer',
-        'otp_expires_at' => 'datetime',
         'signed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

@@ -1,45 +1,35 @@
 <?php
-
 namespace App\Services;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Factory;
 
 class MessageService
 {
-    public function sendMessage($to, $message)
+    public function getMessagesWithUser(int $userId, int $authId)
     {
-        // Logic to send a message
+        return Message::where(function ($q) use ($userId, $authId) {
+                $q->where('sender_id', $authId)
+                  ->where('receiver_id', $userId);
+            })
+            ->orWhere(function ($q) use ($userId, $authId) {
+                $q->where('sender_id', $userId)
+                  ->where('receiver_id', $authId);
+            })
+            ->orderBy('created_at')
+            ->get();
     }
 
-    public function receiveMessages($from)
+    public function sendMessage(int $senderId, int $receiverId, string $text): Message
     {
-        // Logic to receive messages
+        // 1. Lưu vào DB như cũ
+        $message = Message::create([
+            'sender_id' => $senderId,
+            'receiver_id' => $receiverId,
+            'message' => $text,
+        ]);
+        return $message;
     }
 
-    private function fetchMessages(bool $onlyTrashed, string $querySearch, string $sortOption, int $perPage): array
-    {
-        try{
-            $query = $onlyTrashed ? Message::onlyTrashed() : Message::query();
-            if ($querySearch !== '') {
-                $query->where('content', 'LIKE', '%' . $querySearch . '%');
-            }
-            if ($sortOption === 'most_recent') {
-                $query->orderBy('created_at', 'desc');
-            } else {
-                $query->orderBy('created_at', 'asc');
-            }
-            $messages = $query->paginate($perPage);
-            return ['data' => $messages];
-        } catch (\Throwable $e) {
-            return [
-                Log::error('Đã xảy ra lỗi khi lấy danh sách tin nhắn: ' . $e->getMessage()),
-                ['error' => 'Đã xảy ra lỗi khi lấy danh sách tin nhắn', 'status' => 500]
-            ];
-        }
-    }
-
-    public function getAvailableMessages(string $querySearch, string $sortOption, int $perPage): array
-    {
-        return $this->fetchMessages(false, $querySearch, $sortOption, $perPage);
-    }
 }

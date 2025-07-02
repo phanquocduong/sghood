@@ -25,6 +25,9 @@ use Illuminate\Support\Facades\Storage;
     <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
             <div class="d-flex align-items-center">
+                <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại dashboard">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
                 <h5 class="mb-0 fw-bold">
                     <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
                     <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
@@ -33,6 +36,20 @@ use Illuminate\Support\Facades\Storage;
         </div>
 
         <div class="card-body p-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
+                    </li>
+                </ol>
+            </nav>
+
             <!-- Filter Form -->
             <div class="mb-4">
                 <form action="{{ route('contracts.index') }}" method="GET" class="row g-3">
@@ -93,7 +110,10 @@ use Illuminate\Support\Facades\Storage;
                                 <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
                                 <td>
                                     <div class="d-flex align-items-center justify-content-center">
-                                        <span class="fw-medium text-primary">Phan Quốc Dương</span>
+                                        <div class="avatar-circle bg-primary text-white me-2" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                            SG
+                                        </div>
+                                        <span class="fw-medium text-primary">SGHood</span>
                                     </div>
                                 </td>
                                 <td>
@@ -164,7 +184,7 @@ use Illuminate\Support\Facades\Storage;
                                            title="Xem chi tiết">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </a>
-                                        @if($contractItem->file && Storage::disk('public')->exists($contractItem->file))
+                                        @if($contractItem->file && Storage::disk('private')->exists($contractItem->file))
                                             <a href="{{ route('contracts.download', $contractItem->id) }}"
                                             class="btn btn-outline-primary btn-sm shadow-sm"
                                             title="Tải xuống PDF">

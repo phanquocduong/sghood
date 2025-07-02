@@ -45,8 +45,7 @@ class UserController extends Controller
         return response()->json(['message' => 'FCM token saved successfully']);
     }
 
-    public function getAdmins()
-    {
+    public function getAdmins(){
         $user = User::where('role','Quản trị viên')->get();
         return response()->json([
             'status' =>true,

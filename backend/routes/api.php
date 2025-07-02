@@ -15,7 +15,6 @@ use App\Http\Controllers\Apis\ScheduleBookingController;
 use App\Http\Controllers\Apis\SepayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 // Authentication Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -45,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+
+    Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
 });
 
 Route::post('/sepay/webhook', [SepayWebhookController::class, 'handleWebhook']);
@@ -61,12 +64,6 @@ Route::get('/motels/{slug}/rooms/{roomId}', [RoomController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/configs', [ConfigController::class, 'index']);
 
-// Notification Routes
-Route::prefix('notifications')->group(function () {
-    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser']);
-    Route::get('/{id}', [NotificationController::class, 'getByNotificationId']);
-});
-
 // Message Routes
 Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
@@ -75,3 +72,10 @@ Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageControlle
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
+
+// Notification Routes
+Route::prefix('notifications')->group(function () {
+    Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
+    Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');  // API mark as read: http://localhost:8000/api/notifications/{userID}/mark-as-read
+    Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});

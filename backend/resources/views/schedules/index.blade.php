@@ -19,10 +19,7 @@
     <div class="container-fluid py-5 px-4">
         <div class="card shadow border-0 rounded-4">
             <div class="card-header text-white d-flex justify-content-between align-items-center rounded-top-4">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fa fa-calendar-check me-2"></i>Quản lý lịch xem phòng
-                    <span class="badge bg-light text-primary ms-2">{{ $schedules->total() ?? 0 }} lịch xem phòng</span>
-                </h5>
+                <h5 class="mb-0">Quản lý lịch xem phòng</h5>
             </div>
             <div class="card-body p-4">
                 <form action="{{ route('schedules.index') }}" method="GET" class="row g-3 mb-4">
