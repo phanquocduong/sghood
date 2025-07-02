@@ -164,6 +164,7 @@ Route::middleware('admin')->group(function () {
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+        Route::put('/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 });
 

@@ -81,6 +81,7 @@ class InvoiceController extends Controller
 
                     // Chi tiết chi phí
                     'fees' => [
+                        'room_fee' => number_format($invoice->contract->room->price ?? 0, 0, ',', '.'),
                         'electricity_fee' => number_format($invoice->electricity_fee ?? 0, 0, ',', '.'),
                         'water_fee' => number_format($invoice->water_fee ?? 0, 0, ',', '.'),
                         'parking_fee' => number_format($invoice->parking_fee ?? 0, 0, ',', '.'),
@@ -107,4 +108,45 @@ class InvoiceController extends Controller
             ], 500);
         }
     }
+
+    // Cập nhật trạng thái hóa đơn
+    public function updateStatus(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:Đã trả,Chưa trả,Đã hoàn tiền'
+            ]);
+
+            $invoice = $this->invoiceService->getInvoiceById($id);
+
+            if (!$invoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy hóa đơn'
+                ], 404);
+            }
+
+            // Cập nhật trạng thái
+            $invoice->status = $request->status;
+            $invoice->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật trạng thái thành công',
+                'data' => [
+                    'id' => $invoice->id,
+                    'status' => $invoice->status
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Lỗi khi cập nhật trạng thái hóa đơn: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi cập nhật trạng thái'
+            ], 500);
+        }
+    }
+
 }

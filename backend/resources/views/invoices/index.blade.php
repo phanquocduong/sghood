@@ -39,7 +39,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="text-muted mb-1">Đã thanh toán</h6>
+                                <h6 class="text-muted mb-1">Đã trả</h6>
                                 <h4 class="mb-0 text-info">{{ $stats['paid'] }}</h4>
                             </div>
                             <div class="text-info">
@@ -54,7 +54,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="text-muted mb-1">Chưa thanh toán</h6>
+                                <h6 class="text-muted mb-1">Chưa trả</h6>
                                 <h4 class="mb-0 text-warning">{{ $stats['unpaid'] }}</h4>
                             </div>
                             <div class="text-warning">
@@ -145,12 +145,13 @@
                         <thead class="table-success">
                             <tr>
                                 <th scope="col" style="width: 8%;" class="text-center">ID</th>
-                                <th scope="col" style="width: 20%;" class="text-center">Mã hóa đơn</th>
+                                <th scope="col" style="width: 18%;" class="text-center">Mã hóa đơn</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Tổng tiền</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Tháng/Năm</th>
-                                <th scope="col" style="width: 15%;" class="text-center">Ngày tạo</th>
-                                <th scope="col" style="width: 18%;" class="text-center">Thao tác</th>
+                                <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Ngày tạo</th>
+                                <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -168,8 +169,7 @@
                                             $statusClass = match($invoice->status) {
                                                 'Đã trả' => 'success',
                                                 'Chưa trả' => 'warning',
-                                                'Quá hạn' => 'danger',
-                                                'Đã hủy' => 'secondary',
+                                                'Đã hoàn tiền' => 'secondary',
                                                 default => 'secondary'
                                             };
                                         @endphp
@@ -178,14 +178,24 @@
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
                                     <td class="text-center">{{ $invoice->created_at->format('d/m/Y') }}</td>
                                     <td class="text-center">
-                                        <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})">
-                                            <i class="fas fa-eye"></i> Xem chi tiết
+                                        <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})" title="Xem chi tiết hóa đơn">
+                                            <i class="fas fa-eye"></i> Chi tiết
                                         </button>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($invoice->status === 'Đã trả')
+                                            <button class="btn btn-warning btn-sm" onclick="updateInvoiceStatus({{ $invoice->id }}, 'Đã hoàn tiền')"
+                                                title="Hoàn tiền hóa đơn">
+                                                <i class="fas fa-undo"></i> Hoàn tiền
+                                            </button>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                                         Không có dữ liệu hóa đơn
                                     </td>
@@ -299,8 +309,7 @@
             const statusClass = {
                 'Đã trả': 'success',
                 'Chưa trả': 'warning',
-                'Quá hạn': 'danger',
-                'Đã hủy': 'secondary'
+                'Đã hoàn tiền': 'secondary'
             }[invoice.status] || 'secondary';
 
             return `
@@ -353,6 +362,7 @@
                                 <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Chi tiết chi phí</h6>
                             </div>
                             <div class="card-body">
+                                <p><strong>Tiền phòng:</strong> ${invoice.fees.room_fee} VND</p>
                                 <p><strong>Tiền điện:</strong> ${invoice.fees.electricity_fee} VND</p>
                                 <p><strong>Tiền nước:</strong> ${invoice.fees.water_fee} VND</p>
                                 <p><strong>Phí giữ xe:</strong> ${invoice.fees.parking_fee} VND</p>
@@ -366,6 +376,42 @@
                     </div>
                 </div>
             `;
+        }
+
+        // Update invoice status function
+        function updateInvoiceStatus(invoiceId, newStatus) {
+            if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang "${newStatus}"?`)) {
+                return;
+            }
+
+            fetch(`/invoices/${invoiceId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Reload trang để cập nhật giao diện
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Có lỗi xảy ra khi cập nhật trạng thái'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật trạng thái: ' + error.message);
+            });
         }
 
         // Optional: Add event listener để reset modal khi đóng
