@@ -31,7 +31,7 @@
 
             <!-- Quản lý tài chính -->
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->is('invoice.html') || request()->is('transaction.html') || request()->is('utility.html') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('invoice.*') || request()->routeIs('transaction.*') || request()->routeIs('meter_readings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="invoice.html" class="dropdown-item {{ request()->is('invoice.html') ? 'active' : '' }}">Hoá đơn</a>
                     <a href="transaction.html" class="dropdown-item {{ request()->is('transaction.html') ? 'active' : '' }}">Lịch sử giao dịch</a>

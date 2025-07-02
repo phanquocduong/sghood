@@ -55,4 +55,10 @@ class Room extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function meterReadings()
+    {
+        return $this->hasMany(MeterReading::class, 'room_id');
+    }
+
 }

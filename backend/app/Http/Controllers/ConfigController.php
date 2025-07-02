@@ -21,7 +21,7 @@ class ConfigController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->query('search', '');
+        $search = (string) $request->query('search', '');
         $configs = $this->configService->getConfigs($search);
 
         return view('configs.index', compact('configs'));

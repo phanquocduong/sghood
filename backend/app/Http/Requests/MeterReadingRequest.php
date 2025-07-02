@@ -27,8 +27,8 @@ class MeterReadingRequest extends FormRequest
             'room_id' => 'required|exists:rooms,id',
             'month' => 'required|integer|min:1|max:12',
             'year' => 'required|integer|min:2000|max:2100',
-            'electricity_kwh' => 'required|numeric|min:1',
-            'water_m3' => 'required|numeric|min:1',
+            'electricity_kwh' => 'required|numeric|min:1|max:2000',
+            'water_m3' => 'required|numeric|min:1|max:200',
         ];
     }
 
@@ -47,9 +47,11 @@ class MeterReadingRequest extends FormRequest
             'year.max' => 'Năm không được lớn hơn 2100.',
             'electricity_kwh.required' => 'Vui lòng nhập chỉ số điện.',
             'electricity_kwh.numeric' => 'Chỉ số điện phải là một số.',
+            'electricity_kwh.max' => 'Chỉ số điện không được lớn hơn 2000.',
             'electricity_kwh.min' => 'Chỉ số điện không được nhỏ hơn 1.',
             'water_m3.required' => 'Vui lòng nhập chỉ số nước.',
             'water_m3.numeric' => 'Chỉ số nước phải là một số.',
+            'water_m3.max' => 'Chỉ số nước không được lớn hơn 200.',
             'water_m3.min' => 'Chỉ số nước không được nhỏ hơn 1.',
         ];
     }

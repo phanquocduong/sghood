@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
@@ -185,6 +186,6 @@ Route::get('/contract/pdf/{id}', function ($id) {
 });
 
 // Route for meter reading index
-Route::get('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'index'])->name('meter_readings.index');
-Route::put('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'store'])->name('meter_readings.store');
-// Route for updating an existing meter reading
+Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
+Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
+Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
