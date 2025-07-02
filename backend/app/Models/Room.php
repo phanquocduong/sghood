@@ -55,4 +55,14 @@ class Room extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    public function activeContract()
+    {
+        return $this->hasOne(Contract::class)->where('status', 'Hoạt động')->latest('id');
+    }
 }

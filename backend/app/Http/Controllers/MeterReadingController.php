@@ -10,35 +10,37 @@ use App\Http\Controllers\Controller;
 class MeterReadingController extends Controller
 {
     protected $meterReadingService;
-    
+
     public function __construct(MeterReadingService $meterReadingService)
     {
         $this->meterReadingService = $meterReadingService;
     }
-    
+
     public function index()
     {
-        // $meterReadings = \App\Models\MeterReading::all();
         $rooms = $this->meterReadingService->getRooms();
-        // Logic to handle meter reading index
         return view('meter_readings.index', compact('rooms'));
     }
+
     public function store(MeterReadingRequest $request)
     {
-      try{
-          // Validation is already handled by MeterReadingRequest
-        
-        // Prepare data for creating a new meter reading
-        $data = $request->only(['room_id', 'month', 'year', 'electricity_kwh', 'water_m3']);
-        
-        // Call the service to create a new meter reading
-        $meterReading = $this->meterReadingService->createMeterReading($data);
+        try {
+            // Xác thực đã được xử lý bởi MeterReadingRequest
 
-        // Redirect back with success message
-        return redirect()->route('meter_readings.index')->with('success', 'Chỉ số điện nước đã được cập nhật thành công.');
-      }catch (\Exception $e) {
-          // Handle any exceptions that occur during the process
-          return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ' . $e->getMessage());
-      }
+            // Chuẩn bị dữ liệu để tạo chỉ số đồng hồ mới
+            $data = $request->only(['room_id', 'month', 'year', 'electricity_kwh', 'water_m3']);
+
+            // Gọi dịch vụ để tạo chỉ số đồng hồ mới
+            $meterReading = $this->meterReadingService->createMeterReading($data);
+
+            // Tự động tạo hóa đơn dựa trên chỉ số mới
+            $this->meterReadingService->createInvoice($meterReading->id);
+
+            // Chuyển hướng với thông báo thành công
+            return redirect()->route('meter_readings.index')->with('success', 'Chỉ số điện nước đã được cập nhật và hóa đơn đã được tạo thành công.');
+        } catch (\Exception $e) {
+            // Xử lý các ngoại lệ xảy ra trong quá trình thực hiện
+            return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ' . $e->getMessage());
+        }
     }
 }

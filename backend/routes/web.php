@@ -14,6 +14,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\InvoiceController;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -159,6 +160,11 @@ Route::middleware('admin')->group(function () {
 
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
         ->name('contracts.showIdentityDocument');
+
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+        Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+    });
 });
 
 // File PDF
@@ -176,4 +182,7 @@ Route::get('/contract/pdf/{id}', function ($id) {
 // Route for meter reading index
 Route::get('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'index'])->name('meter_readings.index');
 Route::put('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'store'])->name('meter_readings.store');
+
+// Route for invoices
+
 // Route for updating an existing meter reading
