@@ -6,65 +6,62 @@
                 <i class="sl sl-icon-login"></i> Đăng ký/Đăng nhập
             </a>
             <!-- Nếu đã đăng nhập -->
-           <ClientOnly>
-            <div v-show="user" class="auth-container">
-              
-              <div class="user-menu notification-wrapper">
-                <div class="notification-icon" @click="toggleDropdown">
-                  <i class="fa fa-bell-o"></i>
-                  <span class="badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
+            <ClientOnly>
+                <div v-show="user" class="auth-container">
+                    <div class="user-menu notification-wrapper">
+                        <div class="notification-icon" @click="toggleDropdown">
+                            <i class="fa fa-bell-o"></i>
+                            <span class="badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
+                        </div>
+
+                        <ul v-if="showDropdown" class="dropdown">
+                            <li v-for="(noti, index) in topNoti" :key="noti.id">
+                                <a href="#">
+                                    <strong>{{ noti.title }}</strong
+                                    ><br />
+                                    <small style="color: #888">{{ noti.time }}</small>
+                                </a>
+                            </li>
+                            <li v-if="!topNoti.length === 0">
+                                <p>Chưa có thông báo nào.</p>
+                            </li>
+                            <li>
+                                <NuxtLink to="quan-ly/thong-bao"><i class="fa fa-eye"></i> Xem tất cả</NuxtLink>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 👤 Menu người dùng -->
+                    <div class="user-menu">
+                        <div class="user-name">
+                            <span>
+                                <img
+                                    :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/default-avatar.webp'"
+                                    alt="Avatar"
+                                />
+                            </span>
+                            Xin chào, {{ user?.name || 'Người dùng' }}!
+                        </div>
+
+                        <ul>
+                            <li>
+                                <NuxtLink to="/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
+                            </li>
+                            <li>
+                                <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
+                            </li>
+                            <li>
+                                <NuxtLink to="/quan-ly/lich-xem-phong-va-dat-phong">
+                                    <i class="fa fa-calendar-check-o"></i> Đặt phòng
+                                </NuxtLink>
+                            </li>
+                            <li>
+                                <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-
-                <ul v-if="showDropdown" class="dropdown">
-                  <li v-for="(noti, index) in topNoti" :key="noti.id">
-                    <a href="#">
-                      <strong>{{ noti.title }}</strong><br />
-                      <small style="color: #888;">{{ noti.time }}</small>
-                    </a>
-                  </li>
-                      <li v-if="!topNoti.length === 0" >
-                <p>Chưa có thông báo nào.</p>
-              </li>
-                  <li>
-                    <NuxtLink to="quan-ly/thong-bao"><i class="fa fa-eye"></i> Xem tất cả</NuxtLink>
-                  </li>
-                </ul>
-              </div>
-
-
-              <!-- 👤 Menu người dùng -->
-              <div class="user-menu">
-                <div class="user-name">
-                  <span>
-                    <img
-                      :src="user?.avatar ? config.public.baseUrl + user.avatar : '/images/dashboard-avatar.jpg'"
-                      alt="Avatar"
-                      
-                    />
-                  </span>
-                  Xin chào, {{ user?.name || 'Người dùng' }}!
-                </div>
-
-                <ul>
-                  <li>
-                    <NuxtLink to="/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
-                  </li>
-                  <li>
-                    <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
-                  </li>
-                  <li>
-                    <NuxtLink to="/quan-ly/lich-xem-phong-va-dat-phong">
-                      <i class="fa fa-calendar-check-o"></i> Đặt phòng
-                    </NuxtLink>
-                  </li>
-                  <li>
-                    <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </ClientOnly>
-
+            </ClientOnly>
         </div>
     </div>
 </template>
@@ -77,9 +74,9 @@ import { onMounted } from 'vue';
 const config = useRuntimeConfig();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-onMounted(()=>{
+onMounted(() => {
     notificationStore.fetchNotifications();
-})
+});
 // Dropdown control
 const showDropdown = ref(false);
 const toggleDropdown = () => {
@@ -89,19 +86,17 @@ const notificationStore = useNotificationStore();
 const notifications = computed(() => notificationStore.notifications);
 const unreadCount = computed(() => notifications.value.filter(n => n.unread).length);
 
-const topNoti = computed(()=>{
-    return [...notifications.value].sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0,5)
-
-})
+const topNoti = computed(() => {
+    return [...notifications.value].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+});
 </script>
 
 <style scoped>
 .user-name img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
- 
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 .header-widget {
     display: flex;
@@ -163,7 +158,6 @@ const topNoti = computed(()=>{
     border-radius: 4px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     z-index: 100;
-   
 }
 
 .user-menu .dropdown li {
@@ -181,12 +175,10 @@ const topNoti = computed(()=>{
     font-size: 14px;
     color: #333;
     transition: all 0.2s;
-    
 }
 
 .user-menu .dropdown li a:hover {
     background-color: #f7f7f7;
     color: #f91942;
-    
 }
 </style>

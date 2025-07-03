@@ -209,10 +209,13 @@ class InvoiceService
     {
         $invoice = Invoice::where('code', $code)
             ->whereHas('contract', fn($query) => $query->where('user_id', $userId))
-            ->select('status')
+            ->select('status', 'type')
             ->firstOrFail();
 
-        return ['status' => $invoice->status];
+        return [
+            'status' => $invoice->status,
+            'type' => $invoice->type
+        ];
     }
 
     public function processWebhook(object $data): Invoice

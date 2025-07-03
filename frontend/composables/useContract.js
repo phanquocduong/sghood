@@ -1,9 +1,8 @@
 import { nextTick } from 'vue';
+import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 
 export function useContract({
     contract,
-    invoice,
-    qrCodeUrl,
     signatureData,
     identityDocument,
     identityImages,
@@ -14,10 +13,14 @@ export function useContract({
     toast,
     router,
     route,
-    dropzoneInstance,
-    paymentInterval
+    dropzoneInstance
 }) {
     const { $api } = useNuxtApp();
+    const { sendOTP, verifyOTP } = useFirebaseAuth();
+
+    const phoneNumber = ref(null); // Lưu số điện thoại từ contract
+    const showOTPModal = ref(false); // Hiển thị modal nhập OTP
+    const otpCode = ref(''); // Mã OTP người dùng nhập
 
     const processContractContent = () => {
         if (!contract.value?.content) return;
@@ -69,11 +72,8 @@ export function useContract({
         try {
             const response = await $api(`/contracts/${route.params.id}`, { method: 'GET' });
             contract.value = response.data;
-
-            qrCodeUrl.value = `https://qr.sepay.vn/img?bank=${useRuntimeConfig().public.sepayBank}&acc=${
-                useRuntimeConfig().public.sepayAccountNumber
-            }&template=compact&amount=${contract.value.deposit_amount}&des=${invoice.value?.code}`;
-
+            phoneNumber.value = response.data.user_phone;
+            console.log(phoneNumber.value);
             processContractContent();
         } catch (error) {
             console.error('Lỗi khi lấy hợp đồng:', error);
@@ -83,21 +83,6 @@ export function useContract({
             loading.value = false;
             await nextTick();
             syncIdentityData();
-            console.log(identityDocument.value);
-        }
-    };
-
-    const checkPaymentStatus = async () => {
-        try {
-            const response = await $api(`/invoices/${invoice.value.code}/status`);
-            if (response.status === 'Đã trả') {
-                toast.success('Thanh toán tiền cọc thành công! Hợp đồng đã được kích hoạt.');
-                clearInterval(paymentInterval.value);
-                router.push('/quan-ly/hop-dong');
-            }
-        } catch (error) {
-            console.error('Lỗi kiểm tra trạng thái thanh toán:', error);
-            handleBackendError(error);
         }
     };
 
@@ -203,9 +188,54 @@ export function useContract({
         return contract.value.content;
     };
 
+    const requestOTP = async () => {
+        if (!phoneNumber.value) {
+            toast.error('Không tìm thấy số điện thoại.');
+            return false;
+        }
+
+        // Hiển thị modal OTP
+        showOTPModal.value = true;
+
+        // Đợi DOM cập nhật
+        await nextTick();
+
+        // Kiểm tra client-side và container
+        if (typeof window === 'undefined' || !document.getElementById('recaptcha-container')) {
+            toast.error('Không thể khởi tạo reCAPTCHA. Vui lòng thử lại.');
+            showOTPModal.value = false;
+            return false;
+        }
+
+        const success = await sendOTP(phoneNumber.value);
+        if (!success) {
+            showOTPModal.value = false;
+        }
+        return success;
+    };
+
     const signContract = async () => {
+        try {
+            // Bắt đầu bằng việc yêu cầu OTP
+            const otpSent = await requestOTP();
+            if (!otpSent) return;
+
+            // Chờ người dùng xác minh OTP trong modal
+            // Logic xác minh OTP sẽ được xử lý trong OTPModal
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const confirmOTPAndSign = async () => {
         saveLoading.value = true;
         try {
+            const verified = await verifyOTP(otpCode.value);
+            if (!verified) {
+                saveLoading.value = false;
+                return;
+            }
+
             const updatedContent = await updateContractWithSignature();
             const response = await $api(`/contracts/${route.params.id}/sign`, {
                 method: 'POST',
@@ -215,10 +245,9 @@ export function useContract({
                 },
                 headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
             });
-            invoice.value = response.invoice;
-            paymentInterval.value = setInterval(checkPaymentStatus, 2000);
-            await fetchContract();
             toast.success(response.message);
+            showOTPModal.value = false;
+            router.push(`/quan-ly/hoa-don/${response.invoice_id}/thanh-toan`);
         } catch (error) {
             console.error('Lỗi khi ký hợp đồng:', error);
             handleBackendError(error);
@@ -283,9 +312,12 @@ export function useContract({
 
     return {
         fetchContract,
-        checkPaymentStatus,
         handleIdentityUpload,
         signContract,
-        saveContract
+        confirmOTPAndSign,
+        saveContract,
+        phoneNumber,
+        showOTPModal,
+        otpCode
     };
 }

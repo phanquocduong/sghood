@@ -1,13 +1,13 @@
 <template>
     <div>
-        <Titlebar title="Hóa đơn" />
+        <Titlebar title="Giao dịch" />
 
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <InvoiceFilter v-model:filter="filter" @update:filter="fetchItems" />
-                    <h4>Quản lý hoá đơn</h4>
-                    <InvoiceList :items="items" :is-loading="isLoading" />
+                    <TransactionFilter v-model:filter="filter" @update:filter="fetchItems" />
+                    <h4>Lịch sử giao dịch</h4>
+                    <TransactionList :items="items" :is-loading="isLoading" />
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const items = ref([]);
-const filter = ref({ sort: 'default', type: '', month: '', year: '' });
+const filter = ref({ sort: 'default', type: '' });
 const isLoading = ref(false);
 const toast = useToast();
 
@@ -42,10 +42,9 @@ const handleBackendError = error => {
 };
 
 const fetchItems = async () => {
-    console.log(filter.value);
     isLoading.value = true;
     try {
-        const response = await $api('/invoices', { method: 'GET', params: filter.value });
+        const response = await $api('/transactions', { method: 'GET', params: filter.value });
         items.value = response.data;
     } catch (error) {
         handleBackendError(error);

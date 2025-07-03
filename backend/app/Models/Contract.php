@@ -47,4 +47,9 @@ class Contract extends Model
     {
         return $this->belongsTo(Booking::class, 'booking_id');
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'contract_id');
+    }
 }

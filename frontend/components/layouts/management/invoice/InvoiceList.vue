@@ -1,47 +1,30 @@
 <template>
-    <h4>Quản lý hoá đơn</h4>
-
     <!-- Hiển thị loading spinner -->
     <Loading :is-loading="isLoading" />
 
-    <ul v-if="!isLoading">
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.status, item.type)">
-            <div class="list-box-listing bookings">
-                <div class="list-box-listing-content">
-                    <div class="inner">
-                        <h3>
-                            Hoá đơn tháng {{ item.month }} năm {{ item.year }}
-                            <span :class="getStatusClass(item.status)">{{ item.status }}</span>
-                            <span class="item-type">[{{ item.type }}]</span>
-                        </h3>
-                        <div class="inner-booking-list">
-                            <h5>Mã hoá đơn:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.code }}</li>
-                            </ul>
-                        </div>
-                        <div class="inner-booking-list">
-                            <h5>Tổng tiền:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatCurrency(item.total_amount) }}đ</li>
-                            </ul>
-                        </div>
-                    </div>
+    <div v-if="!isLoading" class="dashboard-list-box invoices with-icons margin-top-0">
+        <ul>
+            <li v-for="item in items" :key="item.id">
+                <i class="list-box-icon sl sl-icon-doc"></i>
+                <strong v-if="item.type === 'Hàng tháng'"
+                    >Tiền {{ item.contract.room.name }} tháng {{ item.month }} năm {{ item.year }}</strong
+                >
+                <strong v-else>Đặt cọc {{ item.contract.room.name }} theo hợp đồng #{{ item.contract.room.id }}</strong>
+                <ul>
+                    <li :class="getStatusClass(item.status)">{{ item.status }}</li>
+                    <li>Mã: {{ item.code }}</li>
+                    <li>Tổng tiền: {{ formatCurrency(item.total_amount) }}đ</li>
+                    <li>Ngày tạo: {{ formatDate(item.created_at) }}</li>
+                </ul>
+                <div class="buttons-to-right">
+                    <NuxtLink :to="`/quan-ly/hoa-don/${item.id}`" class="button gray">Xem hoá đơn</NuxtLink>
+                    <NuxtLink v-if="item.status !== 'Đã trả'" :to="`/quan-ly/hoa-don/${item?.id}/thanh-toan`" class="button gray"
+                        >Thanh toán</NuxtLink
+                    >
                 </div>
-            </div>
-            <div class="buttons-to-right">
-                <NuxtLink :to="`/quan-ly/hoa-don/${item.id}`" class="button gray approve">
-                    <i class="im im-icon-Preview"></i> Xem chi tiết
-                </NuxtLink>
-                <NuxtLink v-if="item.status !== 'Đã trả'" :to="`/quan-ly/hoa-don/${item?.id}/thanh-toan`" class="button gray approve">
-                    <i class="im im-icon-Paypal"></i> Thanh toán
-                </NuxtLink>
-            </div>
-        </li>
-        <div v-if="!items.length" class="col-md-12 text-center">
-            <p>Chưa có hoá đơn nào.</p>
-        </div>
-    </ul>
+            </li>
+        </ul>
+    </div>
 </template>
 
 <script setup>
@@ -58,32 +41,28 @@ const props = defineProps({
 
 const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
 
-const getItemClass = status => {
+const formatDate = date => {
+    return new Date(date).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+};
+
+const getStatusClass = status => {
     switch (status) {
         case 'Chưa trả':
-            return 'pending-booking';
+            return 'unpaid';
         case 'Đã trả':
-            return 'approved-booking';
         case 'Đã hoàn tiền':
-            return 'canceled-booking';
+            return 'paid';
         default:
             return '';
     }
 };
-
-const getStatusClass = status => {
-    let statusClass = 'booking-status';
-    if (status === 'Chưa trả') {
-        statusClass += ' pending';
-    }
-    return statusClass;
-};
 </script>
 
-<style scoped>
-.item-type {
-    font-size: 12px;
-    color: #888;
-    margin-left: 10px;
-}
-</style>
+<style scoped></style>

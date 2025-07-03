@@ -2,7 +2,7 @@
 
 namespace App\Services\Apis;
 
-use App\Mail\ContractPendingEmail;
+use App\Mail\ContractNotificationForAdmins;
 use App\Models\Contract;
 use App\Models\Notification;
 use App\Models\User;
@@ -36,7 +36,7 @@ class NotificationService
                 default => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.",
             };
 
-            Mail::to($admins->pluck('email'))->send(new ContractPendingEmail($contract));
+            Mail::to($admins->pluck('email'))->send(new ContractNotificationForAdmins($contract, $oldStatus));
 
             $messaging = app('firebase.messaging');
 
@@ -53,7 +53,7 @@ class NotificationService
                         'token' => $admin->fcm_token,
                         'notification' => ['title' => $title, 'body' => $body],
                         'data' => [
-                            'link' => "$baseUrl/contracts"
+                            'link' => "$baseUrl/contracts/$contract->id"
                         ],
                     ]);
 

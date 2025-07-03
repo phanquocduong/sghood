@@ -5,13 +5,7 @@
 
         <div class="row">
             <div :class="contract?.status === 'Chờ xác nhận' ? 'col-lg-9 col-md-9' : 'col-lg-12 col-md-12'" class="contract-column">
-                <ContractPayment
-                    v-if="contract?.status === 'Chờ thanh toán tiền cọc'"
-                    :contract="contract"
-                    :invoice="invoice"
-                    :qr-code-url="qrCodeUrl"
-                />
-                <div v-else-if="extractLoading" class="extract-loading-overlay">
+                <div v-if="extractLoading" class="extract-loading-overlay">
                     <p>Đang quét ảnh căn cước...</p>
                 </div>
                 <div v-else ref="contractContainer" v-html="contract?.content"></div>
@@ -37,12 +31,21 @@
                 @identity-upload="handleIdentityUpload"
             />
         </div>
+
+        <OTPModal
+            :show="showOTPModal"
+            :phone-number="phoneNumber"
+            :loading="saveLoading"
+            v-model:otp-code="otpCode"
+            @close="showOTPModal = false"
+            @confirm="confirmOTPAndSign"
+        />
     </div>
 </template>
 
 <script setup>
 import { useHead } from '@unhead/vue';
-import { shallowRef, ref, computed, onMounted, onUnmounted } from 'vue';
+import { shallowRef, ref, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useRoute, useRouter } from 'vue-router';
 import { useContract } from '~/composables/useContract';
@@ -82,9 +85,6 @@ const contractContainer = ref(null);
 const dropzoneInstance = ref(null);
 const identityImages = ref([]);
 const signatureData = ref(null);
-const invoice = ref(null);
-const qrCodeUrl = ref('');
-const paymentInterval = ref(null);
 const identityDocument = ref({
     full_name: '',
     year_of_birth: '',
@@ -103,23 +103,21 @@ const isFormComplete = computed(() =>
 );
 
 // Composable
-const { fetchContract, signContract, saveContract, handleIdentityUpload } = useContract({
-    contract,
-    invoice,
-    qrCodeUrl,
-    signatureData,
-    identityDocument,
-    identityImages,
-    contractContainer,
-    loading,
-    extractLoading,
-    saveLoading,
-    toast,
-    router,
-    route,
-    dropzoneInstance,
-    paymentInterval
-});
+const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, showOTPModal, otpCode } =
+    useContract({
+        contract,
+        signatureData,
+        identityDocument,
+        identityImages,
+        contractContainer,
+        loading,
+        extractLoading,
+        saveLoading,
+        toast,
+        router,
+        route,
+        dropzoneInstance
+    });
 
 onMounted(async () => {
     await fetchContract();
@@ -139,10 +137,6 @@ onMounted(async () => {
             if (identityDocument.value.has_valid) this.disable();
         }
     });
-});
-
-onUnmounted(() => {
-    if (paymentInterval.value) clearInterval(paymentInterval.value);
 });
 </script>
 

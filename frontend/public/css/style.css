@@ -313,13 +313,13 @@ header.fullwidth .container {
 
 .left-side {
     float: left;
-    width: 65%;
+    width: 55%;
     display: inline-block;
 }
 
 .right-side {
     float: right;
-    width: 35%;
+    width: 45%;
     display: inline-block;
 }
 

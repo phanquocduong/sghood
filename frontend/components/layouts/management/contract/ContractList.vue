@@ -46,7 +46,14 @@
                 <a v-if="item.status === 'Hoạt động'" href="#" class="button gray approve" @click.prevent="downloadPdf(item.id)">
                     <i class="im im-icon-File-Download"></i> Tải hợp đồng
                 </a>
-                <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve popup-with-zoom-anim">
+                <NuxtLink
+                    v-if="item.status === 'Chờ thanh toán tiền cọc'"
+                    :to="`/quan-ly/hoa-don/${item.invoice_id}/thanh-toan`"
+                    class="button gray approve popup-with-zoom-anim"
+                >
+                    <i class="im im-icon-Folder-Bookmark"></i> Thanh toán tiền cọc
+                </NuxtLink>
+                <NuxtLink v-else :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve popup-with-zoom-anim">
                     <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
                 </NuxtLink>
             </div>
@@ -109,8 +116,6 @@ const getActText = status => {
             return 'Chỉnh sửa thông tin';
         case 'Chờ ký':
             return 'Ký hợp đồng';
-        case 'Chờ thanh toán tiền cọc':
-            return 'Thanh toán tiền đặt cọc';
         case 'Chờ duyệt':
         case 'Hoạt động':
         case 'Kết thúc':

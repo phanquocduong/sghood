@@ -66,8 +66,8 @@
                             <td>
                                 {{
                                     invoice.type === 'Đặt cọc'
-                                        ? `Đặt cọc hợp đồng #${invoice.contract.id}`
-                                        : `Hóa đơn tháng ${invoice.month} năm ${invoice.year}`
+                                        ? `Đặt cọc ${invoice.contract.room.name} theo hợp đồng #${invoice.contract.id}`
+                                        : `Tiền ${invoice.contract.room.name} tháng ${invoice.month} năm ${invoice.year}`
                                 }}
                             </td>
                             <td>{{ formatCurrency(invoice.total_amount) }}</td>

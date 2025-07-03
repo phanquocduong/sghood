@@ -4,7 +4,6 @@ namespace App\Services\Apis;
 
 use App\Models\Contract;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -33,17 +32,21 @@ class ContractService
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
-                    'room.mainImage' => fn($query) => $query->select('id', 'room_id', 'image_url')
+                    'room.mainImage' => fn($query) => $query->select('id', 'room_id', 'image_url'),
+                    'invoices' => fn($query) => $query->select('id', 'contract_id')
+                        ->where('type', 'Đặt cọc')
+                        ->first()
                 ])
                 ->get()
                 ->map(fn ($contract) => [
                     'id' => $contract->id,
                     'room_name' => $contract->room->name,
                     'motel_name' => $contract->room->motel->name,
-                    'room_image' => $contract->room->mainImage->image_url,
+                    'room_image' => $contract->room->mainImage?->image_url,
                     'start_date' => $contract->start_date->toIso8601String(),
                     'end_date' => $contract->end_date->toIso8601String(),
                     'status' => $contract->status,
+                    'invoice_id' => $contract->invoices->first()?->id
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -58,7 +61,8 @@ class ContractService
     public function getContractDetail(int $id): array
     {
         try {
-            $contract = Contract::where('id', $id)
+            $contract = Contract::with('user')
+                ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
 
@@ -83,6 +87,7 @@ class ContractService
                 'status' => $contract->status,
                 'file' => $contract->file ? url($contract->file) : null,
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
+                'user_phone' => $contract->user->phone,
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
