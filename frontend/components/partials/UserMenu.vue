@@ -14,19 +14,28 @@
                             <span class="badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
                         </div>
 
+                        <!-- Dropdown -->
                         <ul v-if="showDropdown" class="dropdown">
-                            <li v-for="(noti, index) in topNoti" :key="noti.id">
-                                <a href="#">
-                                    <strong>{{ noti.title }}</strong
-                                    ><br />
-                                    <small style="color: #888">{{ noti.time }}</small>
-                                </a>
+                            <template v-if="topNoti.length > 0">
+                                <li v-for="noti in topNoti" :key="noti.id">
+                                    <NuxtLink to="/quan-ly/thong-bao">
+                                        <strong>{{ noti.title }}</strong>
+                                        <small>{{ formatTimeAgo(noti.time) }}</small>
+                                    </NuxtLink>
+                                </li>
+                            </template>
+                            <li v-else>
+                                <p style="padding: 10px; text-align: center">Chưa có thông báo nào.</p>
                             </li>
-                            <li v-if="!topNoti.length === 0">
-                                <p>Chưa có thông báo nào.</p>
-                            </li>
-                            <li>
-                                <NuxtLink to="quan-ly/thong-bao"><i class="fa fa-eye"></i> Xem tất cả</NuxtLink>
+
+                            <!-- Gạch ngang -->
+                            <li class="divider"></li>
+
+                            <!-- Xem tất cả -->
+                            <li class="view-all">
+                                <NuxtLink to="/quan-ly/thong-bao">
+                                    <p>Xem tất cả</p>
+                                </NuxtLink>
                             </li>
                         </ul>
                     </div>
@@ -68,26 +77,49 @@
 
 <script setup>
 import { useAuthStore } from '~/stores/auth';
-import { storeToRefs } from 'pinia';
 import { useNotificationStore } from '~/stores/notication';
-import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { ref, onMounted, computed } from 'vue';
+import { formatTimeAgo } from '~/utils/time';
 const config = useRuntimeConfig();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
+
+const notificationStore = useNotificationStore();
+const { notifications } = storeToRefs(notificationStore);
+
+// Gọi API lấy thông báo khi mount
 onMounted(() => {
     notificationStore.fetchNotifications();
+    window.addEventListener('click', handleClickOutside);
 });
+
 // Dropdown control
 const showDropdown = ref(false);
 const toggleDropdown = () => {
     showDropdown.value = !showDropdown.value;
 };
-const notificationStore = useNotificationStore();
-const notifications = computed(() => notificationStore.notifications);
+
+// Đếm số thông báo chưa đọc
 const unreadCount = computed(() => notifications.value.filter(n => n.unread).length);
 
+// Lấy top 5 thông báo mới nhất
 const topNoti = computed(() => {
-    return [...notifications.value].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+    return [...notifications.value]
+        .filter(m => m.unread)
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .slice(0, 5);
+});
+// Đóng dropdown khi click ra ngoài
+const handleClickOutside = event => {
+    const target = event.target;
+    if (!target.closest('.notification-wrapper')) {
+        showDropdown.value = false;
+    }
+};
+
+onBeforeUnmount(() => {
+    window.removeEventListener('click', handleClickOutside);
 });
 </script>
 
@@ -159,26 +191,80 @@ const topNoti = computed(() => {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     z-index: 100;
 }
-
-.user-menu .dropdown li {
-    border-bottom: 1px solid #eee;
-    justify-items: center;
-}
-
 .user-menu .dropdown li:last-child {
     border-bottom: none;
 }
+.notification-wrapper {
+    position: relative; /* Bổ sung */
+}
+.user-menu .dropdown li:hover a {
+    color: #f91942; /* Chỉ chữ đổi màu đỏ */
+}
 
+/* 👉 Tăng kích thước dropdown box */
+.user-menu .dropdown {
+    width: 300px; /* rộng hơn */
+    padding: 10px 0;
+}
+
+/* 👉 Canh thời gian hiển thị ngang hàng với title */
 .user-menu .dropdown li a {
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px 20px;
+    gap: 10px;
     font-size: 14px;
-    color: #333;
     transition: all 0.2s;
 }
 
-.user-menu .dropdown li a:hover {
-    background-color: #f7f7f7;
+/* 👉 Căn chỉnh phần title và time */
+.user-menu .dropdown li a strong {
+    flex: 1;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-menu .dropdown li a small {
+    white-space: nowrap;
+    color: #888;
+    font-size: 12px;
+}
+/* ... giữ nguyên các đoạn khác ... */
+
+/* Hover toàn dòng đỏ chữ */
+.user-menu .dropdown li:hover a strong,
+.user-menu .dropdown li:hover a small {
+    color: #f91942;
+}
+
+/* Divider (dấu gạch ngang) */
+.user-menu .dropdown .divider {
+    border-top: 1px solid #eee;
+    margin: 5px 0;
+    height: 1px;
+}
+
+/* "Xem tất cả" gọn và căn giữa */
+.user-menu .dropdown .view-all {
+    text-align: center;
+
+    padding: 2px 0;
+    height: 30px;
+}
+
+.user-menu .dropdown .view-all a p {
+    font-size: 13px;
+    color: #555;
+    transition: color 0.2s;
+    margin: auto;
+    margin-top: -10px;
+}
+
+.user-menu .dropdown .view-all a:hover p {
     color: #f91942;
 }
 </style>

@@ -50,9 +50,16 @@
 
         <!-- chatbox -->
         <div>
-            <ChatIcon v-if="user"  :unreadMessages="unreadMessages" @toggle="toggleChat" />
-            <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false" @unread= "onUnreadMessage"></ChatBox>
-
+            <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
+            <div>
+                <ChatBox
+                    v-if="user"
+                    :key="`chat-${isChatOpen}`"
+                    :isOpen="isChatOpen"
+                    @close="isChatOpen = false"
+                    @unread="onUnreadMessage"
+                ></ChatBox>
+            </div>
         </div>
     </div>
 </template>
@@ -68,23 +75,21 @@ const isLoading = ref(false);
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const isChatOpen = ref(false);
-const unreadMessages = ref(0)
+const unreadMessages = ref(0);
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
-
-
 const toggleChat = () => {
-    (isChatOpen.value = !isChatOpen.value)
-    if(isChatOpen.value){
-        unreadMessages.value=0
+    isChatOpen.value = !isChatOpen.value;
+    if (isChatOpen.value) {
+        unreadMessages.value = 0;
     }
 };
-const onUnreadMessage = ()=>{
-    if(!isChatOpen.value){
-        unreadMessages.value ++
+const onUnreadMessage = () => {
+    if (!isChatOpen.value) {
+        unreadMessages.value++;
     }
-}
+};
 
 watch(
     () => route.fullPath,
@@ -97,6 +102,4 @@ watch(
     },
     { immediate: true }
 );
-
 </script>
-

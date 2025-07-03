@@ -30,7 +30,7 @@ defineProps({
         type: Boolean,
         required: true
     }
-});
+}); 
 
 defineEmits(['save-contract', 'identity-upload']);
 </script>
