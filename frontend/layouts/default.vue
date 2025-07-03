@@ -51,7 +51,11 @@
         <!-- chatbox -->
         <div>
             <ChatIcon v-if="user"  :unreadMessages="unreadMessages" @toggle="toggleChat" />
-            <ChatBox v-if="user && isChatOpen" @close="isChatOpen = false" @unread= "onUnreadMessage"></ChatBox>
+            <div>
+
+                <ChatBox v-if="user"  :key="`chat-${isChatOpen}`"
+  :isOpen="isChatOpen" @close="isChatOpen = false" @unread= "onUnreadMessage"></ChatBox>
+            </div>
 
         </div>
     </div>

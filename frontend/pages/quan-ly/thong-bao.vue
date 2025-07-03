@@ -1,48 +1,61 @@
 <template>
-    <div>
-        <Titlebar title="Thông báo" />
+  <div>
+    <Titlebar title="Thông báo" />
 
-        <div class="row">
-            <div class="col-lg-12 col-md-12">
-                <div class="dashboard-list-box margin-top-0">
-                    <!-- Tiêu đề khung -->
-                    <div class="box-title-bar">
-                        <h4>Thông báo</h4>
-                    </div>
+    <!-- Loading full screen -->
+    <Loading :is-loading="loading" />
 
-                    <!-- Danh sách thông báo -->
-                    <div
-                        v-for="(noti, index) in notifications"
-                        :key="noti.id"
-                        class="message-item"
-                        :class="{ unread: noti.unread, read: !noti.unread }"
-                        @click="markAsRead(index)"
-                    >
-                        <a href="#" class="message-content">
-                            <div class="message-avatar">
-                                <img src="/images/sghood_logo1.png" alt="avatar" />
-                            </div>
-
-                            <div class="message-by">
-                                <div class="message-header">
-                                    <h5>{{ noti.title }} <i v-if="noti.unread">Chưa đọc</i></h5>
-                                    <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
-                                </div>
-                                <p>{{ noti.content }}</p>
-                            </div>
-                        </a>
-                        <button class="delete-btn" @click.stop="removeNotification(index)">✕</button>
-                    </div>
-
-                    <!-- Nếu không có thông báo -->
-                    <div v-if="notifications.length === 0" class="box-title-bar">
-                        <p>Chưa có thông báo nào.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Nếu đang loading -->
+    <div v-if="loading" class="text-center p-5">
+      <p>Đang tải thông báo...</p>
     </div>
+
+    <!-- Nếu đã load xong -->
+    <div v-else class="row">
+      <div class="col-lg-12 col-md-12">
+        <div class="dashboard-list-box margin-top-0">
+          <div class="box-title-bar">
+            <h4>Thông báo</h4>
+          </div>
+
+          <!-- Không có thông báo -->
+          <div v-if="safeNotifications.length === 0" class="box-title-bar-tb">
+            <p>Chưa có thông báo nào.</p>
+          </div>
+
+          <!-- Có thông báo -->
+          <NuxtLink
+            v-for="(noti, index) in safeNotifications"
+            :key="noti.id"
+            class="message-item"
+            :class="{ unread: noti.unread, read: !noti.unread }"
+            @click="onMarkAsRead(noti.id)"
+           
+          >
+            <a href="#" class="message-content">
+              <div class="message-avatar">
+                <img src="/images/sghood_logo1.png" alt="avatar" />
+              </div>
+
+              <div class="message-by">
+                <div class="message-header">
+                  <h5>
+                    {{ noti.title }}
+                    <i v-if="noti.unread">Chưa đọc</i>
+                  </h5>
+                  <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
+                </div>
+                <p>{{ noti.content }}</p>
+              </div>
+            </a>
+            <button class="delete-btn" @click.stop="removeNotification(index)">✕</button>
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
+
 
 <script setup>
 definePageMeta({ layout: 'management' });
@@ -52,14 +65,15 @@ import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
 const NotiStore = useNotificationStore();
 const noti = useToast();
-const { notifications } = storeToRefs(useNotificationStore());
+const { notifications,loading } = storeToRefs(useNotificationStore());
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
+const safeNotifications = computed(() => notifications.value || []);
 onMounted(() => {
     NotiStore.fetchNotifications();
 });
-const markAsRead = index => {
-    NotiStore.markAsRead(index);
+const onMarkAsRead =async id => {
+    NotiStore.markAsRead(id);
 };
 
 const removeNotification = index => {
@@ -79,6 +93,7 @@ const removeNotification = index => {
 
 .message-item.unread {
     background-color: #fff1f0;
+    transition: background-color 0.3s ease;
 }
 
 .message-content {
@@ -160,5 +175,13 @@ const removeNotification = index => {
 
 .delete-btn:hover {
     color: #f44336;
+}
+.box-title-bar-tb{
+    font-size: larger;
+    padding: 10px;
+    align-items: center;
+    border: none;
+    text-align: center;
+    height: 46px;
 }
 </style>

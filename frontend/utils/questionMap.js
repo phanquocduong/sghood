@@ -8,9 +8,6 @@ export const questionMap = {
         "Đội ngũ nhân viên có chuyên nghiệp không?",
         "Có hỗ trợ khách hàng 24/7 không?",
     ],
-    'nha-tro':[
-
-    ],
     '/':[
         "Tôi có thể đặt cọc online không?",
         "Có được xem phòng trước khi thuê không?"

@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { useAuthStore } from './auth';
 import { useToast } from 'vue-toastification';
+import { normalizeClass } from 'vue';
 
 export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref([]);
@@ -52,11 +53,25 @@ const removeNotification = index => {
   notifications.value.splice(index, 1);
 };
 
-const markAsRead = index => {
-  if (notifications.value[index].unread) {
-    notifications.value[index].unread = false;
-  };
-  
+const markAsRead = async(id) => {
+  const index = notifications.value.findIndex(n=>n.id === id )
+  if(index === -1 || !notifications.value[index].unread) return
+  try{
+    const res = await $api(`/notifications/${id}/mark-as-read`,{
+      method:'POST',
+      headers:{
+              'Content-Type': 'application/json',
+          'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+      }
+    });
+    if(res.status === false){
+           toast.error(res.message || 'Lỗi khi đánh dấu đã đọc');
+      return;
+    }
+    notifications.value[index].unread=false 
+  }catch(e){
+    console.log(e)
+  }
 };
 const unreadCount = computed(() => notifications.value.filter(n => n.unread).length);
   return {

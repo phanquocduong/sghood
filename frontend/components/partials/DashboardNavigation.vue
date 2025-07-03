@@ -21,6 +21,7 @@ const navItems = [
     { path: '/quan-ly/lich-xem-phong-va-dat-phong', icon: 'fa fa-calendar-check-o', label: 'Xem/Đặt phòng' },
     { path: '/quan-ly/hop-dong', icon: 'im im-icon-Book', label: 'Hợp đồng' },
     { path: '/quan-ly/hoa-don', icon: 'im im-icon-Billing', label: 'Hoá đơn' },
-    { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch' }
+    { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch' },
+    { path: '/quan-ly/quan-ly-sua-chua', icon: 'im im-icon-Drill-2', label: 'Quản lý sữa chữa' },
 ];
 </script>
