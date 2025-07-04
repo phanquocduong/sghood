@@ -8,7 +8,7 @@ export default defineNuxtConfig({
         '~/plugins/api.js',
         '~/plugins/toast.js',
         '~/plugins/template-scripts.client.js',
-        '~/plugins/auth.js',
+        { src: '~/plugins/auth.js', mode: 'client' },
         '~/plugins/dropzone.client.js',
         '~/plugins/service-worker.client.js',
         '~/plugins/firebase-messaging.client.js'
