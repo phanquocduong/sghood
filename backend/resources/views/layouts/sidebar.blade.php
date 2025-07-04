@@ -21,11 +21,11 @@
 
     <!-- Quản lý đặt phòng & hợp đồng -->
     <div class="nav-item dropdown">
-        <a href="#" class="nav-link dropdown-toggle {{ request()->is('booking.html') || request()->is('contracts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
+        <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
         <div class="dropdown-menu bg-transparent border-0">
             <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
             <a href="{{ route('bookings.index') }}" class="dropdown-item {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Đặt phòng</a>
-            <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->is('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
+            <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
         </div>
     </div>
 
@@ -44,7 +44,7 @@
 
             <!-- Quản lý hệ thống -->
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') || request()->routeIs('rooms.index') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') || request()->routeIs('rooms.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Cấu hình</a>
                     <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
