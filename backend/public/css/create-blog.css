@@ -1,0 +1,63 @@
+.blog-form-card {
+        border-radius: 16px;
+        background-color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .blog-form-header {
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+        color: white;
+        padding: 16px 24px;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .blog-form-body {
+        padding: 24px;
+    }
+
+    .blog-form-body .form-label {
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .blog-form-body input[type="text"],
+    .blog-form-body textarea {
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+        padding: 10px 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    .blog-form-body input[type="text"]:focus,
+    .blog-form-body textarea:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+    }
+
+    .blog-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .blog-form-actions .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .blog-form-actions .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .alert {
+        margin-bottom: 20px;
+    }
+    .ck-editor__editable_inline {
+    min-height: 450px;
+    }
+

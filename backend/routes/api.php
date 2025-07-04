@@ -13,6 +13,7 @@ use App\Http\Controllers\Apis\InvoiceController;
 use App\Http\Controllers\Apis\NotificationController;
 use App\Http\Controllers\Apis\ScheduleBookingController;
 use App\Http\Controllers\Apis\SepayWebhookController;
+use App\Http\Controllers\Apis\BlogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,9 @@ Route::post('/messages/send', [\App\Http\Controllers\Apis\MessageController::cla
 Route::get('/messages/history/{userId}', [\App\Http\Controllers\Apis\MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [\App\Http\Controllers\Apis\MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [\App\Http\Controllers\Apis\MessageController::class, 'startChat']);
+// Blog Routes
+Route::get('/blogs', [BlogController::class, 'index']);
+Route::get('/show/{id}', [BlogController::class, 'showBlog']);
 
 
 // Get all admin users

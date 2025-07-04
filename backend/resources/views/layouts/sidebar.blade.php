@@ -69,6 +69,8 @@
                     ">{{ $totalUnread }}</span>
                 @endif
             </a>
+            <!-- Quản lý blog -->
+            <a href="{{ route('blogs.index') }}" class="nav-item nav-link {{ request()->routeIs('blogs.*') ? 'active' : '' }}"><i class="fa fa-newspaper me-2"></i>Blog</a>
         </div>
     </nav>
 </div>
