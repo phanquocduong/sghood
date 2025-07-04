@@ -13,7 +13,10 @@
                 <div class="dashboard-list-box margin-top-0">
                     <div class="box-title-bar">
                         <h4>Danh sách yêu cầu sửa chữa</h4>
-                        <NuxtLink to="/quan-ly/Add-Repair" class="add-button">Yêu cầu sữa chữa</NuxtLink>
+                       <NuxtLink to="/quan-ly/them-yeu-cau" class="add-button">
+                         <i class="im im-icon-Add mr-2 "></i> Yêu cầu sửa chữa
+                        </NuxtLink>
+
                     </div>
 
                     <div v-if="repairRequests.length === 0" class="box-title-bar-tb">
@@ -254,31 +257,33 @@ onMounted(() => {
 }
 
 .pending {
-    background-color: #ffe082;
-    color: #795548;
+    background-color: #edb717;
+    color: white;
+    
 }
 
 .inprogress {
-    background-color: #81d4fa;
-    color: #0277bd;
+    background-color: #39bcf9;
+    color: white;
 }
 
 .done {
-    background-color: #aed581;
-    color: #33691e;
+    background-color: #8ed83a;
+    color: white;
 }
 
 .canceled {
-    background-color: #ef9a9a;
-    color: #b71c1c;
+    background-color: #f91942;
+    color: white;
+   
 }
 
 .cancel-box {
     margin-top: 5px;
     padding: 10px;
     background: #ffebee;
-    border-left: 4px solid #f44336;
-    color: #b71c1c;
+    border-left: 4px solid #f91942;
+    color: #f91942;
 }
 
 .repair-title {
@@ -295,14 +300,14 @@ onMounted(() => {
 
 .delete-btn {
     background: transparent;
-    border: 1px solid #d32f2f;
+    border: 1px solid #f91942;
     font-size: 14px;
     color: white;
     padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
     margin-left: auto;
-    background-color:#d32f2f ;
+    background-color:#f91942 ;
 }
 .box-title-bar-tb {
     font-size: larger;
@@ -470,7 +475,7 @@ h5 {
     float: right;
     background-color: transparent;
     color: white;
-    border: 2px solid #d32f2f;
+    border: 2px solid #f91942;
     border-radius: 999px;
     padding: 8px 12px;
     font-size: 16px;
@@ -480,18 +485,24 @@ h5 {
     background-color: #ffffff; /* Nền đỏ */
     margin-top: -60px;
     margin-right: 18px;
-    background-color: #d32f2f;
+    background-color: #f91942;
     height: 35px;
     top: 5px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+   
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* khoảng cách giữa icon và chữ */
+
+
 }
 
 .add-button:hover {
     background-color: white;
-    color: #d32f2f;
-    border-color: #d32f2f;
+    color: #f91942;
+    border-color: #f91942;
 }
 </style>
