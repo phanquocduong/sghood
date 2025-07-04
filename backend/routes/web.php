@@ -28,6 +28,10 @@ Route::get('/', function () {
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/save-fcm-token', [AuthController::class, 'saveFcmToken'])->name('save-fcm-token');
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('csrf-token');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Các route được bảo vệ bởi middleware admin

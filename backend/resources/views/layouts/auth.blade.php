@@ -27,6 +27,7 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    @stack('styles')
 </head>
 <body>
     <div class="container-fluid position-relative bg-white d-flex p-0">
@@ -54,5 +55,6 @@
 
     <!-- Template Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>

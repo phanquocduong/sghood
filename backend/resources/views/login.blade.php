@@ -19,7 +19,7 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                <form action="{{ route('login') }}" method="POST">
+                <form action="{{ route('login') }}" method="POST" id="loginForm">
                     @csrf
                     <div class="form-floating mb-3">
                         <input type="text" name="username" class="form-control" id="floatingInput" value="{{ old('username') }}" required placeholder="+84.../abc@gmail.com" />
@@ -47,4 +47,119 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: 'AIzaSyAnEYDqg-BwdYKJLoz1bDG1x62JnRsVVB0',
+        authDomain: 'tro-viet.firebaseapp.com',
+        projectId: 'tro-viet',
+        storageBucket: 'tro-viet.firebasestorage.app',
+        messagingSenderId: '1000506063285',
+        appId: '1:1000506063285:web:47e80b8489d09c8ce8c1fc',
+        measurementId: 'G-LRB092W6Y5'
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // Kiểm tra Firebase Messaging ngay khi tải trang
+    async function testFirebaseMessaging() {
+        if (!messaging) return;
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            await messaging.getToken({
+                vapidKey: 'BIwo8BokWVVEkQusRhenQkeVXDESe5Hfev8clWdC4BAcN1Onj6Ic2W6WOyFBrQKMMHIHQI2lloDVsn2F6lxOyxo'
+            });
+        }
+    }
+
+    // Gọi kiểm tra ngay khi tải trang
+    if (messaging) {
+        testFirebaseMessaging();
+    }
+
+    // Hàm lấy FCM token
+    async function getFcmToken() {
+        if (!messaging || !('PushManager' in window)) return null;
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return null;
+        const token = await messaging.getToken({
+            vapidKey: 'BIwo8BokWVVEkQusRhenQkeVXDESe5Hfev8clWdC4BAcN1Onj6Ic2W6WOyFBrQKMMHIHQI2lloDVsn2F6lxOyxo'
+        });
+        return token || null;
+    }
+
+    // Hàm làm mới CSRF token
+    async function refreshCsrfToken() {
+        const response = await fetch('/csrf-token', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        const result = await response.json();
+        document.querySelector('meta[name="csrf-token"]').content = result.csrf_token;
+        return result.csrf_token;
+    }
+
+    // Hàm gửi FCM token lên server
+    async function saveFcmToken(token) {
+        const csrfToken = await refreshCsrfToken();
+        if (!csrfToken) return false;
+
+        try {
+            const response = await fetch('{{ route("save-fcm-token") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ fcm_token: token })
+            });
+            const result = await response.json();
+            return result.success;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Xử lý form submit
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginForm = document.getElementById('loginForm');
+        if (!loginForm) return;
+
+        loginForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const token = await getFcmToken();
+                    if (token) {
+                        await saveFcmToken(token);
+                    }
+                    window.location.href = '{{ route("dashboard") }}';
+                }
+            } catch (error) {}
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -140,9 +140,13 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             });
             user.value = null;
-            router.push('/');
             toast.success(response.message);
             resetForm();
+            if (router.currentRoute.value.path === '/') {
+                window.location.reload();
+            } else {
+                router.push('/');
+            }
         } catch (error) {
             toast.error('Lỗi đăng xuất. Vui lòng thử lại.');
         } finally {
