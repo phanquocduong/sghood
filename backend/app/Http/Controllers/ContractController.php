@@ -22,7 +22,7 @@ class ContractController extends Controller
         $contracts = $this->contractService->getAllContracts(
             $request->get('querySearch', '') ?? '',
             $request->get('status', '') ?? '',
-            (int) ($request->get('perPage', 10) ?? 10)
+            $request->get('sort', 'desc') ?? 'desc'
         );
 
         if (isset($contracts['error'])) {
@@ -33,7 +33,7 @@ class ContractController extends Controller
             'contracts' => $contracts['data'],
             'querySearch' => $request->get('querySearch', '') ?? '',
             'status' => $request->get('status', '') ?? '',
-            'perPage' => (int) ($request->get('perPage', 10) ?? 10),
+            'sort' => $request->get('sort', 'desc') ?? 'desc',
         ]);
     }
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\TransactionController;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -164,6 +167,17 @@ Route::middleware('admin')->group(function () {
 
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
         ->name('contracts.showIdentityDocument');
+
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+        Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+        Route::put('/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
+    });
+
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
+    });
 });
 
 // File PDF
@@ -182,3 +196,9 @@ Route::get('/contract/pdf/{id}', function ($id) {
 Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
 Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
 Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+
+
+// Route for repair requests
+Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
+Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');

@@ -33,14 +33,14 @@
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('invoice.*') || request()->routeIs('transaction.*') || request()->routeIs('meter_readings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
                 <div class="dropdown-menu bg-transparent border-0">
-                    <a href="invoice.html" class="dropdown-item {{ request()->is('invoice.html') ? 'active' : '' }}">Hoá đơn</a>
-                    <a href="transaction.html" class="dropdown-item {{ request()->is('transaction.html') ? 'active' : '' }}">Lịch sử giao dịch</a>
+                    <a href="{{ route('invoices.index') }}" class="dropdown-item {{ request()->is('invoices*') ? 'active' : '' }}">Hoá đơn</a>
+                    <a href="{{ route('transactions.index') }}" class="dropdown-item {{ request()->is('transactions*') ? 'active' : '' }}">Lịch sử giao dịch</a>
                     <a href="{{ route('meter_readings.index') }}" class="dropdown-item {{ request()->routeIs('meter_readings.*') ? 'active' : '' }}">Chỉ số điện nước</a>
                 </div>
             </div>
 
             <!-- Quản lý vận hành -->
-            <a href="maintenance.html" class="nav-item nav-link {{ request()->is('maintenance.html') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
+            <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_request.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
 
             <!-- Quản lý hệ thống -->
             <div class="nav-item dropdown">

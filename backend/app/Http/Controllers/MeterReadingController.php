@@ -19,7 +19,6 @@ class MeterReadingController extends Controller
 
     public function index(Request $request)
     {
-        // $meterReadings = \App\Models\MeterReading::all();
         $rooms = $this->meterReadingService->getRooms();
         // Get all meter readings with optional search functionality
         $search = (string) $request->query('search', '');
@@ -30,6 +29,7 @@ class MeterReadingController extends Controller
         // Logic to handle meter reading index
         return view('meter_readings.index', compact('rooms', 'meterReadings', 'isFiltering'));
     }
+
     public function store(MeterReadingRequest $request)
     {
         try {
