@@ -49,21 +49,20 @@ class TransactionService
     // Lấy thống kê giao dịch
     public function getTransactionStats(): array
     {
-        $total = Transaction::count();
-        $inCount = Transaction::where('transfer_type', 'in')->count();
-        $outCount = Transaction::where('transfer_type', 'out')->count();
+        $transactions = Transaction::whereMonth('transaction_date', now()->month)
+            ->whereYear('transaction_date', now()->year)
+            ->get(['transfer_type', 'transfer_amount']);
 
-        $inAmount = Transaction::where('transfer_type', 'in')->sum('transfer_amount');
-        $outAmount = Transaction::where('transfer_type', 'out')->sum('transfer_amount');
-        $balance = $inAmount - $outAmount;
+        $inTransactions = $transactions->where('transfer_type', 'in');
+        $outTransactions = $transactions->where('transfer_type', 'out');
 
         return [
-            'total' => $total,
-            'in' => $inCount,
-            'out' => $outCount,
-            'balance' => $balance,
-            'in_amount' => $inAmount,
-            'out_amount' => $outAmount,
+            'total' => Transaction::count(),
+            'in' => $inTransactions->count(),
+            'out' => $outTransactions->count(),
+            'balance' => $inTransactions->sum('transfer_amount') - $outTransactions->sum('transfer_amount'),
+            'in_amount' => $inTransactions->sum('transfer_amount'),
+            'out_amount' => $outTransactions->sum('transfer_amount'),
         ];
     }
 }

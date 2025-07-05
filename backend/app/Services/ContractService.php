@@ -16,7 +16,7 @@ use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class ContractService
 {
-    public function getAllContracts(string $querySearch = '', string $status = '', int $perPage = 10): array
+    public function getAllContracts(string $querySearch = '', string $status = '', string $sort = 'desc'): array
     {
         try {
             DB::enableQueryLog();
@@ -39,14 +39,16 @@ class ContractService
                 $query->where('status', $status);
             }
 
-            $contracts = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            // Apply sort by created_at
+            $sortDirection = in_array($sort, ['asc', 'desc']) ? $sort : 'desc';
+            $contracts = $query->orderBy('created_at', $sortDirection)->paginate(15);
             \Log::info('SQL Query', \DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
                 'query_search' => $querySearch,
                 'status' => $status,
-                'per_page' => $perPage
+                'sort' => $sort
             ]);
             return ['error' => 'Đã xảy ra lỗi khi lấy danh sách hợp đồng', 'status' => 500];
         }

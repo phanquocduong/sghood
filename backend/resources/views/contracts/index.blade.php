@@ -74,10 +74,9 @@ use Illuminate\Support\Facades\Storage;
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select shadow-sm" name="perPage">
-                            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10/trang</option>
-                            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25/trang</option>
-                            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50/trang</option>
+                        <select class="form-select shadow-sm" name="sort">
+                            <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
                         </select>
                     </div>
                     <div class="col-md-3">
