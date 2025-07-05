@@ -71,18 +71,11 @@
 
     <!-- Template Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
-<<<<<<< HEAD
-=======
-    <script src="{{ asset('js/system.js') }}"></script>
-    <script src="{{ asset('js/room-edit.js') }}"></script>
-    <script src="{{ asset('js/room.js') }}"></script>
-    <script src="{{ asset('js/schedule.js') }}"></script>
     <script src="{{ asset('js/chat.js') }}"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/translations/vi.js"></script>
     <script src="{{ asset('ckfinder/ckfinder.js') }}"></script>
     <script src="{{ asset('js/blog.js') }}"></script>
->>>>>>> GiaBao
     @stack('scripts')
     @yield('scripts')
 </body>

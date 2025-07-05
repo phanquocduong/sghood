@@ -13,13 +13,8 @@
                 <div class="dashboard-list-box margin-top-0">
                     <div class="box-title-bar">
                         <h4>Danh sách yêu cầu sửa chữa</h4>
-<<<<<<< HEAD:frontend/pages/quan-ly/yeu-cau-sua-chua.vue
-                        <NuxtLink to="/quan-ly/them-yeu-cau" class="add-button">
+                        <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
                             <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
-=======
-                       <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
-                         <i class="im im-icon-Add mr-2 "></i> Yêu cầu sửa chữa
->>>>>>> GiaBao:frontend/pages/quan-ly/yeu-cau-sua-chua/index.vue
                         </NuxtLink>
                     </div>
 

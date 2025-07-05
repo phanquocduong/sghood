@@ -16,6 +16,8 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+
 const authUser = useAuthStore();
 const role = computed(() => authUser.user?.role || '');
 const FullnavItems = [
@@ -25,7 +27,7 @@ const FullnavItems = [
     { path: '/quan-ly/dat-phong', icon: 'fa fa-calendar-check-o', label: 'Đặt phòng' },
     { path: '/quan-ly/hop-dong', icon: 'im im-icon-Book', label: 'Hợp đồng' },
     { path: '/quan-ly/hoa-don', icon: 'im im-icon-Billing', label: 'Hoá đơn' },
-    { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch', roles: ['Người thuê'] },
+    { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch' },
     { path: '/quan-ly/yeu-cau-sua-chua', icon: 'im im-icon-Drill-2', label: 'Quản lý sữa chữa', roles: ['Người thuê'] }
 ];
 const navItems = computed(() => {

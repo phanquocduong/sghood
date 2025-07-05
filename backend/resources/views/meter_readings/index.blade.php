@@ -92,7 +92,7 @@
                     $year = $today->year;
 
                     // Tính toán kỳ hiển thị: nếu đang từ 28 tháng này → 5 tháng sau thì kỳ = tháng sau
-                    $startDate = now()->copy()->day(28);
+                    $startDate = now()->copy()->day(1);
                     $endDate = now()->copy()->addMonthNoOverflow()->day(5);
                     $shouldDisplayTable = $today->between($startDate, $endDate);
 
