@@ -13,10 +13,9 @@
                 <div class="dashboard-list-box margin-top-0">
                     <div class="box-title-bar">
                         <h4>Danh sách yêu cầu sửa chữa</h4>
-                       <NuxtLink to="/quan-ly/them-yeu-cau" class="add-button">
-                         <i class="im im-icon-Add mr-2 "></i> Yêu cầu sửa chữa
+                        <NuxtLink to="/quan-ly/them-yeu-cau" class="add-button">
+                            <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
                         </NuxtLink>
-
                     </div>
 
                     <div v-if="repairRequests.length === 0" class="box-title-bar-tb">
@@ -31,7 +30,7 @@
                                 alt="Hình ảnh sự cố"
                                 class="repair-image"
                                 @click="openImageSlider(index)"
-                                />
+                            />
                         </div>
 
                         <!-- Nội dung bên phải -->
@@ -42,20 +41,22 @@
                                     {{ req.title }}
                                 </h5>
 
-                                <button  class="delete-btn"
-                            v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-                            @click="removeRequest(req.id)"
-                            :disabled="isLoading === req.id">
-                                <span v-if="isLoading === req.id" class="spinner"></span>
-                            {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
-                            </button>
+                                <button
+                                    class="delete-btn"
+                                    v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+                                    @click="removeRequest(req.id)"
+                                    :disabled="isLoading === req.id"
+                                >
+                                    <span v-if="isLoading === req.id" class="spinner"></span>
+                                    {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
+                                </button>
                                 <span
                                     class="status-tag"
                                     :class="{
                                         pending: req.status === 'Chờ xác nhận',
                                         inprogress: req.status === 'Đang thực hiện',
                                         done: req.status === 'Hoàn thành',
-                                        canceled: req.status === 'Hủy bỏ',
+                                        canceled: req.status === 'Hủy bỏ'
                                     }"
                                 >
                                     {{ req.status }}
@@ -95,23 +96,21 @@
 
 <script setup>
 definePageMeta({ layout: 'management' });
-import { ref,onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+
 const showSlider = ref(false);
 const selectedImages = ref([]);
 const currentIndex = ref(0);
 const loading = ref(true);
 const transitionName = ref('slide-left');
-const isLoading = ref(null)
-const {$api} = useNuxtApp()
-const userId = useAuthStore()
-const repairRequests = ref([])
+const isLoading = ref(null);
+const { $api } = useNuxtApp();
+const repairRequests = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
-const openImageSlider = (reqIndex) => {
-  selectedImages.value = (repairRequests.value[reqIndex].images || []).map(
-    img => `${baseUrl}${img}`
-  );
-  currentIndex.value = 0;
-  showSlider.value = true;
+const openImageSlider = reqIndex => {
+    selectedImages.value = (repairRequests.value[reqIndex].images || []).map(img => `${baseUrl}${img}`);
+    currentIndex.value = 0;
+    showSlider.value = true;
 };
 
 const nextImage = () => {
@@ -128,52 +127,49 @@ const closeSlider = () => {
     showSlider.value = false;
 };
 
- 
-
-const FetchRepair = async ()=>{
-    loading.value = true
-    try{
-        const res = await $api(`/repair-requests`,{
-        method:'GET',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-        }
-    })
-    repairRequests.value = res.data || []
-        console.log(res)
-    }catch(e){
-        console.log('sai o dau roi ban oi' ,e)
-    }finally{
-      loading.value = false
+const FetchRepair = async () => {
+    loading.value = true;
+    try {
+        const res = await $api(`/repair-requests`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            }
+        });
+        repairRequests.value = res.data || [];
+        console.log(res);
+    } catch (e) {
+        console.log('sai o dau roi ban oi', e);
+    } finally {
+        loading.value = false;
     }
-    
-}
-const removeRequest =async(id) => { 
- if (!id) {
-    console.warn('Không có ID để huỷ');
-    return;
-  }
-  isLoading.value=id
-     try{
-        const res = await $api(`/repair-requests/${id}/cancel `,{
-        method:'PATCH',
-        headers:{
-            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
-            'Accept': 'application/json',
-        }
-    })
-   await FetchRepair()
-    console.log(res)
-    }catch(e){
-        console.log('sai o dau roi ban oi' ,e)
-    }finally{
-        isLoading.value=null
+};
+const removeRequest = async id => {
+    if (!id) {
+        console.warn('Không có ID để huỷ');
+        return;
+    }
+    isLoading.value = id;
+    try {
+        const res = await $api(`/repair-requests/${id}/cancel `, {
+            method: 'PATCH',
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+                Accept: 'application/json'
+            }
+        });
+        await FetchRepair();
+        console.log(res);
+    } catch (e) {
+        console.log('sai o dau roi ban oi', e);
+    } finally {
+        isLoading.value = null;
     }
 };
 onMounted(() => {
-    FetchRepair()
-})
+    FetchRepair();
+});
 </script>
 
 <style scoped>
@@ -259,7 +255,6 @@ onMounted(() => {
 .pending {
     background-color: #edb717;
     color: white;
-    
 }
 
 .inprogress {
@@ -275,7 +270,6 @@ onMounted(() => {
 .canceled {
     background-color: #f91942;
     color: white;
-   
 }
 
 .cancel-box {
@@ -307,7 +301,7 @@ onMounted(() => {
     border-radius: 4px;
     cursor: pointer;
     margin-left: auto;
-    background-color:#f91942 ;
+    background-color: #f91942;
 }
 .box-title-bar-tb {
     font-size: larger;
@@ -339,10 +333,9 @@ onMounted(() => {
 
 .slider-image {
     width: 500px; /* 👈 Tuỳ chỉnh kích thước mong muốn */
-  height: 500px;
-  object-fit: contain; /* hoặc cover nếu bạn muốn ảnh full khung */
-  border-radius: 6px;
-  
+    height: 500px;
+    object-fit: contain; /* hoặc cover nếu bạn muốn ảnh full khung */
+    border-radius: 6px;
 }
 
 .slider-controls {
@@ -492,12 +485,10 @@ h5 {
     display: flex;
     align-items: center;
     justify-content: center;
-   
-  display: inline-flex;
-  align-items: center;
-  gap: 8px; /* khoảng cách giữa icon và chữ */
 
-
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* khoảng cách giữa icon và chữ */
 }
 
 .add-button:hover {

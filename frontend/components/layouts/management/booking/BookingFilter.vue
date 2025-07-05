@@ -11,6 +11,24 @@
                 </div>
             </div>
         </ClientOnly>
+        <ClientOnly>
+            <div class="sort-by">
+                <div class="sort-by-select">
+                    <select
+                        name="status"
+                        :value="filter.status"
+                        @change="updateFilter('status', $event.target.value)"
+                        class="chosen-select"
+                    >
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="Chờ xác nhận">Chờ xác nhận</option>
+                        <option value="Chấp nhận">Chấp nhận</option>
+                        <option value="Từ chối">Từ chối</option>
+                        <option value="Huỷ bỏ">Huỷ bỏ</option>
+                    </select>
+                </div>
+            </div>
+        </ClientOnly>
     </div>
 </template>
 

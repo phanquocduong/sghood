@@ -313,13 +313,13 @@ header.fullwidth .container {
 
 .left-side {
     float: left;
-    width: 55%;
+    width: 60%;
     display: inline-block;
 }
 
 .right-side {
     float: right;
-    width: 45%;
+    width: 40%;
     display: inline-block;
 }
 
@@ -1673,7 +1673,7 @@ html.mm-blocking #mm-blocker {
 }
 
 .mm-menu.mm-offcanvas {
-    z-index: 0;
+    z-index: 1000;
     display: none;
     position: fixed;
 }

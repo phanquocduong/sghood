@@ -32,7 +32,6 @@ class ContractService
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
-                    'room.mainImage' => fn($query) => $query->select('id', 'room_id', 'image_url'),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
                         ->where('type', 'Đặt cọc')
                         ->first()
@@ -42,7 +41,7 @@ class ContractService
                     'id' => $contract->id,
                     'room_name' => $contract->room->name,
                     'motel_name' => $contract->room->motel->name,
-                    'room_image' => $contract->room->mainImage?->image_url,
+                    'room_image' => $contract->room->main_image->image_url,
                     'start_date' => $contract->start_date->toIso8601String(),
                     'end_date' => $contract->end_date->toIso8601String(),
                     'status' => $contract->status,

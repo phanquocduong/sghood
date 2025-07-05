@@ -62,7 +62,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const schedules = ref([]);
-const filter = ref({ sort: 'default' });
+const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const buttonLoading = ref(false);
 const toast = useToast();
@@ -167,8 +167,7 @@ const updateChosenSelect = (selectRef, value = null) => {
 
 const openPopup = async motelId => {
     await fetchRooms(motelId);
-    console.log(rooms.value);
-    formData.value.room_id = null; // Reset room_id
+    formData.value.room_id = null;
 
     if (window.jQuery && window.jQuery.fn.magnificPopup) {
         window.jQuery.magnificPopup.open({
@@ -186,7 +185,6 @@ const openPopup = async motelId => {
             mainClass: 'my-mfp-zoom-in',
             callbacks: {
                 open: function () {
-                    // Update chosen select sau khi popup mở
                     updateChosenSelect(roomSelect);
                 }
             }
@@ -196,7 +194,6 @@ const openPopup = async motelId => {
     }
 };
 
-// Watch rooms để update chosen select khi dữ liệu thay đổi
 watch(
     rooms,
     () => {
@@ -255,7 +252,6 @@ onMounted(() => {
         }
 
         if (window.jQuery && window.jQuery.fn.chosen) {
-            // Initialize duration select
             const $durationSelect = window.jQuery(durationSelect.value).chosen({
                 width: '100%',
                 no_results_text: 'Không tìm thấy kết quả',
@@ -267,7 +263,6 @@ onMounted(() => {
                 formData.value.duration = event.target.value;
             });
 
-            // Initialize room select
             const $roomSelect = window.jQuery(roomSelect.value).chosen({
                 width: '100%',
                 no_results_text: 'Không tìm thấy phòng',

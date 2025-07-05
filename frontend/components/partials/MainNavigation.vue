@@ -5,34 +5,22 @@
                 <NuxtLink to="/" active-class="current" class="inline-flex items-center">Trang Chủ</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/danh-sach-nha-tro" active-class="current"class="inline-flex items-center">Danh Sách Nhà Trọ</NuxtLink>
+                <NuxtLink to="/danh-sach-nha-tro" active-class="current" class="inline-flex items-center">Nhà Trọ</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/ve-chung-toi" active-class="current"class="inline-flex items-center">Về Chúng Tôi</NuxtLink>
+                <NuxtLink to="/ve-chung-toi" active-class="current" class="inline-flex items-center">Về Chúng Tôi</NuxtLink>
             </li>
             <li>
-               <NuxtLink to="/chia-se-kinh-nghiem" active-class="current"class="inline-flex items-center">Chia Sẽ Kinh Nghiệm</NuxtLink>
-           </li>
+                <NuxtLink to="/chia-se-kinh-nghiem" active-class="current" class="inline-flex items-center">Kinh Nghiệm</NuxtLink>
+            </li>
             <li>
-                <NuxtLink to="/lien-he" active-class="current"class="inline-flex items-center">Liên Hệ</NuxtLink>
+                <NuxtLink to="/lien-he" active-class="current" class="inline-flex items-center">Liên Hệ</NuxtLink>
             </li>
         </ul>
     </nav>
+    <div class="clearfix"></div>
 </template>
 
 <script setup></script>
 
-<style scoped>
-#navigation ul#responsive {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 20px; /* hoặc dùng margin-right trong li nếu bạn muốn linh hoạt */
-  white-space: nowrap;
-}
-
-#navigation ul#responsive li {
-  list-style: none;
-  white-space: nowrap;
-}
-</style>
+<style scoped></style>

@@ -18,29 +18,27 @@ class ViewingScheduleService
     {
         $query = Schedule::query()
             ->where('user_id', Auth::id())
-            ->with(['motel'])
-            ->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
+            ->with(['motel']);
+
+        // Lọc theo trạng thái nếu có
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
 
         $schedules = $query->get()->map(function ($schedule) {
             return [
                 'id' => $schedule->id,
                 'motel_id' => $schedule->motel->id,
                 'motel_name' => $schedule->motel->name,
-                'motel_image' => $schedule->motel->images->first()->image_url ?? null,
-                'scheduled_at' => $schedule->scheduled_at->toIso8601String(),
+                'motel_image' => $schedule->motel->main_image->image_url,
+                'scheduled_at' => $schedule->scheduled_at,
                 'message' => $schedule->message,
                 'status' => $schedule->status,
                 'cancellation_reason' => $schedule->cancellation_reason,
-                'created_at' => $schedule->created_at->toIso8601String(),
             ];
         });
-
-        $sortOrder = $this->getSortOrder($filters['sort'] ?? 'default');
-        if ($sortOrder === 'asc') {
-            $schedules = $schedules->sortBy('created_at');
-        } else {
-            $schedules = $schedules->sortByDesc('created_at');
-        }
 
         return $schedules->values();
     }
@@ -51,17 +49,24 @@ class ViewingScheduleService
         $timeParts = explode(' - ', $data['timeSlot']);
         $startTime = trim($timeParts[0]);
 
-        $timeParts = explode(' ', $startTime);
-        $time = $timeParts[0];
-        $period = isset($timeParts[1]) ? $timeParts[1] : '';
-        $hourMinute = explode(':', $time);
+        // Tách giờ và phút từ startTime
+        $hourMinute = explode(':', $startTime);
         $hour = intval($hourMinute[0]);
-        $minute = intval($hourMinute[1]);
+        $minute = isset($hourMinute[1]) ? intval($hourMinute[1]) : 0;
 
-        if ($period === 'chiều') {
-            $hour += 12;
+        // Kiểm tra nếu có định dạng "sáng" hoặc "chiều"
+        $period = '';
+        if (strpos($startTime, 'sáng') !== false) {
+            $period = 'sáng';
+        } elseif (strpos($startTime, 'chiều') !== false) {
+            $period = 'chiều';
+            // Nếu là buổi chiều và giờ nhỏ hơn 12, tăng thêm 12 để chuyển sang định dạng 24h
+            if ($hour < 12) {
+                $hour += 12;
+            }
         }
 
+        // Đặt thời gian cho ngày
         $dateTime = $date->setTime($hour, $minute)->format('Y-m-d H:i:s');
 
         $existingSchedule = Schedule::where('user_id', $data['user_id'])

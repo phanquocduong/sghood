@@ -23,7 +23,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const bookings = ref([]);
-const filter = ref({ sort: 'default' });
+const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const toast = useToast();
 

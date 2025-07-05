@@ -20,7 +20,7 @@ class ViewingScheduleController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['sort']);
+            $filters = $request->only(['sort', 'status']);
             $schedules = $this->viewingScheduleService->getSchedules($filters);
             return response()->json([
                 'data' => $schedules

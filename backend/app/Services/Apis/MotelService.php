@@ -40,7 +40,7 @@ class MotelService
     {
         $motels = Motel::query()
             ->select('id', 'slug', 'name', 'description', 'address', 'status', 'district_id')
-            ->with(['district:id,name', 'mainImage:id,motel_id,image_url'])
+            ->with(['district:id,name'])
             ->withCount('amenities')
             ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
                 $query->where('status', 'Trống')
@@ -68,7 +68,7 @@ class MotelService
     public function searchMotels(Request $request)
     {
         $query = Motel::query()
-            ->with(['district:id,name', 'rooms:id,motel_id,price', 'mainImage:id,motel_id,image_url'])
+            ->with(['district:id,name', 'rooms:id,motel_id,price'])
             ->withCount('amenities')
             ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
                 $query->where('status', 'Trống')
@@ -172,7 +172,7 @@ class MotelService
                         ->where('status', 'Trống')
                         ->with([
                             'amenities:id,name',
-                            'images:id,room_id,image_url,is_main' // Lấy tất cả hình ảnh của phòng
+                            'images:id,room_id,image_url' // Lấy tất cả hình ảnh của phòng
                         ]),
                 'amenities:id,name',
             ])
@@ -200,7 +200,7 @@ class MotelService
             'description' => $room->description,
             'status' => $room->status,
             'amenities' => $room->amenities->pluck('name')->toArray(),
-            'main_image' => $room->images->firstWhere('is_main', 1) ? $room->images->firstWhere('is_main', 1)->image_url : ($room->images->first()->image_url ?? null),
+            'main_image' => $room->main_image->image_url,
             'images' => $room->images->map(fn ($image) => ['src' => $image->image_url])->values()->all()
         ])->values()->all();
 
@@ -234,7 +234,7 @@ class MotelService
                 'address' => $motel->address,
                 'status' => $motel->status,
                 'district_name' => $motel->district->name,
-                'main_image' => $motel->mainImage->image_url,
+                'main_image' => $motel->main_image->image_url,
                 'room_count' => $motel->available_rooms_count,
                 'min_price' => $motel->rooms->min('price'),
             ];
