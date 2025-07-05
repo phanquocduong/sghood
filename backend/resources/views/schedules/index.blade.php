@@ -184,4 +184,5 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
     </style>
+    <script src="{{ asset('js/schedule.js') }}"></script>
 @endsection
