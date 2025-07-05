@@ -100,16 +100,18 @@ class InvoiceService
 
     public function getInvoiceStats(): array
     {
-        $totalInvoices = Invoice::count();
-        $paidInvoices = Invoice::where('status', 'Đã trả')->count();
-        $unpaidInvoices = Invoice::where('status', 'Chưa trả')->count();
-        $overdueInvoices = Invoice::where('status', 'Đã hoàn tiền')->count();
+        $invoices= Invoice::whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)->get(['status', 'total_amount']);
+
+        $paidInvoices = $invoices->where('status', 'Đã trả');
+        $unpaidInvoices = $invoices->where('status', 'Chưa trả');
+        $overdueInvoices = $invoices->where('status', 'Đã hoàn tiền');
 
         return [
-            'total' => $totalInvoices,
-            'paid' => $paidInvoices,
-            'unpaid' => $unpaidInvoices,
-            'overdue' => $overdueInvoices
+            'total' => Invoice::count(),
+            'paid' => $paidInvoices->count(),
+            'unpaid' => $unpaidInvoices->count(),
+            'overdue' => $overdueInvoices->count()
         ];
     }
 }
