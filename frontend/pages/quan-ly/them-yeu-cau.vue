@@ -33,7 +33,17 @@
                 </div>
 
                 <!-- Submit -->
-                <button type="submit" class="submit-btn">Gửi yêu cầu</button>
+                 <button
+                            type="submit"
+                            class="submit button"
+                            id="submit"
+                            value="Gửi tin nhắn"
+                            :disabled="isLoading"
+                            style="margin-bottom: 10px; margin-top: -10px"
+                        >
+                            <span v-if="isLoading" class="spinner"></span>
+                            {{ isLoading ? ' Đang gửi...' : 'Gửi đi' }}
+                        </button>
             </form>
         </div>
     </div>
@@ -45,10 +55,12 @@ definePageMeta({ layout: 'management' });
 import { ref, watch, nextTick, onMounted } from 'vue';
 import Dropzone from 'dropzone';
 import 'dropzone/dist/dropzone.css';
-
+import { useRouter  } from 'vue-router';
+const router = useRouter()
 Dropzone.autoDiscover = false;
-
+const {$api} = useNuxtApp()
 const loading = ref(true);
+const isLoading = ref (false)
 
 const form = ref({
     title: '',
@@ -76,7 +88,7 @@ const initDropzone = () => {
         dictRemoveFile: 'Xoá',
         autoProcessQueue: true,
         init() {
-            this.on('queuecomplete', file => {
+            this.on('addedfile', file => {
                 if (form.value.images.length >= 4) {
                     this.removeFile(file);
                     alert('Chỉ được tải tối đa 4 ảnh.');
@@ -91,7 +103,39 @@ const initDropzone = () => {
         }
     });
 };
+const submitForm = async ()=>{
+    if(form.value.images.length === 0 ){
+      alert('Chon hinh di thang con cac')
+      return
+    }
+    const formData = new FormData();
+    formData.append('title',form.value.title);
+    formData.append('description',form.value.description);
+    formData.append('status',form.value.status);
+     
 
+    form.value.images.forEach((file )=>{
+        formData.append(`images[]`,file)
+    });
+    isLoading.value = true;
+        try{
+        const res = await $api(`/repair-requests`,{
+        method:'POST',
+        body:formData,
+        headers:{
+            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+            'Accept': 'application/json'
+        }
+    })
+       dropzoneInstance.removeAllFiles();
+       router.push('/quan-ly/quan-ly-sua-chua')
+    } catch (e) {
+    console.log('Lỗi gửi form:', e?.response?._data || e);
+  } finally {
+    isLoading.value = false;
+  }
+    
+}
 onMounted(() => {
     setTimeout(() => {
         loading.value = false;
@@ -105,11 +149,7 @@ watch(loading, async val => {
     }
 });
 
-const submitForm = () => {
-    console.log('Dữ liệu gửi:', form.value);
-    alert('Yêu cầu đã được gửi!');
-    // TODO: gửi API khi backend sẵn
-};
+
 </script>
 
 <style scoped>
@@ -192,9 +232,26 @@ const submitForm = () => {
     cursor: pointer;
     transition: 0.3s;
 }
-.submit-btn:hover {
-    background: white;
-    color: #d32f2f;
-    border: 2px solid #d32f2f;
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 </style>
