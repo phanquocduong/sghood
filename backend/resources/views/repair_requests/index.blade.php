@@ -16,7 +16,9 @@
     <div class="container-fluid py-5 px-4">
         <div class="card shadow border-0 rounded-4">
             <div class="card-header text-white d-flex justify-content-between align-items-center rounded-top-4">
-                <h5 class="mb-0">Quản lý Yêu Cầu Sửa Chữa</h5>
+                <h5 class="mb-0">Quản lý Yêu Cầu Sửa Chữa
+                    <span class="badge bg-secondary">Số yêu cầu: {{ $repairRequests->total() }}</span>
+                </h5>
             </div>
             <div class="card-body p-4">
                 <form action="{{ route('repair_requests.index') }}" method="GET" class="row g-3 mb-4">
