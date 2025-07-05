@@ -72,6 +72,59 @@ class UserController extends Controller
         return redirect()->route('users.user')->with('success', 'Cập nhật thành công');
     }
 
+    public function updateRole(Request $request, $id)
+    {
+        $request->validate([
+            'role' => 'required|in:Người đăng ký,Người thuê,Quản trị viên',
+        ]);
+
+        $auth = auth()->user();
+        $target = User::findOrFail($id);
+
+        // Không cho tự sửa chính mình
+        if ($auth->id === $target->id) {
+            return back()->with('error', 'Bạn không thể sửa chính mình.');
+        }
+
+        // Admin thường không được sửa Admin hoặc Super Admin
+        if (!$auth->is_super_admin) {
+            if ($target->role === 'Quản trị viên') {
+                return back()->with('error', 'Bạn không có quyền sửa quản trị viên.');
+            }
+        }
+
+        $target->role = $request->role;
+        $target->save();
+
+        return back()->with('success', 'Cập nhật vai trò thành công.');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:Hoạt động,Khoá',
+        ]);
+
+        $auth = auth()->user();
+        $target = User::findOrFail($id);
+
+        if ($auth->id === $target->id) {
+            return back()->with('error', 'Bạn không thể khoá chính mình.');
+        }
+
+        // Admin thường không được sửa Admin hoặc Super Admin
+        if (!$auth->is_super_admin) {
+            if ($target->role === 'Quản trị viên') {
+                return back()->with('error', 'Bạn không có quyền khoá quản trị viên.');
+            }
+        }
+
+        $target->status = $request->status;
+        $target->save();
+
+        return back()->with('success', 'Cập nhật trạng thái thành công.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */

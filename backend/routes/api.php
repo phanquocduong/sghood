@@ -17,6 +17,7 @@ use App\Http\Controllers\Apis\RepairRequestController;
 use App\Http\Controllers\Apis\SepayWebhookController;
 use App\Http\Controllers\Apis\TransactionController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
+use App\Http\Controllers\Apis\BlogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -51,9 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
+
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
@@ -84,6 +87,10 @@ Route::post('/messages/send', [MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
+// Blog Routes
+Route::get('/blogs', [BlogController::class, 'index']);
+Route::get('/show/{id}', [BlogController::class, 'showBlog']);
+
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);

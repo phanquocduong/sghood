@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
     const username = ref('');
     const password = ref('');
     const confirmPassword = ref('');
+    const role = ref('');
     const phone = ref('');
     const otp = ref('');
     const otpSent = ref(false);
@@ -322,6 +323,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     return {
         username,
+        role,
         password,
         confirmPassword,
         phone,

@@ -1,0 +1,11 @@
+.unread-badge {
+    display: inline-block !important;
+    background: #dc3545 !important;
+    color: #fff !important;
+    padding: 2px 6px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    min-width: 20px !important;
+    text-align: center !important;
+    margin-left: 8px !important;
+}
