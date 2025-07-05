@@ -12,7 +12,7 @@ class Schedule extends Model
 
     protected $fillable = [
         'user_id',
-        'room_id',
+        'motel_id',
         'scheduled_at',
         'message',
         'status',
@@ -39,9 +39,9 @@ class Schedule extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Quan hệ với bảng rooms
-    public function room()
+    // Quan hệ với bảng motels
+    public function motel()
     {
-        return $this->belongsTo(Room::class, 'room_id');
+        return $this->belongsTo(Motel::class, 'motel_id');
     }
 }

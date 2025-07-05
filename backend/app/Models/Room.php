@@ -46,11 +46,6 @@ class Room extends Model
         return $mainImage;
     }
 
-    public function mainImage()
-    {
-        return $this->hasOne(RoomImage::class, 'room_id')->where('is_main', 1);
-    }
-
     public function booking()
     {
         return $this->hasMany(Booking::class);

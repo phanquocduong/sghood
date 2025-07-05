@@ -1,4 +1,3 @@
-<!-- nha-tro/[slug]/index.vue -->
 <template>
     <div class="container">
         <!-- Content -->
@@ -13,24 +12,26 @@
 
                     <ListingGallery :images="motel.images" />
                 </div>
+
+                <div id="listing-location" class="listing-section">
+                    <h3 class="listing-desc-headline margin-top-60 margin-bottom-30">Vị trí</h3>
+                    <iframe
+                        :src="motel.map_url"
+                        width="100%"
+                        height="400"
+                        style="border: 0"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                    ></iframe>
+                </div>
             </div>
 
             <!-- Sidebar -->
             <div class="col-lg-4 col-md-4 margin-top-75 sticky">
                 <ListingPricing :title="'Phí hàng tháng'" :fees="motel.fees" />
+                <ViewingScheduleForm :motel-id="motel.id" />
             </div>
-        </div>
-        <div id="listing-location" class="listing-section">
-            <h3 class="listing-desc-headline margin-top-60 margin-bottom-30">Vị trí</h3>
-            <iframe
-                :src="motel.map_url"
-                width="100%"
-                height="400"
-                style="border: 0"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
         </div>
 
         <!-- Danh sách phòng trống -->
@@ -39,10 +40,13 @@
 
             <div class="row">
                 <div v-for="room in motel.rooms" :key="room.id" class="col-lg-4 col-md-6">
-                    <RoomItem :item="room" />
+                    <RoomItem :item="room" @open-modal="openModal" />
                 </div>
             </div>
         </div>
+
+        <!-- Modal -->
+        <RoomModal :is-open="isModalOpen" :room="selectedRoom" @close="closeModal" />
     </div>
 </template>
 
@@ -53,6 +57,8 @@ import { useRoute } from 'vue-router';
 const { $api } = useNuxtApp();
 const route = useRoute();
 const motel = ref({});
+const isModalOpen = ref(false);
+const selectedRoom = ref(null);
 
 // Hàm định dạng giá tiền
 const formatPrice = price => {
@@ -65,6 +71,18 @@ const formatFees = fees => {
         name: fee.name,
         price: `${formatPrice(fee.price)}/${fee.unit}`
     }));
+};
+
+// Mở modal
+const openModal = room => {
+    selectedRoom.value = room;
+    isModalOpen.value = true;
+};
+
+// Đóng modal
+const closeModal = () => {
+    isModalOpen.value = false;
+    selectedRoom.value = null;
 };
 
 // Fetch dữ liệu từ API khi component được mounted
@@ -81,10 +99,11 @@ onMounted(async () => {
         data.fees = formatFees(data.fees);
         motel.value = data;
     } catch (error) {
-        console.error('Lỗi khi khi lấy dữ liệu chi tiết nhà trọ', error);
+        console.error('Lỗi khi lấy dữ liệu chi tiết nhà trọ', error);
     }
 });
 </script>
+
 <style scoped>
 .spinner {
     display: inline-block;

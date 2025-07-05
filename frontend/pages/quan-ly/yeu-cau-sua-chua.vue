@@ -13,7 +13,10 @@
                 <div class="dashboard-list-box margin-top-0">
                     <div class="box-title-bar">
                         <h4>Danh sách yêu cầu sửa chữa</h4>
-                        <NuxtLink to="/quan-ly/Add-Repair" class="add-button">Yêu cầu sữa chữa</NuxtLink>
+                       <NuxtLink to="/quan-ly/them-yeu-cau" class="add-button">
+                         <i class="im im-icon-Add mr-2 "></i> Yêu cầu sửa chữa
+                        </NuxtLink>
+
                     </div>
 
                     <div v-if="repairRequests.length === 0" class="box-title-bar-tb">
@@ -23,7 +26,12 @@
                     <div v-for="(req, index) in repairRequests" :key="req.id" class="repair-item">
                         <!-- Ảnh bên trái -->
                         <div class="repair-image-wrapper" v-if="req.images?.length">
-                            <img :src="req.images[0]" alt="Hình ảnh sự cố" class="repair-image" @click="openImageSlider(index)" />
+                            <img
+                                :src="`${baseUrl}${req.images[0]}`"
+                                alt="Hình ảnh sự cố"
+                                class="repair-image"
+                                @click="openImageSlider(index)"
+                                />
                         </div>
 
                         <!-- Nội dung bên phải -->
@@ -34,14 +42,20 @@
                                     {{ req.title }}
                                 </h5>
 
-                                <button class="delete-btn" @click="removeRequest(index)">Hủy</button>
+                                <button  class="delete-btn"
+                            v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+                            @click="removeRequest(req.id)"
+                            :disabled="isLoading === req.id">
+                                <span v-if="isLoading === req.id" class="spinner"></span>
+                            {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
+                            </button>
                                 <span
                                     class="status-tag"
                                     :class="{
                                         pending: req.status === 'Chờ xác nhận',
                                         inprogress: req.status === 'Đang thực hiện',
                                         done: req.status === 'Hoàn thành',
-                                        canceled: req.status === 'Đã hủy'
+                                        canceled: req.status === 'Hủy bỏ',
                                     }"
                                 >
                                     {{ req.status }}
@@ -81,17 +95,23 @@
 
 <script setup>
 definePageMeta({ layout: 'management' });
-import { ref } from 'vue';
+import { ref,onMounted } from 'vue';
 const showSlider = ref(false);
 const selectedImages = ref([]);
 const currentIndex = ref(0);
-const loading = ref(false);
+const loading = ref(true);
 const transitionName = ref('slide-left');
-
-const openImageSlider = reqIndex => {
-    selectedImages.value = repairRequests.value[reqIndex].images || [];
-    currentIndex.value = 0;
-    showSlider.value = true;
+const isLoading = ref(null)
+const {$api} = useNuxtApp()
+const userId = useAuthStore()
+const repairRequests = ref([])
+const baseUrl = useRuntimeConfig().public.baseUrl;
+const openImageSlider = (reqIndex) => {
+  selectedImages.value = (repairRequests.value[reqIndex].images || []).map(
+    img => `${baseUrl}${img}`
+  );
+  currentIndex.value = 0;
+  showSlider.value = true;
 };
 
 const nextImage = () => {
@@ -108,53 +128,77 @@ const closeSlider = () => {
     showSlider.value = false;
 };
 
-const repairRequests = ref([
-    {
-        id: 1,
-        title: 'Máy lạnh không hoạt động',
-        description: 'Máy lạnh phòng A302 bị tắt đột ngột và không khởi động lại.',
-        images: [
-            '/images/sghood_logo1.png',
-            '/images/popular-location-01.jpg',
-            '/images/sghood_logo1.png',
-            '/images/sghood_logo2.png',
-            '/images/sghood_logo1.png'
-        ],
-        status: 'Chờ xác nhận',
-        cancellation_reason: null
-    },
-    {
-        id: 2,
-        title: 'Ống nước bị vỡ',
-        description: 'Ống nước trong nhà vệ sinh tầng 2 bị vỡ, gây rò rỉ lớn.',
-        images: ['/images/sghood_logo1.png', '/images/maylanh2.png'],
-        status: 'Đang thực hiện',
-        cancellation_reason: null
-    },
-    {
-        id: 3,
-        title: 'Sơn tường bị bong tróc',
-        description: 'Tường phòng B101 bong tróc sơn, ảnh hưởng đến thẩm mỹ.',
-        images: ['/images/sghood_logo1.png', '/images/maylanh2.png'],
-        status: 'Hoàn thành',
-        cancellation_reason: null
-    },
-    {
-        id: 4,
-        title: 'Hủy yêu cầu sửa cửa',
-        description: 'Cửa phòng bị kẹt nhưng đã tự xử lý.',
-        images: ['/images/sghood_logo1.png', '/images/maylanh2.png'],
-        status: 'Đã hủy',
-        cancellation_reason: 'Người dùng tự sửa, không cần hỗ trợ nữa.'
-    }
-]);
+ 
 
-const removeRequest = index => {
-    repairRequests.value.splice(index, 1);
+const FetchRepair = async ()=>{
+    loading.value = true
+    try{
+        const res = await $api(`/repair-requests`,{
+        method:'GET',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+        }
+    })
+    repairRequests.value = res.data || []
+        console.log(res)
+    }catch(e){
+        console.log('sai o dau roi ban oi' ,e)
+    }finally{
+      loading.value = false
+    }
+    
+}
+const removeRequest =async(id) => { 
+ if (!id) {
+    console.warn('Không có ID để huỷ');
+    return;
+  }
+  isLoading.value=id
+     try{
+        const res = await $api(`/repair-requests/${id}/cancel `,{
+        method:'PATCH',
+        headers:{
+            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+            'Accept': 'application/json',
+        }
+    })
+   await FetchRepair()
+    console.log(res)
+    }catch(e){
+        console.log('sai o dau roi ban oi' ,e)
+    }finally{
+        isLoading.value=null
+    }
 };
+onMounted(() => {
+    FetchRepair()
+})
 </script>
 
 <style scoped>
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 .repair-item {
     display: flex;
     align-items: flex-start;
@@ -213,31 +257,33 @@ const removeRequest = index => {
 }
 
 .pending {
-    background-color: #ffe082;
-    color: #795548;
+    background-color: #edb717;
+    color: white;
+    
 }
 
 .inprogress {
-    background-color: #81d4fa;
-    color: #0277bd;
+    background-color: #39bcf9;
+    color: white;
 }
 
 .done {
-    background-color: #aed581;
-    color: #33691e;
+    background-color: #8ed83a;
+    color: white;
 }
 
 .canceled {
-    background-color: #ef9a9a;
-    color: #b71c1c;
+    background-color: #f91942;
+    color: white;
+   
 }
 
 .cancel-box {
     margin-top: 5px;
     padding: 10px;
     background: #ffebee;
-    border-left: 4px solid #f44336;
-    color: #b71c1c;
+    border-left: 4px solid #f91942;
+    color: #f91942;
 }
 
 .repair-title {
@@ -254,20 +300,15 @@ const removeRequest = index => {
 
 .delete-btn {
     background: transparent;
-    border: 1px solid #f44336;
+    border: 1px solid #f91942;
     font-size: 14px;
-    color: #f44336;
+    color: white;
     padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
     margin-left: auto;
+    background-color:#f91942 ;
 }
-
-.delete-btn:hover {
-    background: #f44336;
-    color: white;
-}
-
 .box-title-bar-tb {
     font-size: larger;
     padding: 10px;
@@ -297,9 +338,11 @@ const removeRequest = index => {
 }
 
 .slider-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 6px;
+    width: 500px; /* 👈 Tuỳ chỉnh kích thước mong muốn */
+  height: 500px;
+  object-fit: contain; /* hoặc cover nếu bạn muốn ảnh full khung */
+  border-radius: 6px;
+  
 }
 
 .slider-controls {
@@ -357,7 +400,7 @@ h5 {
 
 .slide-left-leave-active,
 .slide-right-leave-active {
-    transition: all 0.4s ease;
+    transition: all 0.1s ease;
 
     width: 100%;
 }
@@ -432,7 +475,7 @@ h5 {
     float: right;
     background-color: transparent;
     color: white;
-    border: 2px solid #d32f2f;
+    border: 2px solid #f91942;
     border-radius: 999px;
     padding: 8px 12px;
     font-size: 16px;
@@ -442,18 +485,24 @@ h5 {
     background-color: #ffffff; /* Nền đỏ */
     margin-top: -60px;
     margin-right: 18px;
-    background-color: #d32f2f;
+    background-color: #f91942;
     height: 35px;
     top: 5px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+   
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* khoảng cách giữa icon và chữ */
+
+
 }
 
 .add-button:hover {
     background-color: white;
-    color: #d32f2f;
-    border-color: #d32f2f;
+    color: #f91942;
+    border-color: #f91942;
 }
 </style>

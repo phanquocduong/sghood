@@ -11,18 +11,6 @@
                 </div>
             </div>
         </ClientOnly>
-
-        <ClientOnly>
-            <div class="sort-by">
-                <div class="sort-by-select">
-                    <select name="type" :value="filter.type" @change="updateFilter('type', $event.target.value)" class="chosen-select">
-                        <option value="">Tất cả loại</option>
-                        <option value="schedule">Lịch xem phòng</option>
-                        <option value="booking">Đặt phòng</option>
-                    </select>
-                </div>
-            </div>
-        </ClientOnly>
     </div>
 </template>
 

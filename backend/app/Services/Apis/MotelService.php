@@ -155,7 +155,7 @@ class MotelService
         ];
     }
 
-    /**
+   /**
      * Lấy chi tiết nhà trọ theo slug.
      *
      * @param string $slug
@@ -168,11 +168,11 @@ class MotelService
                 'district:id,name',
                 'images:id,motel_id,image_url',
                 'rooms' => fn ($query) =>
-                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status')
+                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status', 'description')
                         ->where('status', 'Trống')
                         ->with([
                             'amenities:id,name',
-                            'mainImage:id,room_id,image_url'
+                            'images:id,room_id,image_url,is_main' // Lấy tất cả hình ảnh của phòng
                         ]),
                 'amenities:id,name',
             ])
@@ -197,9 +197,11 @@ class MotelService
             'name' => $room->name,
             'price' => $room->price,
             'area' => $room->area,
+            'description' => $room->description,
             'status' => $room->status,
             'amenities' => $room->amenities->pluck('name')->toArray(),
-            'main_image' => $room->mainImage->image_url,
+            'main_image' => $room->images->firstWhere('is_main', 1) ? $room->images->firstWhere('is_main', 1)->image_url : ($room->images->first()->image_url ?? null),
+            'images' => $room->images->map(fn ($image) => ['src' => $image->image_url])->values()->all()
         ])->values()->all();
 
         return [

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ $type === 'schedule' ? 'Lịch xem phòng mới chờ duyệt' : 'Đặt phòng mới chờ duyệt' }}</title>
+    <title>Đặt phòng mới chờ duyệt</title>
     <style type="text/css">
         body {
             margin: 0;
@@ -121,61 +121,50 @@
     <table class="container" cellpadding="0" cellspacing="0" border="0">
         <tr>
             <td class="header">
-                <h1>{{ $type === 'schedule' ? 'Lịch Xem Phòng Mới' : 'Đặt Phòng Mới' }}</h1>
+                <h1>Đặt Phòng Mới</h1>
                 <p>Thông báo từ Hệ thống Quản lý Lịch</p>
             </td>
         </tr>
         <tr>
             <td class="content">
                 <p>Kính gửi Quản trị viên,</p>
-                <p>Chúng tôi vừa nhận được một {{ $type === 'schedule' ? 'lịch xem phòng' : 'đặt phòng' }} mới từ hệ thống. Vui lòng kiểm tra và xử lý trong thời gian sớm nhất.</p>
+                <p>Chúng tôi vừa nhận được một đặt phòng mới từ hệ thống. Vui lòng kiểm tra và xử lý trong thời gian sớm nhất.</p>
                 <table class="details-table">
                     <tr>
-                        <td class="label">Mã {{ $type === 'schedule' ? 'lịch' : 'đặt phòng' }}</td>
-                        <td class="highlight">{{ $item->id }}</td>
+                        <td class="label">Mã đặt phòng</td>
+                        <td class="highlight">{{ $booking->id }}</td>
                     </tr>
                     <tr>
                         <td class="label">Người dùng</td>
-                        <td class="highlight">{{ $item->user->name }}</td>
+                        <td class="highlight">{{ $booking->user->name }}</td>
                     </tr>
                     <tr>
                         <td class="label">Phòng</td>
-                        <td class="highlight">{{ $item->room->name }} - {{ $item->room->motel->name }}</td>
+                        <td class="highlight">{{ $booking->room->name }} - {{ $booking->room->motel->name }}</td>
                     </tr>
-                    @if ($type === 'schedule')
-                        <tr>
-                            <td class="label">Thời gian lịch</td>
-                            <td class="highlight">{{ $item->scheduled_at->addHours(7)->format('d/m/Y H:i') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Lời nhắn</td>
-                            <td class="highlight">{{ $item->message ?? 'Không có' }}</td>
-                        </tr>
-                    @else
-                        <tr>
-                            <td class="label">Ngày bắt đầu</td>
-                            <td class="highlight">{{ $item->start_date->addHours(7)->format('d/m/Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Ngày kết thúc</td>
-                            <td class="highlight">{{ $item->end_date->addHours(7)->format('d/m/Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Ghi chú</td>
-                            <td class="highlight">{{ $item->note ?? 'Không có' }}</td>
-                        </tr>
-                    @endif
+                    <tr>
+                        <td class="label">Ngày bắt đầu</td>
+                        <td class="highlight">{{ $booking->start_date->addHours(7)->format('d/m/Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Ngày kết thúc</td>
+                        <td class="highlight">{{ $booking->end_date->addHours(7)->format('d/m/Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Ghi chú</td>
+                        <td class="highlight">{{ $booking->note ?? 'Không có' }}</td>
+                    </tr>
                     <tr>
                         <td class="label">Trạng thái</td>
-                        <td class="highlight">{{ $item->status }}</td>
+                        <td class="highlight">{{ $booking->status }}</td>
                     </tr>
                     <tr>
                         <td class="label">Thời gian gửi</td>
-                        <td class="highlight">{{ $item->created_at->addHours(7)->format('d/m/Y H:i:s') }}</td>
+                        <td class="highlight">{{ $booking->created_at->addHours(7)->format('d/m/Y H:i:s') }}</td>
                     </tr>
                 </table>
                 <p style="text-align: center;">
-                    <a href="{{ url($type === 'schedule' ? '/schedules' : '/bookings') }}" class="btn">Xem Chi Tiết</a>
+                    <a href="{{ url('/bookings') }}" class="btn">Xem Chi Tiết</a>
                 </p>
                 <p>Cảm ơn bạn đã hỗ trợ hệ thống vận hành hiệu quả!</p>
             </td>

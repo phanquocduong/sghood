@@ -60,9 +60,7 @@
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
                             </li>
                             <li>
-                                <NuxtLink to="/quan-ly/lich-xem-phong-va-dat-phong">
-                                    <i class="fa fa-calendar-check-o"></i> Đặt phòng
-                                </NuxtLink>
+                                <NuxtLink to="/quan-ly/dat-phong"> <i class="fa fa-calendar-check-o"></i> Đặt phòng </NuxtLink>
                             </li>
                             <li>
                                 <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>

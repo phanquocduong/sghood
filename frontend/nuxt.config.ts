@@ -1,4 +1,5 @@
 export default defineNuxtConfig({
+
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
     // ssr:false, // khi up lên server thì bỏ comment dòng này
@@ -8,7 +9,7 @@ export default defineNuxtConfig({
         '~/plugins/api.js',
         '~/plugins/toast.js',
         '~/plugins/template-scripts.client.js',
-        '~/plugins/auth.js',
+        { src: '~/plugins/auth.js', mode: 'client' },
         '~/plugins/dropzone.client.js',
         '~/plugins/service-worker.client.js',
         '~/plugins/firebase-messaging.client.js'

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
+use App\Http\Controllers\Apis\BookingController;
 use App\Http\Controllers\Apis\ContactController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
@@ -13,9 +14,9 @@ use App\Http\Controllers\Apis\InvoiceController;
 use App\Http\Controllers\Apis\MessageController;
 use App\Http\Controllers\Apis\NotificationController;
 use App\Http\Controllers\Apis\RepairRequestController;
-use App\Http\Controllers\Apis\ScheduleBookingController;
 use App\Http\Controllers\Apis\SepayWebhookController;
 use App\Http\Controllers\Apis\TransactionController;
+use App\Http\Controllers\Apis\ViewingScheduleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,9 +36,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/profile', [UserController::class, 'updateProfile']);
     Route::patch('/user/change-password', [UserController::class, 'changePassword']);
 
-    Route::get('/schedules-bookings', [ScheduleBookingController::class, 'index']);
-    Route::post('/schedules-bookings', [ScheduleBookingController::class, 'store']);
-    Route::post('/schedules-bookings/{id}/{type}/reject', [ScheduleBookingController::class, 'reject']);
+    Route::get('/schedules', [ViewingScheduleController::class, 'index']);
+    Route::post('/schedules', [ViewingScheduleController::class, 'store']);
+    Route::post('/schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
+
+    Route::get('/motels/{motel}/rooms', [MotelController::class, 'getRooms']);
+
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
 
     Route::get('/contracts', [ContractController::class, 'index']);
     Route::get('/contracts/{id}', [ContractController::class, 'show']);
