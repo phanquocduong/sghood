@@ -11,7 +11,7 @@ class ScheduleService
     public function getSchedules(string $querySearch = '', string $status = '', int $perPage = 10, string $sortBy = ''): array
     {
         try {
-            $query = Schedule::with(['user', 'room']);
+            $query = Schedule::with(['user', 'motel']);
 
             if ($querySearch) {
                 $query->where(function ($q) use ($querySearch) {
@@ -21,7 +21,7 @@ class ScheduleService
                             $q->where('name', 'like', "%$querySearch%")
                                 ->orWhere('email', 'like', "%$querySearch%");
                         })
-                        ->orWhereHas('room', function ($q) use ($querySearch) {
+                        ->orWhereHas('motel', function ($q) use ($querySearch) {
                             $q->where('name', 'like', "%$querySearch%")
                                 ->orWhere('description', 'like', "%$querySearch%");
                         });
@@ -51,7 +51,7 @@ class ScheduleService
     public function getSchedule($id)
     {
         try {
-            $schedule = Schedule::with(['user', 'room'])->findOrFail($id);
+            $schedule = Schedule::with(['user', 'motel'])->findOrFail($id);
             return ['data' => $schedule];
         } catch (\Throwable $e) {
             Log::error($e->getMessage());
@@ -62,7 +62,7 @@ class ScheduleService
     public function updateScheduleStatus(int $id, string $newStatus, ?string $cancelReason = null): array
     {
         try {
-            $schedule = Schedule::with(['room', 'user'])->find($id);
+            $schedule = Schedule::with(['motel', 'user'])->find($id);
             if (!$schedule) {
                 return ['error' => 'Lịch xem phòng không tồn tại'];
             }

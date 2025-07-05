@@ -25,7 +25,7 @@
                 <form action="{{ route('schedules.index') }}" method="GET" class="row g-3 mb-4">
                     <div class="col-md-4">
                         <input type="text" class="form-control rounded-3" name="querySearch"
-                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên phòng..." value="{{ request('querySearch') }}">
+                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên dãy trọ..." value="{{ request('querySearch') }}">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="status">
@@ -56,7 +56,7 @@
                             <tr>
                                 <th>STT</th>
                                 <th>Người dùng</th>
-                                <th>Phòng</th>
+                                <th>Dãy trọ</th>
                                 <th>Ngày xem phòng</th>
                                 <th>Nội dung</th>
                                 <th>Trạng thái</th>
@@ -68,7 +68,7 @@
                                 <tr>
                                     <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}</td>
                                     <td>{{ $schedule->user->name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->room->name ?? 'N/A' }}</td>
+                                    <td>{{ $schedule->motel->name ?? 'N/A' }}</td>
                                     <td>
                                         {{ $schedule->scheduled_at
                                             ? \Carbon\Carbon::parse($schedule->scheduled_at)->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i')

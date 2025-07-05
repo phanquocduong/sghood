@@ -161,10 +161,10 @@
                             </div>
                         </div>
                     </div>
+                    <a href="" class="card-footer text-center text-decoration-none py-2">Xem thêm</a>
                 </div>
             </div>
         </div>
-
         <!-- Main Content Grid -->
         <div class="row g-4">
             <!-- Left Column -->
@@ -413,51 +413,43 @@
             <div class="col-xl-4">
                 <!-- Notifications -->
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-0 py-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-semibold">
-                                <i class="fas fa-bell text-primary me-2"></i>
-                                Thông báo mới
-                            </h6>
-                            <a href="#" class="text-decoration-none small">Xem tất cả</a>
-                        </div>
+                   <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-semibold">
+                            <i class="fas fa-building text-info me-2"></i>
+                            Phòng trống theo dãy
+                        </h6>
                     </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item border-0 py-3">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 me-3">
-                                        <i class="fas fa-exclamation-triangle text-warning"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-1 small">Hệ thống bảo trì vào ngày mai</p>
-                                        <small class="text-muted">10:00 AM, 24/12/2024</small>
-                                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                                    <i class="fas fa-building text-success mb-2 text-white"></i>
+                                    <small class="mb-1 d-block text-white">Dãy A</small>
+                                    <span class="badge bg-success">5</span>
                                 </div>
-                            </li>
-                            <li class="list-group-item border-0 py-3">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 me-3">
-                                        <i class="fas fa-file-alt text-info"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-1 small">Cập nhật chính sách mới</p>
-                                        <small class="text-muted">11:30 AM, 24/12/2024</small>
-                                    </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                                    <i class="fas fa-building text-success mb-2 text-white"></i>
+                                    <small class="mb-1 d-block text-white">Dãy B</small>
+                                    <span class="badge bg-success">3</span>
                                 </div>
-                            </li>
-                            <li class="list-group-item border-0 py-3">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 me-3">
-                                        <i class="fas fa-calendar-check text-primary"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-1 small">Cuộc họp vào lúc 2:00 PM</p>
-                                        <small class="text-muted">12:00 PM, 24/12/2024</small>
-                                    </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                                    <i class="fas fa-building text-warning mb-2 text-white"></i>
+                                    <small class="mb-1 d-block text-white">Dãy C</small>
+                                    <span class="badge bg-warning">2</span>
                                 </div>
-                            </li>
-                        </ul>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                                    <i class="fas fa-building text-danger mb-2 text-white"></i>
+                                    <small class="mb-1 d-block text-white">Dãy D</small>
+                                    <span class="badge bg-danger">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
