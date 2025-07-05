@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
@@ -182,3 +183,9 @@ Route::get('/contract/pdf/{id}', function ($id) {
 Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
 Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
 Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+
+
+// Route for repair requests
+Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
+Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
