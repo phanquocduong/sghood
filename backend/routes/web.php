@@ -14,6 +14,8 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CKEditorController;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -107,6 +109,8 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user');
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('editUser');
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
+        Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
+        Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
     });
 
     // Booking Routes Group
@@ -128,6 +132,7 @@ Route::middleware('admin')->group(function () {
         Route::patch('/{id}/restore', [ConfigController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [ConfigController::class, 'forceDelete'])->name('forceDelete');
     });
+
 
     // schedule routes group
     Route::prefix('schedules')->name('schedules.')->group(function () {
@@ -155,11 +160,30 @@ Route::middleware('admin')->group(function () {
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [MessageController::class, 'index'])->name('index');
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
+        Route::get('/chat-box', [MessageController::class, 'showChat'])->name('chat-box');
+        Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('mark-as-read');
     });
 
+    // Blog routes group
+    Route::prefix('blogs')->name('blogs.')->group(function () {
+        Route::get('/', [BlogController::class, 'index'])->name('index');
+        Route::get('/create', [BlogController::class, 'create'])->name('create');
+        Route::post('/store', [BlogController::class, 'store'])->name('store');
+        Route::get('/edit/{id}', [BlogController::class, 'edit'])->name('edit');
+        Route::put('/update/{id}', [BlogController::class, 'update'])->name('update');
+        Route::delete('/delete/{id}', [BlogController::class, 'delete'])->name('delete');
+        Route::get('/trash', [BlogController::class, 'trash'])->name('trash');
+        Route::patch('/restore/{id}', [BlogController::class, 'restore'])->name('restore');
+        Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
+
+    });
+    Route::prefix('CKEditors')->name('ckeditors.')->group(function() {
+        Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
+    });
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
         ->name('contracts.showIdentityDocument');
 });
+
 
 // File PDF
 Route::get('/contract/pdf/{id}', function ($id) {

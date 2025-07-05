@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
     const username = ref('');
     const password = ref('');
     const confirmPassword = ref('');
+    const role = ref('');
     const phone = ref('');
     const otp = ref('');
     const otpSent = ref(false);
@@ -156,6 +157,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             const response = await $api('/user', { method: 'GET' });
             user.value = response.data;
+            role.value = response.data;
         } catch (error) {
             user.value = null;
         }
@@ -230,6 +232,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     return {
         username,
+        role,
         password,
         confirmPassword,
         phone,

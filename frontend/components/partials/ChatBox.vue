@@ -1,3 +1,4 @@
+
 <template>
   <ClientOnly>
     <div v-show="isOpen" class="chat-box">
@@ -261,8 +262,6 @@ const sendMessage = async (Textover = null) => {
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
 
-    
-    
     scrollToBottom()
     newMessage.value =''
     

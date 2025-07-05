@@ -26,8 +26,7 @@
 #navigation ul#responsive {
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
-  gap: 20px; /* hoặc dùng margin-right trong li nếu bạn muốn linh hoạt */
+  align-items: center; /* hoặc dùng margin-right trong li nếu bạn muốn linh hoạt */
   white-space: nowrap;
 }
 

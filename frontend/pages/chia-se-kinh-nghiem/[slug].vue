@@ -49,17 +49,6 @@
               </ul>
             </div>
           </div>
-
-          <!-- Author Info -->
-          <div class="about-author">
-            <img src="/images/user-avatar.jpg" alt="" />
-            <div class="about-description">
-              <h4>Tom Perrin</h4>
-              <a href="#">tom@example.com</a>
-              <p>Giới thiệu người viết...</p>
-            </div>
-          </div>
-
           <!-- Related Posts -->
           <h4 class="headline margin-top-25">Bài viết liên quan</h4>
           <div class="row">
@@ -130,9 +119,9 @@
 </template>
 
 <script setup>
-// Tạm thời chưa có logic JS
+
 </script>
 
 <style scoped>
-/* Thêm CSS tuỳ chỉnh tại đây */
+
 </style>
