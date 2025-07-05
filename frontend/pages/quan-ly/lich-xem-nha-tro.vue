@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Lịch xem phòng và đặt phòng" />
+        <Titlebar title="Lịch xem nhà trọ" />
 
         <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
             <div class="small-dialog-header">
@@ -9,12 +9,19 @@
             <div class="message-reply margin-top-0">
                 <div class="row with-forms">
                     <div class="col-lg-6">
+                        <label>Phòng:</label>
+                        <select v-model="formData.room_id" class="modal-room-select" ref="roomSelect">
+                            <option value="">Chọn phòng</option>
+                            <option v-for="room in rooms" :key="room.id" :value="room.id">{{ room.name }}</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6">
                         <label>Ngày bắt đầu:</label>
                         <input type="text" id="date-picker" placeholder="Ngày bắt đầu" readonly="readonly" />
                     </div>
                     <div class="col-lg-6">
                         <label>Thời gian thuê:</label>
-                        <select class="modal-duration-select">
+                        <select v-model="formData.duration" class="modal-duration-select" ref="durationSelect">
                             <option value="">Thời gian</option>
                             <option value="1 năm">1 năm</option>
                             <option value="2 năm">2 năm</option>
@@ -37,8 +44,8 @@
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <ScheduleBookingFilter v-model:filter="filter" @update:filter="fetchItems" />
-                    <ScheduleBookingList :items="items" :is-loading="isLoading" @reject-item="rejectItem" @open-popup="openPopup" />
+                    <ScheduleFilter v-model:filter="filter" @update:filter="fetchSchedules" />
+                    <ScheduleList :items="schedules" :is-loading="isLoading" @reject-item="rejectSchedule" @open-popup="openPopup" />
                 </div>
             </div>
         </div>
@@ -46,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 
 definePageMeta({
@@ -54,12 +61,15 @@ definePageMeta({
 });
 
 const { $api } = useNuxtApp();
-const items = ref([]);
-const filter = ref({ sort: 'default', type: '' });
+const schedules = ref([]);
+const filter = ref({ sort: 'default' });
 const isLoading = ref(false);
 const buttonLoading = ref(false);
 const toast = useToast();
 const formData = ref({ room_id: null, start_date: '', duration: '', note: '' });
+const rooms = ref([]);
+const roomSelect = ref(null);
+const durationSelect = ref(null);
 
 const handleBackendError = error => {
     const data = error.response?._data;
@@ -74,12 +84,11 @@ const handleBackendError = error => {
     toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
 };
 
-const fetchItems = async () => {
-    console.log(filter.value);
+const fetchSchedules = async () => {
     isLoading.value = true;
     try {
-        const response = await $api('/schedules-bookings', { method: 'GET', params: filter.value });
-        items.value = response.data;
+        const response = await $api('/schedules', { method: 'GET', params: filter.value });
+        schedules.value = response.data;
     } catch (error) {
         handleBackendError(error);
     } finally {
@@ -87,21 +96,30 @@ const fetchItems = async () => {
     }
 };
 
-const rejectItem = async ({ id, type }) => {
+const rejectSchedule = async ({ id }) => {
     isLoading.value = true;
     try {
-        await $api(`/schedules-bookings/${id}/${type}/reject`, {
+        await $api(`/schedules/${id}/reject`, {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             }
         });
-        await fetchItems();
-        toast.success(`Hủy ${type === 'schedule' ? 'lịch xem phòng' : 'đặt phòng'} thành công`);
+        await fetchSchedules();
+        toast.success('Hủy lịch xem nhà trọ thành công');
     } catch (error) {
         handleBackendError(error);
     } finally {
         isLoading.value = false;
+    }
+};
+
+const fetchRooms = async motelId => {
+    try {
+        const response = await $api(`/motels/${motelId}/rooms`, { method: 'GET' });
+        rooms.value = response;
+    } catch (error) {
+        handleBackendError(error);
     }
 };
 
@@ -113,21 +131,19 @@ const submitBooking = async () => {
             return;
         }
 
-        await $api('/schedules-bookings', {
+        await $api('/bookings', {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-            },
-            params: {
-                type: 'booking'
             },
             body: formData.value
         });
 
         toast.success('Đặt phòng thành công');
         window.jQuery.magnificPopup.close();
-        await fetchItems();
+        await fetchSchedules();
         formData.value = { room_id: null, start_date: '', duration: '', note: '' };
+        rooms.value = [];
     } catch (error) {
         handleBackendError(error);
     } finally {
@@ -135,8 +151,25 @@ const submitBooking = async () => {
     }
 };
 
-const openPopup = roomId => {
-    formData.value.room_id = roomId;
+const updateChosenSelect = (selectRef, value = null) => {
+    nextTick(() => {
+        if (window.jQuery && selectRef.value) {
+            const $select = window.jQuery(selectRef.value);
+            if ($select.data('chosen')) {
+                $select.trigger('chosen:updated');
+                if (value !== null) {
+                    $select.val(value).trigger('chosen:updated');
+                }
+            }
+        }
+    });
+};
+
+const openPopup = async motelId => {
+    await fetchRooms(motelId);
+    console.log(rooms.value);
+    formData.value.room_id = null; // Reset room_id
+
     if (window.jQuery && window.jQuery.fn.magnificPopup) {
         window.jQuery.magnificPopup.open({
             items: {
@@ -150,25 +183,39 @@ const openPopup = roomId => {
             preloader: false,
             midClick: true,
             removalDelay: 300,
-            mainClass: 'my-mfp-zoom-in'
+            mainClass: 'my-mfp-zoom-in',
+            callbacks: {
+                open: function () {
+                    // Update chosen select sau khi popup mở
+                    updateChosenSelect(roomSelect);
+                }
+            }
         });
     } else {
         console.error('Magnific Popup không được tải');
     }
 };
 
+// Watch rooms để update chosen select khi dữ liệu thay đổi
+watch(
+    rooms,
+    () => {
+        updateChosenSelect(roomSelect);
+    },
+    { deep: true }
+);
+
 onMounted(() => {
-    fetchItems();
+    fetchSchedules();
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
-            // Tính ngày mai
             const tomorrow = window.moment().add(15, 'days');
             window
                 .jQuery('#date-picker')
                 .daterangepicker({
                     opens: 'left',
                     singleDatePicker: true,
-                    minDate: tomorrow, // Chỉ cho phép chọn từ ngày mai trở đi
+                    minDate: tomorrow,
                     locale: {
                         format: 'DD/MM/YYYY',
                         applyLabel: 'Xác nhận',
@@ -208,15 +255,28 @@ onMounted(() => {
         }
 
         if (window.jQuery && window.jQuery.fn.chosen) {
-            const $select = window.jQuery('.modal-duration-select').chosen({
+            // Initialize duration select
+            const $durationSelect = window.jQuery(durationSelect.value).chosen({
                 width: '100%',
                 no_results_text: 'Không tìm thấy kết quả',
                 disable_search: true,
                 disable_search_threshold: 0
             });
 
-            $select.on('change', event => {
+            $durationSelect.on('change', event => {
                 formData.value.duration = event.target.value;
+            });
+
+            // Initialize room select
+            const $roomSelect = window.jQuery(roomSelect.value).chosen({
+                width: '100%',
+                no_results_text: 'Không tìm thấy phòng',
+                placeholder_text_single: 'Chọn phòng',
+                allow_single_deselect: true
+            });
+
+            $roomSelect.on('change', event => {
+                formData.value.room_id = event.target.value;
             });
         } else {
             console.error('jQuery hoặc Chosen không được tải');
