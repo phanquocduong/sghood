@@ -6,7 +6,7 @@
         </a>
         <div class="d-flex align-items-center ms-4 mb-4">
             <div class="position-relative">
-                <img class="rounded-circle" src="{{ Auth::user()->avatar ?? 'img/user.jpg' }}" alt="" style="width: 40px; height: 40px;">
+                <img class="rounded-circle" src="{{ Auth::user()->avatar ?? asset('img/user.jpg') }}" alt="" style="width: 40px; height: 40px;">
                 <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
             </div>
             <div class="ms-3">
@@ -21,17 +21,17 @@
 
     <!-- Quản lý đặt phòng & hợp đồng -->
     <div class="nav-item dropdown">
-        <a href="#" class="nav-link dropdown-toggle {{ request()->is('booking.html') || request()->is('contracts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
+        <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
         <div class="dropdown-menu bg-transparent border-0">
             <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
             <a href="{{ route('bookings.index') }}" class="dropdown-item {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Đặt phòng</a>
-            <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->is('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
+            <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
         </div>
     </div>
 
             <!-- Quản lý tài chính -->
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->is('invoice.html') || request()->is('transaction.html') || request()->is('utility.html') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('invoice.*') || request()->routeIs('transaction.*') || request()->routeIs('meter_readings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('invoices.index') }}" class="dropdown-item {{ request()->is('invoices*') ? 'active' : '' }}">Hoá đơn</a>
                     <a href="{{ route('transactions.index') }}" class="dropdown-item {{ request()->is('transactions*') ? 'active' : '' }}">Lịch sử giao dịch</a>
@@ -40,11 +40,11 @@
             </div>
 
             <!-- Quản lý vận hành -->
-            <a href="maintenance.html" class="nav-item nav-link {{ request()->is('maintenance.html') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
+            <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_request.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
 
             <!-- Quản lý hệ thống -->
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') || request()->routeIs('rooms.index') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('amenities.*') || request()->routeIs('rooms.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Cấu hình</a>
                     <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>

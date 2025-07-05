@@ -147,6 +147,27 @@ class RoomService
         }
     }
 
+    // đếm tổng số phòng trọ
+    public function getAllRoomsCount(): int
+    {
+        try {
+            return Room::count();
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return 0; // Trả về 0 nếu có lỗi
+        }
+    }
+    // Đếm số phòng trọ có status = 'Đã thuê'
+    public function getRentedRoomsCount(): int
+    {
+        try {
+            return Room::where('status', 'Đã thuê')->count();
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return 0; // Trả về 0 nếu có lỗi
+        }
+    }
+
     // Tạo phòng trọ mới
     public function createRoom(array $data, array $imageFiles, int $mainImageIndex = 0): array
     {

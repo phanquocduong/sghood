@@ -167,7 +167,7 @@ class ContractController extends Controller
             return response()->json([
                 'message' => 'Hợp đồng đã được ký thành công. Vui lòng thanh toán tiền cọc.',
                 'data' => $updatedContract,
-                'invoice' => $invoice
+                'invoice_id' => $invoice->id
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Hợp đồng không tồn tại hoặc không ở trạng thái chờ ký.'], 404);

@@ -141,4 +141,8 @@ onMounted(() => {
 .container {
     max-width: 100% !important;
 }
+
+.copyrights {
+    font-size: 16px !important;
+}
 </style>

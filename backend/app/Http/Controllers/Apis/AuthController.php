@@ -83,6 +83,9 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        if (!$request->hasCookie('sanctum_token')) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
         if ($user = $request->user()) {
             $this->authService->logout($user);
             $request->session()->invalidate();

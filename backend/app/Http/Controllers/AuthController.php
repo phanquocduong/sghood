@@ -8,6 +8,7 @@ use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -23,17 +24,24 @@ class AuthController extends Controller
         return view('login');
     }
 
-    public function login(LoginRequest $request): RedirectResponse
+    public function login(LoginRequest $request)
     {
         $credentials = $request->only('username', 'password');
         $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
         $credentials[$field] = $credentials['username'];
         unset($credentials['username']);
 
-        // Kiểm tra xem checkbox "remember" có được chọn hay không
         $remember = $request->has('remember');
 
         $result = $this->authService->attemptLogin($credentials, $remember);
+
+        if ($request->expectsJson()) {
+            if ($result['success']) {
+                $request->session()->regenerate();
+                return response()->json(['success' => true, 'message' => $result['message']]);
+            }
+            return response()->json(['success' => false, 'message' => $result['message']], 401);
+        }
 
         if ($result['success']) {
             $request->session()->regenerate();
@@ -41,6 +49,21 @@ class AuthController extends Controller
         }
 
         return back()->with('error', $result['message'])->withInput();
+    }
+
+    public function saveFcmToken(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'fcm_token' => 'required|string'
+        ]);
+
+        $user = Auth::user();
+        if ($user) {
+            $user->update(['fcm_token' => $request->fcm_token]);
+            return response()->json(['success' => true, 'message' => 'FCM token saved successfully']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Người dùng chưa được xác thực'], 401);
     }
 
     public function logout(Request $request): RedirectResponse

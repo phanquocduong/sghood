@@ -6,6 +6,7 @@
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
                     <InvoiceFilter v-model:filter="filter" @update:filter="fetchItems" />
+                    <h4>Quản lý hoá đơn</h4>
                     <InvoiceList :items="items" :is-loading="isLoading" />
                 </div>
             </div>

@@ -20,6 +20,9 @@ export const useFirebaseAuth = () => {
             case 'auth/quota-exceeded':
                 toast.error('Đã vượt quá giới hạn gửi OTP. Vui lòng thử lại sau.');
                 break;
+            case 'auth/argument-error':
+                toast.error('Lỗi cấu hình Firebase. Vui lòng thử lại sau.');
+                break;
             default:
                 toast.error('Đã có lỗi xảy ra.');
         }
@@ -27,6 +30,12 @@ export const useFirebaseAuth = () => {
 
     const sendOTP = async phone => {
         try {
+            // Kiểm tra sự tồn tại của recaptcha-container
+            if (typeof window !== 'undefined' && !document.getElementById('recaptcha-container')) {
+                toast.error('Không tìm thấy container reCAPTCHA.');
+                return false;
+            }
+
             if (typeof window !== 'undefined' && window.recaptchaVerifier) {
                 window.recaptchaVerifier.clear();
             }
@@ -38,10 +47,12 @@ export const useFirebaseAuth = () => {
                 });
             }
 
+            console.log(phone);
             confirmationResult = await signInWithPhoneNumber($firebaseAuth, phone, window.recaptchaVerifier);
             toast.info('Mã OTP đã được gửi!');
             return true;
         } catch (error) {
+            console.error(error);
             handleFirebaseError(error);
             return false;
         }

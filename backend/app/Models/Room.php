@@ -65,4 +65,8 @@ class Room extends Model
     {
         return $this->hasOne(Contract::class)->where('status', 'Hoạt động')->latest('id');
     }
+    public function meterReadings()
+    {
+        return $this->hasMany(MeterReading::class, 'room_id');
+    }
 }

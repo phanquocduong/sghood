@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
@@ -30,6 +32,10 @@ Route::get('/', function () {
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/save-fcm-token', [AuthController::class, 'saveFcmToken'])->name('save-fcm-token');
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('csrf-token');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Các route được bảo vệ bởi middleware admin
@@ -187,9 +193,12 @@ Route::get('/contract/pdf/{id}', function ($id) {
 });
 
 // Route for meter reading index
-Route::get('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'index'])->name('meter_readings.index');
-Route::put('/meter-readings', [App\Http\Controllers\MeterReadingController::class, 'store'])->name('meter_readings.store');
+Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
+Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
+Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
 
-// Route for invoices
 
-// Route for updating an existing meter reading
+// Route for repair requests
+Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
+Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');

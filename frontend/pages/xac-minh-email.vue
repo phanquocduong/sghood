@@ -16,6 +16,8 @@
                     <span class="notification-icon">{{ error ? '❌' : '✅' }}</span>
                     <p class="notification-text">{{ message }}</p>
                 </div>
+                <!-- Countdown Timer -->
+                <p v-if="!loading && !redirecting" class="countdown-text">Sẽ chuyển hướng về trang chủ sau {{ countdown }} giây...</p>
             </div>
 
             <!-- Invalid Link State -->
@@ -24,6 +26,8 @@
                     <span class="notification-icon">❌</span>
                     <p class="notification-text">Liên kết xác minh không hợp lệ.</p>
                 </div>
+                <!-- Countdown Timer -->
+                <p v-if="!loading && !redirecting" class="countdown-text">Sẽ chuyển hướng về trang chủ sau {{ countdown }} giây...</p>
             </div>
 
             <!-- Back Button -->
@@ -37,7 +41,7 @@ definePageMeta({
     layout: 'blank'
 });
 
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
@@ -48,6 +52,9 @@ const loading = ref(true);
 const message = ref('');
 const error = ref(false);
 const redirecting = ref(false);
+const countdown = ref(5); // Thời gian đếm ngược ban đầu là 5 giây
+
+let countdownInterval = null;
 
 onMounted(() => {
     const { message: msg, error: err } = route.query;
@@ -66,10 +73,23 @@ onMounted(() => {
     }
 
     loading.value = false;
-    setTimeout(() => {
-        redirecting.value = true;
-        router.push('/');
-    }, 3000);
+
+    // Bắt đầu đếm ngược
+    countdownInterval = setInterval(() => {
+        countdown.value -= 1;
+        if (countdown.value <= 0) {
+            clearInterval(countdownInterval);
+            redirecting.value = true;
+            window.location.assign('/');
+        }
+    }, 1000);
+});
+
+onBeforeUnmount(() => {
+    // Dọn dẹp interval khi component bị hủy
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
 });
 </script>
 
@@ -150,6 +170,12 @@ onMounted(() => {
 .notification-text {
     font-size: 1.6rem;
     flex: 1;
+}
+
+.countdown-text {
+    font-size: 1.1rem;
+    color: #4a4a4a;
+    margin-top: 10px;
 }
 
 .success {
@@ -243,6 +269,10 @@ onMounted(() => {
 
     .notification-text {
         font-size: 1rem;
+    }
+
+    .countdown-text {
+        font-size: 0.9rem;
     }
 
     .back-button {

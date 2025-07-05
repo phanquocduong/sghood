@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MeterReadingRequest;
+use App\Models\MeterReading;
 use Illuminate\Http\Request;
 use App\Services\MeterReadingService;
 use App\Http\Controllers\Controller;
@@ -16,31 +17,85 @@ class MeterReadingController extends Controller
         $this->meterReadingService = $meterReadingService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $rooms = $this->meterReadingService->getRooms();
-        return view('meter_readings.index', compact('rooms'));
+        // Get all meter readings with optional search functionality
+        $search = (string) $request->query('search', '');
+        $perPage = (int) $request->query('perPage', 10);
+        $meterReadings = $this->meterReadingService->getAllMeterReadings($search, $perPage);
+
+        $isFiltering = request()->hasAny(['room_id', 'month', 'year', 'sortOption']);
+        // Logic to handle meter reading index
+        return view('meter_readings.index', compact('rooms', 'meterReadings', 'isFiltering'));
     }
 
     public function store(MeterReadingRequest $request)
     {
         try {
-            // Xác thực đã được xử lý bởi MeterReadingRequest
+            // Validation is already handled by MeterReadingRequest
 
-            // Chuẩn bị dữ liệu để tạo chỉ số đồng hồ mới
+            // Prepare data for creating a new meter reading
             $data = $request->only(['room_id', 'month', 'year', 'electricity_kwh', 'water_m3']);
 
-            // Gọi dịch vụ để tạo chỉ số đồng hồ mới
+            // Call the service to create a new meter reading
             $meterReading = $this->meterReadingService->createMeterReading($data);
 
-            // Tự động tạo hóa đơn dựa trên chỉ số mới
-            $this->meterReadingService->createInvoice($meterReading->id);
-
-            // Chuyển hướng với thông báo thành công
-            return redirect()->route('meter_readings.index')->with('success', 'Chỉ số điện nước đã được cập nhật và hóa đơn đã được tạo thành công.');
+            // Redirect back with success message
+            return redirect()->route('meter_readings.index')->with('success', 'Chỉ số điện nước đã được cập nhật thành công.');
         } catch (\Exception $e) {
-            // Xử lý các ngoại lệ xảy ra trong quá trình thực hiện
-            return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ' . $e->getMessage());
+            // Handle any exceptions that occur during the process
+            return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ');
         }
     }
+
+    public function filter(Request $request)
+    {
+        $query = MeterReading::query()->with('room');
+
+        if ($request->room_id) {
+            $query->whereHas('room', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->room_id . '%');
+            });
+        }
+
+        if ($request->month) {
+            $query->where('month', $request->month);
+        }
+
+        if ($request->year) {
+            $query->where('year', $request->year);
+        }
+
+        if ($request->sortOption) {
+            switch ($request->sortOption) {
+                case 'room_asc':
+                    $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')->orderBy('rooms.name', 'asc');
+                    break;
+                case 'room_desc':
+                    $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')->orderBy('rooms.name', 'desc');
+                    break;
+                case 'month_desc':
+                    $query->orderBy('month', 'desc');
+                    break;
+                case 'month_asc':
+                    $query->orderBy('month', 'asc');
+                    break;
+                case 'created_at_desc':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                case 'created_at_asc':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+            }
+        }
+
+        $meterReadings = $query->paginate(10);
+
+        if ($request->ajax()) {
+            return view('meter_readings._meter_readings_table', compact('meterReadings'));
+        }
+
+    }
+
 }

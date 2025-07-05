@@ -33,7 +33,9 @@ class SepayWebhookController extends Controller
             $invoice = $this->invoiceService->processWebhook($data);
 
             // Thông báo admin
-            $this->notificationService->notifyContractForAdmins($invoice->contract, 'Chờ thanh toán tiền cọc');
+            if ($invoice->type === 'Đặt cọc') {
+                $this->notificationService->notifyContractForAdmins($invoice->contract, 'Chờ thanh toán tiền cọc');
+            }
 
             return response()->json(['success' => true], 200);
         } catch (\JsonException) {

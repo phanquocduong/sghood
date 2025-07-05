@@ -15,31 +15,40 @@ use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class MeterReadingService
 {
-    public function getAllMeterReadings()
+
+    public function getAllMeterReadings(?string $search = null, int $perPage = 10)
     {
-        // Logic để lấy tất cả chỉ số đồng hồ
-        return MeterReading::all();
+        return MeterReading::when($search, function ($query, $search) {
+            // $search = request('search');
+            return $query->where('room_id', 'like', "%{$search}%")
+                ->orWhere('month', 'like', "%{$search}%")
+                ->orWhere('year', 'like', "%{$search}%")
+                ->orWhere('electricity_kwh', 'like', "%{$search}%")
+                ->orWhere('water_m3', 'like', "%{$search}%")
+                ->orWhereHas('room', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+        })->paginate($perPage);
     }
 
     public function getRooms()
     {
-        // Lấy tháng và năm hiện tại
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
+        $today = now();
 
-        // Sử dụng leftJoin để tìm các phòng chưa có chỉ số đồng hồ tháng này
-        $rooms = Room::where('rooms.status', 'Đã Thuê')
-            ->leftJoin('meter_readings', function ($join) use ($currentMonth, $currentYear) {
-                $join->on('rooms.id', '=', 'meter_readings.room_id')
-                    ->where('meter_readings.month', '=', $currentMonth)
-                    ->where('meter_readings.year', '=', $currentYear);
+        // Khoảng thời gian cần loại trừ: từ ngày 28 tháng trước đến ngày 5 tháng sau
+        $startDate = $today->copy()->subMonthNoOverflow()->day(28)->startOfDay();
+        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+
+        // Lấy phòng đã thuê mà không có meter_readings nào trong khoảng trên
+        $rooms = Room::where('status', 'Đã Thuê')
+            ->whereDoesntHave('meterReadings', function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
             })
-            ->whereNull('meter_readings.id') // Lọc phòng chưa có chỉ số
-            ->select('rooms.*') // Chỉ lấy thông tin từ bảng rooms
             ->get();
 
         return $rooms;
     }
+
 
     public function createMeterReading(array $data)
     {

@@ -6,7 +6,15 @@
                     <label for="phone">
                         Số điện thoại:
                         <i class="im im-icon-Phone-2"></i>
-                        <input type="tel" class="input-text" id="phone" v-model="phone" required pattern="^(\+84|0)(3|5|7|8|9)\d{8}$" />
+                        <input
+                            type="tel"
+                            class="input-text"
+                            id="phone"
+                            v-model="phone"
+                            required
+                            pattern="^(\+84|0)(3|5|7|8|9)\d{8}$"
+                            :disabled="otpSent"
+                        />
                     </label>
                 </div>
 
@@ -154,6 +162,10 @@ const handleSendOTP = async () => {
 
 .button:disabled {
     opacity: 0.6;
+    cursor: not-allowed;
+}
+
+input:disabled {
     cursor: not-allowed;
 }
 

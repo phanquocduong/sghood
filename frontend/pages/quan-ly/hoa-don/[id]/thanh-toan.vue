@@ -1,7 +1,12 @@
 <template>
-    <div class="payment-section">
+    <Loading :is-loading="isLoading" />
+    <div v-if="!isLoading" class="payment-section">
         <div class="header">
-            <h2><i class="im im-icon-Billing"></i> Hoá đơn #{{ invoice?.code }}</h2>
+            <div v-if="invoice?.type === 'Đặt cọc' && invoice?.status === 'Chưa trả'">
+                <h2><i class="sl sl-icon-check"></i> Hợp đồng đã được ký thành công</h2>
+                <p class="contract-id">Mã hợp đồng #{{ invoice?.contract.id }}</p>
+            </div>
+            <h2 v-else><i class="im im-icon-Billing"></i> Hoá đơn #{{ invoice?.code }}</h2>
         </div>
         <div class="payment-methods">
             <h3>Hướng dẫn thanh toán hoá đơn</h3>
@@ -66,6 +71,7 @@ const invoice = ref(null);
 const qrCodeUrl = ref(null);
 const router = useRouter();
 const paymentInterval = ref(null);
+const isLoading = ref(false);
 
 const formatCurrency = amount => {
     return new Intl.NumberFormat('vi-VN', {
@@ -78,9 +84,14 @@ const checkPaymentStatus = async () => {
     try {
         const response = await $api(`/invoices/${invoice.value.code}/status`);
         if (response.status === 'Đã trả') {
-            toast.success('Thanh toán hoá đơn thành công!');
             clearInterval(paymentInterval.value);
-            router.push('/quan-ly/hoa-don');
+            if (response.type === 'Đặt cọc') {
+                toast.success('Thanh toán tiền cọc thành công! Hợp đồng đã được kích hoạt.');
+                router.push('/quan-ly/hop-dong');
+            } else {
+                toast.success('Thanh toán hoá đơn thành công!');
+                router.push('/quan-ly/hoa-don');
+            }
         }
     } catch (error) {
         console.error('Lỗi kiểm tra trạng thái thanh toán:', error);
@@ -89,6 +100,7 @@ const checkPaymentStatus = async () => {
 };
 
 const fetchInvoice = async () => {
+    isLoading.value = true;
     try {
         const response = await $api(`/invoices/${route.params.id}`, { method: 'GET' });
         invoice.value = response.data;
@@ -99,18 +111,24 @@ const fetchInvoice = async () => {
     } catch (error) {
         const data = error.response?._data;
         toast.error(data?.error || 'Đã có lỗi xảy ra khi lấy chi tiết hóa đơn.');
+    } finally {
+        isLoading.value = false;
     }
 };
 
 onMounted(() => {
     fetchInvoice();
 });
+
+onUnmounted(() => {
+    if (paymentInterval.value) clearInterval(paymentInterval.value);
+});
 </script>
 
 <style scoped>
 .payment-section {
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 50px auto;
     padding: 30px;
     background: #ffffff;
     border-radius: 12px;
