@@ -8,7 +8,7 @@
             <h2>Blog</h2><span>Latest News</span>
             <nav id="breadcrumbs">
               <ul>
-                <li><a href="#">Home</a></li>
+                <li><a href="/">Home</a></li>
                 <li>Blog</li>
               </ul>
             </nav>
@@ -18,29 +18,21 @@
     </div>
 
     <!-- Content -->
-    <div class="container blog-page">
+    <div class="container blog-page" v-if="!loading">
       <div class="row">
-
         <!-- Main Post Content -->
         <div class="col-lg-9 col-md-8 padding-right-30">
-
           <!-- Blog Post -->
-          <div class="blog-post single-post">
-            <img class="post-img" src="/images/blog-post-02.jpg" alt="">
+          <div class="blog-post single-post" v-if="blog">
+            <img class="post-img" :src="blog.thumbnail" alt="">
             <div class="post-content">
-              <h3>Top 50 Nghệ Thuật Đường Phố London</h3>
+              <h3>{{ blog.title }}</h3>
               <ul class="post-meta">
-                <li>22 Tháng 8, 2019</li>
-                <li><a href="#">Mẹo hay</a></li>
-                <li><a href="#">5 bình luận</a></li>
+                <li>{{ blog.date }}</li>
+                <li><a href="#">{{ blog.category || 'Chưa phân loại' }}</a></li>
+                <li><a href="#">{{ blog.comments || 0 }} bình luận</a></li>
               </ul>
-              <p>Nam nisl lacus, dignissim ac tristique ut, scelerisque eu massa...</p>
-              <div class="post-quote">
-                <blockquote>
-                  Mauris aliquet ultricies ante, non faucibus ante gravida sed...
-                </blockquote>
-              </div>
-              <p>Thêm nhiều nội dung chi tiết tại đây...</p>
+              <p v-html="blog.content"></p>
 
               <!-- Share Buttons -->
               <ul class="share-buttons margin-top-40">
@@ -49,23 +41,23 @@
               </ul>
             </div>
           </div>
+
           <!-- Related Posts -->
           <h4 class="headline margin-top-25">Bài viết liên quan</h4>
           <div class="row">
-            <div class="col-md-6">
-              <a href="#" class="blog-compact-item-container">
+            <div class="col-md-6" v-for="item in relatedPosts" :key="item.id">
+              <a :href="item.url" class="blog-compact-item-container">
                 <div class="blog-compact-item">
-                  <img src="/images/blog-compact-post-01.jpg" alt="">
-                  <span class="blog-item-tag">Tips</span>
+                  <img :src="item.thumbnail" alt="">
+                  <span class="blog-item-tag">Liên quan</span>
                   <div class="blog-compact-item-content">
-                    <h3>Khách sạn giá rẻ</h3>
-                    <p>Mô tả ngắn...</p>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.excerpt }}</p>
                   </div>
                 </div>
               </a>
             </div>
           </div>
-
         </div>
 
         <!-- Sidebar -->
@@ -89,14 +81,14 @@
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
               <ul class="widget-tabs">
-                <li>
+                <li v-for="popular in relatedPosts.slice(0, 1)" :key="popular.id">
                   <div class="widget-content">
                     <div class="widget-thumb">
-                      <a href="#"><img src="/images/blog-widget-01.jpg" alt=""></a>
+                      <a :href="popular.url"><img :src="popular.thumbnail" alt=""></a>
                     </div>
                     <div class="widget-text">
-                      <h5><a href="#">Khách sạn giá rẻ</a></h5>
-                      <span>26/10/2016</span>
+                      <h5><a :href="popular.url">{{ popular.title }}</a></h5>
+                      <span>{{ popular.date }}</span>
                     </div>
                   </div>
                 </li>
@@ -112,14 +104,59 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
+
+    <div v-else class="container py-10 text-center text-gray-600">Đang tải dữ liệu bài viết...</div>
   </div>
 </template>
 
 <script setup>
-
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useNuxtApp, useRuntimeConfig } from '#app'
+const route = useRoute()
+const blog = ref((null))
+const loading = ref(false)
+const {$api} = useNuxtApp()
+const relatedPosts = ref([])
+const baseUrl = useRuntimeConfig().public.baseUrl;
+const fetchBlogs = async(id)=>{
+  loading.value = true
+  try{
+    const id = route.params.id
+    const res = await $api(`/show/${id}`,{
+      method:'GET',
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    })
+    blog.value = {
+        id: res.data.id,
+      title: res.data.title,
+      thumbnail: res.data.thumbnail?.startsWith('/storage') ? baseUrl + res.data.thumbnail : res.data.thumbnail,
+      content: res.data.content,
+      date: res.data.created_at,
+      category: res.data.category || 'Tin tức',
+      
+    }
+    relatedPosts.value = res.related.map( g => ({
+       id: g.id,
+      title: g.title,
+      thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
+      excerpt: g.excerpt || (typeof g.content === 'string' ? g.content.slice(0, 100) + '...' : ''),
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+      date: g.created_at
+    }))
+  }catch(e){
+    console.log('sai o dau do', e)
+  }finally{
+    loading.value = false
+  }
+}
+onMounted(()=>{
+  fetchBlogs()
+})
 </script>
 
 <style scoped>
