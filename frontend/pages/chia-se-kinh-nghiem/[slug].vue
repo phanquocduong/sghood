@@ -5,11 +5,11 @@
       <div class="container">
         <div class="row">
           <div class="col-md-12">
-            <h2>Blog</h2><span>Latest News</span>
+            <h2>Bài viết</h2><span>Tin mới</span>
             <nav id="breadcrumbs">
               <ul>
-                <li><a href="/">Home</a></li>
-                <li>Blog</li>
+                <li><a href="/">Trang chủ</a></li>
+                <li>Bài viết</li>
               </ul>
             </nav>
           </div>
@@ -121,11 +121,11 @@ const loading = ref(false)
 const {$api} = useNuxtApp()
 const relatedPosts = ref([])
 const baseUrl = useRuntimeConfig().public.baseUrl;
-const fetchBlogs = async(id)=>{
+const fetchBlogs = async(slug)=>{
   loading.value = true
   try{
-    const id = route.params.id
-    const res = await $api(`/show/${id}`,{
+    const slug = route.params.slug
+    const res = await $api(`/show/${slug}`,{
       method:'GET',
       headers:{
         'Content-Type': 'application/json',

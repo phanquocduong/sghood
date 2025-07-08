@@ -19,13 +19,14 @@ class BlogController extends Controller
             'data'=> $blog
         ]);
     }
-    public function showBlog($id)
+    public function showBlog($slug)
     {
-        $blog = $this->blogService->getBlogById($id);
+        $blog = $this->blogService->getBlogBySlug($slug);
         if (!$blog) {
             return response()->json([
                 'success' => false,
-                'message' => 'Blog không tồn tại'
+                'message' => 'Blog không tồn tại',
+                'chuoiblog' => $blog
             ], 404);
         }
         return response()->json([
