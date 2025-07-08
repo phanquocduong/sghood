@@ -8,8 +8,8 @@ class BlogService
     {
         return Blog::latest()->get();
     }
-    public function getBlogById($id)
+    public function getBlogBySlug($slug)
     {
-        return Blog::find($id);
+        return Blog::where('slug', $slug)->first();
     }
 }

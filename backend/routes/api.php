@@ -89,7 +89,7 @@ Route::get('/messages/conversations', [MessageController::class, 'getAdminConver
 Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
 // Blog Routes
 Route::get('/blogs', [BlogController::class, 'index']);
-Route::get('/show/{id}', [BlogController::class, 'showBlog']);
+Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
 
 
 // Get all admin users

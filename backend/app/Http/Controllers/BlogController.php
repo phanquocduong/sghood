@@ -6,6 +6,7 @@ use App\Models\Blog;
 use Illuminate\Http\Request;
 use App\Services\BlogService;
 use App\Http\Requests\BlogStoreRequest;
+use App\Http\Requests\BlogUpdateRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -89,7 +90,7 @@ class BlogController extends Controller
             return redirect()->back()->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
-    public function update(BlogStoreRequest $request, $id)
+    public function update(BlogUpdateRequest $request, $id)
     {
         try {
             $validatedData = $request->validated(); // Lấy dữ liệu đã được xác thực từ request

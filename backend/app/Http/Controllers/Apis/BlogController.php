@@ -19,9 +19,9 @@ class BlogController extends Controller
             'data'=> $blog
         ]);
     }
-    public function showBlog($id)
+    public function showBlog($slug)
     {
-        $blog = $this->blogService->getBlogById($id);
+        $blog = $this->blogService->getBlogBySlug($slug);
         if (!$blog) {
             return response()->json([
                 'success' => false,
