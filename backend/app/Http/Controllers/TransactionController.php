@@ -29,13 +29,18 @@ class TransactionController extends Controller
         $transactions = $this->transactionService->getAllTransactions($filters, $perPage);
         $stats = $this->transactionService->getTransactionStats($filters);
 
+        // Lấy dữ liệu cho dropdown
+        $months = $this->transactionService->getMonths();
+        $years = $this->transactionService->getYears();
+        $transferTypes = $this->transactionService->getTransferTypes();
+
         return view('transactions.index', [
             'transactions' => $transactions,
             'stats' => $stats,
             'filters' => $filters,
-            'months' => $this->transactionService->getMonths(),
-            'years' => $this->transactionService->getYears(),
-            'transferTypes' => $this->transactionService->getTransferTypes(),
+            'months' => $months,
+            'years' => $years,
+            'transferTypes' => $transferTypes,
         ]);
     }
 

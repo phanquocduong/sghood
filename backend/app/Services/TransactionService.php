@@ -47,26 +47,12 @@ class TransactionService
         return Transaction::with(['invoice'])->find($id);
     }
 
-    // Lấy thống kê giao dịch với bộ lọc
+    // Lấy thống kê giao dịch theo filter
     public function getTransactionStats(array $filters = []): array
     {
         $query = Transaction::query();
 
-        // Nếu có filter theo tháng/năm thì áp dụng filter
-        if (!empty($filters['month'])) {
-            $query->whereMonth('transaction_date', $filters['month']);
-        }
-
-        if (!empty($filters['year'])) {
-            $query->whereYear('transaction_date', $filters['year']);
-        }
-
-        // Lọc theo loại giao dịch
-        if (!empty($filters['transfer_type'])) {
-            $query->where('transfer_type', $filters['transfer_type']);
-        }
-
-        // Lọc theo tìm kiếm
+        // Áp dụng filters giống như trong getAllTransactions
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
@@ -74,6 +60,18 @@ class TransactionService
                       $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
                   });
             });
+        }
+
+        if (!empty($filters['transfer_type'])) {
+            $query->where('transfer_type', $filters['transfer_type']);
+        }
+
+        if (!empty($filters['month'])) {
+            $query->whereMonth('transaction_date', $filters['month']);
+        }
+
+        if (!empty($filters['year'])) {
+            $query->whereYear('transaction_date', $filters['year']);
         }
 
         $transactions = $query->get(['transfer_type', 'transfer_amount']);
@@ -92,27 +90,33 @@ class TransactionService
         ];
     }
 
-    // Lấy danh sách tháng có giao dịch
+    // Lấy danh sách tháng
     public function getMonths(): array
     {
-        $months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = 'Tháng ' . $i;
-        }
-        return $months;
+        return [
+            '1' => 'Tháng 1',
+            '2' => 'Tháng 2',
+            '3' => 'Tháng 3',
+            '4' => 'Tháng 4',
+            '5' => 'Tháng 5',
+            '6' => 'Tháng 6',
+            '7' => 'Tháng 7',
+            '8' => 'Tháng 8',
+            '9' => 'Tháng 9',
+            '10' => 'Tháng 10',
+            '11' => 'Tháng 11',
+            '12' => 'Tháng 12',
+        ];
     }
 
-    // Lấy danh sách năm có giao dịch
+    // Lấy danh sách năm
     public function getYears(): array
     {
-        $years = Transaction::selectRaw('YEAR(transaction_date) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year', 'year')
-            ->toArray();
+        $years = [];
+        $currentYear = now()->year;
 
-        if (empty($years)) {
-            $years = [date('Y') => date('Y')];
+        for ($year = $currentYear; $year >= $currentYear - 5; $year--) {
+            $years[$year] = 'Năm ' . $year;
         }
 
         return $years;
@@ -123,7 +127,7 @@ class TransactionService
     {
         return [
             'in' => 'Tiền vào (in)',
-            'OUT' => 'Tiền ra (OUT)'
+            'out' => 'Tiền ra (OUT)',
         ];
     }
 }

@@ -152,7 +152,7 @@
                         </div>
                         <div class="col-md-3">
                             <select class="form-select shadow-sm" name="transfer_type">
-                                <option value="">Tất cả loại</option>
+                                <option value="">Tất cả loại giao dịch</option>
                                 @foreach($transferTypes as $typeValue => $typeLabel)
                                     <option value="{{ $typeValue }}"
                                         {{ ($filters['transfer_type'] ?? '') == $typeValue ? 'selected' : '' }}>
@@ -174,13 +174,12 @@
                     <table class="table table-hover table-bordered align-middle">
                         <thead class="table-primary">
                             <tr>
-                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
+                                <th scope="col" style="width: 3%;" class="text-center">STT</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Mã hóa đơn</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Số tiền</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Mã tham chiếu</th>
-                                <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
-                                <th scope="col" style="width: 15%;" class="text-center">Ngày giao dịch</th>
-                                <th scope="col" style="width: 10%;" class="text-center">Chi tiết</th>
+                                <th scope="col" style="width: 16%;" class="text-center">Thời gian giao dịch</th>
+                                <th scope="col" style="width: 8%;" class="text-center">Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -201,9 +200,6 @@
                                     </td>
                                     <td class="text-center">
                                         <span class="fw-bold text-secondary">{{ $transaction->reference_code ?? 'N/A' }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        {{ \Carbon\Carbon::parse($transaction->transaction_date)->format('m/Y') ?? '-' }}
                                     </td>
                                     <td class="text-center">
                                         {{ \Carbon\Carbon::parse($transaction->transaction_date)->format('d/m/Y H:i') ?? '-' }}
