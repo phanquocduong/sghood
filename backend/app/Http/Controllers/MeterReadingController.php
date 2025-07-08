@@ -7,6 +7,7 @@ use App\Models\MeterReading;
 use Illuminate\Http\Request;
 use App\Services\MeterReadingService;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
 class MeterReadingController extends Controller
 {
@@ -34,18 +35,45 @@ class MeterReadingController extends Controller
     {
         try {
             // Validation is already handled by MeterReadingRequest
+            Log::info('Creating meter reading', $request->all());
 
             // Prepare data for creating a new meter reading
             $data = $request->only(['room_id', 'month', 'year', 'electricity_kwh', 'water_m3']);
 
             // Call the service to create a new meter reading
             $meterReading = $this->meterReadingService->createMeterReading($data);
+            Log::info('Meter reading created successfully', ['id' => $meterReading->id]);
 
-            // Redirect back with success message
-            return redirect()->route('meter_readings.index')->with('success', 'Chỉ số điện nước đã được cập nhật thành công.');
+            // Tự động tạo hóa đơn sau khi tạo chỉ số điện nước thành công
+            try {
+                Log::info('Attempting to create invoice for meter reading', ['meter_reading_id' => $meterReading->id]);
+                $invoice = $this->meterReadingService->createInvoice($meterReading->id);
+                Log::info('Invoice created successfully', ['invoice_id' => $invoice->id, 'invoice_code' => $invoice->code]);
+
+                // Redirect back with success message bao gồm cả hóa đơn
+                return redirect()->route('meter_readings.index')
+                    ->with('success', 'Chỉ số điện nước đã được cập nhật thành công và hóa đơn ' . $invoice->code . ' đã được tạo tự động.');
+            } catch (\Exception $invoiceError) {
+                // Nếu tạo hóa đơn thất bại, vẫn thông báo thành công cho chỉ số điện nước
+                Log::error('Error creating invoice after meter reading', [
+                    'meter_reading_id' => $meterReading->id,
+                    'error' => $invoiceError->getMessage(),
+                    'trace' => $invoiceError->getTraceAsString()
+                ]);
+
+                return redirect()->route('meter_readings.index')
+                    ->with('success', 'Chỉ số điện nước đã được cập nhật thành công.')
+                    ->with('warning', 'Tuy nhiên, có lỗi khi tạo hóa đơn tự động: ' . $invoiceError->getMessage());
+            }
+
         } catch (\Exception $e) {
             // Handle any exceptions that occur during the process
-            return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ');
+            Log::error('Error creating meter reading', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            return redirect()->route('meter_readings.index')->with('error', 'Đã xảy ra lỗi khi cập nhật chỉ số điện nước: ' . $e->getMessage());
         }
     }
 
