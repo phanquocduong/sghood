@@ -1,6 +1,6 @@
 <template>
     <div id="booking-widget-anchor" class="boxed-widget booking-widget message-vendor margin-top-35">
-        <h3><i class="fa fa-calendar-check-o"></i> Đặt lịch xem phòng</h3>
+        <h3><i class="fa fa-calendar-check-o"></i> Đặt lịch xem trọ</h3>
         <div class="row with-forms margin-top-0">
             <!-- Date Picker -->
             <div class="col-lg-12">
@@ -66,7 +66,7 @@ const timeSlots = ref([
     { time: '9:00 sáng - 9:30 sáng' },
     { time: '10:00 sáng - 10:30 sáng' },
     { time: '11:00 sáng - 11:30 sáng' },
-    { time: '13:00 sáng - 13:30 chiều' },
+    { time: '13:00 chiều - 13:30 chiều' },
     { time: '14:00 chiều - 14:30 chiều' },
     { time: '15:00 chiều - 15:30 chiều' },
     { time: '16:00 chiều - 16:30 chiều' },
@@ -83,6 +83,14 @@ const formData = ref({
 // Trạng thái dropdown
 const isTimeSlotDropdownOpen = ref(false);
 const selectedTimeSlot = ref('');
+
+// Props để nhận motel_id từ component cha
+const props = defineProps({
+    motelId: {
+        type: [Number, String],
+        required: true
+    }
+});
 
 // Hàm toggle dropdown
 const toggleTimeSlotDropdown = () => {
@@ -121,24 +129,21 @@ const submitForm = async () => {
 
     try {
         loading.value = true;
-        await $api('/schedules-bookings', {
+        await $api('/schedules', {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-            },
-            params: {
-                type: 'schedule'
             },
             body: {
                 date: formData.value.date,
                 timeSlot: formData.value.timeSlot,
                 message: formData.value.message,
                 user_id: authStore.user.id,
-                room_id: route.params.id
+                motel_id: props.motelId
             }
         });
 
-        toast.success('Đặt lịch thành công!');
+        toast.success('Đặt lịch xem nhà trọ thành công!');
         formData.value = { date: '', timeSlot: '', message: '' };
         selectedTimeSlot.value = '';
     } catch (error) {

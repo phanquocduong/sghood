@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
     const username = ref('');
     const password = ref('');
     const confirmPassword = ref('');
+    const role = ref('');
     const phone = ref('');
     const otp = ref('');
     const otpSent = ref(false);
@@ -25,6 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
     const email = ref('');
     const loading = ref(false);
     const user = ref(null);
+    const isAuthenticated = ref(false);
 
     // Methods
     const handleBackendError = error => {
@@ -61,13 +63,31 @@ export const useAuthStore = defineStore('auth', () => {
 
     const getCsrfCookie = async () => {
         if (typeof window === 'undefined') return;
-        await $fetch(`${config.public.baseUrl}/sanctum/csrf-cookie`, { method: 'GET' });
+
+        try {
+            await $fetch(`${config.public.baseUrl}/sanctum/csrf-cookie`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            // Wait a bit for cookie to be set
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+            console.error('CSRF cookie error:', error);
+            throw error;
+        }
     };
 
     const loginUser = async () => {
         try {
             loading.value = true;
+
+            // Clear any existing state first
+            user.value = null;
+            isAuthenticated.value = false;
+
             await getCsrfCookie();
+
             const response = await $api('/login', {
                 method: 'POST',
                 body: { username: username.value, password: password.value },
@@ -76,19 +96,28 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             });
 
+            // Set user data
             user.value = response.data;
+            isAuthenticated.value = true;
 
-            const tokenSaved = await saveFcmToken();
-            if (!tokenSaved) {
-                user.value = null;
-                toast.error('Đã có lỗi xảy ra! Vui lòng tải lại trang và đăng nhập lại');
-            } else {
-                toast.success(response.message);
+            // Try to save FCM token, but don't fail login if it fails
+            try {
+                await saveFcmToken();
+            } catch (fcmError) {
+                console.warn('FCM token save failed, but login successful:', fcmError);
+                toast.warning('Đăng nhập thành công nhưng không thể kích hoạt thông báo');
             }
 
+            toast.success(response.message);
             resetForm();
             closePopup();
+
+            // Small delay to ensure state is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
+            // Reset auth state on login failure
+            user.value = null;
+            isAuthenticated.value = false;
             handleBackendError(error);
         } finally {
             loading.value = false;
@@ -133,35 +162,61 @@ export const useAuthStore = defineStore('auth', () => {
     const logout = async () => {
         try {
             loading.value = true;
-            const response = await $api('/logout', {
-                method: 'POST',
-                headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-                }
-            });
-            user.value = null;
-            toast.success(response.message);
-            resetForm();
-            if (router.currentRoute.value.path === '/') {
-                window.location.reload();
-            } else {
-                router.push('/');
+
+            // Gọi API logout backend
+            try {
+                await getCsrfCookie();
+                const response = await $api('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                    }
+                });
+                toast.success(response.message);
+            } catch (error) {
+                console.warn('Backend logout failed:', error);
             }
+
+            // Xóa tất cả state
+            user.value = null;
+            isAuthenticated.value = false;
+            resetForm();
+
+            // Xóa tất cả cookie liên quan
+            if (process.client) {
+                const cookies = ['sanctum_token', 'XSRF-TOKEN', 'laravel_session'];
+                cookies.forEach(cookieName => {
+                    const cookie = useCookie(cookieName);
+                    cookie.value = null;
+                });
+            }
+
+            // Xóa localStorage nếu sử dụng pinia-plugin-persistedstate
+            if (localStorage.getItem('auth')) {
+                localStorage.removeItem('auth');
+            }
+
+            // Chuyển hướng để đảm bảo trạng thái sạch
+            window.location.href = '/';
         } catch (error) {
-            toast.error('Lỗi đăng xuất. Vui lòng thử lại.');
+            console.error('Logout error:', error);
+            // Xóa state và cookie ngay cả khi có lỗi
+            user.value = null;
+            isAuthenticated.value = false;
+            resetForm();
+
+            if (process.client) {
+                const cookies = ['sanctum_token', 'XSRF-TOKEN', 'laravel_session'];
+                cookies.forEach(cookieName => {
+                    const cookie = useCookie(cookieName);
+                    cookie.value = null;
+                });
+            }
+
+            toast.error('Đã đăng xuất (có thể cần tải lại trang)');
+            window.location.href = '/';
         } finally {
             loading.value = false;
-        }
-    };
-
-    const fetchUser = async () => {
-        if (typeof window === 'undefined') return;
-
-        try {
-            const response = await $api('/user', { method: 'GET' });
-            user.value = response.data;
-        } catch (error) {
-            user.value = null;
         }
     };
 
@@ -226,14 +281,49 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             } catch (error) {
                 console.error('Error saving FCM token:', error);
+                // Don't throw error, just return false
                 return false;
             }
         }
         return false;
     };
 
+    const checkAuth = async () => {
+        if (typeof window === 'undefined') return false;
+
+        try {
+            await fetchUser();
+            return isAuthenticated.value;
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            user.value = null;
+            isAuthenticated.value = false;
+            return false;
+        }
+    };
+
+    const fetchUser = async () => {
+        if (typeof window === 'undefined') return;
+
+        try {
+            const response = await $api('/user', {
+                method: 'GET',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            user.value = response.data;
+            isAuthenticated.value = !!response.data;
+        } catch (error) {
+            console.error('Fetch user failed:', error);
+            user.value = null;
+            isAuthenticated.value = false;
+        }
+    };
+
     return {
         username,
+        role,
         password,
         confirmPassword,
         phone,
@@ -245,6 +335,7 @@ export const useAuthStore = defineStore('auth', () => {
         email,
         loading,
         user,
+        isAuthenticated,
         sendOTP: async () => {
             loading.value = true;
             const success = await sendOTP(phone.value);
@@ -266,6 +357,7 @@ export const useAuthStore = defineStore('auth', () => {
         registerUser,
         logout,
         fetchUser,
-        resetPassword
+        resetPassword,
+        checkAuth
     };
 });

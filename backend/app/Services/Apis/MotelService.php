@@ -40,7 +40,7 @@ class MotelService
     {
         $motels = Motel::query()
             ->select('id', 'slug', 'name', 'description', 'address', 'status', 'district_id')
-            ->with(['district:id,name', 'mainImage:id,motel_id,image_url'])
+            ->with(['district:id,name'])
             ->withCount('amenities')
             ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
                 $query->where('status', 'Trống')
@@ -68,7 +68,7 @@ class MotelService
     public function searchMotels(Request $request)
     {
         $query = Motel::query()
-            ->with(['district:id,name', 'rooms:id,motel_id,price', 'mainImage:id,motel_id,image_url'])
+            ->with(['district:id,name', 'rooms:id,motel_id,price'])
             ->withCount('amenities')
             ->withCount(['rooms as available_rooms_count' => fn (Builder $query) =>
                 $query->where('status', 'Trống')
@@ -155,7 +155,7 @@ class MotelService
         ];
     }
 
-    /**
+   /**
      * Lấy chi tiết nhà trọ theo slug.
      *
      * @param string $slug
@@ -168,11 +168,11 @@ class MotelService
                 'district:id,name',
                 'images:id,motel_id,image_url',
                 'rooms' => fn ($query) =>
-                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status')
+                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status', 'description')
                         ->where('status', 'Trống')
                         ->with([
                             'amenities:id,name',
-                            'mainImage:id,room_id,image_url'
+                            'images:id,room_id,image_url' // Lấy tất cả hình ảnh của phòng
                         ]),
                 'amenities:id,name',
             ])
@@ -197,9 +197,11 @@ class MotelService
             'name' => $room->name,
             'price' => $room->price,
             'area' => $room->area,
+            'description' => $room->description,
             'status' => $room->status,
             'amenities' => $room->amenities->pluck('name')->toArray(),
-            'main_image' => $room->mainImage->image_url,
+            'main_image' => $room->main_image->image_url,
+            'images' => $room->images->map(fn ($image) => ['src' => $image->image_url])->values()->all()
         ])->values()->all();
 
         return [
@@ -232,7 +234,7 @@ class MotelService
                 'address' => $motel->address,
                 'status' => $motel->status,
                 'district_name' => $motel->district->name,
-                'main_image' => $motel->mainImage->image_url,
+                'main_image' => $motel->main_image->image_url,
                 'room_count' => $motel->available_rooms_count,
                 'min_price' => $motel->rooms->min('price'),
             ];

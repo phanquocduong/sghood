@@ -37,9 +37,11 @@ class Motel extends Model
         return $this->hasMany(MotelImage::class);
     }
 
-    public function mainImage()
+    public function getMainImageAttribute()
     {
-        return $this->hasOne(MotelImage::class, 'motel_id')->where('is_main', 1);
+        $mainImage = $this->images->firstWhere('is_main', 1);
+        if (!$mainImage && $this->images->count() > 0) { $mainImage = $this->images->first(); }
+        return $mainImage;
     }
 
     public function amenities()

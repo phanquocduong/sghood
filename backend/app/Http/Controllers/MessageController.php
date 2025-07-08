@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\User;
+use App\Models\Message;
 use App\Services\MessageService;
 use Illuminate\Http\Request;
 use App\Http\Requests\SendMessageRequest;
@@ -18,23 +19,29 @@ class MessageController extends Controller
 
     public function index(Request $request)
     {
-        $users = User::where('role', '!=', 'Quản trị viên')
-            ->whereHas('sentMessages', function ($q) {
-                $q->whereIn('receiver_id', function ($subQuery) {
-                    $subQuery->select('id')->from('users')->where('role', 'Quản trị viên');
-                });
-            })->get();
+        $authId = auth()->id();
+
+        $users = $this->messageService->getUserListWithUnread($authId);
 
         $selectedUserId = $request->get('user_id');
         $selectedUser = null;
         $messages = collect();
 
         if ($selectedUserId) {
+            Message::where('sender_id', $selectedUserId)
+                ->where('receiver_id', $authId)
+                ->where('is_read', 0)
+                ->update(['is_read' => 1]);
+
             $selectedUser = User::find($selectedUserId);
-            $messages = $this->messageService->getMessagesWithUser($selectedUserId, auth()->id());
+            $messages = $this->messageService->getMessagesWithUser($selectedUserId, $authId);
         }
 
-        return view('messages.index', compact('users', 'messages', 'selectedUser', 'selectedUserId'));
+        $totalUnread = $this->messageService->getTotalUnreadFor($authId);
+
+        return view('messages.index', compact(
+            'users', 'messages', 'selectedUser', 'selectedUserId', 'totalUnread'
+        ));
     }
 
    public function sendMessage(SendMessageRequest $request)
@@ -52,6 +59,27 @@ class MessageController extends Controller
         ]);
     }
 
+    public function showChat(Request $request)
+    {
+        $selectedUserId = $request->get('user_id');
+        $selectedUser = null;
+        $messages = collect();
+
+        if ($selectedUserId) {
+            $selectedUser = User::find($selectedUserId);
+            $messages = $this->messageService->getMessagesWithUser($selectedUserId, auth()->id());
+        }
+        return view('messages.partials.chat_box', compact('selectedUser', 'messages', 'selectedUserId'))->render();
+    }
+
+    public function markAsRead(Request $request)
+    {
+        $authId = auth()->id();
+        $userId = $request->input('user_id');
+
+        $this->messageService->markAsRead($userId, $authId);
+
+        return response()->json(['status' => true]);
+    }
 
 }
-

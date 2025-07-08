@@ -3,6 +3,7 @@
 use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
+use App\Http\Controllers\Apis\BookingController;
 use App\Http\Controllers\Apis\ContactController;
 use App\Http\Controllers\Apis\DistrictController;
 use App\Http\Controllers\Apis\MotelController;
@@ -13,9 +14,10 @@ use App\Http\Controllers\Apis\InvoiceController;
 use App\Http\Controllers\Apis\MessageController;
 use App\Http\Controllers\Apis\NotificationController;
 use App\Http\Controllers\Apis\RepairRequestController;
-use App\Http\Controllers\Apis\ScheduleBookingController;
 use App\Http\Controllers\Apis\SepayWebhookController;
 use App\Http\Controllers\Apis\TransactionController;
+use App\Http\Controllers\Apis\ViewingScheduleController;
+use App\Http\Controllers\Apis\BlogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,18 +37,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/profile', [UserController::class, 'updateProfile']);
     Route::patch('/user/change-password', [UserController::class, 'changePassword']);
 
-    Route::get('/schedules-bookings', [ScheduleBookingController::class, 'index']);
-    Route::post('/schedules-bookings', [ScheduleBookingController::class, 'store']);
-    Route::post('/schedules-bookings/{id}/{type}/reject', [ScheduleBookingController::class, 'reject']);
+    Route::get('/schedules', [ViewingScheduleController::class, 'index']);
+    Route::post('/schedules', [ViewingScheduleController::class, 'store']);
+    Route::post('/schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
+
+    Route::get('/motels/{motel}/rooms', [MotelController::class, 'getRooms']);
+
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
 
     Route::get('/contracts', [ContractController::class, 'index']);
     Route::get('/contracts/{id}', [ContractController::class, 'show']);
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
+
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
@@ -77,6 +87,10 @@ Route::post('/messages/send', [MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
+// Blog Routes
+Route::get('/blogs', [BlogController::class, 'index']);
+Route::get('/show/{id}', [BlogController::class, 'showBlog']);
+
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);

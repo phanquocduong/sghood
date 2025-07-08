@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Models\Motel;
 use App\Services\Apis\MotelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,5 +48,15 @@ class MotelController extends Controller
         return response()->json([
             'data' => $this->motelService->getMotelDetail($slug),
         ]);
+    }
+
+    public function getRooms(Motel $motel)
+    {
+        return response()->json($motel->rooms->map(function ($room) {
+            return [
+                'id' => $room->id,
+                'name' => $room->name
+            ];
+        }));
     }
 }

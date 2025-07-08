@@ -2,7 +2,7 @@
     <Loading :is-loading="isLoading" />
     <div v-if="!isLoading" id="wrapper">
         <!-- Header -->
-        <header id="header-container" class="no-shadow">
+        <header id="header-container">
             <div id="header">
                 <div class="container">
                     <div class="left-side">
@@ -41,6 +41,7 @@
                 </div>
             </div>
         </header>
+        <div class="clearfix"></div>
 
         <NuxtPage />
 
