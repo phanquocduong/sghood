@@ -21,12 +21,12 @@ class InvoiceService
             $query->where('code', 'like', '%' . $filters['search'] . '%');
         }
 
-        // Lọc theo tháng
+        // Lọc theo tháng (chỉ khi user chọn tháng cụ thể)
         if (!empty($filters['month'])) {
             $query->where('month', $filters['month']);
         }
 
-        // Lọc theo năm
+        // Lọc theo năm (chỉ khi user chọn năm cụ thể)
         if (!empty($filters['year'])) {
             $query->where('year', $filters['year']);
         }
@@ -98,20 +98,51 @@ class InvoiceService
         return array_combine($years, $years);
     }
 
-    public function getInvoiceStats(): array
+    public function getInvoiceStats(array $filters = []): array
     {
-        $invoices= Invoice::whereMonth('created_at', now()->month)
-        ->whereYear('created_at', now()->year)->get(['status', 'total_amount']);
+        $query = Invoice::query();
+
+        // Áp dụng filter tháng nếu có (chỉ khi user chọn tháng cụ thể)
+        if (!empty($filters['month'])) {
+            $query->where('month', $filters['month']);
+        }
+
+        // Áp dụng filter năm nếu có (chỉ khi user chọn năm cụ thể)
+        if (!empty($filters['year'])) {
+            $query->where('year', $filters['year']);
+        }
+
+        // Nếu không có filter tháng và năm → lấy tất cả hóa đơn
+        // Nếu có filter tháng/năm → lấy theo filter đó
+        // Không có default filter tháng/năm hiện tại nữa
+
+        // Thêm filter theo trạng thái nếu có
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Thêm filter tìm kiếm nếu có
+        if (!empty($filters['search'])) {
+            $query->where('code', 'like', '%' . $filters['search'] . '%');
+        }
+
+        $invoices = $query->get(['status', 'total_amount']);
 
         $paidInvoices = $invoices->where('status', 'Đã trả');
         $unpaidInvoices = $invoices->where('status', 'Chưa trả');
-        $overdueInvoices = $invoices->where('status', 'Đã hoàn tiền');
+        $refundedInvoices = $invoices->where('status', 'Đã hoàn tiền');
+        $canceledInvoices = $invoices->where('status', 'Đã hủy');
 
         return [
-            'total' => Invoice::count(),
+            'total' => $invoices->count(),
             'paid' => $paidInvoices->count(),
             'unpaid' => $unpaidInvoices->count(),
-            'overdue' => $overdueInvoices->count()
+            'refunded' => $refundedInvoices->count(),
+            'canceled' => $canceledInvoices->count(),
+            'total_amount' => $invoices->sum('total_amount'),
+            'paid_amount' => $paidInvoices->sum('total_amount'),
+            'unpaid_amount' => $unpaidInvoices->sum('total_amount'),
+            'refunded_amount' => $refundedInvoices->sum('total_amount')
         ];
     }
 }

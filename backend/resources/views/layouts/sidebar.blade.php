@@ -33,9 +33,9 @@
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('invoice.*') || request()->routeIs('transaction.*') || request()->routeIs('meter_readings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-money-bill me-2"></i>Tài chính</a>
                 <div class="dropdown-menu bg-transparent border-0">
+                    <a href="{{ route('meter_readings.index') }}" class="dropdown-item {{ request()->routeIs('meter_readings.*') ? 'active' : '' }}">Chỉ số điện nước</a>
                     <a href="{{ route('invoices.index') }}" class="dropdown-item {{ request()->is('invoices*') ? 'active' : '' }}">Hoá đơn</a>
                     <a href="{{ route('transactions.index') }}" class="dropdown-item {{ request()->is('transactions*') ? 'active' : '' }}">Lịch sử giao dịch</a>
-                    <a href="{{ route('meter_readings.index') }}" class="dropdown-item {{ request()->routeIs('meter_readings.*') ? 'active' : '' }}">Chỉ số điện nước</a>
                 </div>
             </div>
 

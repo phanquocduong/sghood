@@ -49,36 +49,36 @@ class TransactionController extends Controller
                 ], 404);
             }
 
-            // Đảm bảo các relationship được load
-            $transaction->load(['invoice']);
-
             return response()->json([
                 'success' => true,
                 'data' => [
                     'id' => $transaction->id,
                     'content' => $transaction->content ?? 'N/A',
-                    'transfer_type' => $transaction->transfer_type,
+                    'transfer_type' => $transaction->transfer_type ?? 'N/A',
                     'amount' => number_format($transaction->transfer_amount ?? 0, 0, ',', '.'),
                     'reference_code' => $transaction->reference_code ?? 'N/A',
-                    'created_at' => $transaction->created_at->format('d/m/Y H:i'),
+                    'created_at' => $transaction->created_at ? $transaction->created_at->format('d/m/Y H:i') : 'N/A',
 
                     // Thông tin hóa đơn (nếu có)
                     'invoice' => $transaction->invoice ? [
-                        'code' => $transaction->invoice->code,
-                        'status' => $transaction->invoice->status,
+                        'code' => $transaction->invoice->code ?? 'N/A',
+                        'status' => $transaction->invoice->status ?? 'N/A',
                         'total_amount' => number_format($transaction->invoice->total_amount ?? 0, 0, ',', '.'),
-                        'month' => $transaction->invoice->month,
-                        'year' => $transaction->invoice->year,
+                        'month' => $transaction->invoice->month ?? 'N/A',
+                        'year' => $transaction->invoice->year ?? 'N/A',
                     ] : null
                 ]
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Error in transaction show: ' . $e->getMessage());
+            \Log::error('Error in transaction show: ' . $e->getMessage(), [
+                'transaction_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi tải thông tin giao dịch'
+                'message' => 'Có lỗi xảy ra khi tải thông tin giao dịch: ' . $e->getMessage()
             ], 500);
         }
     }
