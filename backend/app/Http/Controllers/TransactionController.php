@@ -21,18 +21,21 @@ class TransactionController extends Controller
         $filters = [
             'search' => $request->get('search'),
             'transfer_type' => $request->get('transfer_type'),
-            'date_from' => $request->get('date_from'),
-            'date_to' => $request->get('date_to'),
+            'month' => $request->get('month'),
+            'year' => $request->get('year'),
         ];
 
         $perPage = $request->get('per_page', 15);
         $transactions = $this->transactionService->getAllTransactions($filters, $perPage);
-        $stats = $this->transactionService->getTransactionStats();
+        $stats = $this->transactionService->getTransactionStats($filters);
 
         return view('transactions.index', [
             'transactions' => $transactions,
             'stats' => $stats,
-            'filters' => $filters
+            'filters' => $filters,
+            'months' => $this->transactionService->getMonths(),
+            'years' => $this->transactionService->getYears(),
+            'transferTypes' => $this->transactionService->getTransferTypes(),
         ]);
     }
 
