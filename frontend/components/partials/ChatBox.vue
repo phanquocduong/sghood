@@ -238,11 +238,11 @@ const initChat = async () => {
     AdminId.value = res.admin_id
 
     // 2) Lấy lịch sử chat từ API (SQL)
-    const history = await $api(`/messages/history/${AdminId.value}`, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    })
+     const history = await $api(`/messages/history/${AdminId.value}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${token.value}`
+    //   }
+     })
 
     const incoming = history.data.map(msg => ({
       id: msg.id || `${msg.created_at}_${msg.sender_id}`, // fallback nếu không có id
@@ -284,18 +284,18 @@ const initChat = async () => {
 
         messages.value = [...messages.value, ...newUniqueMessages]
         scrollToBottom()
-
-        if (!props.isOpen && newUniqueMessages.some(m => m.from === 'admin' &&
-      (typeof m.createdAt === 'number' ? m.createdAt * 1000 :m.createdAt ) > lastRealtime.value
-      )) {
-          emit('unread')
-        }
-        const audio = notiSound.value
-        if(audio){
-          audio.currentTime = 0 
-          audio.play().catch(err=>{
+        const hasAdmin = newUniqueMessages.some(m => 
+          m.from === 'admin' && (typeof m.createdAt == 'number' ? m.createdAt *1000 :m.createdAt) > lastRealtime.value
+        )
+        if(hasAdmin){
+          emit ('unread')
+          const audio = notiSound.value
+          if(audio){
+            audio.currentTime = 0 
+            audio.play().catch(err=>{
             console.warn('khong the phat am thanh',err)
           })
+          }
         }
       }
     })
@@ -331,7 +331,7 @@ const sendMessage = async (payload = null) => {
 })
 
     // Optionally: gọi API gửi nữa nếu backend cần lưu
-  /*   await $api('/messages/send', {
+    /*  await $api('/messages/send', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token.value}`,
@@ -341,7 +341,7 @@ const sendMessage = async (payload = null) => {
         receiver_id: AdminId.value,
         message: text
       }
-    }) */
+    })  */
     if(type ==='text') behavior.clearChat()
 
     scrollToBottom()

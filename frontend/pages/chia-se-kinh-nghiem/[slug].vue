@@ -81,7 +81,7 @@
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
               <ul class="widget-tabs">
-                <li v-for="popular in relatedPosts.slice(0, 1)" :key="popular.id">
+                <li v-for="popular in relatedPosts.slice(0, 100)" :key="popular.id">
                   <div class="widget-content">
                     <div class="widget-thumb">
                       <a :href="popular.url"><img :src="popular.thumbnail" alt=""></a>

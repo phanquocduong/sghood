@@ -39,7 +39,7 @@ const maskedPhone = computed(() => {
 });
 
 onMounted(async () => {
-    if (props.show) {
+    if (prop.show) {
         await nextTick();
         const recaptchaContainer = document.getElementById('recaptcha-container');
         if (!recaptchaContainer) {
