@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\RepairRequest;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class RepairRequestService
 {
@@ -72,6 +73,31 @@ class RepairRequestService
         }
 
         return $repair->save();
+    }
+
+    /**
+     * Lấy repair requests cần xử lý (pending và in_progress) cho dashboard
+     */
+    public function getPendingRequests($limit = 5)
+    {
+        $query = RepairRequest::with(['contract.user', 'contract.room'])
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->orderBy('created_at', 'desc')
+            ->limit($limit);
+
+        // Debug: Kiểm tra SQL query
+        Log::info('getPendingRequests SQL: ' . $query->toSql());
+        Log::info('getPendingRequests bindings: ' . json_encode($query->getBindings()));
+
+        $results = $query->get();
+        Log::info('getPendingRequests results count: ' . $results->count());
+
+        // Kiểm tra tất cả repair requests
+        $allRequests = RepairRequest::all();
+        Log::info('Total repair requests in DB: ' . $allRequests->count());
+        Log::info('All statuses: ' . $allRequests->pluck('status')->unique()->toJson());
+
+        return $results;
     }
 
 }

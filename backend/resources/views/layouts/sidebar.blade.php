@@ -44,7 +44,7 @@
 
 
             <!-- Quản lý vận hành -->
-            <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_request.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
+            <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_requests.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
 
             <!-- Quản lý hệ thống -->
             <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
