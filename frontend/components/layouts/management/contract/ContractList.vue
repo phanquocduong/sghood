@@ -111,7 +111,7 @@
                         item.status === 'Hoạt động' &&
                         isNearExpiration(item.end_date) &&
                         item.latest_extension_status !== 'Chờ duyệt' &&
-                        item.checkout_status !== 'Chờ kiểm kê'
+                        !item.checkout_status
                     "
                     href="#"
                     @click.prevent="openConfirmExtendPopup(item)"
@@ -124,7 +124,7 @@
                         item.status === 'Hoạt động' &&
                         isNearExpiration(item.end_date) &&
                         item.latest_extension_status !== 'Chờ duyệt' &&
-                        item.checkout_status !== 'Chờ kiểm kê'
+                        !item.checkout_status
                     "
                     href="#"
                     @click.prevent="openReturnModal(item)"

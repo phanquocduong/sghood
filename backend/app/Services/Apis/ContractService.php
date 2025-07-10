@@ -112,15 +112,17 @@ class ContractService
                 'file' => $contract->file ? url($contract->file) : null,
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
                 'user_phone' => $contract->user->phone,
-                'extensions' => $contract->extensions->map(fn($ext) => [
-                    'id' => $ext->id,
-                    'new_end_date' => $ext->new_end_date->toIso8601String(),
-                    'new_rental_price' => $ext->new_rental_price,
-                    'content' => $ext->content,
-                    'file' => $ext->file ? url($ext->file) : null,
-                    'status' => $ext->status,
-                    'cancellation_reason' => $ext->cancellation_reason,
-                ]),
+                'active_extensions' => $contract->extensions
+                    ->filter(fn($ext) => $ext->status === 'Hoạt động')
+                    ->map(fn($ext) => [
+                        'id' => $ext->id,
+                        'new_end_date' => $ext->new_end_date->toIso8601String(),
+                        'new_rental_price' => $ext->new_rental_price,
+                        'content' => $ext->content,
+                        'file' => $ext->file ? url($ext->file) : null,
+                        'status' => $ext->status,
+                        'rejection_reason' => $ext->rejection_reason,
+                    ])->values()->toArray(),
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
@@ -719,7 +721,6 @@ class ContractService
 
             // Tạo yêu cầu hoàn tiền
             $refundRequest = RefundRequest::create([
-                'contract_id' => $contract->id,
                 'checkout_id' => $checkout->id,
                 'deposit_amount' => $contract->deposit_amount,
                 'status' => 'Chờ xử lý',

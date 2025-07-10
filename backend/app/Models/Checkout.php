@@ -37,4 +37,9 @@ class Checkout extends Model
     {
         return $this->belongsTo(Contract::class);
     }
+
+    public function refund_request()
+    {
+        return $this->hasOne(RefundRequest::class);
+    }
 }

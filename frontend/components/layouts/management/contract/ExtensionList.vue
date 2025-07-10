@@ -2,7 +2,7 @@
     <h4>Gia hạn - Phụ lục hợp đồng</h4>
 
     <ul>
-        <li v-for="extension in contract?.extensions" :key="extension.id" :class="getItemClass(extension.status)">
+        <li v-for="extension in contract?.active_extensions" :key="extension.id" :class="getItemClass(extension.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-content">
                     <div class="inner">

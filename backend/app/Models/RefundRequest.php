@@ -28,13 +28,6 @@ class RefundRequest extends Model
         'final_amount'     => 'integer',
     ];
 
-    /**
-     * Quan hệ với hợp đồng
-     */
-    public function contract()
-    {
-        return $this->belongsTo(Contract::class);
-    }
 
     /**
      * Quan hệ với phiếu trả phòng (checkout)

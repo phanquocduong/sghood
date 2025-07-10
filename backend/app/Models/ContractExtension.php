@@ -17,7 +17,7 @@ class ContractExtension extends Model
         'content',
         'file',
         'status',
-        'cancellation_reason',
+        'rejection_reason',
     ];
 
     protected $casts = [
