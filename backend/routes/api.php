@@ -94,6 +94,7 @@ Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
+Route::post('/users/by-ids', [UserController::class, 'getByIds']);
 
 // Notification Routes
 Route::prefix('notifications')->group(function () {

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -63,7 +64,8 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $user = User::findOrFail($id);
         $user->role = $request->role;
         $user->status = $request->status;
@@ -133,5 +135,11 @@ class UserController extends Controller
         $user->delete();
         return redirect()->route('users.user')->with('success', 'User deleted successfully.');
     }
-
+    // phan lay danh sach user theo id
+    public function getByIds(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $users = User::whereIn('id', $ids)->get();
+        return response()->json($users);
+    }
 }

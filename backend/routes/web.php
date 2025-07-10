@@ -119,6 +119,7 @@ Route::middleware('admin')->group(function () {
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
         Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
         Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/by-ids', [UserController::class, 'getByIds'])->name('byIds');
     });
 
     // Booking Routes Group
