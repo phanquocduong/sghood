@@ -25,13 +25,18 @@ use Illuminate\Support\Facades\Storage;
     <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
             <div class="d-flex align-items-center">
-                <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại dashboard">
-                    <i class="fas fa-arrow-left me-1"></i> Quay lại
-                </a>
-                <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
-                    <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
-                </h5>
+            <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại dashboard">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
+                <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
+            </h5>
+            </div>
+            <div>
+            <a href="{{ route('contracts.contract-extensions') }}" class="btn btn-primary btn-sm shadow-sm text-white" style="transition: all 0.3s;" title="Xem danh sách hợp đồng gia hạn">
+                <i class="fas fa-history me-1"></i> Danh sách hợp đồng gia hạn
+            </a>
             </div>
         </div>
 

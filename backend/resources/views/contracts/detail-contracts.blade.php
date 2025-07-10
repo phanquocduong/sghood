@@ -20,6 +20,88 @@
 
         <!-- DIV CHA 1: PHẦN HỢP ĐỒNG -->
         {!! $contract->content ?? '' !!}
+
+        <!-- DIV PHỤ LỤC: PHẦN GIA HẠN HỢP ĐỒNG -->
+        @if(isset($contractExtensions) && $contractExtensions->count() > 0)
+            <div class="contract-extension-wrapper mt-5">
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header bg-gradient text-white py-3 rounded-top-4" style="background: linear-gradient(90deg, #28a745, #20c997);">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-file-contract me-2"></i>PHỤ LỤC GIA HẠN HỢP ĐỒNG
+                            <span class="badge bg-light text-success ms-2">{{ $contractExtensions->count() }} gia hạn</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        @foreach($contractExtensions as $index => $extension)
+                            <div class="extension-item mb-4 {{ !$loop->last ? 'border-bottom pb-4' : '' }}">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="text-primary fw-bold mb-0">
+                                        <i class="fas fa-plus-circle me-2"></i>Phụ lục số {{ $index + 1 }}
+                                    </h6>
+                                    <div class="text-end">
+                                        <div class="badge bg-success py-2 px-3 mb-2">
+                                            <i class="fas fa-check-circle me-1"></i>Đã duyệt
+                                            {{ $extension->created_at ? $extension->created_at->format('d/m/Y H:i') : 'N/A' }}
+                                        </div>
+                                        <div class="text-muted small">
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="info-box p-3 bg-light rounded-3">
+                                            <strong class="text-primary">
+                                                <i class="fas fa-calendar-alt me-1"></i>Ngày kết thúc mới:
+                                            </strong>
+                                            <div class="mt-1 text-dark fw-semibold">
+                                                {{ $extension->new_end_date ? \Carbon\Carbon::parse($extension->new_end_date)->format('d/m/Y') : 'N/A' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-box p-3 bg-light rounded-3">
+                                            <strong class="text-success">
+                                                <i class="fas fa-money-bill-wave me-1"></i>Giá thuê mới:
+                                            </strong>
+                                            <div class="mt-1 text-success fw-bold">
+                                                {{ number_format($extension->new_rental_price ?? 0, 0, ',', '.') }} VNĐ
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if($extension->content)
+                                    <div class="extension-content">
+                                        <h6 class="text-dark fw-semibold mb-3">
+                                            <i class="fas fa-file-alt me-2"></i>Nội dung phụ lục:
+                                        </h6>
+                                        <div class="content-box p-4 bg-white border rounded-3 shadow-sm">
+                                            {!! $extension->content !!}
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($extension->file)
+                                    <div class="extension-file mt-3">
+                                        <h6 class="text-dark fw-semibold mb-2">
+                                            <i class="fas fa-paperclip me-2"></i>Tệp đính kèm:
+                                        </h6>
+                                        <a href="{{ asset('storage/' . $extension->file) }}"
+                                           target="_blank"
+                                           class="btn btn-outline-primary btn-sm shadow-sm">
+                                            <i class="fas fa-download me-1"></i>Tải xuống tệp đính kèm
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- DIV CHA 2: PHẦN QUẢN LÝ TRẠNG THÁI HỢP ĐỒNG -->
         <div class="contract-management-wrapper">
             <div class="card border-0 bg-light rounded-3 p-4">
@@ -134,7 +216,7 @@
                                 <p class="mb-0">
                                     <strong>Ngày hết hạn:</strong>
                                     <span
-                                        class="text-primary">{{ $contract->booking->end_date ? \Carbon\Carbon::parse($contract->booking->end_date)->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
+                                        class="text-primary">{{ $contract->end_date ? \Carbon\Carbon::parse($contract->end_date)->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
                                 </p>
                             </div>
                         </div>
@@ -145,7 +227,7 @@
                 @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hắt hạn')
                     <div class="card border-0 bg-white shadow-sm">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">
+                            <h6 class="mb-0 text-white">
                                 <i class="fas fa-sync-alt me-2"></i>Cập nhật trạng thái
                             </h6>
                         </div>
@@ -245,6 +327,9 @@
 
         .zoom-image:hover {
             background-color: #0052cc;
+        }
+        .contract-document{
+            box-shadow: none;
         }
     </style>
 

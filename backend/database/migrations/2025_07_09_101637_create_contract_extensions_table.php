@@ -17,7 +17,6 @@ return new class extends Migration
             $table->date('new_end_date');
             $table->integer('new_rental_price');
             $table->text('content')->nullable();
-            $table->string('file')->nullable();
             $table->enum('status', ['Chờ duyệt', 'Hoạt động', 'Từ chối', 'Huỷ bỏ'])->default('Chờ duyệt');
             $table->string('rejection_reason')->nullable();
             $table->timestamps();

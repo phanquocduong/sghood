@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ContractService;
+use App\Models\ContractExtension;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -45,8 +46,15 @@ class ContractController extends Controller
             return redirect()->route('contracts.index')->with('error', $result['error']);
         }
 
+        // Lấy các gia hạn hợp đồng đã được duyệt cho hợp đồng này
+        $contractExtensions = ContractExtension::where('contract_id', $id)
+            ->where('status', 'Hoạt động')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('contracts.detail-contracts', [
-            'contract' => $result['data']
+            'contract' => $result['data'],
+            'contractExtensions' => $contractExtensions
         ]);
     }
 
