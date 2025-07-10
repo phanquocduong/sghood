@@ -155,6 +155,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
+        Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
     });
 
     // Notification routes
@@ -189,8 +190,6 @@ Route::middleware('admin')->group(function () {
     Route::prefix('CKEditors')->name('ckeditors.')->group(function() {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
     });
-    Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
-        ->name('contracts.showIdentityDocument');
 
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');

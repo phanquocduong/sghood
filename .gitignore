@@ -11,6 +11,7 @@
 /backend/Homestead.yaml
 /backend/npm-debug.log
 /backend/yarn-error.log
+/backend/ckeditor5
 
 # Nuxt
 /frontend/node_modules/
