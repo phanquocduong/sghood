@@ -1,5 +1,5 @@
 <template>
-    <div id="listing-pricing-list" class="listing-section">
+    <div id="listing-pricing-list" class="listing-section margin-top-35">
         <div class="pricing-list-container">
             <h4>{{ title }}</h4>
             <ul>

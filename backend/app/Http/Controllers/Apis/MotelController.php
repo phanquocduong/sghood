@@ -52,11 +52,13 @@ class MotelController extends Controller
 
     public function getRooms(Motel $motel)
     {
-        return response()->json($motel->rooms->map(function ($room) {
+        return response()->json($motel->rooms->filter(function ($room) {
+            return $room->status === 'Trống';
+        })->map(function ($room) {
             return [
                 'id' => $room->id,
                 'name' => $room->name
             ];
-        }));
+        })->values());
     }
 }

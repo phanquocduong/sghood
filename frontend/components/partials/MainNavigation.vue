@@ -8,10 +8,10 @@
                 <NuxtLink to="/danh-sach-nha-tro" active-class="current" class="inline-flex items-center">Nhà Trọ</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/ve-chung-toi" active-class="current" class="inline-flex items-center">Về Chúng Tôi</NuxtLink>
+                <NuxtLink to="/chia-se-kinh-nghiem" active-class="current" class="inline-flex items-center">Kinh Nghiệm</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/chia-se-kinh-nghiem" active-class="current" class="inline-flex items-center">Kinh Nghiệm</NuxtLink>
+                <NuxtLink to="/ve-chung-toi" active-class="current" class="inline-flex items-center">Về Chúng Tôi</NuxtLink>
             </li>
             <li>
                 <NuxtLink to="/lien-he" active-class="current" class="inline-flex items-center">Liên Hệ</NuxtLink>

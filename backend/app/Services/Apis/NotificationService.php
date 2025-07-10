@@ -2,7 +2,7 @@
 
 namespace App\Services\Apis;
 
-use App\Mail\ContractNotificationForAdmins;
+use App\Mail\Apis\ContractNotificationForAdmins;
 use App\Models\Contract;
 use App\Models\Notification;
 use App\Models\User;
@@ -12,7 +12,7 @@ use Kreait\Firebase\Messaging\CloudMessage;
 
 class NotificationService
 {
-    public function notifyContractForAdmins(Contract $contract, string $oldStatus): void
+    public function notifyContractForAdmins(Contract $contract, string $context): void
     {
         try {
             $admins = User::where('role', 'Quản trị viên')->get();
@@ -22,21 +22,25 @@ class NotificationService
                 return;
             }
 
-            $title = match ($oldStatus) {
+            $title = match ($context) {
                 'Chờ ký' => "Hợp đồng #{$contract->id} đã được ký",
                 'Chờ chỉnh sửa' => "Hợp đồng #{$contract->id} đã được chỉnh sửa và gửi lại để duyệt",
                 'Chờ thanh toán tiền cọc' => "Hợp đồng #{$contract->id} đã được kích hoạt",
+                'Gia hạn' => "Yêu cầu gia hạn hợp đồng #{$contract->id}",
+                'Trả phòng' => "Yêu cầu trả phòng hợp đồng #{$contract->id}",
                 default => "Hợp đồng mới #{$contract->id} đang chờ duyệt",
             };
 
-            $body = match ($oldStatus) {
+            $body = match ($context) {
                 'Chờ ký' => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được ký và đang chờ thanh toán tiền cọc.",
                 'Chờ chỉnh sửa' => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được chỉnh sửa và gửi lại để duyệt.",
                 'Chờ thanh toán tiền cọc' => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã thanh toán tiền cọc và đã được kích hoạt.",
+                'Gia hạn' => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã gửi yêu cầu gia hạn, đang chờ duyệt.",
+                'Trả phòng' => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã gửi yêu cầu trả phòng và kiểm kê, đang chờ xử lý.",
                 default => "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được gửi để duyệt.",
             };
 
-            Mail::to($admins->pluck('email'))->send(new ContractNotificationForAdmins($contract, $oldStatus));
+            Mail::to($admins->pluck('email'))->send(new ContractNotificationForAdmins($contract, $context));
 
             $messaging = app('firebase.messaging');
 

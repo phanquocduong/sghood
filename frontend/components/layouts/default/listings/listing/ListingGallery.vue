@@ -1,6 +1,6 @@
 <template>
     <div id="listing-gallery" class="listing-section">
-        <h3 class="listing-desc-headline margin-top-70">Ảnh</h3>
+        <h3 class="listing-desc-headline">Ảnh</h3>
         <div class="listing-slider-small mfp-gallery-container margin-bottom-0">
             <a
                 v-for="image in images"

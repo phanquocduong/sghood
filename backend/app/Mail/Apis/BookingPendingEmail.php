@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail;
+namespace App\Mail\Apis;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -20,6 +20,6 @@ class BookingPendingEmail extends Mailable
     public function build()
     {
         return $this->subject('Đặt phòng mới chờ duyệt')
-                    ->view('emails.booking_pending');
+                    ->view('emails.apis.booking_pending');
     }
 }

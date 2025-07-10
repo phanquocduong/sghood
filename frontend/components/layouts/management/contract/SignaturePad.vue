@@ -360,7 +360,6 @@ onUnmounted(() => {
 @media (max-width: 640px) {
     .signature-container {
         padding: 16px;
-        margin: 16px;
     }
 
     .signature-header h4 {

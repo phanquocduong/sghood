@@ -73,7 +73,6 @@ export function useContract({
             const response = await $api(`/contracts/${route.params.id}`, { method: 'GET' });
             contract.value = response.data;
             phoneNumber.value = response.data.user_phone;
-            console.log(phoneNumber.value);
             processContractContent();
         } catch (error) {
             console.error('Lỗi khi lấy hợp đồng:', error);
@@ -310,12 +309,31 @@ export function useContract({
         }
     };
 
+    const rejectExtension = async id => {
+        loading.value = true;
+        try {
+            const response = await $api(`/contract-extensions/${id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            await fetchContract();
+            toast.success(response.message);
+        } catch (error) {
+            handleBackendError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         fetchContract,
         handleIdentityUpload,
         signContract,
         confirmOTPAndSign,
         saveContract,
+        rejectExtension,
         phoneNumber,
         showOTPModal,
         otpCode

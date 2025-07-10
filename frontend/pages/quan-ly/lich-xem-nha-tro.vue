@@ -8,18 +8,18 @@
             </div>
             <div class="message-reply margin-top-0">
                 <div class="row with-forms">
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <label>Phòng:</label>
                         <select v-model="formData.room_id" class="modal-room-select" ref="roomSelect">
                             <option value="">Chọn phòng</option>
                             <option v-for="room in rooms" :key="room.id" :value="room.id">{{ room.name }}</option>
                         </select>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <label>Ngày bắt đầu:</label>
-                        <input type="text" id="date-picker" placeholder="Ngày bắt đầu" readonly="readonly" />
+                        <input type="text" id="date-picker" placeholder="Chọn ngày" readonly="readonly" />
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <label>Thời gian thuê:</label>
                         <select v-model="formData.duration" class="modal-duration-select" ref="durationSelect">
                             <option value="">Thời gian</option>
@@ -206,7 +206,7 @@ onMounted(() => {
     fetchSchedules();
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
-            const tomorrow = window.moment().add(15, 'days');
+            const tomorrow = window.moment().add(2, 'days');
             window
                 .jQuery('#date-picker')
                 .daterangepicker({
@@ -236,7 +236,15 @@ onMounted(() => {
                 })
                 .on('apply.daterangepicker', (ev, picker) => {
                     formData.value.start_date = picker.startDate.format('DD/MM/YYYY');
+                    window.jQuery('#date-picker').val(picker.startDate.format('DD/MM/YYYY')); // Cập nhật giá trị input
+                })
+                .on('cancel.daterangepicker', () => {
+                    formData.value.start_date = ''; // Xóa giá trị khi hủy
+                    window.jQuery('#date-picker').val(''); // Xóa giá trị input
                 });
+
+            // Đảm bảo placeholder hiển thị ban đầu
+            window.jQuery('#date-picker').val('');
 
             window.jQuery('#date-picker').on('showCalendar.daterangepicker', () => {
                 window.jQuery('.daterangepicker').addClass('calendar-animated');

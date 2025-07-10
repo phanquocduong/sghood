@@ -1,5 +1,5 @@
 <template>
-    <div class="col-lg-3 col-md-3">
+    <div class="col-lg-3 col-md-12">
         <div class="dashboard-list-box margin-top-0">
             <h4 class="gray">Giấy tờ tùy thân</h4>
             <div class="dashboard-list-box-static">
@@ -30,7 +30,7 @@ defineProps({
         type: Boolean,
         required: true
     }
-}); 
+});
 
 defineEmits(['save-contract', 'identity-upload']);
 </script>
@@ -88,5 +88,11 @@ defineEmits(['save-contract', 'identity-upload']);
 
 .edit-profile-photo {
     margin-bottom: 0;
+}
+
+@media (max-width: 992px) {
+    .dashboard-list-box {
+        margin-top: 20px !important;
+    }
 }
 </style>

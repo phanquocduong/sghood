@@ -5,7 +5,14 @@
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <ContractList :items="items" :is-loading="isLoading" @reject-item="rejectItem" @open-popup="openPopup" />
+                    <ContractList
+                        :items="items"
+                        :is-loading="isLoading"
+                        @open-popup="openPopup"
+                        @reject-item="rejectItem"
+                        @extend-contract="extendContract"
+                        @return-contract="returnContract"
+                    />
                 </div>
             </div>
         </div>
@@ -50,7 +57,7 @@ const fetchItems = async () => {
     }
 };
 
-const rejectItem = async ({ id }) => {
+const rejectItem = async id => {
     isLoading.value = true;
     try {
         await $api(`/contracts/${id}/reject`, {
@@ -59,8 +66,45 @@ const rejectItem = async ({ id }) => {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             }
         });
-        await fetchItems();
         toast.success(`Hủy hợp đồng thành công`);
+        await fetchItems();
+    } catch (error) {
+        handleBackendError(error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const extendContract = async id => {
+    isLoading.value = true;
+    try {
+        await $api(`/contracts/${id}/extend`, {
+            method: 'POST',
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            }
+        });
+        toast.success('Yêu cầu gia hạn hợp đồng đã được gửi.');
+        await fetchItems();
+    } catch (error) {
+        handleBackendError(error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const returnContract = async (contractId, data) => {
+    isLoading.value = true;
+    try {
+        await $api(`/contracts/${contractId}/return`, {
+            method: 'POST',
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            },
+            body: data
+        });
+        toast.success('Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.');
+        await fetchItems();
     } catch (error) {
         handleBackendError(error);
     } finally {

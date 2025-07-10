@@ -14,11 +14,6 @@
                         {{ session('error') }}
                     </div>
                 @endif
-                @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
-                @endif
                 <form action="{{ route('login') }}" method="POST" id="loginForm">
                     @csrf
                     <div class="form-floating mb-3">
@@ -66,22 +61,6 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
-
-    // Kiểm tra Firebase Messaging ngay khi tải trang
-    async function testFirebaseMessaging() {
-        if (!messaging) return;
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            await messaging.getToken({
-                vapidKey: 'BIwo8BokWVVEkQusRhenQkeVXDESe5Hfev8clWdC4BAcN1Onj6Ic2W6WOyFBrQKMMHIHQI2lloDVsn2F6lxOyxo'
-            });
-        }
-    }
-
-    // Gọi kiểm tra ngay khi tải trang
-    if (messaging) {
-        testFirebaseMessaging();
-    }
 
     // Hàm lấy FCM token
     async function getFcmToken() {
@@ -136,6 +115,11 @@
 
         loginForm.addEventListener('submit', async function (event) {
             event.preventDefault();
+
+            // Xóa các thông báo cũ trước khi submit
+            const alerts = loginForm.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.remove());
+
             const form = event.target;
             const formData = new FormData(form);
 
@@ -156,8 +140,18 @@
                         await saveFcmToken(token);
                     }
                     window.location.href = '{{ route("dashboard") }}';
+                } else {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger';
+                    errorDiv.textContent = result.message;
+                    loginForm.prepend(errorDiv);
                 }
-            } catch (error) {}
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+                loginForm.prepend(errorDiv);
+            }
         });
     });
 </script>

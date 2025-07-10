@@ -1,5 +1,5 @@
 <template>
-    <div id="booking-widget-anchor" class="boxed-widget booking-widget message-vendor margin-top-35">
+    <div id="booking-widget-anchor" class="boxed-widget booking-widget message-vendor">
         <h3><i class="fa fa-calendar-check-o"></i> Đặt lịch xem trọ</h3>
         <div class="row with-forms margin-top-0">
             <!-- Date Picker -->

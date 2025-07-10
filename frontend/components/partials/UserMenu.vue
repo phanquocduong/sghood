@@ -10,7 +10,7 @@
                 <div v-show="user" class="auth-container">
                     <div class="user-menu notification-wrapper">
                         <div class="notification-icon" @click="toggleDropdown">
-                            <i class="fa fa-bell-o"></i>
+                            <i class="sl sl-icon-bell"></i>
                             <span class="badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
                         </div>
 

@@ -18,6 +18,7 @@ use App\Http\Controllers\Apis\SepayWebhookController;
 use App\Http\Controllers\Apis\TransactionController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\BlogController;
+use App\Http\Controllers\Apis\ContractExtensionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,15 +53,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
     Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
-
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
-    Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+    Route::post('/contracts/{id}/extend', [ContractController::class, 'extend']);
+    Route::post('/contracts/{id}/return', [ContractController::class, 'requestReturn']);
 
+    Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
-    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+    Route::get('/invoices/{code}', [InvoiceController::class, 'show']);
+    Route::get('/invoices/{code}/status', [InvoiceController::class, 'checkStatus']);
 
     Route::get('/transactions', [TransactionController::class, 'index']);
 
