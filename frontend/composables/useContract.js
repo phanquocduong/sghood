@@ -309,31 +309,12 @@ export function useContract({
         }
     };
 
-    const rejectExtension = async id => {
-        loading.value = true;
-        try {
-            const response = await $api(`/contract-extensions/${id}/reject`, {
-                method: 'POST',
-                headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-                }
-            });
-            await fetchContract();
-            toast.success(response.message);
-        } catch (error) {
-            handleBackendError(error);
-        } finally {
-            loading.value = false;
-        }
-    };
-
     return {
         fetchContract,
         handleIdentityUpload,
         signContract,
         confirmOTPAndSign,
         saveContract,
-        rejectExtension,
         phoneNumber,
         showOTPModal,
         otpCode

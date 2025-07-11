@@ -1,12 +1,12 @@
 <template>
     <div>
-        <Titlebar title="Đặt phòng" />
+        <Titlebar title="Yêu cầu gia hạn hợp đồng" />
 
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <BookingFilter v-model:filter="filter" @update:filter="fetchBookings" />
-                    <BookingList :items="bookings" :is-loading="isLoading" @reject-item="rejectBooking" />
+                    <ContractExtensionFilter v-model:filter="filter" @update:filter="fetchExtensions" />
+                    <ContractExtensionList :extensions="extensions" :is-loading="isLoading" @reject-extension="rejectExtension" />
                 </div>
             </div>
         </div>
@@ -22,7 +22,7 @@ definePageMeta({
 });
 
 const { $api } = useNuxtApp();
-const bookings = ref([]);
+const extensions = ref([]);
 const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const toast = useToast();
@@ -40,11 +40,12 @@ const handleBackendError = error => {
     toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
 };
 
-const fetchBookings = async () => {
+const fetchExtensions = async () => {
     isLoading.value = true;
     try {
-        const response = await $api('/bookings', { method: 'GET', params: filter.value });
-        bookings.value = response.data;
+        const response = await $api('/contract-extensions', { method: 'GET', params: filter.value });
+        extensions.value = response.data;
+        console.log(extensions.value);
     } catch (error) {
         handleBackendError(error);
     } finally {
@@ -52,17 +53,17 @@ const fetchBookings = async () => {
     }
 };
 
-const rejectBooking = async id => {
+const rejectExtension = async id => {
     isLoading.value = true;
     try {
-        await $api(`/bookings/${id}/reject`, {
+        const response = await $api(`/contract-extensions/${id}/reject`, {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             }
         });
-        await fetchBookings();
-        toast.success('Hủy đặt phòng thành công');
+        await fetchExtensions();
+        toast.success(response.message);
     } catch (error) {
         handleBackendError(error);
     } finally {
@@ -71,16 +72,11 @@ const rejectBooking = async id => {
 };
 
 onMounted(() => {
-    fetchBookings();
+    fetchExtensions();
 });
 </script>
 
 <style scoped>
-input#date-picker {
-    border: 1px solid #dbdbdb;
-    box-shadow: 0 1px 3px 0px rgba(0, 0, 0, 0.08);
-}
-
 .spinner {
     display: inline-block;
     width: 16px;

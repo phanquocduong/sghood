@@ -10,15 +10,14 @@ class RefundRequest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'contract_id',
         'checkout_id',
         'deposit_amount',
         'deduction_amount',
         'final_amount',
         'bank_info',
+        'qr_code_path',
         'status',
         'rejection_reason',
-        'transaction_id',
     ];
 
     protected $casts = [

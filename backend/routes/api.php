@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/extend', [ContractController::class, 'extend']);
     Route::post('/contracts/{id}/return', [ContractController::class, 'requestReturn']);
 
+    Route::get('/contract-extensions', [ContractExtensionController::class, 'index']);
     Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
@@ -90,6 +91,7 @@ Route::post('/messages/send', [MessageController::class, 'sendMessage']);
 Route::get('/messages/history/{userId}', [MessageController::class, 'getChatHistory']);
 Route::get('/messages/conversations', [MessageController::class, 'getAdminConversations']);
 Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
+
 // Blog Routes
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/show/{id}', [BlogController::class, 'showBlog']);
