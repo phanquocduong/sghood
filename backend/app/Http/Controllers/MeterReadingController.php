@@ -9,7 +9,7 @@ use DB;
 use Illuminate\Http\Request;
 use App\Services\MeterReadingService;
 use App\Http\Controllers\Controller;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class MeterReadingController extends Controller
 {
@@ -40,7 +40,7 @@ class MeterReadingController extends Controller
 
         return view('meter_readings.index', $data);
     }
-    public function store(MeterReadingRequest $request)
+     public function store(MeterReadingRequest $request)
     {
         try {
             DB::beginTransaction();
@@ -106,6 +106,7 @@ class MeterReadingController extends Controller
                 ->with('open_update_modal', true);
         }
     }
+
 
 
     public function filter(Request $request)

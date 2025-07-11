@@ -78,10 +78,10 @@ class InvoiceController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function show(string $code): JsonResponse
     {
         try {
-            $invoice = $this->invoiceService->getInvoiceById($id);
+            $invoice = $this->invoiceService->getInvoiceById($code);
 
             return response()->json([
                 'success' => true,
@@ -90,7 +90,7 @@ class InvoiceController extends Controller
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hóa đơn', [
                 'user_id' => Auth::id(),
-                'invoice_id' => $id,
+                'invoice_code' => $code,
                 'error' => $e->getMessage(),
             ]);
 

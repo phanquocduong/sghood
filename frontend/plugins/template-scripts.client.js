@@ -105,8 +105,14 @@ export default defineNuxtPlugin(nuxtApp => {
 
                 // Mmenu
                 function mmenuInit() {
+                    console.log('Starting mmenuInit');
                     var wi = $(window).width();
-                    if (wi <= '1024') {
+                    if (wi <= 1024) {
+                        console.log('Window width <= 1024, initializing mmenu');
+                        if ($('#navigation').length === 0) {
+                            console.error('#navigation element not found');
+                            return;
+                        }
                         $('.mmenu-init').remove();
                         $('#navigation')
                             .clone()
@@ -120,38 +126,60 @@ export default defineNuxtPlugin(nuxtApp => {
                         $('.mmenu-init').find('ul').addClass('mm-listview');
                         $('.mmenu-init').find('.mobile-styles .mm-listview').unwrap();
 
-                        $('.mmenu-init').mmenu(
-                            { counters: true },
-                            {
-                                offCanvas: { pageNodetype: '#wrapper' }
+                        console.log('mmenu-init element created:', $('.mmenu-init').length);
+                        if ($('.mmenu-init').length) {
+                            if (!$.fn.mmenu) {
+                                console.error('mmenu plugin is not loaded');
+                                return;
                             }
-                        );
+                            $('.mmenu-init').mmenu(
+                                {
+                                    counters: true,
+                                    offCanvas: {
+                                        pageSelector: '#wrapper'
+                                    }
+                                },
+                                {}
+                            );
 
-                        var mmenuAPI = $('.mmenu-init').data('mmenu');
-                        var $icon = $('.hamburger');
+                            var mmenuAPI = $('.mmenu-init').data('mmenu');
+                            console.log('mmenuAPI:', mmenuAPI);
+                            if (mmenuAPI) {
+                                var $icon = $('.hamburger');
+                                $('.mmenu-trigger')
+                                    .off('click')
+                                    .click(function () {
+                                        console.log('mmenu-trigger clicked');
+                                        mmenuAPI.open();
+                                    });
 
-                        $('.mmenu-trigger')
-                            .off('click')
-                            .click(function () {
-                                mmenuAPI.open();
-                            });
-
-                        mmenuAPI.bind('open:finish', function () {
-                            setTimeout(function () {
-                                $icon.addClass('is-active');
-                            });
-                        });
-                        mmenuAPI.bind('close:finish', function () {
-                            setTimeout(function () {
-                                $icon.removeClass('is-active');
-                            });
-                        });
+                                mmenuAPI.bind('open:finish', function () {
+                                    console.log('mmenu opened');
+                                    setTimeout(function () {
+                                        $icon.addClass('is-active');
+                                    });
+                                });
+                                mmenuAPI.bind('close:finish', function () {
+                                    console.log('mmenu closed');
+                                    setTimeout(function () {
+                                        $icon.removeClass('is-active');
+                                    });
+                                });
+                            } else {
+                                console.error('mmenuAPI is undefined - mmenu initialization failed');
+                            }
+                        } else {
+                            console.error('Failed to create .mmenu-init element');
+                        }
                     }
                     $('.mm-next').addClass('mm-fullsubopen');
                 }
-                mmenuInit();
-                $(window).off('resize.mmenu').on('resize.mmenu', mmenuInit);
 
+                // Gọi trong document.ready hoặc hook của Nuxt
+                $(document).ready(function () {
+                    mmenuInit();
+                    $(window).off('resize.mmenu').on('resize.mmenu', mmenuInit);
+                });
                 // User Menu
                 $('.user-menu')
                     .off('click')

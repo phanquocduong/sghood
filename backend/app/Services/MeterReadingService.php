@@ -60,95 +60,170 @@ class MeterReadingService
 
     public function createInvoice($meterReadingId)
     {
-        $meterReading = MeterReading::findOrFail($meterReadingId);
+        try {
+            $meterReading = MeterReading::with(['room.motel', 'room.activeContract.user'])->findOrFail($meterReadingId);
 
-        $room = $meterReading->room;
-
-        $motel = $room->motel;
-
-        $contract = $room->activeContract;
-        $contractId = $contract ? $contract->id : null;
-
-        if (!$contractId) {
-            throw new \Exception('Không tìm thấy hợp đồng hoạt động cho phòng này.');
-        }
-
-        $currentTime = now()->format('His');
-        $currentDate = now()->format('Ymd');
-
-        $invoiceCode = 'INV' . $contractId . $currentTime . $currentDate;
-
-        $electricityRate = $motel->electricity_fee;
-        $waterRate = $motel->water_fee;
-
-        $electricityFee = $meterReading->electricity_kwh * $electricityRate;
-        $waterFee = $meterReading->water_m3 * $waterRate;
-        $parkingFee = $motel->parking_fee; // Phí giữ xe từ motel
-        $junkFee = $motel->junk_fee; // Phí rác từ motel
-        $internetFee = $motel->internet_fee; // Phí internet từ motel
-        $serviceFee = $motel->service_fee; // Phí dịch vụ từ motel
-        $roomFee = $room->price; // Tiền phòng từ room
-
-
-        // Tính tổng số tiền (bao gồm tiền phòng)
-        $totalAmount = $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee + $roomFee;
-
-        // Tạo hóa đơn
-        $invoice = Invoice::create([
-            'contract_id' => $contractId,
-            'meter_reading_id' => $meterReading->id,
-            'code' => $invoiceCode,
-            'type' => 'Hàng tháng',
-            'month' => $meterReading->month,
-            'year' => $meterReading->year,
-            'electricity_fee' => $electricityFee,
-            'water_fee' => $waterFee,
-            'parking_fee' => $parkingFee,
-            'junk_fee' => $junkFee,
-            'internet_fee' => $internetFee,
-            'service_fee' => $serviceFee,
-            'total_amount' => $totalAmount,
-            'status' => 'Chưa trả',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // Gửi email thông báo tạo hóa đơn
-        $email = $room->activeContract->user->email ?? null;
-        Mail::to($email)->send(new InvoiceCreated($invoice, $room, $meterReading, $contract));
-
-        //Gửi thông báo đến người dùng
-        $notificationdata = [
-            'user_id' => $contract->user_id,
-            'title' => 'Hóa đơn của bạn đã được tạo',
-            'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
-            'status' => 'Chưa đọc'
-        ];
-        $notification = Notification::create($notificationdata);
-        Log::info('Notification created for contract revision', [
-            'contract_id' => $contract->id,
-            'notification_id' => $notification->id
-        ]);
-
-        // gửi FCM token
-        $user = User::find($notificationdata['user_id']);
-
-        if ($user && $user->fcm_token) {
-            $messaging = app('firebase.messaging');
-
-            $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                ->withNotification(FirebaseNotification::create(
-                    $notificationdata['title'],
-                    $notificationdata['content']
-                ));
-
-            try {
-                $messaging->send($fcmMessage);
-                Log::info('FCM sent to user', ['user_id' => $user->id]);
-            } catch (\Exception $e) {
-                Log::error('FCM send error', ['error' => $e->getMessage()]);
+            $room = $meterReading->room;
+            if (!$room) {
+                throw new \Exception('Không tìm thấy thông tin phòng cho chỉ số điện nước này.');
             }
+
+            $motel = $room->motel;
+            if (!$motel) {
+                throw new \Exception('Không tìm thấy thông tin nhà trọ cho phòng này.');
+            }
+
+            $contract = $room->activeContract;
+            if (!$contract) {
+                throw new \Exception('Không tìm thấy hợp đồng hoạt động cho phòng này.');
+            }
+
+            $contractId = $contract->id;
+
+            // Kiểm tra xem đã có hóa đơn cho tháng này chưa
+            $existingInvoice = Invoice::where('contract_id', $contractId)
+                ->where('month', $meterReading->month)
+                ->where('year', $meterReading->year)
+                ->first();
+
+            if ($existingInvoice) {
+                throw new \Exception('Hóa đơn cho tháng ' . $meterReading->month . '/' . $meterReading->year . ' đã tồn tại.');
+            }
+
+            $currentTime = now()->format('His');
+            $currentDate = now()->format('Ymd');
+
+            $invoiceCode = 'INV' . $contractId . $currentTime . $currentDate;
+
+            $electricityRate = $motel->electricity_fee ?? 0;
+            $waterRate = $motel->water_fee ?? 0;
+
+            $electricityFee = ($meterReading->electricity_kwh ?? 0) * $electricityRate;
+            $waterFee = ($meterReading->water_m3 ?? 0) * $waterRate;
+            $parkingFee = $motel->parking_fee ?? 0; // Phí giữ xe từ motel
+            $junkFee = $motel->junk_fee ?? 0; // Phí rác từ motel
+            $internetFee = $motel->internet_fee ?? 0; // Phí internet từ motel
+            $serviceFee = $motel->service_fee ?? 0; // Phí dịch vụ từ motel
+            $roomFee = $room->price ?? 0; // Tiền phòng từ room
+
+            // Tính tổng số tiền (bao gồm tiền phòng)
+            $totalAmount = $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee + $roomFee;
+
+            Log::info('Creating invoice with details', [
+                'meter_reading_id' => $meterReadingId,
+                'contract_id' => $contractId,
+                'room_id' => $room->id,
+                'motel_id' => $motel->id,
+                'electricity_kwh' => $meterReading->electricity_kwh,
+                'water_m3' => $meterReading->water_m3,
+                'electricity_rate' => $electricityRate,
+                'water_rate' => $waterRate,
+                'electricity_fee' => $electricityFee,
+                'water_fee' => $waterFee,
+                'room_fee' => $roomFee,
+                'total_amount' => $totalAmount
+            ]);
+
+            // Tạo hóa đơn
+            $invoice = Invoice::create([
+                'contract_id' => $contractId,
+                'meter_reading_id' => $meterReading->id,
+                'code' => $invoiceCode,
+                'type' => 'Hàng tháng',
+                'month' => $meterReading->month,
+                'year' => $meterReading->year,
+                'electricity_fee' => $electricityFee,
+                'water_fee' => $waterFee,
+                'parking_fee' => $parkingFee,
+                'junk_fee' => $junkFee,
+                'internet_fee' => $internetFee,
+                'service_fee' => $serviceFee,
+                'room_fee' => $roomFee,
+                'total_amount' => $totalAmount,
+                'status' => 'Chưa trả',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            Log::info('Invoice created successfully', [
+                'invoice_id' => $invoice->id,
+                'invoice_code' => $invoice->code,
+                'meter_reading_id' => $meterReadingId,
+                'total_amount' => $totalAmount
+            ]);
+
+            // Gửi email thông báo tạo hóa đơn
+            try {
+                $user = $contract->user;
+                $email = $user->email ?? null;
+                if ($email) {
+                    Mail::to($email)->send(new InvoiceCreated($invoice, $room, $meterReading, $contract));
+                    Log::info('Invoice email sent successfully', ['email' => $email, 'invoice_code' => $invoice->code]);
+                } else {
+                    Log::warning('No email found for contract user', ['contract_id' => $contractId]);
+                }
+            } catch (\Exception $emailError) {
+                Log::error('Error sending invoice email', [
+                    'error' => $emailError->getMessage(),
+                    'invoice_id' => $invoice->id
+                ]);
+            }
+
+            //Gửi thông báo đến người dùng
+            try {
+                $user = $contract->user;
+                if ($user) {
+                    $notificationdata = [
+                        'user_id' => $user->id,
+                        'title' => 'Hóa đơn của bạn đã được tạo',
+                        'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
+                        'status' => 'Chưa đọc'
+                    ];
+                    $notification = Notification::create($notificationdata);
+                    Log::info('Notification created for invoice', [
+                        'contract_id' => $contract->id,
+                        'notification_id' => $notification->id,
+                        'invoice_id' => $invoice->id
+                    ]);
+
+                    // gửi FCM token
+                    if ($user->fcm_token) {
+                        $messaging = app('firebase.messaging');
+
+                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                            ->withNotification(FirebaseNotification::create(
+                                $notificationdata['title'],
+                                $notificationdata['content']
+                            ));
+
+                        try {
+                            $messaging->send($fcmMessage);
+                            Log::info('FCM sent to user', ['user_id' => $user->id, 'invoice_id' => $invoice->id]);
+                        } catch (\Exception $e) {
+                            Log::error('FCM send error', ['error' => $e->getMessage(), 'user_id' => $user->id]);
+                        }
+                    } else {
+                        Log::info('No FCM token found for user', ['user_id' => $user->id]);
+                    }
+                } else {
+                    Log::warning('No user found for contract', ['contract_id' => $contractId]);
+                }
+            } catch (\Exception $notificationError) {
+                Log::error('Error creating notification', [
+                    'error' => $notificationError->getMessage(),
+                    'invoice_id' => $invoice->id
+                ]);
+            }
+
+            return $invoice;
+
+        } catch (\Exception $e) {
+            Log::error('Error in createInvoice method', [
+                'meter_reading_id' => $meterReadingId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-        return $invoice;
     }
 }

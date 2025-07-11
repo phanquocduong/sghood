@@ -54,7 +54,7 @@ class ContractService
         }
     }
 
-    public function getContractById(int $id): array
+    public function getContractById($id): array
     {
         try {
             $contract = Contract::with(['user', 'room', 'booking'])->find($id);

@@ -1,75 +1,59 @@
 <template>
-    <div>
-        <div id="titlebar" class="gradient">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
+    <div class="container" style="margin-top: 50px">
+        <div class="row">
+            <div class="col-lg-9 col-md-8 padding-right-30">
+                <div class="row margin-bottom-25" style="display: flex; align-items: flex-end">
+                    <div class="col-md-6 col-xs-12">
                         <h2>Danh sách nhà trọ</h2>
                         <span>Có {{ total }} kết quả phù hợp</span>
-                        <nav id="breadcrumbs">
-                            <ul>
-                                <li>
-                                    <NuxtLink to="/">Trang chủ</NuxtLink>
-                                </li>
-                                <li>Danh sách nhà trọ</li>
-                            </ul>
-                        </nav>
+                    </div>
+                    <div class="col-md-6 col-xs-12">
+                        <SortBy
+                            :options="['Sắp xếp mặc định', 'Nổi bật nhất', 'Mới nhất', 'Cũ nhất']"
+                            @update:sort="
+                                sortOption = $event;
+                                fetchMotels();
+                            "
+                        />
+                    </div>
+                </div>
+
+                <Loading :is-loading="isLoading" />
+
+                <div class="row">
+                    <div v-if="listings.length" v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
+                        <MotelItem :item="item" />
+                    </div>
+                    <div v-else class="col-md-12 text-center">
+                        <p>Không tìm thấy nhà trọ nào phù hợp.</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <Pagination
+                            :current-page="currentPage"
+                            :total-pages="totalPages"
+                            @change:page="
+                                currentPage = $event;
+                                fetchMotels();
+                            "
+                        />
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-9 col-md-8 padding-right-30">
-                    <div class="row margin-bottom-25">
-                        <div class="col-md-12 col-xs-12">
-                            <SortBy
-                                :options="['Sắp xếp mặc định', 'Nổi bật nhất', 'Mới nhất', 'Cũ nhất']"
-                                @update:sort="
-                                    sortOption = $event;
-                                    fetchMotels();
-                                "
-                            />
-                        </div>
-                    </div>
 
-                    <Loading :is-loading="isLoading" />
-
-                    <div class="row">
-                        <div v-if="listings.length" v-for="item in listings" :key="item.id" class="col-lg-6 col-md-12">
-                            <MotelItem :item="item" />
-                        </div>
-                        <div v-else class="col-md-12 text-center">
-                            <p>Không tìm thấy nhà trọ nào phù hợp.</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <Pagination
-                                :current-page="currentPage"
-                                :total-pages="totalPages"
-                                @change:page="
-                                    currentPage = $event;
-                                    fetchMotels();
-                                "
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4">
-                    <div class="sidebar">
-                        <FilterWidget
-                            :filters="filters"
-                            :districts="districts"
-                            :price-options="priceOptions"
-                            :area-range-options="areaRangeOptions"
-                            :amenities-options="amenitiesOptions"
-                            @update:filters="filters = $event"
-                            @apply="fetchMotels"
-                        />
-                    </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="sidebar" style="margin-top: 25px">
+                    <FilterWidget
+                        :filters="filters"
+                        :districts="districts"
+                        :price-options="priceOptions"
+                        :area-range-options="areaRangeOptions"
+                        :amenities-options="amenitiesOptions"
+                        @update:filters="filters = $event"
+                        @apply="fetchMotels"
+                    />
                 </div>
             </div>
         </div>

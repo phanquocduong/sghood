@@ -2,10 +2,11 @@
 
 namespace App\Services\Apis;
 
+use App\Mail\Apis\BookingPendingEmail;
+use App\Mail\Apis\BookingCanceledEmail;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\BookingPendingEmail;
 use App\Models\Notification;
 use App\Models\Room;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -129,6 +130,7 @@ class BookingService
     {
         $booking = Booking::findOrFail($id);
         $booking->update(['status' => Booking::STATUS_CANCELED]);
+        $this->notifyAdminsCanceled($booking);
         return $booking;
     }
 
@@ -181,6 +183,53 @@ class BookingService
             }
         } catch (\Throwable $e) {
             Log::error('Lỗi gửi thông báo cho admin', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+     private function notifyAdminsCanceled($booking)
+    {
+        try {
+            $admins = User::where('role', 'Quản trị viên')->get();
+
+            if ($admins->isEmpty()) {
+                Log::warning('Không tìm thấy admin với role Quản trị viên');
+                return;
+            }
+
+            $title = 'Đặt phòng đã bị hủy';
+            $body = "Đặt phòng #{$booking->id} từ người dùng " . $booking->user->name . " đã bị hủy.";
+
+            Log::info('Sending canceled booking email to admins: ', [$admins->pluck('email')->toArray()]);
+            Mail::to($admins->pluck('email'))->send(new BookingCanceledEmail($booking));
+
+            $messaging = app('firebase.messaging');
+
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => $title,
+                    'content' => $body,
+                ]);
+
+                if ($admin->fcm_token) {
+                    $baseUrl = config('app.url');
+                    $link = "$baseUrl/bookings";
+                    $message = CloudMessage::fromArray([
+                        'token' => $admin->fcm_token,
+                        'notification' => ['title' => $title, 'body' => $body],
+                        'data' => [
+                            'link' => $link,
+                        ],
+                    ]);
+
+                    $messaging->send($message);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Lỗi gửi thông báo hủy đặt phòng cho admin', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),
             ]);

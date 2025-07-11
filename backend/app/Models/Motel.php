@@ -34,7 +34,7 @@ class Motel extends Model
 
     public function images()
     {
-        return $this->hasMany(MotelImage::class);
+        return $this->hasMany(MotelImage::class, 'motel_id', 'id');
     }
 
     public function getMainImageAttribute()

@@ -23,8 +23,8 @@ const role = computed(() => authUser.user?.role || '');
 const FullnavItems = [
     { path: '/quan-ly/thong-bao', icon: 'sl sl-icon-envelope-open', label: 'Thông báo' },
     { path: '/quan-ly/ho-so-ca-nhan', icon: 'sl sl-icon-user', label: 'Hồ sơ cá nhân' },
-    { path: '/quan-ly/lich-xem-nha-tro', icon: 'im im-icon-Calendar', label: 'Lịch xem nhà trọ' },
-    { path: '/quan-ly/dat-phong', icon: 'fa fa-calendar-check-o', label: 'Đặt phòng' },
+    { path: '/quan-ly/lich-xem-nha-tro', icon: 'im im-icon-Dec', label: 'Lịch xem nhà trọ' },
+    { path: '/quan-ly/dat-phong', icon: 'im im-icon-Bookmark', label: 'Đặt phòng' },
     { path: '/quan-ly/hop-dong', icon: 'im im-icon-Book', label: 'Hợp đồng' },
     { path: '/quan-ly/hoa-don', icon: 'im im-icon-Billing', label: 'Hoá đơn' },
     { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch' },

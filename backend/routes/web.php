@@ -20,7 +20,9 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
+use App\Http\Controllers\ContractExtensionController;
 use App\Models\Contract;
+use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -151,9 +153,12 @@ Route::middleware('admin')->group(function () {
     // Contract routes group
     Route::prefix('contracts')->name('contracts.')->group(function () {
         Route::get('/', [ContractController::class, 'index'])->name('index');
+        Route::get('/contract-extensions', [ContractExtensionController::class, 'index'])->name('contract-extensions');
+        Route::post('/contract-extensions/{id}/status', [ContractExtensionController::class, 'updateExtensionStatus'])->name('contract_extensions.update_status');
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
+        Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
     });
 
     // Notification routes
@@ -188,8 +193,6 @@ Route::middleware('admin')->group(function () {
     Route::prefix('CKEditors')->name('ckeditors.')->group(function() {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
     });
-    Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])
-        ->name('contracts.showIdentityDocument');
 
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
@@ -204,7 +207,7 @@ Route::middleware('admin')->group(function () {
 });
 
 
-// File PDF
+// File tải file PDF hợp đồng
 Route::get('/contract/pdf/{id}', function ($id) {
     $contract = Contract::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
@@ -213,8 +216,22 @@ Route::get('/contract/pdf/{id}', function ($id) {
         return response()->download($filePath, "contract-{$id}.pdf");
     }
 
-    abort(404, 'File không tồn tại');
+    abort(404, 'File hợp đồng không tồn tại');
 });
+
+// // File tải file PDF phụ lục hợp đồng
+// Route::get('/contract/extension/pdf/{id}', function ($id) {
+//     $extension = ContractExtension::where('id', $id)
+//             ->whereHas('contract', fn($query) => $query->where('user_id', Auth::id()))
+//             ->firstOrFail();
+
+//     if ($extension->file && Storage::disk('private')->exists($extension->file)) {
+//         $filePath = Storage::disk('private')->path($extension->file);
+//         return response()->download($filePath, "contract-extension-{$id}.pdf");
+//     }
+
+//     abort(404, 'File phụ lục hợp đồng không tồn tại');
+// });
 
 // Route for meter reading index
 Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');

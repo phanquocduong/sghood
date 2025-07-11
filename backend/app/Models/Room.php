@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Room extends Model
 {
     use SoftDeletes;
+
     protected $table = 'rooms';
+
     protected $fillable = [
         'name',
         'price',
@@ -16,10 +18,7 @@ class Room extends Model
         'status',
         'motel_id',
         'description',
-        'note',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'note'
     ];
 
     public function motel()
@@ -32,11 +31,6 @@ class Room extends Model
         return $this->hasMany(RoomImage::class, 'room_id', 'id');
     }
 
-    public function amenities()
-    {
-        return $this->belongsToMany(Amenity::class, 'room_amenities', 'room_id', 'amenity_id');
-    }
-
     public function getMainImageAttribute()
     {
         $mainImage = $this->images->firstWhere('is_main', 1);
@@ -44,6 +38,11 @@ class Room extends Model
             $mainImage = $this->images->first();
         }
         return $mainImage;
+    }
+
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'room_amenities', 'room_id', 'amenity_id');
     }
 
     public function booking()
@@ -60,6 +59,7 @@ class Room extends Model
     {
         return $this->hasOne(Contract::class)->where('status', 'Hoạt động')->latest('id');
     }
+
     public function meterReadings()
     {
         return $this->hasMany(MeterReading::class, 'room_id');

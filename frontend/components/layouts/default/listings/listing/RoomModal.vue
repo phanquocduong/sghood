@@ -25,8 +25,8 @@
                 <p><strong>Diện tích:</strong> {{ room.area }}m²</p>
                 <p><strong>Trạng thái:</strong> {{ room.status }}</p>
                 <p><strong>Mô tả:</strong> {{ room.description || 'Không có mô tả' }}</p>
-                <p><strong>Tiện nghi:</strong></p>
-                <ul>
+                <p v-if="room.amenities.length != 0"><strong>Tiện nghi:</strong></p>
+                <ul v-if="room.amenities.length != 0">
                     <li v-for="amenity in room.amenities" :key="amenity">{{ amenity }}</li>
                 </ul>
             </div>
@@ -123,7 +123,7 @@ const nextImage = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     opacity: 0;
     transition: opacity 0.5s;
 }

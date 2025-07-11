@@ -2,11 +2,16 @@
 
 namespace App\Services\Apis;
 
+use App\Models\Checkout;
 use App\Models\Contract;
+use App\Models\ContractExtension;
+use App\Models\RefundRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 
 class ContractService
 {
@@ -28,24 +33,44 @@ class ContractService
     {
         try {
             return Contract::where('user_id', Auth::id())
-                ->select('id', 'room_id', 'start_date', 'end_date', 'status')
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount')
                 ->with([
-                    'room' => fn($query) => $query->select('id', 'name', 'motel_id')
+                    'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
                         ->where('type', 'Đặt cọc')
-                        ->first()
+                        ->first(),
+                    'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
+                        ->orderBy('created_at', 'desc')
+                        ->first(),
+                    'checkout' => fn($query) => $query->select(
+                        'id',
+                        'contract_id',
+                        'check_out_date',
+                        'status',
+                        'deposit_refunded',
+                        'has_left',
+                        'note'
+                    )
                 ])
                 ->get()
                 ->map(fn ($contract) => [
                     'id' => $contract->id,
                     'room_name' => $contract->room->name,
+                    'room_price' => $contract->room->price,
                     'motel_name' => $contract->room->motel->name,
                     'room_image' => $contract->room->main_image->image_url,
                     'start_date' => $contract->start_date->toIso8601String(),
                     'end_date' => $contract->end_date->toIso8601String(),
                     'status' => $contract->status,
-                    'invoice_id' => $contract->invoices->first()?->id
+                    'deposit_amount' => $contract->deposit_amount,
+                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
+                    'invoice_id' => $contract->invoices->first()?->id,
+                    'checkout_status' => $contract->checkout?->status ?? null,
+                    'checkout_date' => $contract->checkout?->check_out_date?->toIso8601String() ?? null,
+                    'checkout_deposit_refunded' => $contract->checkout?->deposit_refunded ?? null,
+                    'checkout_has_left' => $contract->checkout?->has_left ?? null,
+                    'checkout_note' => $contract->checkout?->note ?? null,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -60,7 +85,7 @@ class ContractService
     public function getContractDetail(int $id): array
     {
         try {
-            $contract = Contract::with('user')
+            $contract = Contract::with(['user', 'extensions'])
                 ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
@@ -87,6 +112,17 @@ class ContractService
                 'file' => $contract->file ? url($contract->file) : null,
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
                 'user_phone' => $contract->user->phone,
+                'active_extensions' => $contract->extensions
+                    ->filter(fn($ext) => $ext->status === 'Hoạt động')
+                    ->map(fn($ext) => [
+                        'id' => $ext->id,
+                        'new_end_date' => $ext->new_end_date->toIso8601String(),
+                        'new_rental_price' => $ext->new_rental_price,
+                        'content' => $ext->content,
+                        'file' => $ext->file ? url($ext->file) : null,
+                        'status' => $ext->status,
+                        'rejection_reason' => $ext->rejection_reason,
+                    ])->values()->toArray(),
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
@@ -117,14 +153,6 @@ class ContractService
                     'error' => 'Hợp đồng không ở trạng thái có thể hủy',
                     'status' => 400,
                 ];
-            }
-
-            if ($contract->user->identity_document) {
-                $paths = explode('|', $contract->user->identity_document);
-                foreach ($paths as $path) {
-                    Storage::disk('private')->delete($path);
-                }
-                $contract->user->update(['identity_document' => null]);
             }
 
             $contract->update(['status' => 'Huỷ bỏ']);
@@ -317,6 +345,7 @@ class ContractService
             .mb-5 { margin-bottom: 3rem; }
             .mt-3 { margin-top: 1rem; }
             .mt-5 { margin-top: 3rem; }
+            .page-break { margin-top: 3rem; }
             .my-4 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
             .pt-3 { padding-top: 1rem; }
             .pt-4 { padding-top: 1.5rem; }
@@ -444,8 +473,6 @@ class ContractService
             .vietnamese-text {
                 font-family: "Noto Serif", "DejaVu Serif", serif;
             }
-            .contract-document > *:first-child { margin-top: 0; }
-            .contract-document > div:not(:first-child) { margin-top: 15mm; }
         </style>';
 
         // Xử lý content để tạo giao diện tương tự
@@ -516,7 +543,7 @@ class ContractService
     }
 
     /**
-     * T ạo và lưu file PDF hợp đồng
+     * Tạo và lưu file PDF hợp đồng
      */
     public function generateAndSaveContractPdf(int $contractId): array
     {
@@ -543,27 +570,13 @@ class ContractService
 
             // Tạo PDF
             $pdf = Pdf::loadHTML($htmlContent)
-                ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'Noto Serif',
                     'fontCache' => storage_path('fonts/'),
-                    'isRemoteEnabled' => false,
                     'isHtml5ParserEnabled' => true,
                     'isPhpEnabled' => false,
                     'dpi' => 96,
-                    'defaultPaperSize' => 'a4',
-                    'fontHeightRatio' => 1.0,
                     'isFontSubsettingEnabled' => true,
-                    'debugKeepTemp' => false,
-                    'debugCss' => false,
-                    'debugLayout' => false,
-                    'chroot' => public_path(),
-                    'enable_font_subsetting' => true,
-                    'tempDir' => storage_path('app/dompdf/'),
-                    'isUnicode' => true,
-                    'enable_html5_parser' => true,
-                    'enable_remote' => false,
-                    'logOutputFile' => storage_path('logs/dompdf.log'),
                 ]);
 
             // Lưu file PDF
@@ -581,6 +594,157 @@ class ContractService
                 'error' => $e->getMessage()
             ]);
             return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
+        }
+    }
+
+    private function generateExtensionContent(Contract $contract, Carbon $newEndDate): string
+    {
+        return '
+            <div class="contract-document">
+                <p><strong>Hợp đồng số: </strong>' . $contract->id . '</p>
+                <p><strong>Ngày gia hạn: </strong>' . now()->format('Y-m-d') . '</p>
+                <p><strong>Ngày kết thúc mới: </strong><span class="end-date">' . $newEndDate->format('Y-m-d') . '</span></p>
+                <p><strong>Giá thuê mới: </strong>' . number_format($contract->room->price, 0, ',', '.') . ' VND</p>
+                <p><em>Các điều khoản khác của hợp đồng gốc vẫn giữ nguyên hiệu lực.</em></p>
+            </div>
+        ';
+    }
+
+    public function extendContract(int $id): array
+    {
+        try {
+            $contract = Contract::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'Hoạt động')
+                ->first();
+
+            if (!$contract) {
+                return [
+                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền gia hạn',
+                    'status' => 404,
+                ];
+            }
+
+            $endDate = Carbon::parse($contract->end_date);
+            $today = Carbon::today();
+            $diffInDays = $endDate->diffInDays($today);
+
+            if ($diffInDays > 15) {
+                return [
+                    'error' => 'Hợp đồng chưa đến thời điểm có thể gia hạn (cần trong vòng 15 ngày trước khi hết hạn)',
+                    'status' => 400,
+                ];
+            }
+
+            // Gia hạn hợp đồng thêm 6 tháng
+            $newEndDate = $endDate->addMonths(6);
+
+            // Tạo phụ lục hợp đồng
+            $extensionContent = $this->generateExtensionContent($contract, $newEndDate);
+            $extension = ContractExtension::create([
+                'contract_id' => $contract->id,
+                'new_end_date' => $newEndDate,
+                'new_rental_price' => $contract->room->price,
+                'content' => $extensionContent,
+                'status' => 'Chờ duyệt',
+            ]);
+
+            // Gửi thông báo với ngữ cảnh "Gia hạn"
+            $this->notificationService->notifyContractForAdmins($contract, 'Gia hạn');
+
+            return [
+                'data' => $contract,
+                'extension_id' => $extension->id,
+                'status' => 200,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi gia hạn hợp đồng', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function requestReturn(int $id, array $bankInfo, string $checkOutDate): array
+    {
+        try {
+            $contract = Contract::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'Hoạt động')
+                ->first();
+
+            if (!$contract) {
+                return [
+                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền trả phòng',
+                    'status' => 404,
+                ];
+            }
+
+            // Kiểm tra yêu cầu gia hạn
+            $latestExtension = $contract->extensions()->where('status', 'Chờ duyệt')->first();
+            if ($latestExtension) {
+                return [
+                    'error' => 'Hợp đồng đang có yêu cầu gia hạn chờ duyệt, không thể trả phòng',
+                    'status' => 400,
+                ];
+            }
+
+            // Kiểm tra tiền cọc
+            if ($contract->deposit_amount <= 0) {
+                return [
+                    'error' => 'Hợp đồng không có tiền cọc để hoàn',
+                    'status' => 400,
+                ];
+            }
+
+            // Kiểm tra xem đã có bản ghi checkout chưa
+            if ($contract->checkout) {
+                return [
+                    'error' => 'Hợp đồng đã có yêu cầu trả phòng',
+                    'status' => 400,
+                ];
+            }
+
+            // Tạo bản ghi kiểm kê
+            $checkout = Checkout::create([
+                'contract_id' => $contract->id,
+                'check_out_date' => $checkOutDate,
+                'status' => 'Chờ kiểm kê',
+                'deposit_refunded' => false,
+                'has_left' => false,
+            ]);
+
+            // Mã hóa thông tin tài khoản ngân hàng
+            $encryptedBankInfo = Crypt::encrypt($bankInfo);
+
+            // Tạo yêu cầu hoàn tiền
+            $refundRequest = RefundRequest::create([
+                'checkout_id' => $checkout->id,
+                'deposit_amount' => $contract->deposit_amount,
+                'status' => 'Chờ xử lý',
+                'bank_info' => $encryptedBankInfo,
+            ]);
+
+            // Gửi thông báo cho admin
+            $this->notificationService->notifyContractForAdmins($contract, 'Trả phòng');
+
+            return [
+                'data' => [
+                    'contract' => $contract->fresh(),
+                    'checkout' => $checkout,
+                    'refund_request' => $refundRequest,
+                ],
+                'status' => 200,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi yêu cầu trả phòng', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
         }
     }
 }

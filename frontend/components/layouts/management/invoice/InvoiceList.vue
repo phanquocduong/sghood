@@ -17,8 +17,8 @@
                     <li>Ngày tạo: {{ formatDate(item.created_at) }}</li>
                 </ul>
                 <div class="buttons-to-right">
-                    <NuxtLink :to="`/quan-ly/hoa-don/${item.id}`" class="button gray">Xem hoá đơn</NuxtLink>
-                    <NuxtLink v-if="item.status !== 'Đã trả'" :to="`/quan-ly/hoa-don/${item?.id}/thanh-toan`" class="button gray"
+                    <NuxtLink :to="`/quan-ly/hoa-don/${item.code}`" class="button gray">Xem hoá đơn</NuxtLink>
+                    <NuxtLink v-if="item.status !== 'Đã trả'" :to="`/quan-ly/hoa-don/${item?.code}/thanh-toan`" class="button gray"
                         >Thanh toán</NuxtLink
                     >
                 </div>

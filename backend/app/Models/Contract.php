@@ -52,4 +52,14 @@ class Contract extends Model
     {
         return $this->hasMany(Invoice::class, 'contract_id');
     }
+
+    public function extensions()
+    {
+        return $this->hasMany(ContractExtension::class, 'contract_id');
+    }
+
+    public function checkout()
+    {
+        return $this->hasOne(Checkout::class);
+    }
 }

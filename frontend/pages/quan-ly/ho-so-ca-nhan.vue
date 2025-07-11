@@ -286,4 +286,9 @@ const handleChangePassword = async () => {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+input:disabled {
+    cursor: not-allowed;
+    background-color: #f1f1f1;
+}
 </style>

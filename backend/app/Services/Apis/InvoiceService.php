@@ -134,11 +134,11 @@ class InvoiceService
     /**
      * Lấy chi tiết một hóa đơn theo ID
      *
-     * @param int $id
+     * @param string $code
      * @return Invoice
      * @throws \Exception
      */
-    public function getInvoiceById(int $id): Invoice
+    public function getInvoiceById(string $code): Invoice
     {
         try {
             $userId = Auth::id();
@@ -147,7 +147,7 @@ class InvoiceService
                 throw new \Exception('Không tìm thấy người dùng đang đăng nhập.');
             }
 
-            $invoice = Invoice::where('id', $id)
+            $invoice = Invoice::where('code', $code)
                 ->whereHas('contract', function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 })
