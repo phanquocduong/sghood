@@ -54,7 +54,7 @@
 
                         <ul>
                             <li>
-                                <NuxtLink to="/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
+                                <NuxtLink to="/quan-ly/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
                             </li>
                             <li>
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>

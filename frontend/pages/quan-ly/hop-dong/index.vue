@@ -8,7 +8,6 @@
                     <ContractList
                         :items="items"
                         :is-loading="isLoading"
-                        @open-popup="openPopup"
                         @reject-item="rejectItem"
                         @extend-contract="extendContract"
                         @return-contract="returnContract"

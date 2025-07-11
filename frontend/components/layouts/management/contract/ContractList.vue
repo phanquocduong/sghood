@@ -24,7 +24,7 @@
                                 {{
                                     item.latest_extension_status === 'Chờ duyệt'
                                         ? 'Chờ duyệt gia hạn'
-                                        : item.latest_extension_status === 'Đã duyệt'
+                                        : item.latest_extension_status === 'Hoạt động'
                                         ? 'Đã gia hạn'
                                         : 'Từ chối gia hạn'
                                 }}
@@ -168,14 +168,61 @@
                     <h5>Thông tin tài khoản ngân hàng</h5>
                     <div class="form-group">
                         <label for="bank_name">Tên ngân hàng:</label>
-                        <input
-                            id="bank_name"
-                            v-model="returnForm.bank_name"
-                            type="text"
-                            class="form-control"
-                            placeholder="Tên ngân hàng"
-                            required
-                        />
+                        <select id="bank_name" v-model="returnForm.bank_name" class="form-select" name="bank" required>
+                            <option value="">Chọn ngân hàng</option>
+                            <option value="ACB">ACB - Ngân hàng TMCP Á Châu</option>
+                            <option value="VPBank">VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng</option>
+                            <option value="TPBank">TPBank - Ngân hàng TMCP Tiên Phong</option>
+                            <option value="MSB">MSB - Ngân hàng TMCP Hàng Hải</option>
+                            <option value="NamABank">NamABank - Ngân hàng TMCP Nam Á</option>
+                            <option value="LienVietPostBank">LienVietPostBank - Ngân hàng TMCP Bưu Điện Liên Việt</option>
+                            <option value="VietCapitalBank">VietCapitalBank - Ngân hàng TMCP Bản Việt</option>
+                            <option value="BIDV">BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</option>
+                            <option value="Sacombank">Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín</option>
+                            <option value="VIB">VIB - Ngân hàng TMCP Quốc tế Việt Nam</option>
+                            <option value="HDBank">HDBank - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh</option>
+                            <option value="SeABank">SeABank - Ngân hàng TMCP Đông Nam Á</option>
+                            <option value="GPBank">GPBank - Ngân hàng Thương mại TNHH MTV Dầu Khí Toàn Cầu</option>
+                            <option value="PVcomBank">PVcomBank - Ngân hàng TMCP Đại Chúng Việt Nam</option>
+                            <option value="NCB">NCB - Ngân hàng TMCP Quốc Dân</option>
+                            <option value="ShinhanBank">ShinhanBank - Ngân hàng TNHH MTV Shinhan Việt Nam</option>
+                            <option value="SCB">SCB - Ngân hàng TMCP Sài Gòn</option>
+                            <option value="PGBank">PGBank - Ngân hàng TMCP Xăng dầu Petrolimex</option>
+                            <option value="Agribank">Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam</option>
+                            <option value="Techcombank">Techcombank - Ngân hàng TMCP Kỹ thương Việt Nam</option>
+                            <option value="SaigonBank">SaigonBank - Ngân hàng TMCP Sài Gòn Công Thương</option>
+                            <option value="DongABank">DongABank - Ngân hàng TMCP Đông Á</option>
+                            <option value="BacABank">BacABank - Ngân hàng TMCP Bắc Á</option>
+                            <option value="StandardChartered">
+                                StandardChartered - Ngân hàng TNHH MTV Standard Chartered Bank Việt Nam
+                            </option>
+                            <option value="Oceanbank">Oceanbank - Ngân hàng Thương mại TNHH MTV Đại Dương</option>
+                            <option value="VRB">VRB - Ngân hàng Liên doanh Việt - Nga</option>
+                            <option value="ABBANK">ABBANK - Ngân hàng TMCP An Bình</option>
+                            <option value="VietABank">VietABank - Ngân hàng TMCP Việt Á</option>
+                            <option value="Eximbank">Eximbank - Ngân hàng TMCP Xuất Nhập khẩu Việt Nam</option>
+                            <option value="VietBank">VietBank - Ngân hàng TMCP Việt Nam Thương Tín</option>
+                            <option value="IndovinaBank">IndovinaBank - Ngân hàng TNHH Indovina</option>
+                            <option value="BaoVietBank">BaoVietBank - Ngân hàng TMCP Bảo Việt</option>
+                            <option value="PublicBank">PublicBank - Ngân hàng TNHH MTV Public Việt Nam</option>
+                            <option value="SHB">SHB - Ngân hàng TMCP Sài Gòn - Hà Nội</option>
+                            <option value="CBBank">CBBank - Ngân hàng Thương mại TNHH MTV Xây dựng Việt Nam</option>
+                            <option value="OCB">OCB - Ngân hàng TMCP Phương Đông</option>
+                            <option value="KienLongBank">KienLongBank - Ngân hàng TMCP Kiên Long</option>
+                            <option value="CIMB">CIMB - Ngân hàng TNHH MTV CIMB Việt Nam</option>
+                            <option value="HSBC">HSBC - Ngân hàng TNHH MTV HSBC (Việt Nam)</option>
+                            <option value="DBSBank">DBSBank - DBS Bank Ltd - Chi nhánh Thành phố Hồ Chí Minh</option>
+                            <option value="Nonghyup">Nonghyup - Ngân hàng Nonghyup - Chi nhánh Hà Nội</option>
+                            <option value="HongLeong">HongLeong - Ngân hàng TNHH MTV Hong Leong Việt Nam</option>
+                            <option value="Woori">Woori - Ngân hàng TNHH MTV Woori Việt Nam</option>
+                            <option value="UnitedOverseas">UnitedOverseas - Ngân hàng United Overseas - Chi nhánh TP. Hồ Chí Minh</option>
+                            <option value="KookminHN">KookminHN - Ngân hàng Kookmin - Chi nhánh Hà Nội</option>
+                            <option value="KookminHCM">KookminHCM - Ngân hàng Kookmin - Chi nhánh Thành phố Hồ Chí Minh</option>
+                            <option value="COOPBANK">COOPBANK - Ngân hàng Hợp tác xã Việt Nam</option>
+                            <option value="VietinBank">VietinBank - Ngân hàng TMCP Công thương Việt Nam</option>
+                            <option value="MBBank">MBBank - Ngân hàng TMCP Quân đội</option>
+                            <option value="Vietcombank">Vietcombank - Ngân hàng TMCP Ngoại Thương Việt Nam</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="account_number">Số tài khoản:</label>
@@ -230,7 +277,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem', 'openPopup', 'extendContract', 'returnContract']);
+const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract']);
 
 const showReturnModal = ref(false);
 const selectedContract = ref({});
@@ -264,7 +311,6 @@ const getItemClass = status => {
         case 'Chờ chỉnh sửa':
         case 'Chờ ký':
         case 'Chờ thanh toán tiền cọc':
-        case 'Chờ hoàn tiền':
             return 'pending-booking';
         case 'Hoạt động':
             return 'approved-booking';
@@ -287,7 +333,6 @@ const getActText = status => {
         case 'Chờ duyệt':
         case 'Hoạt động':
         case 'Kết thúc':
-        case 'Chờ hoàn tiền':
             return 'Xem chi tiết';
         default:
             return '';
@@ -310,7 +355,7 @@ const getExtensionStatusClass = extensionStatus => {
     let statusClass = 'booking-status';
     if (extensionStatus === 'Chờ duyệt') {
         statusClass += ' pending extension-status';
-    } else if (extensionStatus === 'Đã duyệt') {
+    } else if (extensionStatus === 'Hoạt động') {
         statusClass += ' approved';
     } else {
         statusClass += ' canceled extension-status';
@@ -521,7 +566,8 @@ const downloadPdf = async id => {
     font-weight: 500;
 }
 
-.form-control {
+.form-control,
+.form-select {
     width: 100%;
     padding: 8px;
     border: 1px solid #e0e0e0;

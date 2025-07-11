@@ -118,7 +118,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', { id });
+        emit('rejectItem', id);
     }
 };
 </script>
