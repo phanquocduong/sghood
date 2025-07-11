@@ -31,23 +31,25 @@ class MeterReadingService
         })->paginate($perPage);
     }
 
-    public function getRooms()
+    public function getRoomsWithMotel()
     {
         $today = now();
 
-        // Khoảng thời gian cần loại trừ: từ ngày 28 tháng trước đến ngày 5 tháng sau
         $startDate = $today->copy()->subMonthNoOverflow()->day(28)->startOfDay();
         $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
 
-        // Lấy phòng đã thuê mà không có meter_readings nào trong khoảng trên
-        $rooms = Room::where('status', 'Đã Thuê')
+        // Lấy phòng đã thuê và chưa có meter_readings trong khoảng thời gian
+        $rooms = Room::with('motel') // eager load nhà trọ
+            ->where('status', 'Đã Thuê')
             ->whereDoesntHave('meterReadings', function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
-            ->get();
+            ->get()
+            ->groupBy('motel_id'); // group theo nhà trọ
 
         return $rooms;
     }
+
 
 
     public function createMeterReading(array $data)
@@ -112,41 +114,41 @@ class MeterReadingService
         ]);
 
         // Gửi email thông báo tạo hóa đơn
-        $email= $room->activeContract->user->email ?? null;
+        $email = $room->activeContract->user->email ?? null;
         Mail::to($email)->send(new InvoiceCreated($invoice, $room, $meterReading, $contract));
 
         //Gửi thông báo đến người dùng
         $notificationdata = [
-                    'user_id' => $contract->user_id,
-                    'title' => 'Hóa đơn của bạn đã được tạo',
-                    'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
-                    'status' => 'Chưa đọc'
-                ];
-                $notification = Notification::create($notificationdata);
-                Log::info('Notification created for contract revision', [
-                    'contract_id' => $contract->id,
-                    'notification_id' => $notification->id
-                ]);
+            'user_id' => $contract->user_id,
+            'title' => 'Hóa đơn của bạn đã được tạo',
+            'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
+            'status' => 'Chưa đọc'
+        ];
+        $notification = Notification::create($notificationdata);
+        Log::info('Notification created for contract revision', [
+            'contract_id' => $contract->id,
+            'notification_id' => $notification->id
+        ]);
 
-                // gửi FCM token
-                $user = User::find($notificationdata['user_id']);
+        // gửi FCM token
+        $user = User::find($notificationdata['user_id']);
 
-                if ($user && $user->fcm_token) {
-                    $messaging = app('firebase.messaging');
+        if ($user && $user->fcm_token) {
+            $messaging = app('firebase.messaging');
 
-                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                        ->withNotification(FirebaseNotification::create(
-                            $notificationdata['title'],
-                            $notificationdata['content']
-                        ));
+            $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                ->withNotification(FirebaseNotification::create(
+                    $notificationdata['title'],
+                    $notificationdata['content']
+                ));
 
-                    try {
-                        $messaging->send($fcmMessage);
-                        Log::info('FCM sent to user', ['user_id' => $user->id]);
-                    } catch (\Exception $e) {
-                        Log::error('FCM send error', ['error' => $e->getMessage()]);
-                    }
-                }
+            try {
+                $messaging->send($fcmMessage);
+                Log::info('FCM sent to user', ['user_id' => $user->id]);
+            } catch (\Exception $e) {
+                Log::error('FCM send error', ['error' => $e->getMessage()]);
+            }
+        }
         return $invoice;
     }
 }

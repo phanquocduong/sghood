@@ -23,12 +23,10 @@
                 style="background: linear-gradient(90deg, #28a745, #20c997); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h6 class="mb-0 fw-bold">
                     {{ __('Danh sách chỉ số điện nước') }}
-                    <!-- <span class="badge bg-light text-success ms-2">{{ $rooms->count() }} bản ghi</span> -->
                 </h6>
             </div>
 
             <div class="card-body p-4">
-
                 <!-- Filter Form -->
                 <form id="filterForm" class="row g-3 mb-4">
                     <div class="col-md-3">
@@ -46,7 +44,18 @@
                     <div class="col-md-2">
                         <select class="form-select shadow-sm" name="year">
                             <option value="">Tất cả năm</option>
-                            @for ($y = 2023; $y <= now()->year; $y++)
+                            @php
+                                $currentYear = now()->year;
+                                $startYear = $currentYear;
+
+                                if (isset($meterReadings) && $meterReadings->isNotEmpty()) {
+                                    $readingYears = $meterReadings->pluck('year')->filter()->min();
+                                    if ($readingYears) {
+                                        $startYear = min($readingYears, $startYear);
+                                    }
+                                }
+                            @endphp
+                            @for ($y = $startYear; $y <= $currentYear; $y++)
                                 <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
                             @endfor
                         </select>
@@ -72,34 +81,25 @@
                             <i class="fas fa-filter me-1"></i>Lọc
                         </button>
                     </div>
-                    <!-- nút reset -->
                     <div class="col-md-1">
-                        <button type="reset" class="btn btn-outline-secondary w-100"
-                            onclick="location.href='{{ route('meter_readings.index') }}'">
+                        <a href="{{ route('meter_readings.index') }}" class="btn btn-outline-secondary w-100">
                             <i class="fas fa-undo me-1"></i>Đặt lại
-                        </button>
+                        </a>
                     </div>
                 </form>
 
-
-
-                <!-- Danh sách mặc định khi vào trang -->
                 <!-- Meter Readings Table -->
                 @php
                     $today = now();
                     $day = $today->day;
                     $month = $today->month;
                     $year = $today->year;
-
-                    // Tính toán kỳ hiển thị: nếu đang từ 28 tháng này → 5 tháng sau thì kỳ = tháng sau
                     $startDate = now()->copy()->day(1);
                     $endDate = now()->copy()->addMonthNoOverflow()->day(5);
                     $shouldDisplayTable = $today->between($startDate, $endDate);
-
                     $displayMonth = $shouldDisplayTable ? $today->copy()->addMonthNoOverflow()->month : $month;
                     $displayYear = $shouldDisplayTable ? $today->copy()->addMonthNoOverflow()->year : $year;
                 @endphp
-
 
                 @if ($isFiltering || $shouldDisplayTable)
                     <div class="table-responsive" style="display: block;" id="displayIndex">
@@ -116,31 +116,62 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($rooms as $index => $room)
-                                    @php
-                                        $electricity = $room->electricity_kwh ?? 0;
-                                        $water = $room->water_m3 ?? 0;
-                                    @endphp
-                                    <tr>
-                                        <td class="text-center">{{ $index + 1 }}</td>
-                                        <td class="text-center">{{ $room->name }}: id {{ $room->id }}</td>
-                                        <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
-                                        <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
-                                        <td class="text-center">{{ number_format($water, 2) }} m³</td>
-                                        <td class="text-center">{{ now()->format('d/m/Y') }}</td>
-                                        <td class="text-center">
-                                            <button class="btn btn-warning btn-sm" onclick='openUpdateModal(
-                                            {{ json_encode($room->id) }},
-                                            {{ json_encode($room->name) }},
-                                            {{ json_encode($displayMonth) }},
-                                            {{ json_encode($displayYear) }},
-                                            {{ json_encode($room->electricity_kwh) }},
-                                            {{ json_encode($room->water_m3) }}
-                                            )'>
-                                                <i class="fas fa-edit"></i> Cập nhật
+                                @forelse ($rooms as $motelId => $groupedRooms)
+                                    <tr class="table-primary">
+                                        <th colspan="6">🏠 {{ $groupedRooms->first()->motel->name ?? 'Không xác định' }}</th>
+                                        <th class="text-center">
+                                            @php
+                                                $motelData = [
+                                                    'motel_id' => $motelId,
+                                                    'motel_name' => $groupedRooms->first()->motel->name,
+                                                    'month' => $displayMonth,
+                                                    'year' => $displayYear,
+                                                    'rooms' => collect($groupedRooms)->map(function ($r) {
+                                                        return [
+                                                            'id' => $r->id,
+                                                            'name' => $r->name,
+                                                            'electricity_kwh' => $r->electricity_kwh,
+                                                            'water_m3' => $r->water_m3
+                                                        ];
+                                                    })->values()
+                                                ];
+                                            @endphp
+                                            <button class="btn btn-warning btn-sm" data-motel-button='@json($motelData)'>
+                                                <i class="fas fa-edit"></i> Cập nhật tất cả
                                             </button>
-                                        </td>
+                                        </th>
                                     </tr>
+                                    @foreach ($groupedRooms as $index => $room)
+                                        @php
+                                            $electricity = $room->electricity_kwh ?? 0;
+                                            $water = $room->water_m3 ?? 0;
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center">{{ $room->name }}</td>
+                                            <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
+                                            <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
+                                            <td class="text-center">{{ number_format($water, 2) }} m³</td>
+                                            <td class="text-center">{{ now()->format('d/m/Y') }}</td>
+                                            <td class="text-center">
+                                                @php
+                                                    $roomData = [
+                                                        'motel_id' => $motelId,
+                                                        'motel_name' => $groupedRooms->first()->motel->name,
+                                                        'id' => $room->id,
+                                                        'name' => $room->name,
+                                                        'electricity_kwh' => $electricity,
+                                                        'water_m3' => $water,
+                                                        'month' => $displayMonth,
+                                                        'year' => $displayYear,
+                                                    ];
+                                                @endphp
+                                                <button class="btn btn-warning btn-sm edit-room" data-room='@json($roomData)'>
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 @empty
                                     <tr>
                                         <td colspan="7" class="text-center text-muted">Không có dữ liệu</td>
@@ -157,13 +188,10 @@
                     </div>
                 @endif
 
-
-
                 <!-- Kết quả sau khi lọc -->
                 <div id="displayResults" style="display: none;">
                     @include('meter_readings._meter_readings_table', ['meterReadings' => $meterReadings])
                 </div>
-
 
                 <!-- Pagination -->
                 @if(isset($meterReadings) && $meterReadings instanceof \Illuminate\Pagination\LengthAwarePaginator)
@@ -174,11 +202,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
 
     <!-- Update Meter Reading Modal -->
     <div class="modal fade" id="updateMeterModal" tabindex="-1" aria-labelledby="updateMeterModalLabel" aria-hidden="true">
@@ -195,76 +218,14 @@
                     @method('PUT')
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <input type="hidden" name="room_id" id="update_room_id" value="{{ old('room_id') }}">
-                            <input type="hidden" name="month" id="month_meterReading" value="{{ old('month') }}">
-                            <input type="hidden" name="year" id="year_meterReading" value="{{ old('year') }}">
-                            <strong>Phòng:</strong> <span id="update_room_name"></span> -
+                            <strong>Nhà trọ:</strong> <span id="update_motel_name"></span> -
                             <strong>Kỳ:</strong> <span id="update_period"></span>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="update_electricity" class="form-label fw-bold">Chỉ số điện hiện tại (kWh)
-                                        <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-warning text-dark">
-                                            <i class="fas fa-bolt"></i>
-                                        </span>
-                                        <input type="number" name="electricity_kwh" class="form-control"
-                                            id="update_electricity" value="{{ old('electricity_kwh') }}" step="0.01" min="0"
-                                            placeholder="0.00" required>
-                                        @error('electricity_kwh')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="form-text">Chỉ số cũ: <span id="old_electricity"
-                                            class="fw-bold text-muted"></span> kWh</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="update_water" class="form-label fw-bold">Chỉ số nước hiện tại (m³) <span
-                                            class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-info text-white">
-                                            <i class="fas fa-tint"></i>
-                                        </span>
-                                        <input type="number" name="water_m3" class="form-control" id="update_water"
-                                            value="{{ old('water_m3') }}" step="0.01" min="0" placeholder="0.00" required>
-                                        @error('water_m3')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="form-text">Chỉ số cũ: <span id="old_water"
-                                            class="fw-bold text-muted"></span> m³</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h6 class="card-title text-warning">
-                                            <i class="fas fa-bolt me-1"></i>Tiêu thụ điện
-                                        </h6>
-                                        <h4 class="text-warning mb-0" id="electricity_consumption">0.00 kWh</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h6 class="card-title text-info">
-                                            <i class="fas fa-tint me-1"></i>Tiêu thụ nước
-                                        </h6>
-                                        <h4 class="text-info mb-0" id="water_consumption">0.00 m³</h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <input type="hidden" name="month" id="modal_month">
+                        <input type="hidden" name="year" id="modal_year">
+                        <input type="hidden" name="motel_id" id="modal_motel_id">
+                        <input type="hidden" name="motel_name" id="modal_motel_name">
+                        <div id="room_inputs_container"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -279,108 +240,202 @@
         </div>
     </div>
 
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('filterForm');
-            const displayIndex = document.getElementById('displayIndex');
-            const displayResults = document.getElementById('displayResults');
+        window.readingErrors = {!! json_encode($errors->messages()) !!};
+        window.oldInput = {!! json_encode(old('readings', [])) !!};
+        window.motelData = {!! json_encode(session('motel_data', null)) !!};
 
-            // Gửi Ajax khi submit form lọc
-            form.addEventListener('submit', function (e) {
+        document.addEventListener("DOMContentLoaded", function () {
+            const updateModal = new bootstrap.Modal(document.getElementById("updateMeterModal"));
+            const motelButtons = document.querySelectorAll("[data-motel-button]");
+            const editRoomButtons = document.querySelectorAll(".edit-room");
+            const motelNameSpan = document.getElementById("update_motel_name");
+            const periodSpan = document.getElementById("update_period");
+            const roomInputsContainer = document.getElementById("room_inputs_container");
+            const filterForm = document.getElementById("filterForm");
+            const displayResults = document.getElementById("displayResults");
+            const displayIndex = document.getElementById("displayIndex");
+            const modalMonthInput = document.getElementById("modal_month");
+            const modalYearInput = document.getElementById("modal_year");
+            const modalMotelIdInput = document.getElementById("modal_motel_id");
+            const modalMotelNameInput = document.getElementById("modal_motel_name");
+
+            let currentModalData = null;
+
+            function renderModal(data, isSingleRoom = false) {
+                console.log('Rendering modal with data:', data);
+                console.log('Current errors:', window.readingErrors);
+                console.log('Old input:', window.oldInput);
+
+                currentModalData = data;
+                motelNameSpan.textContent = data.motel_name || "Unknown";
+                periodSpan.textContent = `Tháng ${data.month}/${data.year}`;
+                modalMonthInput.value = data.month || '';
+                modalYearInput.value = data.year || '';
+                modalMotelIdInput.value = data.motel_id || '';
+                modalMotelNameInput.value = data.motel_name || '';
+                roomInputsContainer.innerHTML = "";
+
+                const rooms = isSingleRoom ? [{
+                    id: data.id,
+                    name: data.name,
+                    electricity_kwh: data.electricity_kwh,
+                    water_m3: data.water_m3
+                }] : data.rooms;
+
+                rooms.forEach((room, index) => {
+                    const electricityError = window.readingErrors?.[`readings.${index}.electricity_kwh`]?.[0] || "";
+                    const waterError = window.readingErrors?.[`readings.${index}.water_m3`]?.[0] || "";
+                    const oldElectricity = window.oldInput[index]?.electricity_kwh ?? room.electricity_kwh ?? "";
+                    const oldWater = window.oldInput[index]?.water_m3 ?? room.water_m3 ?? "";
+
+                    console.log(`Room ${index}:`, { id: room.id, electricityError, waterError, oldElectricity, oldWater });
+
+                    const roomHtml = `
+                            <div class="mb-2 mt-3 fw-bold text-primary">${room.name}</div>
+                            <input type="hidden" name="readings[${index}][room_id]" value="${room.id}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Chỉ số điện (kWh)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-warning text-dark">
+                                                <i class="fas fa-bolt"></i>
+                                            </span>
+                                            <input type="number" step="0.01" min="0" name="readings[${index}][electricity_kwh]" class="form-control" placeholder="0.00" value="${oldElectricity}" required>
+                                        </div>
+                                        ${electricityError ? `<div class="text-danger small mt-1">${electricityError}</div>` : ""}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Chỉ số nước (m³)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-info text-white">
+                                                <i class="fas fa-tint"></i>
+                                            </span>
+                                            <input type="number" step="0.01" min="0" name="readings[${index}][water_m3]" class="form-control" placeholder="0.00" value="${oldWater}" required>
+                                        </div>
+                                        ${waterError ? `<div class="text-danger small mt-1">${waterError}</div>` : ""}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    roomInputsContainer.insertAdjacentHTML("beforeend", roomHtml);
+                });
+
+                updateModal.show();
+            }
+
+            motelButtons.forEach((button) => {
+                button.addEventListener("click", function () {
+                    window.readingErrors = {};
+                    window.oldInput = [];
+                    const data = JSON.parse(this.getAttribute("data-motel-button"));
+                    renderModal(data);
+                });
+            });
+
+            editRoomButtons.forEach((button) => {
+                button.addEventListener("click", function () {
+                    window.readingErrors = {};
+                    window.oldInput = [];
+                    const data = JSON.parse(this.getAttribute("data-room"));
+                    renderModal(data, true);
+                });
+            });
+
+            updateModal._element.addEventListener('hidden.bs.modal', function () {
+                console.log('Modal closed, resetting state');
+                window.readingErrors = {};
+                window.oldInput = [];
+                currentModalData = null;
+                roomInputsContainer.innerHTML = "";
+                modalMonthInput.value = "";
+                modalYearInput.value = "";
+                modalMotelIdInput.value = "";
+                modalMotelNameInput.value = "";
+            });
+
+            if (Object.keys(window.readingErrors).length > 0 && window.motelData && window.oldInput.length > 0) {
+                console.log('Reopening modal with validation errors');
+                renderModal({
+                    motel_id: window.motelData.motel_id,
+                    motel_name: window.motelData.motel_name || "Unknown",
+                    month: window.motelData.month,
+                    year: window.motelData.year,
+                    rooms: window.motelData.rooms || []
+                });
+            }
+
+            filterForm.addEventListener("submit", function (e) {
                 e.preventDefault();
-                const formData = new FormData(form);
-                const params = new URLSearchParams(formData).toString();
+                displayResults.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+                displayResults.style.display = "block";
+                displayIndex.style.display = "none";
 
-                fetch("{{ route('meter_readings.filter') }}?" + params, {
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams(formData).toString();
+                const url = `{{ route('meter_readings.filter') }}?${params}`;
+
+                fetch(url, {
+                    method: "GET",
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "text/html",
+                    },
                 })
-                    .then(response => response.text())
-                    .then(html => {
-                        displayIndex.style.display = 'none'; // ẩn bảng mặc định
-                        displayResults.innerHTML = html;     // gán nội dung mới
-                        displayResults.style.display = 'block'; // luôn hiển thị
-                        bindUpdateButtons(); // gán lại nút cập nhật nếu có
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text();
                     })
-                    .catch(error => {
-                        console.error('Lỗi khi lọc dữ liệu:', error);
+                    .then((data) => {
+                        displayResults.innerHTML = data;
+                    })
+                    .catch((error) => {
+                        console.error("Error filtering:", error);
+                        displayResults.innerHTML = '<div class="alert alert-danger">Đã xảy ra lỗi khi lọc dữ liệu.</div>';
                     });
             });
 
-            // Tự động submit form khi thay đổi select lọc
-            const filterSelects = document.querySelectorAll('select[name="room_id"], select[name="month"], select[name="year"], select[name="sortOption"]');
-            filterSelects.forEach(select => {
-                select.addEventListener('change', function () {
-                    form.requestSubmit(); // dùng requestSubmit để gọi event submit chuẩn
-                });
+            filterForm.addEventListener("reset", function () {
+                displayResults.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+                displayResults.style.display = "block";
+                displayIndex.style.display = "none";
+
+                fetch("{{ route('meter_readings.index') }}", {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "text/html",
+                    },
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
+                    .then((data) => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data, "text/html");
+                        const newDisplayIndex = doc.getElementById("displayIndex");
+                        const newDisplayResults = doc.getElementById("displayResults");
+
+                        displayIndex.innerHTML = newDisplayIndex.innerHTML;
+                        displayIndex.style.display = "block";
+                        displayResults.innerHTML = newDisplayResults.innerHTML;
+                        displayResults.style.display = "none";
+
+                        filterForm.reset();
+                    })
+                    .catch((error) => {
+                        console.error("Error resetting:", error);
+                        window.location.href = "{{ route('meter_readings.index') }}";
+                    });
             });
-
-            // Gán sự kiện input cho ô nhập để tính tiêu thụ
-            const updateElectricity = document.getElementById('update_electricity');
-            const updateWater = document.getElementById('update_water');
-            if (updateElectricity && updateWater) {
-                updateElectricity.addEventListener('input', calculateConsumption);
-                updateWater.addEventListener('input', calculateConsumption);
-            }
-
-            // Mở lại modal nếu có lỗi validate và session báo mở lại
-            @if ($errors->any() && session('open_update_modal'))
-                const modal = new bootstrap.Modal(document.getElementById('updateMeterModal'));
-                modal.show();
-            @endif
-
-            // Lần đầu bind các nút cập nhật (ở displayIndex)
-            bindUpdateButtons();
         });
-
-        // Gán sự kiện onclick cho các nút cập nhật (sau khi render hoặc Ajax load)
-        function bindUpdateButtons() {
-            const buttons = document.querySelectorAll('[data-update-button]');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const data = JSON.parse(this.dataset.updateButton);
-                    openUpdateModal(data.id, data.name, data.month, data.year, data.electricity, data.water);
-                });
-            });
-        }
-
-        // Mở modal cập nhật
-        function openUpdateModal(id, roomName, month, year, currentElectricity, currentWater) {
-            document.getElementById('update_room_id').value = id;
-            document.getElementById('month_meterReading').value = month;
-            document.getElementById('year_meterReading').value = year;
-
-            document.getElementById('update_room_name').textContent = roomName;
-            document.getElementById('update_period').textContent = `${month}/${year}`;
-
-            document.getElementById('update_electricity').value = currentElectricity;
-            document.getElementById('update_water').value = currentWater;
-
-            document.getElementById('old_electricity').textContent = currentElectricity;
-            document.getElementById('old_water').textContent = currentWater;
-
-            calculateConsumption();
-
-            const modal = new bootstrap.Modal(document.getElementById('updateMeterModal'));
-            modal.show();
-        }
-
-        // Tính tiêu thụ
-        function calculateConsumption() {
-            const currentElectricity = parseFloat(document.getElementById('update_electricity').value) || 0;
-            const currentWater = parseFloat(document.getElementById('update_water').value) || 0;
-            const oldElectricity = parseFloat(document.getElementById('old_electricity').textContent) || 0;
-            const oldWater = parseFloat(document.getElementById('old_water').textContent) || 0;
-
-            const electricityConsumption = Math.max(0, currentElectricity - oldElectricity);
-            const waterConsumption = Math.max(0, currentWater - oldWater);
-
-            document.getElementById('electricity_consumption').textContent = electricityConsumption.toFixed(2) + ' kWh';
-            document.getElementById('water_consumption').textContent = waterConsumption.toFixed(2) + ' m³';
-        }
     </script>
-
-
 @endsection
