@@ -121,7 +121,6 @@ class ContractService
                         'content' => $ext->content,
                         'file' => $ext->file ? url($ext->file) : null,
                         'status' => $ext->status,
-                        'rejection_reason' => $ext->rejection_reason,
                     ])->values()->toArray(),
             ];
         } catch (\Throwable $e) {
@@ -716,15 +715,20 @@ class ContractService
                 'has_left' => false,
             ]);
 
-            // Mã hóa thông tin tài khoản ngân hàng
-            $encryptedBankInfo = Crypt::encrypt($bankInfo);
+             // Tạo URL mã QR theo định dạng Sepay
+            $qrUrl = sprintf(
+                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=compact',
+                urlencode($bankInfo['account_number']),
+                urlencode($bankInfo['bank_name']),
+            );
 
             // Tạo yêu cầu hoàn tiền
             $refundRequest = RefundRequest::create([
                 'checkout_id' => $checkout->id,
                 'deposit_amount' => $contract->deposit_amount,
                 'status' => 'Chờ xử lý',
-                'bank_info' => $encryptedBankInfo,
+                'bank_info' => $bankInfo,
+                'qr_code_path' => $qrUrl,
             ]);
 
             // Gửi thông báo cho admin

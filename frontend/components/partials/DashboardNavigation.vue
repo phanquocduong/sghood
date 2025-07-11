@@ -9,6 +9,23 @@
                         <span v-if="item.badge" class="nav-tag messages">{{ item.badge }}</span>
                     </NuxtLink>
                 </li>
+                <li>
+                    <a><i class="im im-icon-File-Clipboard"></i> Yêu cầu</a>
+                    <ul>
+                        <li>
+                            <NuxtLink to="/quan-ly/yeu-cau/gia-han-hop-dong">Gia hạn</NuxtLink>
+                        </li>
+                        <li>
+                            <a href="dashboard-my-listings.html">Trả phòng</a>
+                        </li>
+                        <li>
+                            <a href="dashboard-my-listings.html">Hoàn tiền</a>
+                        </li>
+                        <li>
+                            <a href="dashboard-my-listings.html">Sửa chữa</a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>

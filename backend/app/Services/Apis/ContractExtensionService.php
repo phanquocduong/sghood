@@ -8,6 +8,42 @@ use Illuminate\Support\Facades\Log;
 
 class ContractExtensionService
 {
+    public function getExtensions(array $filters)
+    {
+        $query = ContractExtension::query()
+            ->with('contract') // Tải quan hệ contract
+            ->whereHas('contract', fn($q) => $q->where('user_id', Auth::id())); // Lọc theo user_id của contrac
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
+
+        $extensions = $query->get()->map(function ($extension) {
+            return [
+                'id' => $extension->id,
+                'contract_id' => $extension->contract_id,
+                'new_end_date' => $extension->new_end_date ? $extension->new_end_date->toIso8601String() : null,
+                'new_rental_price' => $extension->new_rental_price,
+                'content' => $extension->content,
+                'status' => $extension->status,
+                'rejection_reason' => $extension->rejection_reason,
+            ];
+        });
+
+        return $extensions;
+    }
+
+    protected function getSortOrder($sort)
+    {
+        return match ($sort) {
+            'oldest' => 'asc',
+            'latest', 'default' => 'desc',
+            default => 'desc',
+        };
+    }
+
     public function rejectContractExtension(int $id): array
     {
         try {

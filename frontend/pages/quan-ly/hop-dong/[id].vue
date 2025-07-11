@@ -44,7 +44,7 @@
 
     <div class="row">
         <div class="col-lg-12 col-md-12">
-            <div class="dashboard-list-box margin-top-0">
+            <div class="dashboard-list-box margin-top-15">
                 <ExtensionList
                     v-if="contract?.active_extensions.length !== 0"
                     :contract="contract"
@@ -116,30 +116,21 @@ const isFormComplete = computed(() =>
 );
 
 // Composable
-const {
-    fetchContract,
-    signContract,
-    confirmOTPAndSign,
-    saveContract,
-    handleIdentityUpload,
-    rejectExtension,
-    phoneNumber,
-    showOTPModal,
-    otpCode
-} = useContract({
-    contract,
-    signatureData,
-    identityDocument,
-    identityImages,
-    contractContainer,
-    loading,
-    extractLoading,
-    saveLoading,
-    toast,
-    router,
-    route,
-    dropzoneInstance
-});
+const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, showOTPModal, otpCode } =
+    useContract({
+        contract,
+        signatureData,
+        identityDocument,
+        identityImages,
+        contractContainer,
+        loading,
+        extractLoading,
+        saveLoading,
+        toast,
+        router,
+        route,
+        dropzoneInstance
+    });
 
 onMounted(async () => {
     await fetchContract();

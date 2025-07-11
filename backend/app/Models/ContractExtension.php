@@ -15,7 +15,6 @@ class ContractExtension extends Model
         'new_end_date',
         'new_rental_price',
         'content',
-        'file',
         'status',
         'rejection_reason',
     ];
