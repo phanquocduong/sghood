@@ -78,7 +78,7 @@
                                         <img src="https://via.placeholder.com/100?text=Không+có+ảnh" alt="No Image" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                 @endif
                             </td>
-                            <td>{{ $blog->title }}</td>
+                            <td><a href="{{ route('blogs.detail', $blog->id) }}">{{ $blog->title }}</a></td>
                             <td>{{ $blog->author->name }}</td>
                             <td>{{ $blog->created_at->format('d/m/Y') }}</td>
                             <td>

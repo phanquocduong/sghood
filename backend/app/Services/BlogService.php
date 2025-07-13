@@ -177,4 +177,9 @@ class BlogService
             return ['error' => 'Đã xảy ra lỗi khi xóa bài viết vĩnh viễn'.$e->getMessage(), 'status' => 500];
         }
     }
+
+    public function detailBlog($id)
+    {
+        return Blog::find($id);
+    }
 }

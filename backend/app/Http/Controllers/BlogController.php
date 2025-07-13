@@ -129,4 +129,9 @@ class BlogController extends Controller
 
         return redirect()->route('blogs.trash')->with('success', 'Xóa bài viết thành công!');
     }
+    public function showBlog($id)
+    {
+        $blogs = $this->blogService->detailBlog($id);
+        return view('blogs.detail_blog', compact('blogs'));
+    }
 }

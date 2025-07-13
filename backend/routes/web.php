@@ -184,6 +184,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/trash', [BlogController::class, 'trash'])->name('trash');
         Route::patch('/restore/{id}', [BlogController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
+        Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
 
     });
     Route::prefix('CKEditors')->name('ckeditors.')->group(function() {

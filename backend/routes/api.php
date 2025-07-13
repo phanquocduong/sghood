@@ -90,6 +90,9 @@ Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
 // Blog Routes
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
+Route::get('/blogs/{id}/related', [BlogController::class, 'related']);
+Route::get('/blogs/popular', [BlogController::class, 'popular']);
+Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
 
 
 // Get all admin users

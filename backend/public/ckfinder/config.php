@@ -70,7 +70,7 @@ $config['backends'][] = array(
     // 👇 URL client truy cập (sau khi chạy php artisan storage:link)
     'baseUrl' => '/storage/uploads',
     // 👇 Đường tuyệt đối thực tế trên server
-    // 'root' => realpath(__DIR__ . '/../../storage/app/public/uploads'),
+    // 'root' => public_path('app/storage/uploads'),
     'chmodFiles' => 0777,
     'chmodFolders' => 0755,
     'filesystemEncoding' => 'UTF-8',
