@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Services\Apis;
+
 use App\Models\Blog;
 
 class BlogService
@@ -8,8 +10,32 @@ class BlogService
     {
         return Blog::latest()->get();
     }
-     public function getBlogBySlug($slug)
+    public function getBlogBySlug($slug)
     {
         return Blog::where('slug', $slug)->first();
+    }
+    public function getRelatedPosts(int $id, int $limit = 5)
+    {
+        $currentPost = Blog::findOrFail($id);
+
+        return Blog::where('id', '<>', $id)
+            ->where('category', $currentPost->category) // nếu $currentPost->category là Enum
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getPopularPosts(int $limit = 5)
+    {
+        return Blog::orderByDesc('views')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function increaseView(int $id)
+    {
+        Blog::where('id', $id)->increment('views');
+
     }
 }

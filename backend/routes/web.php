@@ -119,6 +119,7 @@ Route::middleware('admin')->group(function () {
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
         Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
         Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/by-ids', [UserController::class, 'getByIds'])->name('byIds');
     });
 
     // Booking Routes Group
@@ -183,6 +184,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/trash', [BlogController::class, 'trash'])->name('trash');
         Route::patch('/restore/{id}', [BlogController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
+        Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
 
     });
     Route::prefix('CKEditors')->name('ckeditors.')->group(function() {

@@ -17,8 +17,8 @@ export function initChat(_currentUserId) {
             success: function (response) {
                 $('#chatContainer').html(response);
                 setTimeout(() => {
-                setupChatRealtime(); // ✅ đảm bảo DOM đã render xong input[receiver_id]
-            }, 0);
+                    setupChatRealtime(); // ✅ đảm bảo DOM đã render xong input[receiver_id]
+                }, 0);
             },
             error: function () {
                 alert('Không thể tải nội dung chat');
@@ -32,6 +32,9 @@ export function initChat(_currentUserId) {
 function setupChatRealtime() {
     const receiverInput = document.querySelector('input[name="receiver_id"]');
     if (!receiverInput) return;
+
+    const chatBox = document.querySelector('.chat-box');
+    if (chatBox) chatBox.innerHTML = '';
 
     chatUserId = parseInt(receiverInput.value);
     chatKey = currentUserId < chatUserId
@@ -51,50 +54,44 @@ function bindSendMessageForm() {
         e.preventDefault();
 
         const messageInput = document.getElementById('messageInput');
+        const imageInput = document.getElementById('imageInput');
         const message = messageInput.value.trim();
-        if (!message) return;
+        const imageFile = imageInput.files[0];
 
-        const formData = new FormData(form);
+        if (!message && !imageFile) return;
 
-        // Gửi API về server
-        const response = await fetch("/messages/send", {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: formData
-        });
+        let imageUrl = null;
 
-        const result = await response.json();
-        if (result.status) {
-            // Push Firestore
-            const db = firebase.firestore();
-            await db.collection('messages').add({
-                chatId: chatKey,
-                sender_id: currentUserId,
-                receiver_id: chatUserId,
-                text: message,
-                is_read: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Thêm UI ngay
-            const chatBox = document.querySelector('.chat-box');
-            const msgHtml = `
-                <div style="text-align: right; margin: 5px 0;">
-                    <span style="display:inline-block;padding:10px 14px;border-radius:10px;background:#007bff;color:#fff;max-width:60%;word-break:break-word;">
-                        ${message}
-                    </span>
-                </div>`;
-            chatBox.innerHTML += msgHtml;
-            chatBox.scrollTop = chatBox.scrollHeight;
-            messageInput.value = '';
-        } else {
-            alert("Gửi tin nhắn thất bại");
+        // Upload ảnh lên Firebase Storage nếu có
+        if (imageFile) {
+            const storageRef = firebase.storage().ref(`images/${Date.now()}_${imageFile.name}`);
+            await storageRef.put(imageFile);
+            imageUrl = await storageRef.getDownloadURL();
+            console.log('Image uploaded to Storage with URL:', imageUrl);
         }
+
+        // Gửi dữ liệu lên Firestore
+        const db = firebase.firestore();
+        const messageData = {
+            chatId: chatKey,
+            sender_id: currentUserId,
+            receiver_id: chatUserId,
+            text: message || '', // Văn bản có thể rỗng nếu chỉ gửi hình
+            content: imageUrl || message, // Sử dụng content cho imageUrl hoặc text
+            type: imageUrl ? 'image' : 'text',
+            is_read: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('messages').add(messageData);
+
+        // Reset form
+        messageInput.value = '';
+        imageInput.value = '';
     });
 }
 
 function listenToFirestore() {
-    // ✅ Huỷ listener cũ nếu có
     if (unsubscribe) unsubscribe();
 
     const db = firebase.firestore();
@@ -106,23 +103,44 @@ function listenToFirestore() {
         snapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
                 const msg = change.doc.data();
-                if (msg.sender_id !== currentUserId) {
-                    const chatBox = document.querySelector('.chat-box');
+                const msgId = change.doc.id;
+                const chatBox = document.querySelector('.chat-box');
 
-                    // ⚠️ Tránh nhân đôi
-                    const exists = [...chatBox.querySelectorAll('span')]
-                        .some(el => el.textContent === msg.text);
-                    if (exists) return;
+                // Tránh nhân đôi
+                if (chatBox.querySelector(`[data-msg-id="${msgId}"]`)) return;
 
-                    const msgHtml = `
-                        <div style="text-align: left; margin: 5px 0;">
-                            <span style="background: #e2e3e5; color: #000; padding: 8px 12px; border-radius: 10px; display: inline-block;">
-                                ${msg.text}
-                            </span>
-                        </div>`;
-                    chatBox.innerHTML += msgHtml;
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                console.log(`Message ${msgId} data:`, msg); // Debug toàn bộ dữ liệu
+
+                // Căn chỉnh và màu sắc
+                const align = msg.sender_id === currentUserId ? 'right' : 'left';
+                const bg = msg.sender_id === currentUserId ? '#6c63ff' : '#e2e3e5';
+                const color = msg.sender_id === currentUserId ? '#fff' : '#000';
+
+                // Tạo HTML cho tin nhắn
+                let msgHtml = `
+                    <div style="text-align: ${align}; margin: 5px 0;">
+                        <div data-msg-id="${msgId}" style="display: inline-block; max-width: 60%;">
+                `;
+
+                // Thêm văn bản nếu có
+                if (msg.text) {
+                    msgHtml += `
+                        <span style="background: ${bg}; color: ${color}; padding: 8px 12px; border-radius: 10px; display: inline-block; word-break: break-word;">
+                            ${msg.text}
+                        </span>
+                    `;
                 }
+
+                // Thêm hình ảnh nếu có
+                if (msg.type === 'image' && msg.content) {
+                    msgHtml += `
+                        <img src="${msg.content}" style="max-width: 100%; border-radius: 10px; margin-top: 5px;" alt="Hình ảnh">
+                    `;
+                }
+
+                msgHtml += `</div></div>`;
+                chatBox.innerHTML += msgHtml;
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         });
     });
@@ -240,9 +258,4 @@ function markMessagesAsRead() {
             });
         });
 }
-
-
-
-
-
 

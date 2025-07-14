@@ -304,6 +304,13 @@ const initChat = async () => {
           })
           }
         }
+        const audio = notiSound.value
+        if(audio){
+          audio.currentTime = 0 
+          audio.play().catch(err=>{
+            console.warn('khong the phat am thanh',err)
+          })
+        }
       }
     })
   } catch (error) {
@@ -338,6 +345,7 @@ const sendMessage = async (payload = null) => {
 })
 
     // Optionally: gọi API gửi nữa nếu backend cần lưu
+
     /*  await $api('/messages/send', {
       method: 'POST',
       headers: {
@@ -349,6 +357,7 @@ const sendMessage = async (payload = null) => {
         message: text
       }
     })  */
+
     if(type ==='text') behavior.clearChat()
 
     scrollToBottom()

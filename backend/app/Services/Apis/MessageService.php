@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Apis;
 
 use App\Models\Message;
@@ -6,10 +7,24 @@ use App\Models\User;
 use App\Models\UserAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Exception\FirebaseException;
 
 class MessageService
 {
-    public function sendMessage(int $senderId, ?int $receiverId, string $messageText)
+    protected $firestore;
+    protected $storage;
+
+    public function __construct()
+    {
+        $factory = (new Factory)
+            ->withServiceAccount(storage_path('firebase/firebase_credentials.json'));
+
+        $this->firestore = $factory->createFirestore()->database();
+        $this->storage = $factory->createStorage();
+    }
+
+    public function sendMessage(int $senderId, ?int $receiverId, string $messageText, ?string $imageUrl = null)
     {
         Log::info('Sender ID:', ['id' => $senderId]);
 
@@ -39,61 +54,37 @@ class MessageService
             return null;
         }
 
-        // Kiểm tra xem đã từng chat giữa 2 người chưa
-        $exists = Message::where(function ($query) use ($senderId, $receiverId) {
-            $query->where('sender_id', $senderId)->where('receiver_id', $receiverId);
-        })->orWhere(function ($query) use ($senderId, $receiverId) {
-            $query->where('sender_id', $receiverId)->where('receiver_id', $senderId);
-        })->exists();
-
+        // Đẩy lên Firestore
         try {
-            // Tạo tin nhắn chính
-            $userMessage = Message::create([
+            $chatPath = $senderId < $receiverId
+                ? "chats/{$senderId}_{$receiverId}"
+                : "chats/{$receiverId}_{$senderId}";
+
+            $messageData = [
                 'sender_id' => $senderId,
                 'receiver_id' => $receiverId,
                 'message' => $messageText,
-                'read' => false,
-                'created_at' => now(),
-                'updated_at' => now()
+                'imageUrl' => $imageUrl ?? '', // Lưu URL hình ảnh
+                'is_read' => false,
+                'created_at' => now()->toDateTimeString(),
+            ];
+
+            $docRef = $this->firestore->collection('messages')->add($messageData);
+
+            Log::info('Tin nhắn đã được gửi lên Firestore', [
+                'document_id' => $docRef->id(),
+                'data' => $messageData
             ]);
 
-            // ✅ Đẩy lên Firebase
-            try {
-                $chatPath = $senderId < $receiverId
-                    ? "chats/{$senderId}_{$receiverId}"
-                    : "chats/{$receiverId}_{$senderId}";
-
-                $firebase = (new \Kreait\Firebase\Factory)
-                    ->withServiceAccount(storage_path('firebase/firebase_credentials.json'))
-                    ->withDatabaseUri('https://tro-viet-default-rtdb.firebaseio.com')
-                    ->createDatabase();
-
-                $firebase->getReference($chatPath)->push([
-                    'sender_id' => $senderId,
-                    'receiver_id' => $receiverId,
-                    'message' => $messageText,
-                    'timestamp' => now()->timestamp,
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('Lỗi khi đẩy Firebase: ' . $e->getMessage());
-            }
-
-            // Auto-reply nếu lần đầu
-            if ($sender->role !== 'Quản trị viên' && !$exists) {
-                Message::create([
-                    'sender_id' => $receiverId,
-                    'receiver_id' => $senderId,
-                    'message' => 'Cảm ơn bạn đã nhắn tin, admin sẽ phản hồi sớm nhất có thể.',
-                    'read' => false,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            }
-
-            return $userMessage;
-
-        } catch (\Exception $e) {
-            Log::error('Lỗi khi gửi tin nhắn', [
+            return [
+                'sender_id' => $senderId,
+                'receiver_id' => $receiverId,
+                'message' => $messageText,
+                'imageUrl' => $imageUrl,
+                'is_read' => false
+            ];
+        } catch (FirebaseException $e) {
+            Log::error('Lỗi khi gửi tin nhắn lên Firestore', [
                 'error' => $e->getMessage(),
                 'sender_id' => $senderId,
                 'receiver_id' => $receiverId
@@ -101,7 +92,6 @@ class MessageService
             return null;
         }
     }
-
 
     private function getRandomAdmin(?int $excludeUserId = null)
     {
@@ -113,7 +103,6 @@ class MessageService
 
         return $query->inRandomOrder()->first();
     }
-
 
     public function getChatHistory($userId)
     {
@@ -143,17 +132,16 @@ class MessageService
 
         return User::whereIn('id', $userIds)->get();
     }
+
     public function startChatAdmin(?int $adminId, int $userId)
     {
-        // Nếu không có admin truyền vào, tự gán hoặc lấy admin đã gán
         if (!$adminId) {
             $adminId = $this->assignOrGetAdminForUser($userId);
             if (!$adminId) {
-                return null; // Không có admin khả dụng
+                return null;
             }
         }
 
-        // Tránh gán chính user làm admin
         if ($adminId == $userId) {
             Log::error('Admin ID trùng với user ID, không thể tạo cuộc trò chuyện chính mình.', [
                 'admin_id' => $adminId,
@@ -163,39 +151,45 @@ class MessageService
         }
 
         // Kiểm tra đã có đoạn chat chưa
-        $query = Message::where(function ($query) use ($adminId, $userId) {
-            $query->where('sender_id', $adminId)->where('receiver_id', $userId);
-        })->orWhere(function ($query) use ($adminId, $userId) {
-            $query->where('sender_id', $userId)->where('receiver_id', $adminId);
-        });
+        $messagesRef = $this->firestore->collection('messages');
+        $query = $messagesRef
+            ->where('sender_id', 'in', [$adminId, $userId])
+            ->where('receiver_id', 'in', [$adminId, $userId])
+            ->orderBy('created_at', 'ASC')
+            ->limit(1);
 
-        $firstMessage = $query->orderBy('created_at', 'asc')->first();
+        $documents = $query->documents();
 
-        if (!$firstMessage) {
+        if ($documents->isEmpty()) {
             try {
-                $firstMessage = Message::create([
+                $firstMessageData = [
                     'sender_id' => $adminId,
                     'receiver_id' => $userId,
                     'message' => 'Chào bạn! Tôi có thể giúp gì cho bạn ?',
-                    'read' => false,
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'imageUrl' => '', // Không có hình ảnh
+                    'is_read' => false,
+                    'created_at' => now()->toDateTimeString(),
+                ];
+
+                $docRef = $messagesRef->add($firstMessageData);
+
+                Log::info('Đã tạo tin nhắn chào mừng (Firestore)', [
+                    'document_id' => $docRef->id()
                 ]);
 
-                Log::info('Đã tạo tin nhắn chào mừng', ['message_id' => $firstMessage->id]);
-
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi tạo tin nhắn chào mừng', [
+                return $firstMessageData;
+            } catch (FirebaseException $e) {
+                Log::error('Lỗi khi tạo tin nhắn chào mừng (Firestore)', [
                     'error' => $e->getMessage(),
                     'admin_id' => $adminId,
                     'user_id' => $userId
                 ]);
-
                 return null;
             }
+        } else {
+            $firstDoc = $documents->rows()[0];
+            return $firstDoc->data();
         }
-
-        return $firstMessage;
     }
 
     private function assignOrGetAdminForUser(int $userId): ?int
@@ -206,7 +200,7 @@ class MessageService
             return $userAdmin->admin_id;
         }
 
-        $admin = $this->getRandomAdmin($userId); // 💡 exclude chính user
+        $admin = $this->getRandomAdmin($userId);
 
         if (!$admin || $admin->id === $userId) {
             Log::error('Không tìm thấy admin hợp lệ để gán cho user ID: ' . $userId);
@@ -220,5 +214,4 @@ class MessageService
 
         return $admin->id;
     }
-
 }

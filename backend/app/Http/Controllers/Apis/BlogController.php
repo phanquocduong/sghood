@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
@@ -15,8 +16,8 @@ class BlogController extends Controller
     {
         $blog = $this->blogService->getAll();
         return response()->json([
-            'success'=> true,
-            'data'=> $blog
+            'success' => true,
+            'data' => $blog
         ]);
     }
     public function showBlog($slug)
@@ -30,8 +31,25 @@ class BlogController extends Controller
             ], 404);
         }
         return response()->json([
-            'success'=> true,
-            'data'=> $blog
+            'success' => true,
+            'data' => $blog
         ]);
+    }
+    public function related($id)
+    {
+        $related = $this->blogService->getRelatedPosts($id);
+        return response()->json($related);
+    }
+
+    public function popular()
+    {
+        $popular = $this->blogService->getPopularPosts();
+        return response()->json($popular);
+    }
+
+    public function increaseView($id)
+    {
+        $this->blogService->increaseView($id);
+        return response()->json(['message' => 'View increased']);
     }
 }
