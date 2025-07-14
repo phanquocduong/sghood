@@ -97,6 +97,10 @@ import { useCookie } from '#app'
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
+import { uploadImageToFirebase } from '~/utils/uploadImage'
+const { $firebaseStorage } = useNuxtApp()
+console.log('storage:', $firebaseStorage)
+console.log('storage type:', $firebaseStorage.constructor?.name)
 const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const currentUserId = ref(authStore.user?.id || null)
@@ -128,12 +132,15 @@ const handleFileUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = async (e) => {
-    const base64Image = e.target.result
-    await sendMessage({ type: 'image', content: base64Image })
+  try{
+    const imageUrl = await uploadImageToFirebase(file, $firebaseStorage)
+    await sendMessage({
+      content:imageUrl,
+      type:'image'
+    })
+  }catch(err){
+    console.error('Upload image error:',err)
   }
-  reader.readAsDataURL(file)
 }
 watch(()=>props.isOpen,(open)=>{
   if(open){
