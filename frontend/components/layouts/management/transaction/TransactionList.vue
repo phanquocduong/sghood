@@ -7,7 +7,7 @@
             <li v-for="item in items" :key="item.id">
                 <i class="list-box-icon sl sl-icon-wallet"></i>
                 <strong :class="getTypeClass(item.transfer_type)"
-                    >{{ item.transfer_type === 'in' ? '-' : '+' }}{{ formatCurrency(item.transfer_amount) }}đ</strong
+                    >{{ item.transfer_type === 'in' ? '-' : '+' }}{{ formatPrice(item.transfer_amount) }}</strong
                 >
                 <ul>
                     <li>Thời gian: {{ formatDate(item.transaction_date) }}</li>
@@ -20,6 +20,12 @@
 </template>
 
 <script setup>
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
+
+const { formatPrice } = useFormatPrice();
+const { formatDate } = useFormatDate();
+
 const props = defineProps({
     items: {
         type: Array,
@@ -30,19 +36,6 @@ const props = defineProps({
         required: true
     }
 });
-
-const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
-
-const formatDate = date => {
-    return new Date(date).toLocaleString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-};
 
 const getTypeClass = type => {
     switch (type) {

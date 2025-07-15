@@ -42,9 +42,11 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
+import { useFormatPrice } from '~/composables/useFormatPrice';
 
 const { $api } = useNuxtApp();
 const config = useRuntimeConfig();
+const { formatPrice } = useFormatPrice();
 const motels = ref([]);
 const carousel = ref(null);
 
@@ -89,10 +91,6 @@ onMounted(async () => {
         motels.value = [];
     }
 });
-
-const formatPrice = price => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
 </script>
 
 <style lang="scss" scoped></style>

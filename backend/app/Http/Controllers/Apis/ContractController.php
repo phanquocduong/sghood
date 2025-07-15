@@ -168,7 +168,7 @@ class ContractController extends Controller
             return response()->json([
                 'message' => 'Hợp đồng đã được ký thành công. Vui lòng thanh toán tiền cọc.',
                 'data' => $updatedContract,
-                'invoice_id' => $invoice->id
+                'invoice_code' => $invoice->code
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Hợp đồng không tồn tại hoặc không ở trạng thái chờ ký.'], 404);
@@ -261,45 +261,6 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
             ]);
             return response()->json(['error' => 'Đã có lỗi xảy ra khi tải PDF phụ lục.'], 500);
-        }
-    }
-
-    public function requestReturn(int $id, Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'bank_name' => 'required|string|max:255',
-                'account_number' => 'required|string|max:50',
-                'account_holder' => 'required|string|max:255',
-                'check_out_date' => 'required|date|after_or_equal:today',
-            ]);
-
-            $bankInfo = [
-                'bank_name' => $validated['bank_name'],
-                'account_number' => $validated['account_number'],
-                'account_holder' => $validated['account_holder'],
-            ];
-
-            $result = $this->contractService->requestReturn($id, $bankInfo, $validated['check_out_date']);
-
-            if (isset($result['error'])) {
-                return response()->json([
-                    'error' => $result['error'],
-                    'status' => $result['status'],
-                ], $result['status']);
-            }
-
-            return response()->json([
-                'message' => 'Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.',
-                'data' => $result['data'],
-            ], 200);
-        } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            return response()->json(['error' => 'Đã xảy ra lỗi khi gửi yêu cầu trả phòng.'], 500);
         }
     }
 }

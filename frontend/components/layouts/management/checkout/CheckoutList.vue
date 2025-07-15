@@ -37,7 +37,7 @@
                         <div v-if="item.deduction_amount" class="inner-booking-list">
                             <h5>Số tiền khấu trừ:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ formatCurrency(item.deduction_amount) }}đ</li>
+                                <li class="highlighted">{{ formatPrice(item.deduction_amount) }}</li>
                             </ul>
                         </div>
                         <div v-if="item.note" class="inner-booking-list">
@@ -72,7 +72,11 @@
 <script setup>
 import Swal from 'sweetalert2';
 import { useRuntimeConfig } from '#app';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
+const { formatDate } = useFormatDate();
+const { formatPrice } = useFormatPrice();
 const config = useRuntimeConfig();
 const props = defineProps({
     items: {
@@ -86,17 +90,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['rejectItem']);
-
-const formatDate = dateString => {
-    if (!dateString) return 'Chưa xác định';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
-const formatCurrency = amount => {
-    if (!amount) return '0';
-    return new Intl.NumberFormat('vi-VN').format(amount);
-};
 
 const getItemClass = status => {
     switch (status) {

@@ -25,7 +25,7 @@
                         </select>
                     </div>
                     <p><strong>Ngày kết thúc mới:</strong> {{ formatDate(calculatedNewEndDate) }}</p>
-                    <p><strong>Giá thuê phòng mới:</strong> {{ formatCurrency(contract.room_price) }}đ</p>
+                    <p><strong>Giá thuê phòng mới:</strong> {{ formatPrice(contract.room_price) }}đ</p>
                     <p>Các điều khoản khác của hợp đồng gốc vẫn giữ nguyên hiệu lực.</p>
                 </div>
             </div>
@@ -39,9 +39,11 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useContractUtils } from '~/composables/useContractUtils';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
-const { formatDate, formatCurrency } = useContractUtils();
+const { formatDate } = useFormatDate();
+const { formatPrice } = useFormatPrice();
 
 const props = defineProps({
     contract: {

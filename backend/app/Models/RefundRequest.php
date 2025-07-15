@@ -17,7 +17,6 @@ class RefundRequest extends Model
         'bank_info',
         'qr_code_path',
         'status',
-        'rejection_reason',
     ];
 
     protected $casts = [

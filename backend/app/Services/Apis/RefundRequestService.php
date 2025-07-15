@@ -4,6 +4,7 @@ namespace App\Services\Apis;
 
 use App\Models\RefundRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RefundRequestService
 {
@@ -38,13 +39,6 @@ class RefundRequestService
         return $refundRequests->values();
     }
 
-    public function rejectRefundRequest($id)
-    {
-        $refundRequest = RefundRequest::findOrFail($id);
-        $refundRequest->update(['status' => 'Huỷ bỏ']);
-        return $refundRequest;
-    }
-
     protected function getSortOrder($sort)
     {
         return match ($sort) {
@@ -52,5 +46,56 @@ class RefundRequestService
             'latest', 'default' => 'desc',
             default => 'desc',
         };
+    }
+
+    public function updateBankInfo(int $id, array $bankInfo): array
+    {
+        try {
+            $refundRequest = RefundRequest::query()
+                ->where('id', $id)
+                ->where('status', 'Chờ xử lý')
+                ->whereHas('checkout.contract', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->first();
+
+            if (!$refundRequest) {
+                return [
+                    'error' => 'Không tìm thấy yêu cầu hoàn tiền hoặc bạn không có quyền chỉnh sửa yêu cầu hoàn tiền',
+                    'status' => 404,
+                ];
+            }
+
+            // Tạo URL mã QR theo định dạng Sepay
+            $qrUrl = sprintf(
+                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
+                urlencode($bankInfo['account_number']),
+                urlencode($bankInfo['bank_name'])
+            );
+
+            // Cập nhật thông tin yêu cầu hoàn tiền
+            $refundRequest->update([
+                'bank_info' => $bankInfo,
+                'qr_code_path' => $qrUrl,
+            ]);
+
+            return [
+                'data' => [
+                    'refund_request' => $refundRequest,
+                ],
+                'message' => 'Cập nhật thông tin chuyển khoản thành công',
+                'status' => 200,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return [
+                'error' => 'Lỗi khi cập nhật thông tin chuyển khoản: ' . $e->getMessage(),
+                'status' => 500,
+            ];
+        }
     }
 }

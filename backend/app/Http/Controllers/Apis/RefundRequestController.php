@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\RefundRequestService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RefundRequestController extends Controller
 {
@@ -30,22 +33,41 @@ class RefundRequestController extends Controller
         }
     }
 
-    public function reject($id)
+    public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $refundRequest = $this->refundRequestService->rejectRefundRequest($id);
+            $validated = $request->validate([
+                'bank_name' => 'required|string|max:255',
+                'account_number' => 'required|string|max:50',
+                'account_holder' => 'required|string|max:255',
+            ]);
+
+            $bankInfo = [
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder' => $validated['account_holder'],
+            ];
+
+            $result = $this->refundRequestService->updateBankInfo($id, $bankInfo);
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
             return response()->json([
-                'message' => 'Hủy yêu cầu hoàn tiền thành công',
-                'data' => $refundRequest
+                'message' => 'Thông tin chuyển khoản đã được chỉnh sửa thành công.',
+                'data' => $result['data'],
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Không tìm thấy yêu cầu hoàn tiền.'
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi hủy yêu cầu hoàn tiền. Vui lòng thử lại.'
-            ], 500);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi chỉnh sửa thông tin chuyển khoản.'], 500);
         }
     }
 }

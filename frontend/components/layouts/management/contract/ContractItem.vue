@@ -37,13 +37,13 @@
                     <div class="inner-booking-list">
                         <h5>Tiền cọc:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatCurrency(item.deposit_amount) }}đ</li>
+                            <li class="highlighted">{{ formatPrice(item.deposit_amount) }}</li>
                         </ul>
                     </div>
                     <div class="inner-booking-list">
                         <h5>Giá thuê mỗi tháng:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatCurrency(item.rental_price) }}đ</li>
+                            <li class="highlighted">{{ formatPrice(item.rental_price) }}</li>
                         </ul>
                     </div>
                     <div v-if="item.signed_at" class="inner-booking-list">
@@ -132,14 +132,15 @@ import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.css';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 import { useContractUtils } from '~/composables/useContractUtils';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
+const { formatPrice } = useFormatPrice();
+const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
 const {
-    formatDate,
-    formatDateTime,
-    formatCurrency,
     getItemClass,
     getStatusClass,
     getExtensionStatusClass,

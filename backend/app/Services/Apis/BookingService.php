@@ -35,6 +35,7 @@ class BookingService
                 'room_id' => $booking->room->id,
                 'room_name' => $booking->room->name,
                 'room_image' => $booking->room->main_image->image_url,
+                'motel_slug' => $booking->room->motel->slug,
                 'motel_name' => $booking->room->motel->name,
                 'start_date' => $booking->start_date,
                 'end_date' => $booking->end_date,

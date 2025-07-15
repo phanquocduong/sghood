@@ -70,31 +70,31 @@
                                         : `Tiền ${invoice.contract.room.name} tháng ${invoice.month} năm ${invoice.year}`
                                 }}
                             </td>
-                            <td>{{ formatCurrency(invoice.total_amount) }}</td>
+                            <td>{{ formatPrice(invoice.total_amount) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí điện</td>
-                            <td>{{ formatCurrency(invoice.electricity_fee) }}</td>
+                            <td>{{ formatPrice(invoice.electricity_fee) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí nước</td>
-                            <td>{{ formatCurrency(invoice.water_fee) }}</td>
+                            <td>{{ formatPrice(invoice.water_fee) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí đỗ xe</td>
-                            <td>{{ formatCurrency(invoice.parking_fee) }}</td>
+                            <td>{{ formatPrice(invoice.parking_fee) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí vệ sinh</td>
-                            <td>{{ formatCurrency(invoice.junk_fee) }}</td>
+                            <td>{{ formatPrice(invoice.junk_fee) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí internet</td>
-                            <td>{{ formatCurrency(invoice.internet_fee) }}</td>
+                            <td>{{ formatPrice(invoice.internet_fee) }}</td>
                         </tr>
                         <tr v-if="invoice.type === 'Hàng tháng'">
                             <td>Phí dịch vụ</td>
-                            <td>{{ formatCurrency(invoice.service_fee) }}</td>
+                            <td>{{ formatPrice(invoice.service_fee) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -104,7 +104,7 @@
                     <tr>
                         <th>Tổng tiền</th>
                         <th>
-                            <span>{{ formatCurrency(invoice.total_amount) }}</span>
+                            <span>{{ formatPrice(invoice.total_amount) }}</span>
                         </th>
                     </tr>
                 </table>
@@ -133,33 +133,19 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useNuxtApp } from '#app';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
 definePageMeta({
     layout: 'blank'
 });
 
+const { formatPrice } = useFormatPrice();
+const { formatDate } = useFormatDate();
 const { $api } = useNuxtApp();
 const route = useRoute();
 const toast = useToast();
 const invoice = ref(null);
-
-const formatDate = date => {
-    return new Date(date).toLocaleString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-};
-
-const formatCurrency = amount => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(amount);
-};
 
 const fetchInvoice = async () => {
     try {

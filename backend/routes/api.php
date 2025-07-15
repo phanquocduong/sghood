@@ -58,16 +58,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
     Route::post('/contracts/{id}/extend', [ContractController::class, 'extend']);
-    Route::post('/contracts/{id}/return', [ContractController::class, 'requestReturn']);
 
     Route::get('/contract-extensions', [ContractExtensionController::class, 'index']);
     Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
 
+    Route::post('/contracts/{id}/return', [CheckoutController::class, 'requestReturn']);
     Route::get('/checkouts', [CheckoutController::class, 'index']);
     Route::post('/checkouts/{id}/reject', [CheckoutController::class, 'reject']);
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);
-    Route::post('/refund-requests/{id}/reject', [RefundRequestController::class, 'reject']);
+    Route::patch('/refund-requests/{id}', [RefundRequestController::class, 'update']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);

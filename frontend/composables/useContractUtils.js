@@ -1,25 +1,4 @@
-import { computed } from 'vue';
-
 export function useContractUtils() {
-    const formatDate = dateString => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    };
-
-    const formatDateTime = timestamp => {
-        const date = new Date(timestamp);
-        return date.toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-    };
-
-    const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
-
     const isNearExpiration = endDate => {
         const today = new Date();
         const end = new Date(endDate);
@@ -97,6 +76,7 @@ export function useContractUtils() {
             'Chờ chỉnh sửa': 'Chỉnh sửa thông tin',
             'Chờ ký': 'Ký hợp đồng',
             'Chờ duyệt': 'Xem chi tiết',
+            'Chờ thanh toán tiền cọc': 'Xem chi tiết',
             'Hoạt động': 'Xem chi tiết',
             'Kết thúc': 'Xem chi tiết'
         };
@@ -104,9 +84,6 @@ export function useContractUtils() {
     };
 
     return {
-        formatDate,
-        formatDateTime,
-        formatCurrency,
         isNearExpiration,
         getItemClass,
         getStatusClass,

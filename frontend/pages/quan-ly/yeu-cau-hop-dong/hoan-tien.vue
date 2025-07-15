@@ -6,7 +6,13 @@
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
                     <RefundRequestFilter v-model:filter="filter" @update:filter="fetchRefundRequests" />
-                    <RefundRequestList :items="refundRequests" :is-loading="isLoading" @reject-item="rejectRefundRequest" />
+                    <RefundRequestList
+                        :items="refundRequests"
+                        :is-loading="isLoading"
+                        :update-loading="updateLoading"
+                        v-model:showEditBankModal="showEditBankModal"
+                        @updateBankInfo="handleUpdateBankInfo"
+                    />
                 </div>
             </div>
         </div>
@@ -25,6 +31,8 @@ const { $api } = useNuxtApp();
 const refundRequests = ref([]);
 const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
+const updateLoading = ref(false);
+const showEditBankModal = ref(false);
 const toast = useToast();
 
 const handleBackendError = error => {
@@ -52,21 +60,23 @@ const fetchRefundRequests = async () => {
     }
 };
 
-const rejectRefundRequest = async id => {
-    isLoading.value = true;
+const handleUpdateBankInfo = async ({ id, bankInfo }) => {
+    updateLoading.value = true;
     try {
-        await $api(`/refund-requests/${id}/reject`, {
+        const response = await $api(`/refund-requests/${id}`, {
             method: 'POST',
-            headers: {
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            body: {
+                ...bankInfo,
+                _method: 'PATCH'
             }
         });
+        showEditBankModal.value = false;
+        toast.success(response.message);
         await fetchRefundRequests();
-        toast.success('Hủy yêu cầu hoàn tiền thành công');
     } catch (error) {
         handleBackendError(error);
     } finally {
-        isLoading.value = false;
+        updateLoading.value = false;
     }
 };
 

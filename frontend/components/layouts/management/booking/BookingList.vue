@@ -8,13 +8,17 @@
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <img :src="config.public.baseUrl + item.room_image" alt="" />
+                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
+                        <img :src="config.public.baseUrl + item.room_image" />
+                    </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">
                     <div class="inner">
                         <h3>
                             {{ item.room_name }} - {{ item.motel_name }}
-                            <span :class="getStatusClass(item.status)">{{ item.status }}</span>
+                            <span :class="getStatusClass(item.status)">{{
+                                item.status === 'Chấp nhận' ? 'Đã được chấp nhận' : item.status
+                            }}</span>
                         </h3>
                         <div class="inner-booking-list">
                             <h5>Ngày bắt đầu:</h5>
@@ -26,6 +30,12 @@
                             <h5>Ngày kết thúc:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ formatDate(item.end_date) }}</li>
+                            </ul>
+                        </div>
+                        <div class="inner-booking-list">
+                            <h5>Thời gian thuê:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ calculateRentalYears(item.start_date, item.end_date) }}</li>
                             </ul>
                         </div>
                         <div v-if="item.note" class="inner-booking-list">
@@ -62,7 +72,9 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { useFormatDate } from '~/composables/useFormatDate';
 
+const { formatDate } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
     items: {
@@ -77,9 +89,14 @@ const props = defineProps({
 
 const emit = defineEmits(['rejectItem']);
 
-const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const calculateRentalYears = (startDate, endDate) => {
+    if (!startDate || !endDate) return 'Không xác định';
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffInYears = end.getFullYear() - start.getFullYear();
+
+    if (diffInYears < 0) return 'Ngày không hợp lệ';
+    return `${diffInYears} năm`;
 };
 
 const getItemClass = status => {

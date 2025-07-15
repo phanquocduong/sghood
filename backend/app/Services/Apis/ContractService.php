@@ -2,10 +2,8 @@
 
 namespace App\Services\Apis;
 
-use App\Models\Checkout;
 use App\Models\Contract;
 use App\Models\ContractExtension;
-use App\Models\RefundRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -660,95 +658,6 @@ class ContractService
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi gia hạn hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
-    }
-
-    public function requestReturn(int $id, array $bankInfo, string $checkOutDate): array
-    {
-        try {
-            $contract = Contract::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->where('status', 'Hoạt động')
-                ->first();
-
-            if (!$contract) {
-                return [
-                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền trả phòng',
-                    'status' => 404,
-                ];
-            }
-
-            // Kiểm tra yêu cầu gia hạn
-            $latestExtension = $contract->extensions()->where('status', 'Chờ duyệt')->first();
-            if ($latestExtension) {
-                return [
-                    'error' => 'Hợp đồng đang có yêu cầu gia hạn chờ duyệt, không thể trả phòng',
-                    'status' => 400,
-                ];
-            }
-
-            // Kiểm tra tiền cọc
-            if ($contract->deposit_amount <= 0) {
-                return [
-                    'error' => 'Hợp đồng không có tiền cọc để hoàn',
-                    'status' => 400,
-                ];
-            }
-
-            $existingCheckout = $contract->checkouts()
-                ->where('status', '!=', 'Huỷ bỏ')
-                ->first();
-
-            if ($existingCheckout) {
-                return [
-                    'error' => 'Hợp đồng đã có yêu cầu trả phòng',
-                    'status' => 400,
-                ];
-            }
-
-            // Tạo bản ghi kiểm kê
-            $checkout = Checkout::create([
-                'contract_id' => $contract->id,
-                'check_out_date' => $checkOutDate,
-                'status' => 'Chờ kiểm kê',
-                'deposit_refunded' => false,
-                'has_left' => false,
-            ]);
-
-             // Tạo URL mã QR theo định dạng Sepay
-            $qrUrl = sprintf(
-                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=compact',
-                urlencode($bankInfo['account_number']),
-                urlencode($bankInfo['bank_name']),
-            );
-
-            // Tạo yêu cầu hoàn tiền
-            $refundRequest = RefundRequest::create([
-                'checkout_id' => $checkout->id,
-                'deposit_amount' => $contract->deposit_amount,
-                'status' => 'Chờ xử lý',
-                'bank_info' => $bankInfo,
-                'qr_code_path' => $qrUrl,
-            ]);
-
-            // Gửi thông báo cho admin
-            $this->notificationService->notifyContractForAdmins($contract, 'Trả phòng');
-
-            return [
-                'data' => [
-                    'contract' => $contract->fresh(),
-                    'checkout' => $checkout,
-                    'refund_request' => $refundRequest,
-                ],
-                'status' => 200,
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
                 'contract_id' => $id,
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
