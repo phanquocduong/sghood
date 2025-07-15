@@ -6,6 +6,7 @@ use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
@@ -45,6 +46,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Các route được bảo vệ bởi middleware admin
 Route::middleware('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/statistics', [StatisticController::class, 'index'])->name('statistics');
 
     // Notes Routes Group
     Route::prefix('notes')->name('notes.')->group(function () {

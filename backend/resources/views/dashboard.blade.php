@@ -414,14 +414,14 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 fw-semibold text-dark">
                                 <i class="fas fa-file-contract text-info text-white me-2"></i>
-                                Hợp đồng vừa gia hạn
+                                Yêu cầu gia hạn hợp đồng
                             </h6>
                             <a href="#" class="text-decoration-none small text-dark">Xem tất cả</a>
                         </div>
                     </div>
                     <div class="card-body p-0">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item border-0 py-2">
+                            <!-- <li class="list-group-item border-0 py-2">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -448,7 +448,30 @@
                                         <small class="text-muted">P303 - Gia hạn: 06/07/2025</small>
                                     </div>
                                 </div>
-                            </li>
+                            </li> -->
+                            @forelse($contractExtensions as $extension)
+                                <li class="list-group-item border-0 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-file-contract text-info text-white" style="font-size: 12px;"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">{{ $extension->contract->user->name ?? 'Không xác định' }}</div>
+                                            <small class="text-muted">
+                                                {{ $extension->contract->room->name ?? 'Không xác định' }} - 
+                                                Gia hạn: <span class="text-primary">{{ $extension->new_end_date ? \Carbon\Carbon::parse($extension->new_end_date)->format('d/m/Y') : 'Không xác định' }}</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="list-group-item border-0 text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>Không có yêu cầu gia hạn hợp đồng nào.
+                                </li>
+                            @endforelse
                         </ul>
                     </div>
                 </div>

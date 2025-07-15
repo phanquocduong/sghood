@@ -77,7 +77,7 @@ class TransactionService
         $transactions = $query->get(['transfer_type', 'transfer_amount']);
 
         $inTransactions = $transactions->where('transfer_type', 'in');
-        $outTransactions = $transactions->where('transfer_type', 'OUT');
+        $outTransactions = $transactions->where('transfer_type', 'out');
 
         return [
             'total' => $transactions->count(),
@@ -126,7 +126,7 @@ class TransactionService
     public function getTransferTypes(): array
     {
         return [
-            'in' => 'Tiền vào (in)',
+            'in' => 'Tiền vào (IN)',
             'out' => 'Tiền ra (OUT)',
         ];
     }
