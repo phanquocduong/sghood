@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('checkouts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('contract_id')->constrained()->onDelete('cascade')->unique();
+            $table->foreignId('contract_id')->constrained()->onDelete('cascade');
             $table->date('check_out_date')->nullable();
             $table->json('inventory_details')->nullable();
             $table->integer('deduction_amount')->nullable();

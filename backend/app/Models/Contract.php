@@ -58,8 +58,8 @@ class Contract extends Model
         return $this->hasMany(ContractExtension::class, 'contract_id');
     }
 
-    public function checkout()
+    public function checkouts()
     {
-        return $this->hasOne(Checkout::class);
+        return $this->hasMany(Checkout::class, 'contract_id');
     }
 }
