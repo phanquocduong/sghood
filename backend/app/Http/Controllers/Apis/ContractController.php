@@ -214,10 +214,11 @@ class ContractController extends Controller
         }
     }
 
-    public function extend(int $id): JsonResponse
+    public function extend(int $id, Request $request): JsonResponse
     {
         try {
-            $result = $this->contractService->extendContract($id);
+            $months = $request->input('months', 6); // Lấy giá trị months từ request, mặc định là 6 nếu không có
+            $result = $this->contractService->extendContract($id, $months);
 
             if (isset($result['error'])) {
                 return response()->json([

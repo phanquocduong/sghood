@@ -5070,7 +5070,7 @@ button.panel-cancel:active {
     position: fixed;
     top: 0;
     width: 100%;
-    z-index: 1100;
+    z-index: 1001;
     background-color: #fff;
 }
 
@@ -14238,7 +14238,7 @@ span.like-icon {
     padding: 40px 45px;
     padding-bottom: 0;
     position: relative;
-    z-index: 10;
+    z-index: 999;
     height: 100%;
     margin-left: 260px;
     min-height: 100vh;
@@ -14337,7 +14337,7 @@ header.fullwidth.dashboard .container {
     background-color: #2a2a2a;
     display: block;
     box-shadow: 0px 0px 12px 0px rgba(0, 0, 0, 0.12);
-    z-index: 11;
+    z-index: 1000;
 }
 
 a.dashboard-responsive-nav-trigger {

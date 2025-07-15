@@ -1,271 +1,34 @@
 <template>
     <h4>Quản lý hợp đồng</h4>
 
-    <!-- Hiển thị loading spinner -->
-    <div v-if="isLoading" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Đang tải...</p>
-    </div>
+    <Loading :is-loading="isLoading" />
 
-    <ul v-else>
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
-            <div class="list-box-listing bookings">
-                <div class="list-box-listing-img">
-                    <img :src="config.public.baseUrl + item.room_image" alt="" />
-                </div>
-                <div class="list-box-listing-content">
-                    <div class="inner">
-                        <h3>
-                            {{ item.room_name }} - {{ item.motel_name }}
-                            <span :class="getStatusClass(item.status)">
-                                {{ item.status }}
-                            </span>
-                            <span v-if="item.latest_extension_status" :class="getExtensionStatusClass(item.latest_extension_status)">
-                                {{
-                                    item.latest_extension_status === 'Chờ duyệt'
-                                        ? 'Chờ duyệt gia hạn'
-                                        : item.latest_extension_status === 'Hoạt động'
-                                        ? 'Đã gia hạn'
-                                        : 'Từ chối gia hạn'
-                                }}
-                            </span>
-                            <span v-if="item.checkout_status" :class="getCheckoutStatusClass(item.checkout_status)">
-                                {{
-                                    item.checkout_status === 'Chờ kiểm kê'
-                                        ? 'Chờ kiểm kê trả phòng'
-                                        : item.checkout_status === 'Đã kiểm kê'
-                                        ? 'Đã kiểm kê'
-                                        : 'Từ chối trả phòng'
-                                }}
-                            </span>
-                        </h3>
-                        <div class="inner-booking-list">
-                            <h5>Ngày bắt đầu:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatDate(item.start_date) }}</li>
-                            </ul>
-                        </div>
-                        <div class="inner-booking-list">
-                            <h5>Ngày kết thúc:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatDate(item.end_date) }}</li>
-                            </ul>
-                        </div>
-                        <div class="inner-booking-list">
-                            <h5>Tiền cọc:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatCurrency(item.deposit_amount) }}đ</li>
-                            </ul>
-                        </div>
-                        <div v-if="item.checkout_date" class="inner-booking-list">
-                            <h5>Ngày rời phòng:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatDate(item.checkout_date) }}</li>
-                            </ul>
-                        </div>
-                        <div v-if="item.checkout_deposit_refunded !== null" class="inner-booking-list">
-                            <h5>Trạng thái hoàn tiền cọc:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.checkout_deposit_refunded ? 'Đã hoàn' : 'Chưa hoàn' }}</li>
-                            </ul>
-                        </div>
-                        <div v-if="item.checkout_has_left !== null" class="inner-booking-list">
-                            <h5>Trạng thái rời phòng:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.checkout_has_left ? 'Đã rời' : 'Chưa rời' }}</li>
-                            </ul>
-                        </div>
-                        <div v-if="item.checkout_note" class="inner-booking-list">
-                            <h5>Ghi chú kiểm kê:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.checkout_note || 'Không có' }}</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="buttons-to-right">
-                <a
-                    v-if="item.status === 'Chờ xác nhận'"
-                    href="#"
-                    @click.prevent="openConfirmRejectPopup(item.id)"
-                    class="button gray reject"
-                >
-                    <i class="sl sl-icon-close"></i> Hủy bỏ
-                </a>
-                <a v-if="item.status === 'Hoạt động'" href="#" class="button gray approve" @click.prevent="downloadPdf(item.id)">
-                    <i class="im im-icon-File-Download"></i> Tải hợp đồng
-                </a>
-                <NuxtLink
-                    v-if="item.status === 'Chờ thanh toán tiền cọc'"
-                    :to="`/quan-ly/hoa-don/${item.invoice_id}/thanh-toan`"
-                    class="button gray approve popup-with-zoom-anim"
-                >
-                    <i class="im im-icon-Folder-Bookmark"></i> Thanh toán tiền cọc
-                </NuxtLink>
-                <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve popup-with-zoom-anim">
-                    <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
-                </NuxtLink>
-                <a
-                    v-if="
-                        item.status === 'Hoạt động' &&
-                        isNearExpiration(item.end_date) &&
-                        item.latest_extension_status !== 'Chờ duyệt' &&
-                        !item.checkout_status
-                    "
-                    href="#"
-                    @click.prevent="openConfirmExtendPopup(item)"
-                    class="button"
-                >
-                    <i class="im im-icon-Clock-Forward"></i> Gia hạn
-                </a>
-                <a
-                    v-if="
-                        item.status === 'Hoạt động' &&
-                        isNearExpiration(item.end_date) &&
-                        item.latest_extension_status !== 'Chờ duyệt' &&
-                        !item.checkout_status
-                    "
-                    href="#"
-                    @click.prevent="openReturnModal(item)"
-                    class="button"
-                >
-                    <i class="sl sl-icon-logout"></i> Trả phòng
-                </a>
-            </div>
-        </li>
+    <ul>
+        <ContractItem
+            v-for="item in items"
+            :key="item.id"
+            :item="item"
+            :config="config"
+            :today="today"
+            @reject-item="handleRejectItem"
+            @extend-contract="handleExtendContract"
+            @return-contract="handleReturnContract"
+            @download-pdf="downloadPdf"
+        />
         <div v-if="!items.length" class="col-md-12 text-center">
             <p>Chưa có hợp đồng nào.</p>
         </div>
     </ul>
-
-    <!-- Modal trả phòng -->
-    <div v-if="showReturnModal" class="custom-modal-overlay">
-        <div class="custom-modal">
-            <div class="custom-modal-header">
-                <h3>Xác nhận trả phòng</h3>
-                <button class="close-button" @click="closeReturnModal">×</button>
-            </div>
-            <div class="custom-modal-body">
-                <div class="modal-content">
-                    <p><strong>Số hợp đồng:</strong> {{ selectedContract.id }}</p>
-                    <p><strong>Phòng:</strong> {{ selectedContract.room_name }} - {{ selectedContract.motel_name }}</p>
-                    <p><strong>Ngày kết thúc:</strong> {{ formatDate(selectedContract.end_date) }}</p>
-                    <p><strong>Tiền cọc:</strong> {{ formatCurrency(selectedContract.deposit_amount) }}đ</p>
-                    <hr />
-                    <h5>Thông tin trả phòng</h5>
-                    <div class="form-group">
-                        <label for="check_out_date">Ngày trả phòng:</label>
-                        <input
-                            id="check_out_date"
-                            v-model="returnForm.check_out_date"
-                            type="date"
-                            :min="today"
-                            class="form-control"
-                            required
-                        />
-                    </div>
-                    <h5>Thông tin tài khoản ngân hàng</h5>
-                    <div class="form-group">
-                        <label for="bank_name">Tên ngân hàng:</label>
-                        <select id="bank_name" v-model="returnForm.bank_name" class="form-select" name="bank" required>
-                            <option value="">Chọn ngân hàng</option>
-                            <option value="ACB">ACB - Ngân hàng TMCP Á Châu</option>
-                            <option value="VPBank">VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng</option>
-                            <option value="TPBank">TPBank - Ngân hàng TMCP Tiên Phong</option>
-                            <option value="MSB">MSB - Ngân hàng TMCP Hàng Hải</option>
-                            <option value="NamABank">NamABank - Ngân hàng TMCP Nam Á</option>
-                            <option value="LienVietPostBank">LienVietPostBank - Ngân hàng TMCP Bưu Điện Liên Việt</option>
-                            <option value="VietCapitalBank">VietCapitalBank - Ngân hàng TMCP Bản Việt</option>
-                            <option value="BIDV">BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</option>
-                            <option value="Sacombank">Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín</option>
-                            <option value="VIB">VIB - Ngân hàng TMCP Quốc tế Việt Nam</option>
-                            <option value="HDBank">HDBank - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh</option>
-                            <option value="SeABank">SeABank - Ngân hàng TMCP Đông Nam Á</option>
-                            <option value="GPBank">GPBank - Ngân hàng Thương mại TNHH MTV Dầu Khí Toàn Cầu</option>
-                            <option value="PVcomBank">PVcomBank - Ngân hàng TMCP Đại Chúng Việt Nam</option>
-                            <option value="NCB">NCB - Ngân hàng TMCP Quốc Dân</option>
-                            <option value="ShinhanBank">ShinhanBank - Ngân hàng TNHH MTV Shinhan Việt Nam</option>
-                            <option value="SCB">SCB - Ngân hàng TMCP Sài Gòn</option>
-                            <option value="PGBank">PGBank - Ngân hàng TMCP Xăng dầu Petrolimex</option>
-                            <option value="Agribank">Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam</option>
-                            <option value="Techcombank">Techcombank - Ngân hàng TMCP Kỹ thương Việt Nam</option>
-                            <option value="SaigonBank">SaigonBank - Ngân hàng TMCP Sài Gòn Công Thương</option>
-                            <option value="DongABank">DongABank - Ngân hàng TMCP Đông Á</option>
-                            <option value="BacABank">BacABank - Ngân hàng TMCP Bắc Á</option>
-                            <option value="StandardChartered">
-                                StandardChartered - Ngân hàng TNHH MTV Standard Chartered Bank Việt Nam
-                            </option>
-                            <option value="Oceanbank">Oceanbank - Ngân hàng Thương mại TNHH MTV Đại Dương</option>
-                            <option value="VRB">VRB - Ngân hàng Liên doanh Việt - Nga</option>
-                            <option value="ABBANK">ABBANK - Ngân hàng TMCP An Bình</option>
-                            <option value="VietABank">VietABank - Ngân hàng TMCP Việt Á</option>
-                            <option value="Eximbank">Eximbank - Ngân hàng TMCP Xuất Nhập khẩu Việt Nam</option>
-                            <option value="VietBank">VietBank - Ngân hàng TMCP Việt Nam Thương Tín</option>
-                            <option value="IndovinaBank">IndovinaBank - Ngân hàng TNHH Indovina</option>
-                            <option value="BaoVietBank">BaoVietBank - Ngân hàng TMCP Bảo Việt</option>
-                            <option value="PublicBank">PublicBank - Ngân hàng TNHH MTV Public Việt Nam</option>
-                            <option value="SHB">SHB - Ngân hàng TMCP Sài Gòn - Hà Nội</option>
-                            <option value="CBBank">CBBank - Ngân hàng Thương mại TNHH MTV Xây dựng Việt Nam</option>
-                            <option value="OCB">OCB - Ngân hàng TMCP Phương Đông</option>
-                            <option value="KienLongBank">KienLongBank - Ngân hàng TMCP Kiên Long</option>
-                            <option value="CIMB">CIMB - Ngân hàng TNHH MTV CIMB Việt Nam</option>
-                            <option value="HSBC">HSBC - Ngân hàng TNHH MTV HSBC (Việt Nam)</option>
-                            <option value="DBSBank">DBSBank - DBS Bank Ltd - Chi nhánh Thành phố Hồ Chí Minh</option>
-                            <option value="Nonghyup">Nonghyup - Ngân hàng Nonghyup - Chi nhánh Hà Nội</option>
-                            <option value="HongLeong">HongLeong - Ngân hàng TNHH MTV Hong Leong Việt Nam</option>
-                            <option value="Woori">Woori - Ngân hàng TNHH MTV Woori Việt Nam</option>
-                            <option value="UnitedOverseas">UnitedOverseas - Ngân hàng United Overseas - Chi nhánh TP. Hồ Chí Minh</option>
-                            <option value="KookminHN">KookminHN - Ngân hàng Kookmin - Chi nhánh Hà Nội</option>
-                            <option value="KookminHCM">KookminHCM - Ngân hàng Kookmin - Chi nhánh Thành phố Hồ Chí Minh</option>
-                            <option value="COOPBANK">COOPBANK - Ngân hàng Hợp tác xã Việt Nam</option>
-                            <option value="VietinBank">VietinBank - Ngân hàng TMCP Công thương Việt Nam</option>
-                            <option value="MBBank">MBBank - Ngân hàng TMCP Quân đội</option>
-                            <option value="Vietcombank">Vietcombank - Ngân hàng TMCP Ngoại Thương Việt Nam</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="account_number">Số tài khoản:</label>
-                        <input
-                            id="account_number"
-                            v-model="returnForm.account_number"
-                            type="text"
-                            class="form-control"
-                            placeholder="Số tài khoản"
-                            required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="account_holder">Tên chủ tài khoản:</label>
-                        <input
-                            id="account_holder"
-                            v-model="returnForm.account_holder"
-                            type="text"
-                            class="form-control"
-                            placeholder="Tên chủ tài khoản"
-                            required
-                        />
-                    </div>
-                    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-                </div>
-            </div>
-            <div class="custom-modal-footer">
-                <button class="button gray" @click="closeReturnModal">Hủy</button>
-                <button class="button confirm" @click="submitReturn">Xác nhận trả phòng</button>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Swal from 'sweetalert2';
+import { computed } from 'vue';
 import { useToast } from 'vue-toastification';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
-
 const config = useRuntimeConfig();
+
 const props = defineProps({
     items: {
         type: Array,
@@ -278,221 +41,47 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract']);
+const today = computed(() => new Date().toISOString().split('T')[0]);
 
-const showReturnModal = ref(false);
-const selectedContract = ref({});
-const returnForm = ref({
-    check_out_date: '',
-    bank_name: '',
-    account_number: '',
-    account_holder: ''
-});
-const errorMessage = ref('');
-const today = new Date().toISOString().split('T')[0];
-
-const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const handleRejectItem = id => {
+    emit('rejectItem', id);
 };
 
-const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
-
-const isNearExpiration = endDate => {
-    const today = new Date();
-    const end = new Date(endDate);
-    const diffInDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-    return diffInDays <= 15 && diffInDays >= 0;
+const handleExtendContract = (id, months) => {
+    emit('extendContract', id, months);
 };
 
-const getItemClass = status => {
-    switch (status) {
-        case 'Chờ xác nhận':
-        case 'Chờ duyệt':
-        case 'Chờ chỉnh sửa':
-        case 'Chờ ký':
-        case 'Chờ thanh toán tiền cọc':
-            return 'pending-booking';
-        case 'Hoạt động':
-            return 'approved-booking';
-        case 'Kết thúc':
-        case 'Huỷ bỏ':
-            return 'canceled-booking';
-        default:
-            return '';
-    }
-};
-
-const getActText = status => {
-    switch (status) {
-        case 'Chờ xác nhận':
-            return 'Hoàn thiện thông tin';
-        case 'Chờ chỉnh sửa':
-            return 'Chỉnh sửa thông tin';
-        case 'Chờ ký':
-            return 'Ký hợp đồng';
-        case 'Chờ duyệt':
-        case 'Hoạt động':
-        case 'Kết thúc':
-            return 'Xem chi tiết';
-        default:
-            return '';
-    }
-};
-
-const getStatusClass = status => {
-    let statusClass = 'booking-status';
-    if (status === 'Chờ xác nhận' || status === 'Chờ duyệt' || status === 'Chờ chỉnh sửa' || status === 'Chờ ký') {
-        statusClass += ' pending';
-    } else if (status === 'Hoạt động') {
-        statusClass += ' approved';
-    } else if (status === 'Kết thúc' || status === 'Huỷ bỏ') {
-        statusClass += ' canceled';
-    }
-    return statusClass;
-};
-
-const getExtensionStatusClass = extensionStatus => {
-    let statusClass = 'booking-status';
-    if (extensionStatus === 'Chờ duyệt') {
-        statusClass += ' pending extension-status';
-    } else if (extensionStatus === 'Hoạt động') {
-        statusClass += ' approved';
-    } else {
-        statusClass += ' canceled extension-status';
-    }
-    return statusClass;
-};
-
-const getCheckoutStatusClass = checkoutStatus => {
-    let statusClass = 'booking-status';
-    if (checkoutStatus === 'Chờ kiểm kê') {
-        statusClass += ' pending checkout-status';
-    } else if (checkoutStatus === 'Đã kiểm kê') {
-        statusClass += ' approved';
-    } else {
-        statusClass += ' canceled checkout-status';
-    }
-    return statusClass;
-};
-
-const openConfirmRejectPopup = async id => {
-    const result = await Swal.fire({
-        title: `Xác nhận hủy hợp đồng`,
-        text: `Bạn có chắc chắn muốn hủy hợp đồng này?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Xác nhận',
-        cancelButtonText: 'Hủy',
-        confirmButtonColor: '#f91942',
-        cancelButtonColor: '#e0e0e0',
-        customClass: {
-            confirmButton: 'button',
-            cancelButton: 'button gray'
-        }
-    });
-
-    if (result.isConfirmed) {
-        emit('rejectItem', id);
-    }
-};
-
-const openConfirmExtendPopup = async contract => {
-    const currentEndDate = new Date(contract.end_date);
-    const newEndDate = new Date(currentEndDate).setMonth(currentEndDate.getMonth() + 6);
-    const formattedNewEndDate = formatDate(newEndDate);
-
-    const result = await Swal.fire({
-        title: `Xác nhận gia hạn hợp đồng`,
-        html: `
-            <div style="text-align: left;">
-                <p><strong>Số hợp đồng:</strong>: ${contract.id}</p>
-                <p><strong>Phòng:</strong>: ${contract.room_name} - ${contract.motel_name}</p>
-                <p><strong>Ngày kết thúc hiện tại:</strong>: ${formatDate(contract.end_date)}</p>
-                <p><strong>Ngày kết thúc mới:</strong>: ${formattedNewEndDate}</p>
-                <p><strong>Giá thuê phòng mới:</strong>: ${contract?.room_price.toLocaleString('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND'
-                })}</p>
-                <p>Các điều khoản khác của hợp đồng gốc vẫn giữ nguyên hiệu lực.</p>
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Xác nhận gia hạn',
-        cancelButtonText: 'Hủy',
-        confirmButtonColor: '#64bc36',
-        cancelButtonColor: '#e0e0e0',
-        customClass: {
-            confirmButton: 'button',
-            cancelButton: 'button gray'
-        }
-    });
-
-    if (result.isConfirmed) {
-        emit('extendContract', contract.id);
-    }
-};
-
-const openReturnModal = contract => {
-    selectedContract.value = contract;
-    returnForm.value = {
-        check_out_date: '',
-        bank_name: '',
-        account_number: '',
-        account_holder: ''
-    };
-    errorMessage.value = '';
-    showReturnModal.value = true;
-};
-
-const closeReturnModal = () => {
-    showReturnModal.value = false;
-    selectedContract.value = {};
-    returnForm.value = {
-        check_out_date: '',
-        bank_name: '',
-        account_number: '',
-        account_holder: ''
-    };
-    errorMessage.value = '';
-};
-
-const submitReturn = async () => {
-    if (
-        !returnForm.value.check_out_date ||
-        !returnForm.value.bank_name ||
-        !returnForm.value.account_number ||
-        !returnForm.value.account_holder
-    ) {
-        errorMessage.value = 'Vui lòng nhập đầy đủ thông tin trả phòng và tài khoản ngân hàng.';
-        return;
-    }
-
-    try {
-        emit('returnContract', selectedContract.value.id, returnForm.value);
-        closeReturnModal();
-    } catch (error) {
-        // Error handling is managed in the parent component
-    }
+const handleReturnContract = (id, data) => {
+    emit('returnContract', id, data);
 };
 
 const downloadPdf = async id => {
     try {
         const response = await $api(`/contracts/${id}/download-pdf`, { method: 'GET' });
-        const fileUrl = response.data.file_url;
-        window.open(fileUrl, '_blank');
+        window.open(response.data.file_url, '_blank');
     } catch (error) {
-        const data = error.response?._data;
-        if (data?.error) {
-            toast.error(data.error);
-        } else {
-            toast.error('Đã có lỗi xảy ra khi tải PDF.');
-        }
+        toast.error(error.response?._data?.error || 'Đã có lỗi xảy ra khi tải PDF.');
     }
 };
 </script>
 
 <style>
+.button-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.modal-overlay {
+    z-index: 2000 !important;
+}
+
 .custom-modal-overlay {
     position: fixed;
     top: 0;
@@ -503,23 +92,25 @@ const downloadPdf = async id => {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 10000 !important;
 }
 
 .custom-modal {
-    background: white;
-    border-radius: 8px;
+    background: #ffffff;
+    border-radius: 10px;
     width: 40em;
-    max-width: 90%;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     margin-top: 5%;
 }
 
 .custom-modal-header {
     padding: 15px 20px;
-    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -528,7 +119,8 @@ const downloadPdf = async id => {
 .custom-modal-header h3 {
     margin: 0;
     font-size: 1.5em;
-    color: #333;
+    color: #2c3e50;
+    font-weight: 600;
 }
 
 .close-button {
@@ -536,84 +128,216 @@ const downloadPdf = async id => {
     border: none;
     font-size: 1.5em;
     cursor: pointer;
-    color: #333;
+    color: #7f8c8d;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: #e74c3c;
 }
 
 .custom-modal-body {
     padding: 20px;
     max-height: 60vh;
     overflow-y: auto;
+    background: #fff;
 }
 
 .modal-content p {
     margin: 10px 0;
-    text-align: left;
+    color: #34495e;
+    font-size: 1em;
+}
+
+.modal-content p strong {
+    color: #2c3e50;
 }
 
 .modal-content hr {
     margin: 20px 0;
     border: 0;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e9ecef;
 }
 
 .form-group {
     margin-bottom: 15px;
 }
 
-.form-group label {
+.form-label {
     display: block;
     margin-bottom: 5px;
     font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.95em;
 }
 
 .form-control,
-.form-select {
+.custom-select {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
     font-size: 1em;
+    line-height: 28px;
+    color: #495057;
+    background: #fff;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.custom-select:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.custom-select {
+    appearance: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")
+        no-repeat right 10px center;
+    padding-right: 30px;
+}
+
+.custom-select option {
+    padding: 10px;
+    background: #fff;
+    color: #333;
 }
 
 .error-message {
-    color: #f91942;
+    color: #e74c3c;
     font-size: 0.9em;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .custom-modal-footer {
     padding: 15px 20px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e9ecef;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    background: #f8f9fa;
 }
 
 .custom-modal-footer .button {
     padding: 10px 20px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .custom-modal-footer .button.gray {
-    background-color: #e0e0e0;
-    color: #333;
+    background-color: #dcdde1;
+    color: #2c3e50;
 }
 
 .custom-modal-footer .button.confirm {
-    background-color: #28a745;
-    color: white;
+    background-color: #2ecc71;
+    color: #fff;
 }
 
-.custom-modal-footer .button.confirm:hover {
-    background-color: #218838;
+.custom-modal-footer .button:hover {
+    transform: translateY(-1px);
 }
 
 .custom-modal-footer .button.gray:hover {
-    background-color: #d0d0d0;
+    background-color: #c4c6cc;
 }
 
-/* Existing styles */
+.custom-modal-footer .button.confirm:hover {
+    background-color: #27ae60;
+}
+
+.ts-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.ts-control {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+    font-size: 16px;
+    line-height: 28px;
+}
+
+.items-placeholder {
+    font-size: 16px !important;
+    line-height: 28px !important;
+    height: auto !important;
+}
+
+.ts-control:hover {
+    border-color: #3498db;
+}
+
+.ts-control .item {
+    display: flex;
+    align-items: center;
+    padding: 2px 6px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.ts-control .item img {
+    max-width: 40px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.ts-dropdown {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 2px;
+    z-index: 1001;
+}
+
+.ts-dropdown .option {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+    background-color: #f1f3f5;
+}
+
+.ts-dropdown .option img {
+    max-width: 40px;
+    margin-right: 10px;
+    vertical-align: middle;
+    object-fit: contain;
+}
+
+.ts-dropdown .option span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 50px);
+}
+
+.item:hover {
+    flex: 0;
+}
+
+.text-danger {
+    color: #e74c3c;
+}
+
 .swal2-popup.swal2-modal {
     width: 50em !important;
 }
