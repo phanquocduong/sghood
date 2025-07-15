@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('refund_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('checkout_id')->constrained()->onDelete('cascade');
-            $table->integer('deposit_amount'); // Số tiền cọc yêu cầu hoàn
-            $table->integer('deduction_amount')->default(0); // Số tiền khấu trừ
-            $table->integer('final_amount')->nullable(); // Số tiền hoàn thực tế
-            $table->json('bank_info')->nullable(); // Thông tin tài khoản ngân hàng (mã hóa)
-            $table->enum('status', ['Chờ xử lý', 'Đã duyệt', 'Đã xử lý', 'Từ chối', 'Huỷ bỏ'])->default('Chờ xử lý'); // Chờ xử lý, Đã duyệt, Từ chối
-            $table->text('rejection_reason')->nullable();
+            $table->foreignId('checkout_id')->constrained()->onDelete('cascade')->unique();
+            $table->integer('deposit_amount');
+            $table->integer('deduction_amount')->default(0);
+            $table->integer('final_amount')->nullable();
+            $table->json('bank_info')->nullable();
+            $table->string('qr_code_path')->nullable();
+            $table->enum('status', ['Chờ xử lý', 'Đã xử lý', 'Huỷ bỏ'])->default('Chờ xử lý');
             $table->timestamps();
         });
     }

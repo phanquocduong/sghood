@@ -164,7 +164,7 @@ onMounted(async () => {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid #333;
+    border: 2px solid white;
     border-radius: 50%;
     border-top-color: transparent;
     animation: spin 1s linear infinite;

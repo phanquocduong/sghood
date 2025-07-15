@@ -10,19 +10,16 @@
                     </NuxtLink>
                 </li>
                 <li>
-                    <a><i class="im im-icon-File-Clipboard"></i> Yêu cầu</a>
+                    <a><i class="im im-icon-File-Clipboard"></i> Yêu cầu hợp đồng</a>
                     <ul>
                         <li>
-                            <NuxtLink to="/quan-ly/yeu-cau/gia-han-hop-dong">Gia hạn</NuxtLink>
+                            <NuxtLink to="/quan-ly/yeu-cau-hop-dong/gia-han">Gia hạn</NuxtLink>
                         </li>
                         <li>
-                            <a href="dashboard-my-listings.html">Trả phòng</a>
+                            <NuxtLink href="/quan-ly/yeu-cau-hop-dong/tra-phong">Trả phòng</NuxtLink>
                         </li>
                         <li>
-                            <a href="dashboard-my-listings.html">Hoàn tiền</a>
-                        </li>
-                        <li>
-                            <a href="dashboard-my-listings.html">Sửa chữa</a>
+                            <a href="/quan-ly/yeu-cau-hop-dong/hoan-tien">Hoàn tiền</a>
                         </li>
                     </ul>
                 </li>
@@ -45,7 +42,7 @@ const FullnavItems = [
     { path: '/quan-ly/hop-dong', icon: 'im im-icon-Book', label: 'Hợp đồng' },
     { path: '/quan-ly/hoa-don', icon: 'im im-icon-Billing', label: 'Hoá đơn' },
     { path: '/quan-ly/lich-su-giao-dich', icon: 'sl sl-icon-wallet', label: 'Lịch sử giao dịch' },
-    { path: '/quan-ly/yeu-cau-sua-chua', icon: 'im im-icon-Drill-2', label: 'Quản lý sữa chữa', roles: ['Người thuê'] }
+    { path: '/quan-ly/yeu-cau-sua-chua', icon: 'im im-icon-Drill-2', label: 'Yêu cầu sửa chữa', roles: ['Người thuê'] }
 ];
 const navItems = computed(() => {
     return FullnavItems.filter(item => {

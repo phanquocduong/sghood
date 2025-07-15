@@ -18,7 +18,9 @@ use App\Http\Controllers\Apis\SepayWebhookController;
 use App\Http\Controllers\Apis\TransactionController;
 use App\Http\Controllers\Apis\ViewingScheduleController;
 use App\Http\Controllers\Apis\BlogController;
+use App\Http\Controllers\Apis\CheckoutController;
 use App\Http\Controllers\Apis\ContractExtensionController;
+use App\Http\Controllers\Apis\RefundRequestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +62,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/contract-extensions', [ContractExtensionController::class, 'index']);
     Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
+
+    Route::get('/checkouts', [CheckoutController::class, 'index']);
+    Route::post('/checkouts/{id}/reject', [CheckoutController::class, 'reject']);
+
+    Route::get('/refund-requests', [RefundRequestController::class, 'index']);
+    Route::post('/refund-requests/{id}/reject', [RefundRequestController::class, 'reject']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);

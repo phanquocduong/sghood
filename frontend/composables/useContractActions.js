@@ -1,0 +1,84 @@
+import { useToast } from 'vue-toastification';
+import { useApi } from '~/composables/useApi';
+
+export function useContractActions({ isLoading, contracts }) {
+    const { $api } = useNuxtApp();
+    const { handleBackendError } = useApi();
+    const toast = useToast();
+
+    const fetchContracts = async () => {
+        isLoading.value = true;
+        try {
+            const response = await $api('/contracts', { method: 'GET' });
+            contracts.value = response.data;
+        } catch (error) {
+            handleBackendError(error, toast);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const rejectItem = async id => {
+        isLoading.value = true;
+        try {
+            await $api(`/contracts/${id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            toast.success('Hủy hợp đồng thành công');
+            await fetchContracts();
+        } catch (error) {
+            handleBackendError(error, toast);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const extendContract = async (id, months) => {
+        isLoading.value = true;
+        try {
+            await $api(`/contracts/${id}/extend`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                },
+                body: { months }
+            });
+            toast.success('Yêu cầu gia hạn hợp đồng đã được gửi.');
+            await fetchContracts();
+        } catch (error) {
+            handleBackendError(error, toast);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const returnContract = async (contractId, data) => {
+        isLoading.value = true;
+        try {
+            console.log(data);
+            await $api(`/contracts/${contractId}/return`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                },
+                body: data
+            });
+            toast.success('Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.');
+            await fetchContracts();
+        } catch (error) {
+            handleBackendError(error, toast);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    return {
+        fetchContracts,
+        rejectItem,
+        extendContract,
+        returnContract
+    };
+}

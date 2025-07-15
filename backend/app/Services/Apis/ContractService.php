@@ -11,7 +11,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Crypt;
 
 class ContractService
 {
@@ -33,17 +32,15 @@ class ContractService
     {
         try {
             return Contract::where('user_id', Auth::id())
-                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount')
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at')
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
-                        ->where('type', 'Đặt cọc')
-                        ->first(),
+                        ->where('type', 'Đặt cọc'),
                     'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
-                        ->orderBy('created_at', 'desc')
-                        ->first(),
-                    'checkout' => fn($query) => $query->select(
+                        ->orderBy('created_at', 'desc'),
+                    'checkouts' => fn($query) => $query->select(
                         'id',
                         'contract_id',
                         'check_out_date',
@@ -51,7 +48,7 @@ class ContractService
                         'deposit_refunded',
                         'has_left',
                         'note'
-                    )
+                    )->orderBy('created_at', 'desc'),
                 ])
                 ->get()
                 ->map(fn ($contract) => [
@@ -64,13 +61,11 @@ class ContractService
                     'end_date' => $contract->end_date->toIso8601String(),
                     'status' => $contract->status,
                     'deposit_amount' => $contract->deposit_amount,
-                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
+                    'rental_price' => $contract->rental_price,
+                    'signed_at' => $contract->signed_at,
                     'invoice_id' => $contract->invoices->first()?->id,
-                    'checkout_status' => $contract->checkout?->status ?? null,
-                    'checkout_date' => $contract->checkout?->check_out_date?->toIso8601String() ?? null,
-                    'checkout_deposit_refunded' => $contract->checkout?->deposit_refunded ?? null,
-                    'checkout_has_left' => $contract->checkout?->has_left ?? null,
-                    'checkout_note' => $contract->checkout?->note ?? null,
+                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
+                    'latest_checkout_status' => $contract->checkouts->first()?->status ?? null,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -609,7 +604,7 @@ class ContractService
         ';
     }
 
-    public function extendContract(int $id): array
+    public function extendContract(int $id, int $months): array
     {
         try {
             $contract = Contract::where('id', $id)
@@ -635,8 +630,15 @@ class ContractService
                 ];
             }
 
-            // Gia hạn hợp đồng thêm 6 tháng
-            $newEndDate = $endDate->addMonths(6);
+            if ($months < 1) {
+                return [
+                    'error' => 'Thời gian gia hạn phải ít nhất là 1 tháng',
+                    'status' => 400,
+                ];
+            }
+
+            // Gia hạn hợp đồng thêm số tháng được truyền vào
+            $newEndDate = $endDate->addMonths($months);
 
             // Tạo phụ lục hợp đồng
             $extensionContent = $this->generateExtensionContent($contract, $newEndDate);
@@ -698,8 +700,11 @@ class ContractService
                 ];
             }
 
-            // Kiểm tra xem đã có bản ghi checkout chưa
-            if ($contract->checkout) {
+            $existingCheckout = $contract->checkouts()
+                ->where('status', '!=', 'Huỷ bỏ')
+                ->first();
+
+            if ($existingCheckout) {
                 return [
                     'error' => 'Hợp đồng đã có yêu cầu trả phòng',
                     'status' => 400,

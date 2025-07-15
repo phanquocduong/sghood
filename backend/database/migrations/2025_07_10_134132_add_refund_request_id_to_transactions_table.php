@@ -35,11 +35,13 @@ return new class extends Migration
             $table->dropForeign(['refund_request_id']);
             $table->dropColumn('refund_request_id');
 
+            $table->dropForeign(['invoice_id']);
+            $table->dropColumn('invoice_id');
+
             // Khôi phục invoice_id về không nullable (trạng thái ban đầu)
             $table->foreignId('invoice_id')
                 ->constrained('invoices')
-                ->onDelete('cascade')
-                ->change();
+                ->onDelete('cascade');
         });
     }
 };
