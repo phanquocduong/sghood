@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
@@ -9,17 +10,22 @@ use App\Models\RepairRequest;
 use App\Services\NoteService;
 use App\Services\RoomService;
 use App\Services\RepairRequestService;
+use App\Services\ScheduleService;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     protected $noteService;
     protected $repairRequestService;
+    protected $scheduleService;
+    protected $contractService;
 
-    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService)
+    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService)
     {
         $this->noteService = $noteService;
         $this->repairRequestService = $repairRequestService;
+        $this->scheduleService = $scheduleService;
+        $this->contractService = $contractService;
     }
 
     public function index(): View|RedirectResponse
@@ -28,12 +34,18 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         $result = $this->noteService->getAllNotes();
+        $schedules = $this->scheduleService->getSchedules('', '', 5, 'created_at_desc');
+        $contracts = $this->contractService->getContractsEndingSoon();
+        $justSignedContracts = $this->contractService->signedContracts();
 
         if (isset($result['error'])) {
             return redirect()->route('dashboard')->with('error', $result['error']);
         }
 
         $notes = $result['data']->take(3);
+        $schedules = $schedules['data']->take(3);
+        $contracts = collect($contracts['data'])->take(3);
+        $justSignedContracts = collect($justSignedContracts['data'])->take(3);
 
         // Lấy repair requests cần xử lý (pending và in_progress) - chỉ lấy 5 cái mới nhất
         $repairRequests = $this->repairRequestService->getPendingRequests(5);
@@ -47,7 +59,7 @@ class DashboardController extends Controller
             Log::info('Using fallback - All Repair Requests Count: ' . $repairRequests->count());
         }
 
-        return view('dashboard', compact('notes', 'repairRequests'));
+        return view('dashboard', compact('notes', 'repairRequests','schedules','contracts','justSignedContracts'));
     }
 
 }

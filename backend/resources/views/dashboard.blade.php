@@ -169,7 +169,7 @@
                             </div>
                             <div class="card-body p-0">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item border-0 py-2">
+                                    <!-- <li class="list-group-item border-0 py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -196,7 +196,30 @@
                                                 <small class="text-muted">P202 - Ký: 02/07/2025</small>
                                             </div>
                                         </div>
-                                    </li>
+                                    </li> -->
+                                    @forelse($justSignedContracts as $contract)
+                                        <li class="list-group-item border-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                         style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-file-contract text-success text-white" style="font-size: 12px;"></i>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">{{ $contract->user->name ?? 'Không xác định' }}</div>
+                                                    <small class="text-muted">
+                                                        {{ $contract->room->name ?? 'Không xác định' }} - 
+                                                        Ký: <span class="text-primary">{{ $contract->start_date ? $contract->start_date->format('d/m/Y') : 'Không xác định' }}</span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    @empty
+                                        <li class="list-group-item border-0 text-center text-muted py-4">
+                                            <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào vừa ký.
+                                        </li>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>
@@ -215,7 +238,7 @@
                             </div>
                             <div class="card-body p-0">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item border-0 py-2">
+                                    <!-- <li class="list-group-item border-0 py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -242,7 +265,30 @@
                                                 <small class="text-muted">P401 - Hết hạn: 20/07/2025</small>
                                             </div>
                                         </div>
-                                    </li>
+                                    </li> -->
+                                    @forelse($contracts as $contract)
+                                        <li class="list-group-item border-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                         style="width: 32px; height: 32px;">
+                                                        <i class="fas fa-file-contract text-warning text-white" style="font-size: 12px;"></i>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">{{ $contract->user->name ?? 'Không xác định' }}</div>
+                                                    <small class="text-muted">
+                                                        {{ $contract->room->name ?? 'Không xác định' }} - 
+                                                        Hết hạn: <span class="text-primary">{{ $contract->end_date ? $contract->end_date->format('d/m/Y') : 'Không xác định' }}</span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    @empty
+                                        <li class="list-group-item border-0 text-center text-muted py-4">
+                                            <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào sắp hết hạn.
+                                        </li>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>
@@ -307,7 +353,7 @@
                     </div>
                     <div class="card-body p-0">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item border-0 py-2">
+                            <!-- <li class="list-group-item border-0 py-2">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -334,7 +380,30 @@
                                         <small class="text-muted">26/12/2024 - P202</small>
                                     </div>
                                 </div>
-                            </li>
+                            </li> -->
+                            @forelse($schedules as $schedule)
+                                <li class="list-group-item border-0 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-calendar-plus text-success text-white" style="font-size: 12px;"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">{{ $schedule->user->name ?? 'Không xác định' }}</div>
+                                            <small class="text-muted">
+                                                {{ $schedule->scheduled_at ? $schedule->scheduled_at->format('d/m/Y') : 'Không xác định' }} - 
+                                                <span class="text-primary">{{ $schedule->motel->name ?? 'Không xác định' }}</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="list-group-item border-0 text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>Không có lịch check-in sắp tới.
+                                </li>
+                            @endforelse
                         </ul>
                     </div>
                 </div>
