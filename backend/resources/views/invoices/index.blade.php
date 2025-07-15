@@ -95,7 +95,7 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
+                <!-- <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
@@ -108,7 +108,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -182,7 +182,7 @@
                                 <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Ngày tạo</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th>
+                                <!-- <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -213,7 +213,7 @@
                                             <i class="fas fa-eye"></i> Chi tiết
                                         </button>
                                     </td>
-                                    <td class="text-center">
+                                    <!-- <td class="text-center">
                                         @if($invoice->status === 'Đã trả')
                                             <button class="btn btn-warning btn-sm" onclick="updateInvoiceStatus({{ $invoice->id }}, 'Đã hoàn tiền')"
                                                 title="Hoàn tiền hóa đơn">
@@ -222,7 +222,7 @@
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
-                                    </td>
+                                    </td> -->
                                 </tr>
                             @empty
                                 <tr>

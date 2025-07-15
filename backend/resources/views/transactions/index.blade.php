@@ -67,7 +67,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="text-muted mb-1">Tiền vào (in)</h6>
+                                <h6 class="text-muted mb-1">Tiền vào (IN)</h6>
                                 <h4 class="mb-0 text-info">{{ $stats['in'] ?? 0 }}</h4>
                                 <small class="text-muted">{{ number_format($stats['in_amount'] ?? 0) }} VND</small>
                             </div>

@@ -17,6 +17,7 @@
 <div class="navbar-nav w-100">
     <!-- Quản lý tổng quan -->
     <a href="{{ route('dashboard') }}" class="nav-item nav-link {{ request()->is('/') || request()->is('dashboard') ? 'active' : '' }}"><i class="fa fa-tachometer-alt me-2"></i>Tổng quan</a>
+    <a href="{{ route('statistics') }}" class="nav-item nav-link {{ request()->is('/') || request()->is('statistics') ? 'active' : '' }}"><i class="fa fa-chart-line me-2"></i>Thống kê</a>
     <a href="{{ route('notifications.index') }}" class="nav-item nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
 
     <!-- Quản lý đặt phòng & hợp đồng -->

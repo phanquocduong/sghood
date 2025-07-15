@@ -1,28 +1,34 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Services\ContractExtensionsService;
+use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Contract;
 use App\Models\RepairRequest;
 use App\Services\NoteService;
 use App\Services\RoomService;
 use App\Services\RepairRequestService;
+use App\Services\ScheduleService;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     protected $noteService;
-    protected $roomService;
     protected $repairRequestService;
+    protected $scheduleService;
+    protected $contractService;
+    protected $contractExtensionsService;
 
-    public function __construct(NoteService $noteService, RoomService $roomService, RepairRequestService $repairRequestService)
+    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionsService $contractExtensionsService)
     {
         $this->noteService = $noteService;
-        $this->roomService = $roomService;
         $this->repairRequestService = $repairRequestService;
+        $this->scheduleService = $scheduleService;
+        $this->contractService = $contractService;
+        $this->contractExtensionsService = $contractExtensionsService;
     }
 
     public function index(): View|RedirectResponse
@@ -31,23 +37,24 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         $result = $this->noteService->getAllNotes();
-        $roomsCount = $this->roomService->getAllRoomsCount();
-        $roomsRentedCount = $this->roomService->getRentedRoomsCount();
+        $schedules = $this->scheduleService->getSchedules('', '', 5, 'created_at_desc');
+        $contracts = $this->contractService->getContractsEndingSoon();
+        $justSignedContracts = $this->contractService->signedContracts();
+        $contractExtensions = $this->contractExtensionsService->getPendingApprovals();
 
         if (isset($result['error'])) {
             return redirect()->route('dashboard')->with('error', $result['error']);
         }
 
         $notes = $result['data']->take(3);
+        $schedules = $schedules['data']->take(3);
+        $contracts = collect($contracts['data'])->take(3);
+        $justSignedContracts = collect($justSignedContracts['data'])->take(3);
+        $contractExtensions = collect($contractExtensions)->take(3);
 
         // Lấy repair requests cần xử lý (pending và in_progress) - chỉ lấy 5 cái mới nhất
         $repairRequests = $this->repairRequestService->getPendingRequests(5);
 
-        // Debug: Kiểm tra dữ liệu repair requests
-        Log::info('Repair Requests Count: ' . $repairRequests->count());
-        Log::info('Repair Requests Data: ' . $repairRequests->toJson());
-
-        // Fallback: Nếu không có pending/in_progress, lấy tất cả repair requests để test
         if ($repairRequests->isEmpty()) {
             $allRepairRequests = RepairRequest::with(['contract.user', 'contract.room'])
                 ->orderBy('created_at', 'desc')
@@ -57,19 +64,7 @@ class DashboardController extends Controller
             Log::info('Using fallback - All Repair Requests Count: ' . $repairRequests->count());
         }
 
-        // Thống kê người bắt đầu thuê hôm nay
-        $countUsersToday = Contract::whereDate('start_date', '=', Carbon::today())
-            ->distinct()
-            ->count('user_id');
-
-        // Thống kê người bắt đầu hợp đồng trong tháng này
-        $countUsersThisMonth = Contract::whereBetween('start_date', [
-            Carbon::now()->startOfMonth(),
-            Carbon::now()->endOfMonth()
-        ])->distinct()->count('user_id');
-
-
-        return view('dashboard', compact('notes', 'countUsersToday', 'countUsersThisMonth', 'roomsCount', 'roomsRentedCount', 'repairRequests'));
+        return view('dashboard', compact('notes', 'repairRequests','schedules','contracts','justSignedContracts', 'contractExtensions'));
     }
 
 }

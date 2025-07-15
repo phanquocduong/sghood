@@ -34,7 +34,9 @@ class Room extends Model
     public function getMainImageAttribute()
     {
         $mainImage = $this->images->firstWhere('is_main', 1);
-        if (!$mainImage && $this->images->count() > 0) { $mainImage = $this->images->first(); }
+        if (!$mainImage && $this->images->count() > 0) {
+            $mainImage = $this->images->first();
+        }
         return $mainImage;
     }
 
@@ -62,4 +64,5 @@ class Room extends Model
     {
         return $this->hasMany(MeterReading::class, 'room_id');
     }
+
 }
