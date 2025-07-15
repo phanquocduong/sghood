@@ -14,20 +14,20 @@
                 <span>Quản trị viên</span>
             </div>
         </div>
-<div class="navbar-nav w-100">
-    <!-- Quản lý tổng quan -->
-    <a href="{{ route('dashboard') }}" class="nav-item nav-link {{ request()->is('/') || request()->is('dashboard') ? 'active' : '' }}"><i class="fa fa-tachometer-alt me-2"></i>Tổng quan</a>
-    <a href="{{ route('notifications.index') }}" class="nav-item nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
+        <div class="navbar-nav w-100">
+            <!-- Quản lý tổng quan -->
+            <a href="{{ route('dashboard') }}" class="nav-item nav-link {{ request()->is('/') || request()->is('dashboard') ? 'active' : '' }}"><i class="fa fa-tachometer-alt me-2"></i>Tổng quan</a>
+            <a href="{{ route('notifications.index') }}" class="nav-item nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
 
-    <!-- Quản lý đặt phòng & hợp đồng -->
-    <div class="nav-item dropdown {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
-        <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
-        <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
-            <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
-            <a href="{{ route('bookings.index') }}" class="dropdown-item {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Đặt phòng</a>
-            <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
-        </div>
-    </div>
+            <!-- Quản lý đặt phòng & hợp đồng -->
+            <div class="nav-item dropdown {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
+                    <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
+                    <a href="{{ route('bookings.index') }}" class="dropdown-item {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Đặt phòng</a>
+                    <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
+                </div>
+            </div>
 
             <!-- Quản lý tài chính -->
             <div class="nav-item dropdown {{ request()->routeIs('invoices.*') || request()->routeIs('transactions.*') || request()->routeIs('meter_readings.*') ? 'show' : '' }}">
@@ -42,6 +42,14 @@
             {{-- Quản lý nhà trọ --}}
             <a href="{{ route('motels.index') }}" class="nav-item nav-link {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}"><i class="fa fa-building me-2"></i>Nhà trọ</a>
 
+            <!-- Quản lý hệ thống -->
+            <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
+                    <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Yêu cầu trả phòng</a>
+                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Yêu cầu hoàn tiền</a>
+                </div>
+            </div>
 
             <!-- Quản lý vận hành -->
             <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_requests.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
