@@ -21,6 +21,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
 use App\Http\Controllers\ContractExtensionController;
+use App\Http\Controllers\CheckoutController;
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
@@ -203,6 +204,13 @@ Route::middleware('admin')->group(function () {
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('checkouts')->name('checkouts.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::get('/{id}', [CheckoutController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [CheckoutController::class, 'update'])->name('update');
     });
 });
 

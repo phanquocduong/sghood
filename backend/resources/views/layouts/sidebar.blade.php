@@ -43,10 +43,10 @@
             <a href="{{ route('motels.index') }}" class="nav-item nav-link {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}"><i class="fa fa-building me-2"></i>Nhà trọ</a>
 
             <!-- Quản lý hệ thống -->
-            <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
-                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
-                    <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Yêu cầu trả phòng</a>
+            <div class="nav-item dropdown {{ request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
+                    <a href="{{ route('checkouts.index') }}" class="dropdown-item {{ request()->routeIs('checkouts.*') ? 'active' : '' }}">Yêu cầu trả phòng</a>
                     <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Yêu cầu hoàn tiền</a>
                 </div>
             </div>
