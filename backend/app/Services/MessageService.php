@@ -50,12 +50,21 @@ class MessageService
         return $messageData;
     }
 
-    public function getTotalUnreadFor($userId)
+    public function getTotalUnreadFor(int $userId): int
     {
-        return Message::where('receiver_id', $userId)
-            ->where('is_read', 0)
-            ->count();
+        $firestore = (new Factory)->createFirestore();
+        $db = $firestore->database();
+
+        $messagesRef = $db->collection('messages');
+        $query = $messagesRef
+            ->where('receiver_id', '=', $userId)
+            ->where('is_read', '=', false);
+
+        $documents = $query->documents();
+
+        return $documents->size(); // Đếm số document
     }
+
 
 
     public function getUserListWithUnread($authId)
@@ -125,5 +134,34 @@ class MessageService
                 ]);
             }
         }
+    }
+
+    public function getLatestUnreadForHeader()
+    {
+        $firestore = (new Factory)->createFirestore();
+        $db = $firestore->database();
+
+        $messagesRef = $db->collection('messages');
+
+        $unreadQuery = $messagesRef->where('is_read', '=', false);
+        $unreadDocs = $unreadQuery->documents();
+        $unreadCount = $unreadDocs->size();
+
+        $latestQuery = $messagesRef->orderBy('created_at', 'DESC')->limit(3);
+        $latestDocs = $latestQuery->documents();
+
+        $latest = [];
+        foreach ($latestDocs as $doc) {
+            if ($doc->exists()) {
+                $data = $doc->data();
+                $data['url'] = route('messages.index');
+                $latest[] = $data;
+            }
+        }
+
+        return [
+            'unread_count' => $unreadCount,
+            'latest' => $latest,
+        ];
     }
 }

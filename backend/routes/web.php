@@ -171,6 +171,7 @@ Route::middleware('admin')->group(function () {
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
         Route::get('/chat-box', [MessageController::class, 'showChat'])->name('chat-box');
         Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('mark-as-read');
+        Route::get('/header', [MessageController::class, 'header'])->name('header');
     });
 
     // Blog routes group
