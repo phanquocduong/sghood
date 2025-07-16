@@ -18,7 +18,7 @@ class MessageService
     public function __construct()
     {
         $factory = (new Factory)
-            ->withServiceAccount(storage_path('firebase/firebase_credentials.json'));
+            ->withServiceAccount(storage_path('firebase/firebase-adminsdk.json'));
 
         $this->firestore = $factory->createFirestore()->database();
         $this->storage = $factory->createStorage();
