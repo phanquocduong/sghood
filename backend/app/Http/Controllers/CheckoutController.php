@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Services\CheckoutService;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log;
 class CheckoutController extends Controller
 {
     protected $checkoutService;
@@ -16,8 +17,9 @@ class CheckoutController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['status']);
+        $filters = $request->only(['status', 'querySearch', 'sort_order']);
         $checkouts = $this->checkoutService->getCheckouts($filters);
+
         return view('checkouts.index', compact('checkouts'));
     }
 
@@ -33,23 +35,18 @@ class CheckoutController extends Controller
         return view('checkouts.edit', compact('checkout'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'check_out_date' => 'required|date',
-            'has_left' => 'required|boolean',
-            'status' => 'required|in:Chờ kiểm kê,Đã kiểm kê',
-            'deduction_amount' => 'nullable|numeric',
-            'inventory_details' => 'required|json',
-            'inventory_value_text.*' => 'nullable|string',
-            'inventory_value_image.*' => 'nullable|image|mimes:jpeg,png,gif|max:2048',
-        ], [
-            'inventory_details.json' => 'Dữ liệu kiểm kê phải là JSON hợp lệ.',
-            'inventory_value_image.*.image' => 'File phải là hình ảnh.',
-        ]);
+    public function update(CheckoutRequest $request, $id)
+{
+    try {
+        $data = $request->validated();
+        Log::info('Validated data in CheckoutController:', $data);
+        $checkout = $this->checkoutService->updateCheckout($id, $data);
+        Log::info('Checkout updated:', $checkout->toArray());
 
-        $checkout = $this->checkoutService->updateCheckout($id, $request->all());
-
-        return redirect()->back()->with('success', 'Cập nhật checkout thành công!');
+        return redirect()->route('checkouts.index')->with('success', 'Cập nhật checkout thành công');
+    } catch (\Exception $e) {
+        Log::error('Update error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
     }
+}
 }

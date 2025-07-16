@@ -3,99 +3,129 @@
 namespace App\Services;
 
 use App\Models\Checkout;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
 
 class CheckoutService
 {
     public function getCheckouts($filters = [])
     {
-        $query = Checkout::query();
+        $query = Checkout::with(['contract.room']);
 
-        if (isset($filters['status'])) {
+        if (isset($filters['status']) && !empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        $query->orderBy('id', 'desc');
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+        $querySearch = trim($filters['querySearch'] ?? '');
 
-        return $query->paginate(10);
+        if (!empty($querySearch)) {
+            $query->whereHas('contract.room', function ($q) use ($querySearch) {
+                $q->where('name', 'like', '%' . $querySearch . '%');
+            });
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
+
+        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 10;
+        return $query->paginate($perPage);
     }
 
     public function getCheckoutById($id)
     {
-        return Checkout::findOrFail($id);
+        return Checkout::with(['contract.room'])->findOrFail($id);
     }
 
     public function updateCheckout($id, array $data)
-    {
-        $checkout = Checkout::findOrFail($id);
-        $inventoryDetails = json_decode($data['inventory_details'], true) ?: [];
+{
+    $checkout = Checkout::findOrFail($id);
 
-        // Delete old images that will be replaced
-        if ($checkout->inventory_details) {
-            foreach ($checkout->inventory_details as $oldIndex => $item) {
-                if (isset($item['type']) && $item['type'] === 'IMAGE' && isset($item['value']) && $item['value']) {
-                    // Check if this item is being replaced with a new image
-                    $imageFiles = $data['inventory_value_image'] ?? [];
-                    if (isset($imageFiles[$oldIndex]) && $imageFiles[$oldIndex] instanceof \Illuminate\Http\UploadedFile) {
-                        // Delete old image as it's being replaced
-                        $oldPath = str_replace('/storage/', '', $item['value']);
-                        if (Storage::disk('public')->exists($oldPath)) {
-                            Storage::disk('public')->delete($oldPath);
-                        }
-                    }
-                }
-            }
-        }
+    // Log dữ liệu đầu vào để debug
+    Log::info('Incoming data in CheckoutService:', $data);
 
-        // Process new inventory details with file uploads
-        $updatedDetails = [];
-        $imageFiles = $data['inventory_value_image'] ?? [];
-        $textValues = $data['inventory_value_text'] ?? [];
-        $existingImageValues = $data['existing_image_value'] ?? [];
+    // Xử lý inventory details
+    $inventoryDetails = [];
+    $deductionAmount = 0;
 
-        foreach ($inventoryDetails as $index => $item) {
-            if (!isset($item['type'])) continue;
-
-            $newItem = ['type' => $item['type']];
-
-            if ($item['type'] === 'TEXT') {
-                $textValue = isset($textValues[$index]) ? trim($textValues[$index]) : (isset($item['value']) ? trim($item['value']) : '');
-                $newItem['value'] = $textValue;
-            } elseif ($item['type'] === 'IMAGE') {
-                // Check if new file is uploaded for this index
-                if (isset($imageFiles[$index]) && $imageFiles[$index] instanceof \Illuminate\Http\UploadedFile) {
-                    // Generate unique filename
-                    $file = $imageFiles[$index];
-                    $extension = $file->getClientOriginalExtension();
-                    $fileName = 'checkout-' . time() . '-' . uniqid() . '.' . $extension;
-
-                    // Store file in inventory_images directory
-                    $path = $file->storeAs('inventory_images', $fileName, 'public');
-                    $newItem['value'] = '/storage/' . $path;
-                } elseif (isset($existingImageValues[$index]) && $existingImageValues[$index] !== '') {
-                    // Keep existing image path from hidden input
-                    $newItem['value'] = $existingImageValues[$index];
-                } elseif (isset($item['value']) && $item['value'] !== '' && $item['value'] !== 'pending_upload') {
-                    // Fallback to keep existing image path
-                    $newItem['value'] = $item['value'];
-                } else {
-                    // No file provided - keep empty for now
-                    $newItem['value'] = '';
-                }
+    // Kiểm tra nếu có dữ liệu item_name được gửi
+    if (isset($data['item_name']) && is_array($data['item_name'])) {
+        foreach ($data['item_name'] as $index => $name) {
+            $name = trim($name);
+            // Bỏ qua nếu tên mục rỗng
+            if ($name === '') {
+                Log::warning('Skipped empty item name at index:', ['index' => $index]);
+                continue;
             }
 
-            $updatedDetails[] = $newItem;
+            $itemCost = isset($data['item_cost'][$index]) ? (float) $data['item_cost'][$index] : 0;
+            $itemQuantity = isset($data['item_quantity'][$index]) ? (int) $data['item_quantity'][$index] : 1;
+
+            $inventoryDetails[] = [
+                'item_name' => $name,
+                'item_condition' => isset($data['item_condition'][$index]) ? trim($data['item_condition'][$index]) : '',
+                'item_quantity' => $itemQuantity,
+                'item_cost' => $itemCost,
+            ];
+            $deductionAmount += $itemCost * $itemQuantity;
+
+            Log::info('Processed item:', [
+                'index' => $index,
+                'name' => $name,
+                'cost' => $itemCost,
+                'quantity' => $itemQuantity,
+            ]);
         }
-
-        $checkout->update([
-            'check_out_date' => $data['check_out_date'],
-            'has_left' => $data['has_left'],
-            'status' => $data['status'],
-            'deduction_amount' => $data['deduction_amount'] ?? $checkout->deduction_amount,
-            'inventory_details' => $updatedDetails,
-        ]);
-
-        return $checkout;
+    } else {
+        Log::warning('No item_name array provided in data:', $data);
     }
+
+    // Xử lý hình ảnh
+    $existingImages = $checkout->images ?? [];
+    $imagesToDelete = $data['images_to_delete'] ?? [];
+    $existingImagesKept = $data['existing_images'] ?? [];
+
+    // Xóa hình ảnh được yêu cầu
+    foreach ($imagesToDelete as $imageToDelete) {
+        if (($key = array_search($imageToDelete, $existingImages)) !== false) {
+            unset($existingImages[$key]);
+            if (Storage::disk('public')->exists($imageToDelete)) {
+                Storage::disk('public')->delete($imageToDelete);
+            }
+            Log::info('Deleted image:', ['image' => $imageToDelete]);
+        }
+    }
+
+    $finalImages = array_values(array_intersect($existingImages, $existingImagesKept));
+
+    // Thêm hình ảnh mới
+    if (isset($data['images']) && is_array($data['images'])) {
+        foreach ($data['images'] as $image) {
+            if ($image instanceof \Illuminate\Http\UploadedFile && $image->isValid()) {
+                $extension = $image->getClientOriginalExtension();
+                $fileName = 'checkout-' . time() . '-' . uniqid() . '.' . $extension;
+                $path = $image->storeAs('checkout_images', $fileName, 'public');
+                $finalImages[] = $path;
+                Log::info('Uploaded new image:', ['path' => $path]);
+            }
+        }
+    }
+
+    // Chuẩn bị dữ liệu để cập nhật
+    $updateData = [
+        'check_out_date' => $data['check_out_date'],
+        'has_left' => $data['has_left'],
+        'status' => $data['status'],
+        'deduction_amount' => $deductionAmount,
+        'images' => !empty($finalImages) ? $finalImages : null,
+        'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
+    ];
+
+    // Cập nhật checkout
+    $checkout->update($updateData);
+
+    Log::info('Updated checkout:', $updateData);
+
+    return $checkout;
+}
 }

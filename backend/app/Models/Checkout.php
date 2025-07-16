@@ -17,12 +17,14 @@ class Checkout extends Model
         'status',
         'deposit_refunded',
         'has_left',
+        'images',
         'note',
     ];
 
     protected $casts = [
         'check_out_date'     => 'date',
         'inventory_details'  => 'array',
+        'images'             => 'array',
         'deduction_amount'   => 'integer',
         'deposit_refunded'   => 'boolean',
         'has_left'           => 'boolean',
