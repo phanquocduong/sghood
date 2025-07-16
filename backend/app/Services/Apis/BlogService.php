@@ -6,10 +6,24 @@ use App\Models\Blog;
 
 class BlogService
 {
-    public function getAll()
+    public function getAll(array $params = [])
     {
-        return Blog::latest()->get();
+        $query = Blog::query();
+
+        // Tìm kiếm
+        if (!empty($params['search'])) {
+            $search = $params['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $params['per_page'] ?? 10;
+
+        return $query->latest()->paginate($perPage);
     }
+
     public function getBlogBySlug($slug)
     {
         return Blog::where('slug', $slug)->first();
@@ -36,6 +50,5 @@ class BlogService
     public function increaseView(int $id)
     {
         Blog::where('id', $id)->increment('views');
-
     }
 }
