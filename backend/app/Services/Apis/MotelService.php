@@ -172,7 +172,7 @@ class MotelService
                         ->where('status', 'Trống')
                         ->with([
                             'amenities:id,name',
-                            'images:id,room_id,image_url' // Lấy tất cả hình ảnh của phòng
+                            'images:id,room_id,image_url,is_main'
                         ]),
                 'amenities:id,name',
             ])

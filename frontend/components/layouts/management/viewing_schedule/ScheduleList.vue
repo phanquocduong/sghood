@@ -8,14 +8,24 @@
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <img :src="config.public.baseUrl + item.motel_image" alt="" />
+                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
+                        <img :src="config.public.baseUrl + item.motel_image" alt="" />
+                    </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">
                     <div class="inner">
                         <h3>
                             {{ item.motel_name }}
-                            <span :class="getStatusClass(item.status)">{{ item.status }}</span>
+                            <span :class="getStatusClass(item.status)">{{
+                                item.status === 'Hoàn thành' ? 'Đã hoàn thành' : item.status
+                            }}</span>
                         </h3>
+                        <div class="inner-booking-list">
+                            <h5>Địa chỉ:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ item.motel_address }}</li>
+                            </ul>
+                        </div>
                         <div class="inner-booking-list">
                             <h5>Ngày:</h5>
                             <ul class="booking-list">
@@ -23,19 +33,19 @@
                             </ul>
                         </div>
                         <div class="inner-booking-list">
-                            <h5>Thời gian:</h5>
+                            <h5>Giờ:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ formatTime(item.scheduled_at) }}</li>
                             </ul>
                         </div>
                         <div v-if="item.message" class="inner-booking-list">
-                            <h5>Lời nhắn:</h5>
+                            <h5>Lời nhắn của bạn:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ item.message }}</li>
                             </ul>
                         </div>
                         <div v-if="item.cancellation_reason && item.status === 'Huỷ bỏ'" class="inner-booking-list">
-                            <h5>Lý do huỷ:</h5>
+                            <h5>Lý do bị từ chối:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ item.cancellation_reason }}</li>
                             </ul>
@@ -70,7 +80,9 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { useFormatDate } from '~/composables/useFormatDate';
 
+const { formatDate, formatTime } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
     items: {
@@ -84,16 +96,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['rejectItem', 'openPopup']);
-
-const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
-const formatTime = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-};
 
 const getItemClass = status => {
     switch (status) {

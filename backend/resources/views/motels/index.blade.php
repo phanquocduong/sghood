@@ -109,8 +109,15 @@
                                 </td>
                                 <td class="text-muted">{{ Str::limit($motel->description ?? 'Không có mô tả', 50) }}</td>
                                 <td>
-                                      <a href="{{ route('rooms.index', ['motel_id'=> $motel->id]) }}" class="text-success text-decoration-none">{{ $motel->rooms_count ?? 0 }} phòng</a>
-                                </td>
+<a href="{{ route('rooms.index', ['motel_id'=> $motel->id]) }}" class="text-decoration-none">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span class="fw-bold text-primary">{{ $motel->rooms_count ?? 0 }} phòng</span>
+                                            <small class="text-muted">
+                                                <span class="badge bg-success me-1">{{ $motel->rooms->where('status', 'Trống')->count() }} Trống</span>
+                                                <span class="badge bg-warning">{{ $motel->rooms->where('status', 'Sửa chữa')->count() }} Sửa chữa</span>
+                                            </small>
+                                        </div>
+                                    </a>                                </td>
                                 <td>
                                     <span class="badge {{ $motel->status == 'Hoạt động' ? 'bg-success' : 'bg-danger' }} py-2 px-3">
                                         {{ $motel->status == 'Hoạt động' ? 'Hoạt động' : 'Không hoạt động' }}

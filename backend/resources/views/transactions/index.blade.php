@@ -17,6 +17,33 @@
     @endif
 
     <div class="container-fluid py-5 px-4">
+        <!-- Filter Info -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Thống kê hiện tại:</strong>
+                    @if(!empty($filters['month']) || !empty($filters['year']))
+                        @if(!empty($filters['month']) && !empty($filters['year']))
+                            Tháng {{ $filters['month'] }}/{{ $filters['year'] }}
+                        @elseif(!empty($filters['month']))
+                            Tháng {{ $filters['month'] }} (tất cả năm)
+                        @elseif(!empty($filters['year']))
+                            Năm {{ $filters['year'] }} (tất cả tháng)
+                        @endif
+                    @else
+                        Tất cả giao dịch
+                    @endif
+                    @if(!empty($filters['transfer_type']))
+                        | Loại giao dịch: {{ $filters['transfer_type'] == 'in' ? 'Tiền vào' : 'Tiền ra' }}
+                    @endif
+                    @if(!empty($filters['search']))
+                        | Tìm kiếm: "{{ $filters['search'] }}"
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <!-- Stats Cards -->
         <div class="row mb-4">
             <div class="col-lg-3 col-md-6 mb-3">
@@ -26,6 +53,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Tổng giao dịch</h6>
                                 <h4 class="mb-0 text-success">{{ $stats['total'] ?? 0 }}</h4>
+                                <small class="text-muted">{{ number_format($stats['total_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-success">
                                 <i class="fas fa-exchange-alt fa-2x"></i>
@@ -39,8 +67,9 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="text-muted mb-1">Tiền vào (in)</h6>
+                                <h6 class="text-muted mb-1">Tiền vào (IN)</h6>
                                 <h4 class="mb-0 text-info">{{ $stats['in'] ?? 0 }}</h4>
+                                <small class="text-muted">{{ number_format($stats['in_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-info">
                                 <i class="fas fa-arrow-down fa-2x"></i>
@@ -56,6 +85,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Tiền ra (OUT)</h6>
                                 <h4 class="mb-0 text-warning">{{ $stats['out'] ?? 0 }}</h4>
+                                <small class="text-muted">{{ number_format($stats['out_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-warning">
                                 <i class="fas fa-arrow-up fa-2x"></i>
@@ -99,19 +129,37 @@
                                    placeholder="Tìm kiếm mã giao dịch..." value="{{ $filters['search'] ?? '' }}">
                         </div>
                         <div class="col-md-2">
-                            <select class="form-select shadow-sm" name="transfer_type">
-                                <option value="">Tất cả loại</option>
-                                <option value="in" {{ ($filters['transfer_type'] ?? '') == 'in' ? 'selected' : '' }}>Tiền vào (in)</option>
-                                <option value="OUT" {{ ($filters['transfer_type'] ?? '') == 'OUT' ? 'selected' : '' }}>Tiền ra (OUT)</option>
+                            <select class="form-select shadow-sm" name="month">
+                                <option value="">Tất cả tháng</option>
+                                @foreach($months as $monthValue => $monthLabel)
+                                    <option value="{{ $monthValue }}"
+                                        {{ ($filters['month'] ?? '') == $monthValue ? 'selected' : '' }}>
+                                        {{ $monthLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select shadow-sm" name="year">
+                                <option value="">Tất cả năm</option>
+                                @foreach($years as $yearValue => $yearLabel)
+                                    <option value="{{ $yearValue }}"
+                                        {{ ($filters['year'] ?? '') == $yearValue ? 'selected' : '' }}>
+                                        {{ $yearLabel }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <input type="date" class="form-control shadow-sm" name="date_from"
-                                   value="{{ $filters['date_from'] ?? '' }}" placeholder="Từ ngày">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="date" class="form-control shadow-sm" name="date_to"
-                                   value="{{ $filters['date_to'] ?? '' }}" placeholder="Đến ngày">
+                            <select class="form-select shadow-sm" name="transfer_type">
+                                <option value="">Tất cả loại giao dịch</option>
+                                @foreach($transferTypes as $typeValue => $typeLabel)
+                                    <option value="{{ $typeValue }}"
+                                        {{ ($filters['transfer_type'] ?? '') == $typeValue ? 'selected' : '' }}>
+                                        {{ $typeLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-outline-primary w-100">
@@ -215,7 +263,7 @@
     <script>
         // Auto-submit form when filter changes
         document.addEventListener('DOMContentLoaded', function () {
-            const filterSelects = document.querySelectorAll('select[name="transfer_type"]');
+            const filterSelects = document.querySelectorAll('select[name="month"], select[name="year"], select[name="transfer_type"]');
             filterSelects.forEach(select => {
                 select.addEventListener('change', function () {
                     this.form.submit();

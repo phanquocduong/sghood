@@ -17,7 +17,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Lấy danh sách giao dịch của user đang đăng nhập
+     * Lấy danh sách giao dịch của user đang đăng nhập với phân trang
      */
     public function index(Request $request)
     {
@@ -27,10 +27,15 @@ class TransactionController extends Controller
                 'type' => $request->query('type', ''),
             ];
 
-            $transactions = $this->transactionService->getUserTransactions(Auth::id(), $filters);
+            $perPage = $request->query('per_page', 10); // Số lượng giao dịch mỗi trang
+            $transactions = $this->transactionService->getUserTransactions(Auth::id(), $filters, $perPage);
 
             return response()->json([
-                'data' => $transactions,
+                'data' => $transactions->items(), // Dữ liệu giao dịch
+                'current_page' => $transactions->currentPage(),
+                'total_pages' => $transactions->lastPage(),
+                'total' => $transactions->total(),
+                'per_page' => $transactions->perPage(),
                 'success' => true
             ], 200);
         } catch (\Exception $e) {
