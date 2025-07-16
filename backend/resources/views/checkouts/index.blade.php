@@ -284,12 +284,12 @@
                                                                 </div>
 
                                                                 <!-- Hiển thị JSON data để debug -->
-                                                                <div class="mt-3">
+                                                                {{-- <div class="mt-3">
                                                                     <h6>JSON Data (Debug):</h6>
                                                                     <pre id="inventory_json_display_{{ $checkout->id }}"
                                                                         style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">
-                </pre>
-                                                                </div>
+</pre>
+                                                                </div> --}}
                                                             </div>
 
                                                             <div class="col-md-12">
@@ -297,7 +297,9 @@
                                                                 <div class="mb-2">
                                                                     <input type="file"
                                                                         class="form-control form-control-sm"
-                                                                        name="images[]" multiple accept="image/*"
+                                                                        name="images[]"
+                                                                        id="images_input_{{ $checkout->id }}" multiple
+                                                                        accept="image/*"
                                                                         onchange="previewImages(this, {{ $checkout->id }})">
                                                                     <small class="text-muted">Có thể chọn nhiều hình
                                                                         ảnh</small>
@@ -345,7 +347,8 @@
                                                                     <label
                                                                         for="deduction_amount_total_{{ $checkout->id }}"
                                                                         class="form-label">Tổng số tiền khấu trừ
-                                                                        (VNĐ)</label>
+                                                                        (VNĐ)
+                                                                    </label>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         id="deduction_amount_total_{{ $checkout->id }}"
@@ -535,6 +538,100 @@
         // Biến tạm để lưu trữ dữ liệu inventory cho mỗi checkout
         let inventoryData = {};
 
+        // Hàm xóa hình ảnh hiện tại
+        function removeExistingImage(button, imagePath, checkoutId) {
+            // Xác nhận trước khi xóa
+            if (!confirm('Bạn có chắc chắn muốn xóa hình ảnh này không?')) {
+                return;
+            }
+
+            const imageContainer = button.closest('.col-4');
+            const hiddenInput = imageContainer.querySelector('input[name="existing_images[]"]');
+
+            // Xóa hidden input để không gửi image này lên server
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+
+            // Tạo input để đánh dấu image này cần xóa
+            const form = document.getElementById(`checkoutForm${checkoutId}`);
+            const deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'deleted_images[]';
+            deleteInput.value = imagePath;
+            form.appendChild(deleteInput);
+
+            // Ẩn container thay vì xóa luôn (để tránh bug)
+            imageContainer.style.display = 'none';
+        }
+
+        // Hàm preview hình ảnh
+        function previewImages(input, checkoutId) {
+            const previewContainer = document.getElementById(`image_preview_${checkoutId}`);
+
+            if (!previewContainer) return;
+
+            // Clear existing previews
+            previewContainer.innerHTML = '';
+
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach((file, index) => {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-4 mb-2';
+
+                        col.innerHTML = `
+                            <div class="image-preview-item">
+                                <img src="${e.target.result}"
+                                     class="img-fluid rounded"
+                                     style="max-height: 80px; object-fit: cover; width: 100%;"
+                                     alt="Preview">
+                                <button type="button"
+                                        class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                        onclick="removeNewImage(this, ${index}, ${checkoutId})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+
+                        previewContainer.appendChild(col);
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        // Hàm xóa hình ảnh mới
+        function removeNewImage(button, imageIndex, checkoutId) {
+            // Xác nhận trước khi xóa
+            if (!confirm('Bạn có chắc chắn muốn xóa hình ảnh này không?')) {
+                return;
+            }
+
+            const imageContainer = button.closest('.col-4');
+            const fileInput = document.querySelector(`#images_input_${checkoutId}`);
+
+            // Xóa preview
+            imageContainer.remove();
+
+            // Tạo lại file input để loại bỏ file đã chọn
+            if (fileInput) {
+                const dt = new DataTransfer();
+                const files = fileInput.files;
+
+                for (let i = 0; i < files.length; i++) {
+                    if (i !== imageIndex) {
+                        dt.items.add(files[i]);
+                    }
+                }
+
+                fileInput.files = dt.files;
+            }
+        }
+
         // Khởi tạo dữ liệu inventory cho một checkout
         function initializeInventoryData(checkoutId, existingData = null) {
             if (!inventoryData[checkoutId]) {
@@ -567,6 +664,11 @@
 
         // Xóa item khỏi mảng tạm
         function removeInventoryItem(checkoutId, itemId) {
+            // Xác nhận trước khi xóa
+            if (!confirm('Bạn có chắc chắn muốn xóa mục này không?')) {
+                return;
+            }
+
             if (inventoryData[checkoutId]) {
                 inventoryData[checkoutId] = inventoryData[checkoutId].filter(item => item.id !== itemId);
                 updateInventoryDisplay(checkoutId);
@@ -582,8 +684,7 @@
             if (inventoryData[checkoutId]) {
                 const item = inventoryData[checkoutId].find(item => item.id === itemId);
                 if (item) {
-                    item[field] = field === 'item_quantity' ? parseInt(value) || 1 :
-                        field === 'item_cost' ? parseFloat(value) || 0 : value;
+                    item[field] = field === 'item_cost' ? parseFloat(value) || 0 : value;
                     updateDeductionTotal(checkoutId);
 
                     console.log(`Updated item ${itemId} in checkout ${checkoutId}:`, item);
@@ -614,39 +715,39 @@
                     div.dataset.itemId = item.id;
 
                     div.innerHTML = `
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               value="${item.item_name || ''}"
-                               placeholder="Tên mục"
-                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_name', this.value)">
-                    </div>
-                    <div class="col-md-4">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               value="${item.item_condition || ''}"
-                               placeholder="Tình trạng"
-                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_condition', this.value)">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="number"
-                               class="form-control form-control-sm"
-                               value="${item.item_cost || 0}"
-                               placeholder="Chi phí (VNĐ)"
-                               step="0.01"
-                               min="0"
-                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_cost', this.value)">
-                    </div>
-                    <div class="col-md-1">
-                        <button type="button"
-                                class="btn btn-sm btn-danger"
-                                onclick="removeInventoryItem(${checkoutId}, ${item.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+                        <div class="row g-2">
+                            <div class="col-md-5">
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="${item.item_name || ''}"
+                                       placeholder="Tên mục"
+                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_name', this.value)" requied>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="${item.item_condition || ''}"
+                                       placeholder="Tình trạng"
+                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_condition', this.value)">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number"
+                                       class="form-control form-control-sm"
+                                       value="${item.item_cost || 0}"
+                                       placeholder="Chi phí (VNĐ)"
+                                       step="0.01"
+                                       min="0"
+                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_cost', this.value)">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="removeInventoryItem(${checkoutId}, ${item.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
 
                     container.appendChild(div);
                 });
@@ -662,8 +763,7 @@
             if (inventoryData[checkoutId]) {
                 inventoryData[checkoutId].forEach(item => {
                     const cost = parseFloat(item.item_cost) || 0;
-                    const quantity = parseInt(item.item_quantity) || 1;
-                    total += cost * quantity;
+                    total += cost;
                 });
             }
 
@@ -694,12 +794,6 @@
                     conditionInput.name = 'item_condition[]';
                     conditionInput.value = item.item_condition || '';
                     form.appendChild(conditionInput);
-
-                    // const quantityInput = document.createElement('input');
-                    // quantityInput.type = 'hidden';
-                    // quantityInput.name = 'item_quantity[]';
-                    // quantityInput.value = item.item_quantity || 1;
-                    // form.appendChild(quantityInput);
 
                     const costInput = document.createElement('input');
                     costInput.type = 'hidden';
@@ -790,7 +884,6 @@
                     id: Date.now() + Math.random(),
                     item_name: item.item_name || '',
                     item_condition: item.item_condition || '',
-                    // item_quantity: item.item_quantity || 1,
                     item_cost: item.item_cost || 0
                 }));
             }
