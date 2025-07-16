@@ -39,14 +39,18 @@
                         <div class="col-md-3">
                             <select name="status" id="status" class="form-select">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="Chờ kiểm kê" {{ request('status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ kiểm kê</option>
-                                <option value="Đã kiểm kê" {{ request('status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm kê</option>
+                                <option value="Chờ kiểm kê" {{ request('status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
+                                    kiểm kê</option>
+                                <option value="Đã kiểm kê" {{ request('status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
+                                    kê</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <select name="sort_order" id="sort_order" class="form-select">
-                                <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Mới nhất</option>
-                                <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
+                                <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Mới nhất
+                                </option>
+                                <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Cũ nhất
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -85,14 +89,16 @@
                                         </small>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-{{ $checkout->has_left == 0 ? 'warning' : 'success' }} py-2 px-3">
+                                        <span
+                                            class="badge bg-{{ $checkout->has_left == 0 ? 'warning' : 'success' }} py-2 px-3">
                                             <i class="{{ $checkout->has_left == 0 ? 'fas fa-clock' : 'fas fa-check-circle' }} me-1"
                                                 style="font-size: 8px;"></i>
                                             {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-{{ $checkout->status == 'Chờ kiểm kê' ? 'warning' : ($checkout->status == 'Đã kiểm kê' ? 'success' : 'dark') }} py-2 px-3">
+                                        <span
+                                            class="badge bg-{{ $checkout->status == 'Chờ kiểm kê' ? 'warning' : ($checkout->status == 'Đã kiểm kê' ? 'success' : 'dark') }} py-2 px-3">
                                             <i class="{{ $checkout->status == 'Chờ kiểm kê' ? 'fas fa-clock' : ($checkout->status == 'Đã kiểm kê' ? 'fas fa-check-circle' : 'fas fa-times-circle') }} me-1"
                                                 style="font-size: 8px;"></i>
                                             {{ $checkout->status ?? 'N/A' }}
@@ -122,7 +128,8 @@
                                     <div class="modal-dialog modal-dialog-centered modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header bg-info text-white">
-                                                <h5 class="modal-title" id="checkoutModalLabel{{ $checkout->id }}">Chi tiết Checkout</h5>
+                                                <h5 class="modal-title" id="checkoutModalLabel{{ $checkout->id }}">Chi
+                                                    tiết Checkout</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -135,7 +142,8 @@
                                                     {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}</p>
                                                 <p><strong>Trạng thái:</strong> {{ $checkout->status ?? 'N/A' }}</p>
                                                 <p><strong>Số tiền khấu trừ:</strong>
-                                                    {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }} VNĐ</p>
+                                                    {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }}
+                                                    VNĐ</p>
 
                                                 <div class="row">
                                                     <div class="col-md-6">
@@ -143,12 +151,21 @@
                                                         @if ($checkout->inventory_details && is_array($checkout->inventory_details))
                                                             <div class="bg-light p-3 rounded">
                                                                 @foreach ($checkout->inventory_details as $item)
-                                                                    <p class="mb-1">
-                                                                        <strong>Tên:</strong> {{ $item['item_name'] ?? 'N/A' }}<br>
-                                                                        <strong>Tình trạng:</strong> {{ $item['item_condition'] ?? 'N/A' }}<br>
-                                                                        <strong>Số lượng:</strong> {{ $item['item_quantity'] ?? 0 }}<br>
-                                                                        <strong>Chi phí:</strong> {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : 'N/A' }} VNĐ
-                                                                    </p>
+                                                                    <div class="border-bottom mb-2 pb-2">
+                                                                        <p class="mb-1">
+                                                                            <strong>Tên:</strong>
+                                                                            {{ $item['item_name'] ?? 'N/A' }}
+                                                                        </p>
+                                                                        <p class="mb-1">
+                                                                            <strong>Tình trạng:</strong>
+                                                                            {{ $item['item_condition'] ?? 'N/A' }}
+                                                                        </p>
+                                                                        <p class="mb-1">
+                                                                            <strong>Chi phí:</strong>
+                                                                            {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : 'N/A' }}
+                                                                            VNĐ
+                                                                        </p>
+                                                                    </div>
                                                                 @endforeach
                                                             </div>
                                                         @else
@@ -160,7 +177,7 @@
                                                         <p><strong>Hình ảnh:</strong></p>
                                                         @if ($checkout->images && count($checkout->images) > 0)
                                                             <div class="row">
-                                                                @foreach ($checkout->images as $index => $image)
+                                                                @foreach ($checkout->images as $image)
                                                                     <div class="col-6 mb-2">
                                                                         <img src="{{ asset('storage/' . $image) }}"
                                                                             class="img-fluid rounded"
@@ -189,7 +206,8 @@
                                     <div class="modal-dialog modal-dialog-centered modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header bg-warning text-white">
-                                                <h5 class="modal-title" id="editModalLabel{{ $checkout->id }}">Sửa Checkout</h5>
+                                                <h5 class="modal-title" id="editModalLabel{{ $checkout->id }}">Sửa
+                                                    Checkout</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -214,12 +232,16 @@
                                                     </div>
 
                                                     <div class="mb-3">
-                                                        <label for="has_left{{ $checkout->id }}" class="form-label">Rời đi <span
-                                                                style="color: red;">*</span></label>
+                                                        <label for="has_left{{ $checkout->id }}" class="form-label">Rời
+                                                            đi <span style="color: red;">*</span></label>
                                                         <select class="form-select" id="has_left{{ $checkout->id }}"
                                                             name="has_left" required>
-                                                            <option value="0" {{ $checkout->has_left == 0 ? 'selected' : '' }}>Chưa rời đi</option>
-                                                            <option value="1" {{ $checkout->has_left == 1 ? 'selected' : '' }}>Đã rời đi</option>
+                                                            <option value="0"
+                                                                {{ $checkout->has_left == 0 ? 'selected' : '' }}>Chưa rời
+                                                                đi</option>
+                                                            <option value="1"
+                                                                {{ $checkout->has_left == 1 ? 'selected' : '' }}>Đã rời đi
+                                                            </option>
                                                         </select>
                                                         @error('has_left')
                                                             <div class="text-danger small">{{ $message }}</div>
@@ -227,12 +249,16 @@
                                                     </div>
 
                                                     <div class="mb-3">
-                                                        <label for="status{{ $checkout->id }}" class="form-label">Trạng thái <span
-                                                                style="color: red;">*</span></label>
+                                                        <label for="status{{ $checkout->id }}" class="form-label">Trạng
+                                                            thái <span style="color: red;">*</span></label>
                                                         <select class="form-select" id="status{{ $checkout->id }}"
                                                             name="status" required>
-                                                            <option value="Chờ kiểm kê" {{ $checkout->status == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ kiểm kê</option>
-                                                            <option value="Đã kiểm kê" {{ $checkout->status == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm kê</option>
+                                                            <option value="Chờ kiểm kê"
+                                                                {{ $checkout->status == 'Chờ kiểm kê' ? 'selected' : '' }}>
+                                                                Chờ kiểm kê</option>
+                                                            <option value="Đã kiểm kê"
+                                                                {{ $checkout->status == 'Đã kiểm kê' ? 'selected' : '' }}>
+                                                                Đã kiểm kê</option>
                                                         </select>
                                                         @error('status')
                                                             <div class="text-danger small">{{ $message }}</div>
@@ -240,120 +266,29 @@
                                                     </div>
 
                                                     <!-- Inventory Details Section -->
+                                                    <!-- Trong modal Edit section, thay thế phần Inventory Details -->
                                                     <div class="mb-3">
                                                         <label class="form-label">Kiểm kê</label>
                                                         <div class="row">
                                                             <div class="col-md-12">
                                                                 <h6>Thông tin kiểm kê</h6>
-                                                                <button type="button" class="btn btn-sm btn-success mb-2 add-inventory-item"
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-success mb-2 add-inventory-item"
                                                                     data-checkout-id="{{ $checkout->id }}">
                                                                     <i class="fas fa-plus"></i> Thêm mục
                                                                 </button>
+
+                                                                <!-- Container cho các item inventory -->
                                                                 <div id="inventory_items_container_{{ $checkout->id }}">
-                                                                    @if ($checkout->inventory_details && is_array($checkout->inventory_details))
-                                                                        @foreach ($checkout->inventory_details as $index => $item)
-                                                                            <div class="inventory-item mb-2" data-item-id="{{ $index }}">
-                                                                                <div class="row g-2">
-                                                                                    <div class="col-md-3">
-                                                                                        <input type="text"
-                                                                                            class="form-control form-control-sm"
-                                                                                            name="item_name[]"
-                                                                                            value="{{ $item['item_name'] ?? '' }}"
-                                                                                            placeholder="Tên mục" required>
-                                                                                        @error("item_name.$index")
-                                                                                            <div class="text-danger small">{{ $message }}</div>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                    <div class="col-md-3">
-                                                                                        <input type="text"
-                                                                                            class="form-control form-control-sm"
-                                                                                            name="item_condition[]"
-                                                                                            value="{{ $item['item_condition'] ?? '' }}"
-                                                                                            placeholder="Tình trạng">
-                                                                                        @error("item_condition.$index")
-                                                                                            <div class="text-danger small">{{ $message }}</div>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                    <div class="col-md-2">
-                                                                                        <input type="number"
-                                                                                            class="form-control form-control-sm"
-                                                                                            name="item_quantity[]"
-                                                                                            value="{{ $item['item_quantity'] ?? 0 }}"
-                                                                                            placeholder="Số lượng"
-                                                                                            min="0">
-                                                                                        @error("item_quantity.$index")
-                                                                                            <div class="text-danger small">{{ $message }}</div>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                    <div class="col-md-3">
-                                                                                        <input type="number"
-                                                                                            class="form-control form-control-sm item-cost"
-                                                                                            name="item_cost[]"
-                                                                                            value="{{ $item['item_cost'] ?? '' }}"
-                                                                                            placeholder="Chi phí (VNĐ)"
-                                                                                            step="0.01" min="0">
-                                                                                        @error("item_cost.$index")
-                                                                                            <div class="text-danger small">{{ $message }}</div>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                    <div class="col-md-1">
-                                                                                        <button type="button"
-                                                                                            class="btn btn-sm btn-danger remove-inventory-item">
-                                                                                            <i class="fas fa-trash"></i>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    @else
-                                                                        <div class="inventory-item mb-2" data-item-id="0">
-                                                                            <div class="row g-2">
-                                                                                <div class="col-md-3">
-                                                                                    <input type="text"
-                                                                                        class="form-control form-control-sm"
-                                                                                        name="item_name[]"
-                                                                                        placeholder="Tên mục" required>
-                                                                                    @error('item_name.0')
-                                                                                        <div class="text-danger small">{{ $message }}</div>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="col-md-3">
-                                                                                    <input type="text"
-                                                                                        class="form-control form-control-sm"
-                                                                                        name="item_condition[]"
-                                                                                        placeholder="Tình trạng">
-                                                                                    @error('item_condition.0')
-                                                                                        <div class="text-danger small">{{ $message }}</div>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="col-md-2">
-                                                                                    <input type="number"
-                                                                                        class="form-control form-control-sm"
-                                                                                        name="item_quantity[]"
-                                                                                        placeholder="Số lượng" min="0" value="1">
-                                                                                    @error('item_quantity.0')
-                                                                                        <div class="text-danger small">{{ $message }}</div>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="col-md-3">
-                                                                                    <input type="number"
-                                                                                        class="form-control form-control-sm item-cost"
-                                                                                        name="item_cost[]"
-                                                                                        placeholder="Chi phí (VNĐ)"
-                                                                                        step="0.01" min="0">
-                                                                                    @error('item_cost.0')
-                                                                                        <div class="text-danger small">{{ $message }}</div>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="col-md-1">
-                                                                                    <button type="button"
-                                                                                        class="btn btn-sm btn-danger remove-inventory-item">
-                                                                                        <i class="fas fa-trash"></i>
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    @endif
+                                                                    <!-- Các item sẽ được tạo động bằng JavaScript -->
+                                                                </div>
+
+                                                                <!-- Hiển thị JSON data để debug -->
+                                                                <div class="mt-3">
+                                                                    <h6>JSON Data (Debug):</h6>
+                                                                    <pre id="inventory_json_display_{{ $checkout->id }}"
+                                                                        style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                </pre>
                                                                 </div>
                                                             </div>
 
@@ -364,10 +299,12 @@
                                                                         class="form-control form-control-sm"
                                                                         name="images[]" multiple accept="image/*"
                                                                         onchange="previewImages(this, {{ $checkout->id }})">
-                                                                    <small class="text-muted">Có thể chọn nhiều hình ảnh</small>
+                                                                    <small class="text-muted">Có thể chọn nhiều hình
+                                                                        ảnh</small>
                                                                     @error('images.*')
-                                                                        <div class="text-danger small">{{ $message }}</div>
-                                                                    @endif
+                                                                        <div class="text-danger small">{{ $message }}
+                                                                        </div>
+                                                                    @enderror
                                                                 </div>
 
                                                                 <!-- Preview existing images -->
@@ -405,15 +342,24 @@
                                                             <!-- Total Deduction Amount (Readonly) -->
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
-                                                                    <label for="deduction_amount_total_{{ $checkout->id }}"
-                                                                        class="form-label">Tổng số tiền khấu trừ (VNĐ)</label>
-                                                                    <input type="number" class="form-control form-control-sm"
+                                                                    <label
+                                                                        for="deduction_amount_total_{{ $checkout->id }}"
+                                                                        class="form-label">Tổng số tiền khấu trừ
+                                                                        (VNĐ)</label>
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm"
                                                                         id="deduction_amount_total_{{ $checkout->id }}"
-                                                                        name="deduction_amount_total" readonly>
+                                                                        readonly>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    <script>
+                                                        // Truyền dữ liệu existing từ server vào JavaScript
+                                                        window.existingInventoryData = window.existingInventoryData || {};
+                                                        window.existingInventoryData[{{ $checkout->id }}] = @json($checkout->inventory_details ?? []);
+                                                    </script>
 
                                                     <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                                                 </form>
@@ -451,33 +397,44 @@
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
-        .card {
-            border-radius: 15px;
-        }
-
-        .card-header {
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert-success {
-            border-left: 5px solid #28a745;
-        }
-
-        .alert-danger {
-            border-left: 5px solid #dc3545;
-        }
-
+        /* Additional styles for checkout form */
         .inventory-item {
             background: #f8f9fa;
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #dee2e6;
+            margin-bottom: 10px;
+        }
+
+        .inventory-item:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+        #inventory_json_display_{{ $checkout->id }} {
+            background: #f8f9fa !important;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .json-display {
+            background: #f8f9fa !important;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .image-preview-item {
@@ -492,234 +449,352 @@
             padding: 2px 6px;
             font-size: 12px;
         }
+
+        .inventory-controls {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 15px;
+        }
+
+        .inventory-summary {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .inventory-summary h6 {
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        .btn-add-item {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .form-control-sm:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .inventory-item .btn-danger {
+            transition: all 0.3s ease;
+        }
+
+        .inventory-item .btn-danger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Animation cho các item mới */
+        .inventory-item.fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+
+            .inventory-item .row .col-md-1,
+            .inventory-item .row .col-md-2,
+            .inventory-item .row .col-md-3 {
+                margin-bottom: 8px;
+            }
+
+            .json-display {
+                font-size: 10px;
+                max-height: 150px;
+            }
+        }
     </style>
 @endsection
 
 @section('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Khởi tạo sự kiện cho tất cả các form checkout
-            document.querySelectorAll('form[id^="checkoutForm"]').forEach(form => {
-                if (!form) {
-                    console.error('Form not found');
-                    return;
+        // Biến tạm để lưu trữ dữ liệu inventory cho mỗi checkout
+        let inventoryData = {};
+
+        // Khởi tạo dữ liệu inventory cho một checkout
+        function initializeInventoryData(checkoutId, existingData = null) {
+            if (!inventoryData[checkoutId]) {
+                inventoryData[checkoutId] = existingData || [];
+            }
+            updateInventoryDisplay(checkoutId);
+            updateDeductionTotal(checkoutId);
+        }
+
+        // Thêm một item mới vào mảng tạm
+        function addInventoryItem(checkoutId) {
+            if (!inventoryData[checkoutId]) {
+                inventoryData[checkoutId] = [];
+            }
+
+            const newItem = {
+                id: Date.now() + Math.random(), // Tạo ID tạm thời
+                item_name: '',
+                item_condition: '',
+                item_cost: 0
+            };
+
+            inventoryData[checkoutId].push(newItem);
+            updateInventoryDisplay(checkoutId);
+            updateDeductionTotal(checkoutId);
+
+            console.log(`Added new item to checkout ${checkoutId}:`, newItem);
+            console.log(`Current inventory data for checkout ${checkoutId}:`, inventoryData[checkoutId]);
+        }
+
+        // Xóa item khỏi mảng tạm
+        function removeInventoryItem(checkoutId, itemId) {
+            if (inventoryData[checkoutId]) {
+                inventoryData[checkoutId] = inventoryData[checkoutId].filter(item => item.id !== itemId);
+                updateInventoryDisplay(checkoutId);
+                updateDeductionTotal(checkoutId);
+
+                console.log(`Removed item ${itemId} from checkout ${checkoutId}`);
+                console.log(`Current inventory data for checkout ${checkoutId}:`, inventoryData[checkoutId]);
+            }
+        }
+
+        // Cập nhật dữ liệu item trong mảng tạm
+        function updateInventoryItem(checkoutId, itemId, field, value) {
+            if (inventoryData[checkoutId]) {
+                const item = inventoryData[checkoutId].find(item => item.id === itemId);
+                if (item) {
+                    item[field] = field === 'item_quantity' ? parseInt(value) || 1 :
+                        field === 'item_cost' ? parseFloat(value) || 0 : value;
+                    updateDeductionTotal(checkoutId);
+
+                    console.log(`Updated item ${itemId} in checkout ${checkoutId}:`, item);
                 }
+            }
+        }
 
-                // Hàm thêm mục kiểm kê mới
-                function addInventoryItem(checkoutId) {
-                    const container = document.getElementById(`inventory_items_container_${checkoutId}`);
-                    if (!container) {
-                        console.error(`Container with ID inventory_items_container_${checkoutId} not found`);
-                        return;
-                    }
+        // Hiển thị dữ liệu inventory từ mảng tạm
+        function updateInventoryDisplay(checkoutId) {
+            const container = document.getElementById(`inventory_items_container_${checkoutId}`);
+            const jsonDisplay = document.getElementById(`inventory_json_display_${checkoutId}`);
 
-                    const itemId = container.querySelectorAll('.inventory-item').length;
+            if (!container) return;
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Hiển thị JSON data
+            if (jsonDisplay) {
+                jsonDisplay.textContent = JSON.stringify(inventoryData[checkoutId] || [], null, 2);
+            }
+
+            // Tạo lại các input field
+            if (inventoryData[checkoutId]) {
+                inventoryData[checkoutId].forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'inventory-item mb-2';
-                    div.setAttribute('data-item-id', itemId);
+                    div.dataset.itemId = item.id;
+
                     div.innerHTML = `
-                        <div class="row g-2">
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" name="item_name[]" placeholder="Tên mục" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" name="item_condition[]" placeholder="Tình trạng">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" class="form-control form-control-sm" name="item_quantity[]" placeholder="Số lượng" min="0" value="1">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="number" class="form-control form-control-sm item-cost" name="item_cost[]" placeholder="Chi phí (VNĐ)" step="0.01" min="0">
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button" class="btn btn-sm btn-danger remove-inventory-item">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text"
+                               class="form-control form-control-sm"
+                               value="${item.item_name || ''}"
+                               placeholder="Tên mục"
+                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_name', this.value)">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text"
+                               class="form-control form-control-sm"
+                               value="${item.item_condition || ''}"
+                               placeholder="Tình trạng"
+                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_condition', this.value)">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number"
+                               class="form-control form-control-sm"
+                               value="${item.item_cost || 0}"
+                               placeholder="Chi phí (VNĐ)"
+                               step="0.01"
+                               min="0"
+                               onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_cost', this.value)">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button"
+                                class="btn btn-sm btn-danger"
+                                onclick="removeInventoryItem(${checkoutId}, ${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
                     container.appendChild(div);
-
-                    // Gắn sự kiện xóa và cập nhật tổng
-                    div.querySelector('.remove-inventory-item').addEventListener('click', function () {
-                        removeInventoryItem(this);
-                        updateDeductionTotal(form);
-                    });
-                    div.querySelector('.item-cost').addEventListener('input', function () {
-                        updateDeductionTotal(form);
-                    });
-
-                    console.log(`Added new inventory item with ID ${itemId} for checkout ${checkoutId}`);
-                    updateDeductionTotal(form);
-                }
-
-                // Hàm xóa mục kiểm kê
-                function removeInventoryItem(button) {
-                    const item = button.closest('.inventory-item');
-                    if (item) {
-                        item.remove();
-                        console.log('Removed inventory item');
-                    } else {
-                        console.error('Could not find inventory item to remove');
-                    }
-                }
-
-                // Hàm cập nhật tổng chi phí khấu trừ
-                function updateDeductionTotal(form) {
-                    const checkoutId = form.id.replace('checkoutForm', '');
-                    const totalInput = document.getElementById(`deduction_amount_total_${checkoutId}`);
-                    if (!totalInput) {
-                        console.error(`Total input with ID deduction_amount_total_${checkoutId} not found`);
-                        return;
-                    }
-                    let total = 0;
-                    form.querySelectorAll('input[name="item_cost[]"]').forEach(input => {
-                        total += parseFloat(input.value) || 0;
-                    });
-                    totalInput.value = total.toFixed(2);
-                }
-
-                // Hàm xem trước hình ảnh
-                function previewImages(input, checkoutId) {
-                    const previewContainer = document.getElementById(`image_preview_${checkoutId}`);
-                    if (!previewContainer) {
-                        console.error(`Preview container with ID image_preview_${checkoutId} not found`);
-                        return;
-                    }
-                    previewContainer.innerHTML = '';
-
-                    if (input.files) {
-                        Array.from(input.files).forEach((file, index) => {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                const div = document.createElement('div');
-                                div.className = 'col-4 mb-2';
-                                div.innerHTML = `
-                                    <div class="image-preview-item">
-                                        <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 80px; object-fit: cover;" alt="Preview">
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="removePreviewImage(this, ${index})">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                `;
-                                previewContainer.appendChild(div);
-                            };
-                            reader.readAsDataURL(file);
-                        });
-                    }
-                }
-
-                // Hàm xóa hình ảnh xem trước
-                function removePreviewImage(button, index) {
-                    const container = button.closest('.col-4');
-                    if (container) {
-                        container.remove();
-                        const fileInput = form.querySelector('input[type="file"]');
-                        if (fileInput) {
-                            const dt = new DataTransfer();
-                            const { files } = fileInput;
-                            for (let i = 0; i < files.length; i++) {
-                                if (i !== index) dt.items.add(files[i]);
-                            }
-                            fileInput.files = dt.files;
-                        }
-                        console.log(`Removed preview image at index ${index}`);
-                    } else {
-                        console.error('Could not find preview image to remove');
-                    }
-                }
-
-                // Hàm xóa hình ảnh hiện có
-                function removeExistingImage(button, imagePath, checkoutId) {
-                    if (confirm('Bạn có chắc muốn xóa hình ảnh này?')) {
-                        const container = button.closest('.col-4');
-                        if (container) {
-                            container.remove();
-                            const hiddenInput = document.createElement('input');
-                            hiddenInput.type = 'hidden';
-                            hiddenInput.name = 'images_to_delete[]';
-                            hiddenInput.value = imagePath;
-                            form.appendChild(hiddenInput);
-                            console.log(`Marked image ${imagePath} for deletion`);
-                        } else {
-                            console.error('Could not find image container to remove');
-                        }
-                    }
-                }
-
-                // Gắn sự kiện cho nút "Thêm mục"
-                const addButtons = form.querySelectorAll('.add-inventory-item');
-                if (addButtons.length > 0) {
-                    addButtons.forEach(button => {
-                        button.addEventListener('click', function () {
-                            console.log('Add button clicked for checkout ID:', this.getAttribute('data-checkout-id'));
-                            const checkoutId = this.getAttribute('data-checkout-id');
-                            addInventoryItem(checkoutId);
-                        });
-                    });
-                } else {
-                    console.error('No .add-inventory-item buttons found in form');
-                }
-
-                // Gắn sự kiện cho nút "Xóa"
-                form.querySelectorAll('.remove-inventory-item').forEach(button => {
-                    button.addEventListener('click', function () {
-                        removeInventoryItem(this);
-                        updateDeductionTotal(form);
-                    });
                 });
+            }
+        }
 
-                // Gắn sự kiện cho input hình ảnh
-                const fileInput = form.querySelector('input[type="file"]');
-                if (fileInput) {
-                    fileInput.addEventListener('change', function () {
-                        previewImages(this, form.id.replace('checkoutForm', ''));
-                    });
+        // Cập nhật tổng tiền khấu trừ
+        function updateDeductionTotal(checkoutId) {
+            const totalInput = document.getElementById(`deduction_amount_total_${checkoutId}`);
+            if (!totalInput) return;
+
+            let total = 0;
+            if (inventoryData[checkoutId]) {
+                inventoryData[checkoutId].forEach(item => {
+                    const cost = parseFloat(item.item_cost) || 0;
+                    const quantity = parseInt(item.item_quantity) || 1;
+                    total += cost * quantity;
+                });
+            }
+
+            totalInput.value = total.toFixed(2);
+        }
+
+        // Chuẩn bị dữ liệu để submit
+        function prepareFormDataForSubmit(checkoutId) {
+            const form = document.getElementById(`checkoutForm${checkoutId}`);
+            if (!form || !inventoryData[checkoutId]) return;
+
+            // Xóa các input cũ
+            const oldInputs = form.querySelectorAll('input[name^="item_"]');
+            oldInputs.forEach(input => input.remove());
+
+            // Thêm các input mới từ mảng tạm
+            inventoryData[checkoutId].forEach(item => {
+                // Chỉ thêm những item có tên
+                if (item.item_name && item.item_name.trim() !== '') {
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'hidden';
+                    nameInput.name = 'item_name[]';
+                    nameInput.value = item.item_name;
+                    form.appendChild(nameInput);
+
+                    const conditionInput = document.createElement('input');
+                    conditionInput.type = 'hidden';
+                    conditionInput.name = 'item_condition[]';
+                    conditionInput.value = item.item_condition || '';
+                    form.appendChild(conditionInput);
+
+                    // const quantityInput = document.createElement('input');
+                    // quantityInput.type = 'hidden';
+                    // quantityInput.name = 'item_quantity[]';
+                    // quantityInput.value = item.item_quantity || 1;
+                    // form.appendChild(quantityInput);
+
+                    const costInput = document.createElement('input');
+                    costInput.type = 'hidden';
+                    costInput.name = 'item_cost[]';
+                    costInput.value = item.item_cost || 0;
+                    form.appendChild(costInput);
+                }
+            });
+
+            // Thêm deduction amount
+            const totalInput = document.getElementById(`deduction_amount_total_${checkoutId}`);
+            if (totalInput) {
+                const existingInput = form.querySelector('input[name="deduction_amount"]');
+                if (existingInput) {
+                    existingInput.remove();
                 }
 
-                // Cập nhật tổng chi phí khi load trang
-                updateDeductionTotal(form);
+                const deductionInput = document.createElement('input');
+                deductionInput.type = 'hidden';
+                deductionInput.name = 'deduction_amount';
+                deductionInput.value = totalInput.value;
+                form.appendChild(deductionInput);
+            }
 
-                // Gắn sự kiện cho input chi phí
-                form.querySelectorAll('input[name="item_cost[]"]').forEach(input => {
-                    input.addEventListener('input', function () {
-                        updateDeductionTotal(form);
-                    });
-                });
+            console.log(`Prepared form data for checkout ${checkoutId}`);
+            console.log('Final inventory data:', inventoryData[checkoutId]);
+        }
 
-                // Gắn sự kiện submit form để debug
+        // Khởi tạo khi trang được load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded - Initializing checkout form with temporary storage');
+
+            // Khởi tạo dữ liệu cho tất cả các checkout form
+            document.querySelectorAll('form[id^="checkoutForm"]').forEach(form => {
+                const checkoutId = form.id.replace('checkoutForm', '');
+
+                // Lấy dữ liệu existing từ server (nếu có)
+                const existingData = getExistingInventoryData(checkoutId);
+                initializeInventoryData(checkoutId, existingData);
+
+                // Xử lý submit form
                 form.addEventListener('submit', function(e) {
-                    const formData = new FormData(this);
-                    const items = [];
-                    const itemNames = formData.getAll('item_name[]');
-                    const itemConditions = formData.getAll('item_condition[]');
-                    const itemQuantities = formData.getAll('item_quantity[]');
-                    const itemCosts = formData.getAll('item_cost[]');
+                    e.preventDefault();
 
-                    for (let i = 0; i < itemNames.length; i++) {
-                        items.push({
-                            item_name: itemNames[i],
-                            item_condition: itemConditions[i] || '',
-                            item_quantity: itemQuantities[i] || '0',
-                            item_cost: itemCosts[i] || '0'
-                        });
+                    // Kiểm tra xem có ít nhất một item không
+                    if (!inventoryData[checkoutId] || inventoryData[checkoutId].length === 0) {
+                        alert('Vui lòng thêm ít nhất một mục kiểm kê!');
+                        return;
                     }
-                    console.log('Form data to be submitted:', {
-                        item_name: formData.getAll('item_name[]'),
-                        item_condition: formData.getAll('item_condition[]'),
-                        item_quantity: formData.getAll('item_quantity[]'),
-                        item_cost: formData.getAll('item_cost[]'),
-                        all_items: items
-                    });
+
+                    // Kiểm tra xem có item nào có tên không
+                    const validItems = inventoryData[checkoutId].filter(item =>
+                        item.item_name && item.item_name.trim() !== ''
+                    );
+
+                    if (validItems.length === 0) {
+                        alert('Vui lòng nhập tên cho ít nhất một mục kiểm kê!');
+                        return;
+                    }
+
+                    // Chuẩn bị dữ liệu và submit
+                    prepareFormDataForSubmit(checkoutId);
+
+                    // Submit form
+                    this.submit();
                 });
             });
 
-            // Đưa các hàm ra phạm vi toàn cục để có thể gọi từ HTML
-            window.addInventoryItem = addInventoryItem;
-            window.removeInventoryItem = removeInventoryItem;
-            window.previewImages = previewImages;
-            window.removePreviewImage = removePreviewImage;
-            window.removeExistingImage = removeExistingImage;
+            // Add event listeners cho các nút "Thêm mục"
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-inventory-item')) {
+                    e.preventDefault();
+                    const button = e.target.closest('.add-inventory-item');
+                    const checkoutId = button.getAttribute('data-checkout-id');
+                    addInventoryItem(checkoutId);
+                }
+            });
+
+            console.log('Checkout form initialization with temporary storage completed');
         });
+
+        // Hàm helper để lấy dữ liệu existing từ server
+        function getExistingInventoryData(checkoutId) {
+            // Này sẽ được gọi từ Blade template với dữ liệu từ server
+            // Ví dụ: window.existingInventoryData[checkoutId]
+            if (window.existingInventoryData && window.existingInventoryData[checkoutId]) {
+                return window.existingInventoryData[checkoutId].map(item => ({
+                    id: Date.now() + Math.random(),
+                    item_name: item.item_name || '',
+                    item_condition: item.item_condition || '',
+                    // item_quantity: item.item_quantity || 1,
+                    item_cost: item.item_cost || 0
+                }));
+            }
+            return [];
+        }
     </script>
 @endsection
