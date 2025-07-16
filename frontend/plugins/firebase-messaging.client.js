@@ -1,5 +1,5 @@
 import { defineNuxtPlugin } from '#app';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
@@ -10,13 +10,13 @@ export default defineNuxtPlugin(nuxtApp => {
             apiKey: 'AIzaSyAnEYDqg-BwdYKJLoz1bDG1x62JnRsVVB0',
             authDomain: 'tro-viet.firebaseapp.com',
             projectId: 'tro-viet',
-            storageBucket: 'tro-viet.firebasestorage.app',
+            storageBucket: 'tro-viet.appspot.com',
             messagingSenderId: '1000506063285',
             appId: '1:1000506063285:web:47e80b8489d09c8ce8c1fc',
             measurementId: 'G-LRB092W6Y5'
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
         const messaging = getMessaging(app);
         const toast = useToast();
         const router = useRouter();

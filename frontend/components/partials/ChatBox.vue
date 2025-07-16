@@ -7,6 +7,7 @@
 
       <!-- Nội dung chat chỉ hiển thị khi không loading -->
       <template v-if="!isLoading">
+        <audio ref="notiSound" src="/sounds/notification.mp3" preload="auto"></audio>
         <!-- Header -->
         <div class="chat-header">
           <span class="chat-title">Hỗ trợ người dùng</span>
@@ -30,7 +31,13 @@
               />
 
               <div :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']">
-                <span class="chat-text">{{ msg.text }}</span>
+                <template v-if="msg.type === 'image'">
+  <img :src="msg.content" class="chat-image" />
+</template>
+<template v-else>
+  <span class="chat-text">{{ msg.text }}</span>
+</template>
+
               </div>
             </div>
           </div>
@@ -54,13 +61,25 @@
 
         <!-- Nhập tin nhắn -->
         <div class="chat-input">
-
+          
           <input
+          
             type="text"
             v-model="newMessage"
             @keyup.enter="sendMessage"
             placeholder="Nhập tin nhắn..."
           />
+           <div class="dropzone-button" @click="selectFile">
+  <i class="fa fas fa-camera"></i>
+  <input
+    ref="fileInput"
+    type="file"
+    accept="image/*"
+    style="display: none"
+    @change="handleFileUpload"
+  />
+</div>
+
           <button @click="sendMessage()">Gửi</button>
 
         </div>
@@ -78,7 +97,10 @@ import { useCookie } from '#app'
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
-import { useRouter } from 'vue-router'
+import { uploadImageToFirebase } from '~/utils/uploadImage'
+const { $firebaseStorage } = useNuxtApp()
+console.log('storage:', $firebaseStorage)
+console.log('storage type:', $firebaseStorage.constructor?.name)
 const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const currentUserId = ref(authStore.user?.id || null)
@@ -87,6 +109,7 @@ const behavior = useBehaviorStore();
 const { $api, $firebaseDb } = useNuxtApp()
 const newMessage = ref(behavior.chat || '')
 const messages = ref([])
+const notiSound = ref(null)
 const AdminId = ref(null)
 const messageContainer = ref(null)
 let unsubscribe = null // để dừng listener khi unmount
@@ -94,8 +117,35 @@ const { user } = storeToRefs(authStore)
 const config = useRuntimeConfig()
 const isLoading = ref(false);
 const rawAction = ref([])
-defineProps({
+const lastRealtime = ref((Date.now()))
+const fileInput = ref(null)
+const props = defineProps({
   isOpen:Boolean
+})
+const selectFile = () => {
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
+}
+
+const handleFileUpload = async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  try{
+    const imageUrl = await uploadImageToFirebase(file, $firebaseStorage)
+    await sendMessage({
+      content:imageUrl,
+      type:'image'
+    })
+  }catch(err){
+    console.error('Upload image error:',err)
+  }
+}
+watch(()=>props.isOpen,(open)=>{
+  if(open){
+    lastRealtime.value = Date.now()
+  }
 })
 
 const local_hint_key = computed(()=>`usedHints_${currentUserId.value}`)
@@ -119,7 +169,6 @@ const saveUserHint = (hint)=>{
 
 const route =useRoute()
 watch(newMessage,(val)=>{
-
   behavior.updateChat(val)
 })
 
@@ -151,7 +200,6 @@ const handleClick = (text,index)=>{
 }
 const send = (text) => {
   sendMessage(text)
-  console.log(text)
 }
 
 
@@ -197,11 +245,11 @@ const initChat = async () => {
     AdminId.value = res.admin_id
 
     // 2) Lấy lịch sử chat từ API (SQL)
-    const history = await $api(`/messages/history/${AdminId.value}`, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    })
+     const history = await $api(`/messages/history/${AdminId.value}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${token.value}`
+    //   }
+     })
 
     const incoming = history.data.map(msg => ({
       id: msg.id || `${msg.created_at}_${msg.sender_id}`, // fallback nếu không có id
@@ -225,14 +273,17 @@ const initChat = async () => {
       const changes = snapshot.docChanges().filter(change => change.type === 'added')
 
       const newMessages = changes.map(change => {
-        const d = change.doc.data()
-        return {
-          id: change.doc.id,
-          from: d.sender_id === currentUserId.value ? 'user' : 'admin',
-          text: d.text,
-          createdAt: d.createdAt?.seconds || Date.now()
-        }
-      })
+  const d = change.doc.data()
+  return {
+    id: change.doc.id,
+    from: d.sender_id === currentUserId.value ? 'user' : 'admin',
+    text: d.text,
+    type: d.type || 'text',
+    content: d.content || '',
+    createdAt: d.createdAt?.seconds || Date.now()
+  }
+})
+
 
       if (newMessages.length > 0) {
         const isDuplicate = (msg, list) => list.some(m => m.id === msg.id)
@@ -240,9 +291,25 @@ const initChat = async () => {
 
         messages.value = [...messages.value, ...newUniqueMessages]
         scrollToBottom()
-
-        if (newUniqueMessages.some(m => m.from === 'admin')) {
-          emit('unread')
+        const hasAdmin = newUniqueMessages.some(m => 
+          m.from === 'admin' && (typeof m.createdAt == 'number' ? m.createdAt *1000 :m.createdAt) > lastRealtime.value
+        )
+        if(hasAdmin){
+          emit ('unread')
+          const audio = notiSound.value
+          if(audio){
+            audio.currentTime = 0 
+            audio.play().catch(err=>{
+            console.warn('khong the phat am thanh',err)
+          })
+          }
+        }
+        const audio = notiSound.value
+        if(audio){
+          audio.currentTime = 0 
+          audio.play().catch(err=>{
+            console.warn('khong the phat am thanh',err)
+          })
         }
       }
     })
@@ -252,10 +319,10 @@ const initChat = async () => {
     isLoading.value = false
   }
 }
-const sendMessage = async (Textover = null) => {
+const sendMessage = async (payload = null) => {
 
-  const Rawtext =(typeof Textover === 'string' ? Textover:newMessage.value)
-
+  const Rawtext =payload?.content || newMessage.value
+  const type = payload?.type || 'image'
   const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
@@ -268,15 +335,20 @@ const sendMessage = async (Textover = null) => {
 
     // Gửi tin nhắn lên Firestore (realtime)
  await addDoc(collection($firebaseDb, 'messages'), {
-  text,
+  text: type === 'image' ? '' : text,
+  content: type === 'image' ? Rawtext : '',
+  type,
   sender_id: currentUserId.value,
   receiver_id: AdminId.value,
   createdAt: serverTimestamp(),
-  chatId
+  chatId,
+  is_read: false
 })
 
+
     // Optionally: gọi API gửi nữa nếu backend cần lưu
-    await $api('/messages/send', {
+
+    /*  await $api('/messages/send', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token.value}`,
@@ -286,8 +358,9 @@ const sendMessage = async (Textover = null) => {
         receiver_id: AdminId.value,
         message: text
       }
-    })
-    behavior.clearChat()
+    })  */
+
+    if(type ==='text') behavior.clearChat()
 
     scrollToBottom()
   } catch (err) {
@@ -299,7 +372,13 @@ onMounted(() => {
 
   initChat() 
   initActions()
-
+  
+    setTimeout(() => {
+    const audio = notiSound.value
+    if (audio) {
+      audio.play().catch(err => console.warn('Không thể phát âm thanh:', err))
+    }
+  }, 1000)
 })
 
 onBeforeUnmount(() => {
@@ -544,5 +623,35 @@ p {
     to {
         transform: rotate(360deg);
     }
+}
+.dropzone-button {
+  width: 40px;
+  height: 40px;
+  background-color: #e53935;
+  border-radius: 8px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.dropzone-button:hover {
+ background-color: #d32f2f;
+}
+.dropzone-button::before {
+  font-size: 18px;
+  color: white;
+}
+
+.dropzone .dz-message {
+  display: none !important;
+}
+.dropzone-button i {
+  color: white;
+  font-size: 15px;
+}
+.chat-image {
+  max-width: 200px;
+  border-radius: 8px;
 }
 </style>

@@ -18,10 +18,15 @@ class BlogService
     public function getAllBlogs($querySearch = null, $status = null, $sortOption = 'created_at_desc', $perPage = 10)
     {
         $query = Blog::with('author');
-          if ($querySearch) {
+
+        if ($querySearch) {
             $query->where(function ($q) use ($querySearch) {
                 $q->where('title', 'like', "%{$querySearch}%")
-                    ->orWhere('author_id', 'like', "%{$querySearch}%");
+                    ->orWhereHas(
+                        'author',
+                        fn($q2) =>
+                        $q2->where('name', 'like', "%{$querySearch}%")
+                    );
             });
         }
 
@@ -30,8 +35,17 @@ class BlogService
         }
 
         if ($sortOption) {
-            // Ví dụ: created_at_desc hoặc created_at_asc
-            [$column, $direction] = explode('_', $sortOption) + [null, 'desc'];
+            if (str_ends_with($sortOption, '_asc')) {
+                $column = substr($sortOption, 0, -4);
+                $direction = 'asc';
+            } elseif (str_ends_with($sortOption, '_desc')) {
+                $column = substr($sortOption, 0, -5);
+                $direction = 'desc';
+            } else {
+                $column = 'created_at';
+                $direction = 'desc';
+            }
+
             if (in_array($column, ['created_at', 'updated_at', 'title']) && in_array($direction, ['asc', 'desc'])) {
                 $query->orderBy($column, $direction);
             }
@@ -39,11 +53,12 @@ class BlogService
 
         return $query->paginate($perPage);
     }
+
     public function getDeleteBlogs($querySearch = null, $status = null, $sortOption = 'created_at_desc', $perPage = 10)
     {
         $query = Blog::onlyTrashed();
         // $query = Blog::with('author');
-          if ($querySearch) {
+        if ($querySearch) {
             $query->where(function ($q) use ($querySearch) {
                 $q->where('title', 'like', "%{$querySearch}%")
                     ->orWhere('author_id', 'like', "%{$querySearch}%");
@@ -125,7 +140,7 @@ class BlogService
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa bài viết'.$e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi xóa bài viết' . $e->getMessage(), 'status' => 500];
         }
     }
 
@@ -157,7 +172,7 @@ class BlogService
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi khôi phục bài viết'.$e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi khôi phục bài viết' . $e->getMessage(), 'status' => 500];
         }
     }
 
@@ -174,7 +189,12 @@ class BlogService
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi xóa bài viết vĩnh viễn'.$e->getMessage(), 'status' => 500];
+            return ['error' => 'Đã xảy ra lỗi khi xóa bài viết vĩnh viễn' . $e->getMessage(), 'status' => 500];
         }
+    }
+
+    public function detailBlog($id)
+    {
+        return Blog::find($id);
     }
 }

@@ -62,16 +62,6 @@
             <!-- Quản lý tin nhắn -->
             <a href="{{ route('messages.index') }}" class="nav-item nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"><i class="fa fa-envelope me-2"></i>
                 Tin nhắn
-                @if(isset($totalUnread) && $totalUnread > 0)
-                    <span id="navbarUnreadTotal" class="unread-badge-navbar" style="
-                    background: red;
-                    color: white;
-                    font-size: 11px;
-                    padding: 2px 6px;
-                    border-radius: 10px;
-                    margin-left: 6px;
-                    ">{{ $totalUnread }}</span>
-                @endif
             </a>
             <!-- Quản lý blog -->
             <a href="{{ route('blogs.index') }}" class="nav-item nav-link {{ request()->routeIs('blogs.*') ? 'active' : '' }}"><i class="fa fa-newspaper me-2"></i>Blog</a>

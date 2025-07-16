@@ -37,13 +37,16 @@
                             </div>
 
                             <div class="message-by">
-                                <div class="message-header">
-                                    <h5>
-                                        {{ noti.title }}
-                                        <i v-if="noti.unread">Chưa đọc</i>
-                                    </h5>
-                                    <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
-                                </div>
+                  <div class="message-header">
+                        <div class="left-side">
+                            <h5 class="message-title">{{ noti.title }}</h5>
+                        </div>
+                        <div class="right-side">
+                            <span v-if="noti.unread" class="message-status">Chưa đọc</span>
+                            <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
+                        </div>
+                        </div>
+
                                 <p>{{ noti.content }}</p>
                             </div>
                         </a>
@@ -123,17 +126,62 @@ const removeNotification = index => {
 }
 
 .message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+.left-side {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.message-header h5 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin: 0;
+.message-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+  max-height: 2.8em; /* 2 dòng */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+
+
+
+
+.right-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 80px;
+    flex-shrink: 0;
+    max-width: 100px; /* hoặc thử 80-120px */
+}
+
+
+.message-status {
+    background-color: #4caf50;
+    color: white;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.message-time {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
 }
 
 .message-header i {
@@ -182,4 +230,5 @@ const removeNotification = index => {
     text-align: center;
     height: 46px;
 }
+
 </style>

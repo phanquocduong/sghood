@@ -77,6 +77,7 @@
 <script type="module">
     import { initChat } from '/js/chat.js';
     initChat({{ auth()->id() }});
+    listenUnreadMessages();
 </script>
 <script>
     window.routes = {
