@@ -62,8 +62,9 @@
                         <tr>
                             <th scope="col">Stt</th>
                             <th scope="col">Hình ảnh</th>
-                            <th scope="col">Tiêu đề</th>
+                            <th scope="col" style="width: 30%;">Tiêu đề</th>
                             <th scope="col">Tác giả</th>
+                            <th scope="col">Thể loại</th>
                             <th scope="col">Ngày đăng</th>
                             <th scope="col">Hành động</th>
                         </tr>
@@ -86,6 +87,29 @@
                                     </td>
                                     <td><a href="{{ route('blogs.detail', $blog->id) }}">{{ $blog->title }}</a></td>
                                     <td>{{ $blog->author->name }}</td>
+                                    <td>
+                                        <form action="{{ route('blogs.updateCategory', $blog->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <select name="category" class="form-select form-select-sm"
+                                                onchange="confirmCategoryChange(this)">
+                                                <option value="news"
+                                                    {{ $blog->category == 'news' ? 'selected' : '' }}>News
+                                                </option>
+                                                <option value="guide"
+                                                    {{ $blog->category == 'guide' ? 'selected' : '' }}>Guide</option>
+                                                <option value="promotion"
+                                                    {{ $blog->category == 'promotion' ? 'selected' : '' }}>Promotion
+                                                </option>
+                                                <option value="law"
+                                                    {{ $blog->category == 'law' ? 'selected' : '' }}>Law
+                                                </option>
+                                                <option value="experience"
+                                                    {{ $blog->category == 'experience' ? 'selected' : '' }}>Experience
+                                                </option>
+                                            </select>
+                                        </form>
+                                    </td>
                                     <td>{{ $blog->created_at->format('d/m/Y') }}</td>
                                     <td>
                                         <a href="{{ route('blogs.edit', $blog->id) }}"
@@ -122,3 +146,26 @@
         </div>
     </div>
 @endsection
+@section('scripts')
+    <script>
+        function confirmCategoryChange(selectElement) {
+            const confirmed = confirm("Bạn có chắc chắn muốn thay đổi thể loại của bài viết này?");
+            if (confirmed) {
+                selectElement.form.submit();
+            } else {
+                // Reload lại trang hoặc khôi phục giá trị cũ nếu cần (tùy chọn)
+                window.location.reload(); // đơn giản
+            }
+        }
+
+        function confirmStatusChange(selectElement) {
+            const confirmed = confirm("Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?");
+            if (confirmed) {
+                selectElement.form.submit();
+            } else {
+                window.location.reload();
+            }
+        }
+    </script>
+@endsection
+

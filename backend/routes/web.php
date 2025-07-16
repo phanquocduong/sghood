@@ -20,6 +20,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
+use App\Models\Blog;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -186,9 +187,9 @@ Route::middleware('admin')->group(function () {
         Route::patch('/restore/{id}', [BlogController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
         Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
-
+        Route::patch('/{id}/update-cate', [BlogController::class, 'updateCategory'])->name('updateCategory');
     });
-    Route::prefix('CKEditors')->name('ckeditors.')->group(function() {
+    Route::prefix('CKEditors')->name('ckeditors.')->group(function () {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
     });
     Route::get('/contracts/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])

@@ -137,4 +137,17 @@ class BlogController extends Controller
         $blogs = $this->blogService->detailBlog($id);
         return view('blogs.detail_blog', compact('blogs'));
     }
+    public function updateCategory(Request $request, $id)
+    {
+        $request->validate([
+            'category' => 'required|in:news,guide,promotion,law,experience',
+        ]);
+
+        $blog = Blog::findOrFail($id);
+
+        $blog->category = $request->category;
+        $blog->save();
+
+        return back()->with('success', 'Cập nhật thể loại bài viết thành công.');
+    }
 }

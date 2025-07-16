@@ -35,7 +35,17 @@ class BlogService
         }
 
         if ($sortOption) {
-            [$column, $direction] = explode('_', $sortOption) + [null, 'desc'];
+            if (str_ends_with($sortOption, '_asc')) {
+                $column = substr($sortOption, 0, -4);
+                $direction = 'asc';
+            } elseif (str_ends_with($sortOption, '_desc')) {
+                $column = substr($sortOption, 0, -5);
+                $direction = 'desc';
+            } else {
+                $column = 'created_at';
+                $direction = 'desc';
+            }
+
             if (in_array($column, ['created_at', 'updated_at', 'title']) && in_array($direction, ['asc', 'desc'])) {
                 $query->orderBy($column, $direction);
             }
