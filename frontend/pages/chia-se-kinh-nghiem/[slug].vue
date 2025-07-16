@@ -52,7 +52,6 @@
                   <span class="blog-item-tag">Liên quan</span>
                   <div class="blog-compact-item-content">
                     <h3>{{ item.title }}</h3>
-                    <p>{{ item.excerpt }}</p>
                   </div>
                 </div>
               </a>
@@ -81,15 +80,18 @@
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
               <ul class="widget-tabs">
-                <li v-for="popular in relatedPosts.slice(0, 100)" :key="popular.id">
+                <li v-for="post in popularPosts" :key="post.id">
                   <div class="widget-content">
                     <div class="widget-thumb">
-                      <a :href="popular.url"><img :src="popular.thumbnail" alt=""></a>
+                      <NuxtLink :to="post.url">
+                        <img :src="post.thumbnail" :alt="post.title" />
+                      </NuxtLink>
                     </div>
                     <div class="widget-text">
-                      <h5><a :href="popular.url">{{ popular.title }}</a></h5>
-                      <span>{{ popular.date }}</span>
+                      <h5><NuxtLink :to="post.url">{{ post.title }}</NuxtLink></h5>
+                      <span>{{ post.date }}</span>
                     </div>
+                    <div class="clearfix"></div>
                   </div>
                 </li>
               </ul>
@@ -120,7 +122,9 @@ const blog = ref((null))
 const loading = ref(false)
 const {$api} = useNuxtApp()
 const relatedPosts = ref([])
+const popularPosts = ref([])
 const baseUrl = useRuntimeConfig().public.baseUrl;
+const hasIncreasedView = ref(false)
 const fetchBlogs = async(slug)=>{
   loading.value = true
   try{
@@ -131,16 +135,29 @@ const fetchBlogs = async(slug)=>{
         'Content-Type': 'application/json',
       },
     })
+    const fixedContent = (res.data.content || ' ')
+    .replace(/src=['"]\/storage/g,`src="${baseUrl}/storage/`)
     blog.value = {
         id: res.data.id,
       title: res.data.title,
       thumbnail: res.data.thumbnail?.startsWith('/storage') ? baseUrl + res.data.thumbnail : res.data.thumbnail,
-      content: res.data.content,
+      content: fixedContent,
       date: res.data.created_at,
       category: res.data.category || 'Tin tức',
       
     }
-    relatedPosts.value = res.related.map( g => ({
+    console.log('fetchblogs',res)
+    if(!hasIncreasedView.value){
+        await $api(`/blogs/${res.data.id}/increase-view`,{
+        method:'POST',
+        headers:{
+          'Content-Type': 'application/json',
+        }
+
+      })
+      hasIncreasedView.value = true
+    }
+    relatedPosts.value = (res.data.related || []).map( g => ({
        id: g.id,
       title: g.title,
       thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
@@ -154,9 +171,62 @@ const fetchBlogs = async(slug)=>{
     loading.value = false
   }
 }
-onMounted(()=>{
-  fetchBlogs()
+const FetchPopularPosts = async ()=>{ 
+
+  try{
+    const res = await $api(`/blogs/popular`,{
+      method:'GET',
+      headers:{
+        'Content-Type': 'application/json',
+      },
+      
+    })
+    
+    popularPosts.value = res.map( g => ({
+      id : g.id,
+      title :g.title,
+     thumbnail: g.thumbnail?.startsWith('/storage')
+    ? baseUrl + g.thumbnail
+    : g.thumbnail,
+      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+    }))
+  }catch(e){
+    console.log('sai o dau do', e)
+  }
+}
+const fetchRelatedPosts = async(id)=>{
+  
+  try{
+    const res = await $api(`blogs/${id}/related`,{
+      method:'GET',
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    })
+    console.log(res)
+    relatedPosts.value = res.slice(0,2).map( g => ({
+      id: g.id,
+      title: g.title,
+      thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
+      excerpt: g.excerpt || (typeof g.content === 'string' ? g.content.slice(0, 100) + '...' : ''),
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+      date: g.created_at
+    }))
+  }catch(e){
+    console.log('sai o dau do', e)
+  }
+}
+onMounted(async()=>{
+  await fetchBlogs()
+  await FetchPopularPosts()
+  if(blog.value?.id){
+  await  fetchRelatedPosts(blog.value.id)
+  }
 })
+function stripHtml(html = '') {
+  return html.replace(/<[^>]*>/g, '')
+}
 </script>
 
 <style scoped>
