@@ -19,9 +19,16 @@ class BlogController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $blogs
+            'data' => $blogs->items(),
+            'current_page' => $blogs->currentPage(),
+            'last_page' => $blogs->lastPage(),
+            'next_page_url' => $blogs->nextPageUrl(),
+            'prev_page_url' => $blogs->previousPageUrl(),
+            'per_page' => $blogs->perPage(),
+            'total' => $blogs->total(),
         ]);
     }
+
 
     public function showBlog($slug)
     {
