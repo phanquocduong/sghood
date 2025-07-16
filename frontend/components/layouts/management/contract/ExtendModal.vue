@@ -25,7 +25,7 @@
                         </select>
                     </div>
                     <p><strong>Ngày kết thúc mới:</strong> {{ formatDate(calculatedNewEndDate) }}</p>
-                    <p><strong>Giá thuê phòng mới:</strong> {{ formatPrice(contract.room_price) }}đ</p>
+                    <p><strong>Giá thuê phòng mới:</strong> {{ formatPrice(contract.room_price) }}</p>
                     <p>Các điều khoản khác của hợp đồng gốc vẫn giữ nguyên hiệu lực.</p>
                 </div>
             </div>

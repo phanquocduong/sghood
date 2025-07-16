@@ -7,9 +7,9 @@ use App\Models\Transaction;
 class TransactionService
 {
     /**
-     * Lấy danh sách giao dịch của user với bộ lọc
+     * Lấy danh sách giao dịch của user với bộ lọc và phân trang
      */
-    public function getUserTransactions($userId, array $filters)
+    public function getUserTransactions($userId, array $filters, $perPage = 10)
     {
         $query = Transaction::query()
             ->select([
@@ -43,7 +43,10 @@ class TransactionService
                 break;
         }
 
-        return $query->get()->map(function ($transaction) {
+        // Sử dụng paginate thay vì get
+        $transactions = $query->paginate($perPage);
+
+        return $transactions->through(function ($transaction) {
             return [
                 'id' => $transaction->id,
                 'transaction_date' => $transaction->transaction_date,

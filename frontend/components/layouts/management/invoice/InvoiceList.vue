@@ -6,10 +6,8 @@
         <ul>
             <li v-for="item in items" :key="item.id">
                 <i class="list-box-icon sl sl-icon-doc"></i>
-                <strong v-if="item.type === 'Hàng tháng'"
-                    >Tiền {{ item.contract.room.name }} tháng {{ item.month }} năm {{ item.year }}</strong
-                >
-                <strong v-else>Đặt cọc {{ item.contract.room.name }} theo hợp đồng #{{ item.contract.room.id }}</strong>
+                <strong v-if="item.type === 'Hàng tháng'">Tiền phòng trọ tháng {{ item.month }}/{{ item.year }}</strong>
+                <strong v-else>Đặt cọc hợp đồng</strong>
                 <ul>
                     <li :class="getStatusClass(item.status)">{{ item.status }}</li>
                     <li>Mã: {{ item.code }}</li>

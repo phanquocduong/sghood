@@ -4,6 +4,7 @@ namespace App\Services\Apis;
 
 use App\Models\Contract;
 use App\Models\Invoice;
+use App\Models\MeterReading;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
@@ -46,14 +47,15 @@ class InvoiceService
         }
     }
 
-   /**
-     * Lấy danh sách hóa đơn của user hiện tại với bộ lọc và sắp xếp
+    /**
+     * Lấy danh sách hóa đơn của user hiện tại với bộ lọc và phân trang
      *
      * @param array $filters
-     * @return Collection
+     * @param int $perPage
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      * @throws \Exception
      */
-    public function getUserInvoices(array $filters = []): Collection
+    public function getUserInvoices(array $filters = [], $perPage = 10): \Illuminate\Pagination\LengthAwarePaginator
     {
         try {
             $userId = Auth::id();
@@ -125,19 +127,13 @@ class InvoiceService
                 }
             }
 
-            return $query->get();
+            // Sử dụng paginate thay vì get
+            return $query->paginate($perPage);
         } catch (\Exception $e) {
             throw new \Exception('Lỗi khi lấy danh sách hóa đơn: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Lấy chi tiết một hóa đơn theo ID
-     *
-     * @param string $code
-     * @return Invoice
-     * @throws \Exception
-     */
     public function getInvoiceById(string $code): Invoice
     {
         try {
@@ -153,20 +149,26 @@ class InvoiceService
                 })
                 ->with([
                     'contract' => function ($query) {
-                        $query->select('id', 'room_id', 'user_id', 'booking_id', 'start_date', 'end_date', 'deposit_amount');
+                        $query->select('id', 'room_id', 'user_id', 'booking_id', 'start_date', 'end_date', 'deposit_amount', 'rental_price');
                     },
                     'contract.room' => function ($query) {
-                        $query->select('id', 'name'); // Giả sử model Room có trường 'name'
+                        $query->select('id', 'name', 'motel_id');
+                    },
+                    'contract.room.motel' => function ($query) {
+                        $query->select('id', 'electricity_fee', 'water_fee', 'parking_fee', 'junk_fee', 'internet_fee', 'service_fee');
                     },
                     'contract.user' => function ($query) {
-                        $query->select('id', 'name', 'email', 'phone'); // Giả sử model User có trường 'phone'
+                        $query->select('id', 'name', 'email', 'phone');
                     },
-                    'meterReading'
+                    'meterReading' => function ($query) {
+                        $query->select('id', 'room_id', 'month', 'year', 'electricity_kwh', 'water_m3');
+                    }
                 ])
                 ->select([
                     'id',
                     'code',
                     'contract_id',
+                    'meter_reading_id',
                     'type',
                     'month',
                     'year',
@@ -182,12 +184,46 @@ class InvoiceService
                 ])
                 ->firstOrFail();
 
+            // Gán chỉ số tháng trước vào thuộc tính tạm thời trên $invoice
+            if ($invoice->meterReading && $invoice->type === 'Hàng tháng') {
+                $prevReading = $this->getPreviousMeterReading($invoice->contract->room_id, $invoice->month, $invoice->year);
+                $invoice->prev_electricity_kwh = $prevReading ? $prevReading->electricity_kwh : 0;
+                $invoice->prev_water_m3 = $prevReading ? $prevReading->water_m3 : 0;
+            } else {
+                $invoice->prev_electricity_kwh = 0;
+                $invoice->prev_water_m3 = 0;
+            }
+
             return $invoice;
         } catch (ModelNotFoundException $e) {
             throw new \Exception('Hóa đơn không tồn tại hoặc bạn không có quyền truy cập.');
         } catch (\Exception $e) {
             throw new \Exception('Lỗi khi lấy chi tiết hóa đơn: ' . $e->getMessage());
         }
+    }
+    /**
+     * Lấy chỉ số đồng hồ tháng trước
+     *
+     * @param int $roomId
+     * @param int $month
+     * @param int $year
+     * @return MeterReading|null
+     */
+    private function getPreviousMeterReading(int $roomId, int $month, int $year): ?MeterReading
+    {
+        // Tính tháng trước
+        $prevMonth = $month - 1;
+        $prevYear = $year;
+
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear = $year - 1;
+        }
+
+        return MeterReading::where('room_id', $roomId)
+            ->where('month', $prevMonth)
+            ->where('year', $prevYear)
+            ->first();
     }
 
     public function createDepositInvoice(Contract $contract): Invoice

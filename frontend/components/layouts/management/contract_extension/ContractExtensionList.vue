@@ -18,7 +18,7 @@
                         <div class="inner-booking-list">
                             <h5>Hợp đồng:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ extension.contract_id }}</li>
+                                <li class="highlighted">#{{ extension.contract_id }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
