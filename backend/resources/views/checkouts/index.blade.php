@@ -3,6 +3,8 @@
 @section('title', 'Quản lý Checkout')
 
 @section('content')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="{{ asset('css/checkout.css') }}">
     <div class="container-fluid py-5 px-4">
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
@@ -42,6 +44,8 @@
                                 <option value="Chờ kiểm kê"
                                     {{ request('inventory_status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
                                     kiểm kê</option>
+                                <option value="Kiểm kê lại"
+                                    {{ request('inventory_status') == 'Kiểm kê lại' ? 'selected' : '' }}>Kiểm kê lại</option>
                                 <option value="Đã kiểm kê"
                                     {{ request('inventory_status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
                                     kê</option>
@@ -117,9 +121,14 @@
                                                 <i class="fas fa-edit me-1"></i>Sửa
                                             </button>
                                         @else
-                                            <button type="button" class="btn btn-secondary btn-sm shadow-sm" disabled>
-                                                <i class="fas fa-lock me-1"></i>Đã hoàn thành
-                                            </button>
+                                            @if ($checkout->user_confirmation_status === 'Từ chối')
+                                                <button type="button" class="btn btn-danger btn-sm shadow-sm"
+                                                    onclick="changeToReInventory({{ $checkout->id }})">
+                                                    <i class="fas fa-redo me-1"></i>Kiểm kê lại
+                                                </button>
+                                            @else
+                                                <span class="text-muted small">Đã hoàn thành</span>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>
@@ -165,7 +174,7 @@
                                                                         </p>
                                                                         <p class="mb-1">
                                                                             <strong>Chi phí:</strong>
-                                                                            {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : 'N/A' }}
+                                                                            {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : '0' }}
                                                                             VNĐ
                                                                         </p>
                                                                     </div>
@@ -259,14 +268,19 @@
                                                         <select class="form-select"
                                                             id="inventory_status{{ $checkout->id }}" name="status"
                                                             required>
-                                                            <option value="Chờ kiểm kê"
-                                                                {{ $checkout->inventory_status == 'Chờ kiểm kê' ? 'selected' : '' }}>
-                                                                Chờ kiểm kê
+                                                            @if($checkout->inventory_status == 'Chờ kiểm kê')
+                                                                <option value="Chờ kiểm kê" selected>Chờ kiểm kê</option>
+                                                                <option value="Đã kiểm kê">Đã kiểm kê</option>
+                                                            @else
+                                                            <option value="Kiểm kê lại"
+                                                                {{ $checkout->inventory_status == 'Kiểm kê lại' ? 'selected' : '' }}>
+                                                                Kiểm kê lại
                                                             </option>
                                                             <option value="Đã kiểm kê"
                                                                 {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
                                                                 Đã kiểm kê
                                                             </option>
+                                                            @endif
                                                         </select>
                                                         @error('inventory_status')
                                                             <div class="text-danger small">{{ $message }}</div>
@@ -404,498 +418,4 @@
         </div>
     </div>
 @endsection
-
-@section('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <style>
-        /* Additional styles for checkout form */
-        .inventory-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-            margin-bottom: 10px;
-        }
-
-        .inventory-item:hover {
-            background: #e9ecef;
-            border-color: #ced4da;
-        }
-
-        #inventory_json_display_{{ $checkout->id }} {
-            background: #f8f9fa !important;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .json-display {
-            background: #f8f9fa !important;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .image-preview-item {
-            position: relative;
-            margin-bottom: 10px;
-        }
-
-        .image-preview-item .btn-danger {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            padding: 2px 6px;
-            font-size: 12px;
-        }
-
-        .inventory-controls {
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            margin-bottom: 15px;
-        }
-
-        .inventory-summary {
-            background: #e3f2fd;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .inventory-summary h6 {
-            color: #1976d2;
-            margin-bottom: 5px;
-        }
-
-        .btn-add-item {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .btn-add-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-
-        .form-control-sm:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-
-        .inventory-item .btn-danger {
-            transition: all 0.3s ease;
-        }
-
-        .inventory-item .btn-danger:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-        }
-
-        /* Animation cho các item mới */
-        .inventory-item.fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-
-            .inventory-item .row .col-md-1,
-            .inventory-item .row .col-md-2,
-            .inventory-item .row .col-md-3 {
-                margin-bottom: 8px;
-            }
-
-            .json-display {
-                font-size: 10px;
-                max-height: 150px;
-            }
-        }
-    </style>
-@endsection
-
-@section('scripts')
-    <script>
-        // Biến tạm để lưu trữ dữ liệu inventory cho mỗi checkout
-        let inventoryData = {};
-
-        // Hàm xóa hình ảnh hiện tại
-        function removeExistingImage(button, imagePath, checkoutId) {
-            // Xác nhận trước khi xóa
-            if (!confirm('Bạn có chắc chắn muốn xóa hình ảnh này không?')) {
-                return;
-            }
-
-            const imageContainer = button.closest('.col-4');
-            const hiddenInput = imageContainer.querySelector('input[name="existing_images[]"]');
-
-            // Xóa hidden input để không gửi image này lên server
-            if (hiddenInput) {
-                hiddenInput.remove();
-            }
-
-            // Tạo input để đánh dấu image này cần xóa
-            const form = document.getElementById(`checkoutForm${checkoutId}`);
-            const deleteInput = document.createElement('input');
-            deleteInput.type = 'hidden';
-            deleteInput.name = 'deleted_images[]';
-            deleteInput.value = imagePath;
-            form.appendChild(deleteInput);
-
-            // Ẩn container thay vì xóa luôn (để tránh bug)
-            imageContainer.style.display = 'none';
-        }
-
-        // Hàm preview hình ảnh
-        function previewImages(input, checkoutId) {
-            const previewContainer = document.getElementById(`image_preview_${checkoutId}`);
-
-            if (!previewContainer) return;
-
-            // Clear existing previews
-            previewContainer.innerHTML = '';
-
-            if (input.files && input.files.length > 0) {
-                Array.from(input.files).forEach((file, index) => {
-                    const reader = new FileReader();
-
-                    reader.onload = function(e) {
-                        const col = document.createElement('div');
-                        col.className = 'col-4 mb-2';
-
-                        col.innerHTML = `
-                            <div class="image-preview-item">
-                                <img src="${e.target.result}"
-                                     class="img-fluid rounded"
-                                     style="max-height: 80px; object-fit: cover; width: 100%;"
-                                     alt="Preview">
-                                <button type="button"
-                                        class="btn btn-sm btn-danger position-absolute top-0 end-0"
-                                        onclick="removeNewImage(this, ${index}, ${checkoutId})">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        `;
-
-                        previewContainer.appendChild(col);
-                    };
-
-                    reader.readAsDataURL(file);
-                });
-            }
-        }
-
-        // Hàm xóa hình ảnh mới
-        function removeNewImage(button, imageIndex, checkoutId) {
-            // Xác nhận trước khi xóa
-            if (!confirm('Bạn có chắc chắn muốn xóa hình ảnh này không?')) {
-                return;
-            }
-
-            const imageContainer = button.closest('.col-4');
-            const fileInput = document.querySelector(`#images_input_${checkoutId}`);
-
-            // Xóa preview
-            imageContainer.remove();
-
-            // Tạo lại file input để loại bỏ file đã chọn
-            if (fileInput) {
-                const dt = new DataTransfer();
-                const files = fileInput.files;
-
-                for (let i = 0; i < files.length; i++) {
-                    if (i !== imageIndex) {
-                        dt.items.add(files[i]);
-                    }
-                }
-
-                fileInput.files = dt.files;
-            }
-        }
-
-        // Khởi tạo dữ liệu inventory cho một checkout
-        function initializeInventoryData(checkoutId, existingData = null) {
-            if (!inventoryData[checkoutId]) {
-                inventoryData[checkoutId] = existingData || [];
-            }
-            updateInventoryDisplay(checkoutId);
-            updateDeductionTotal(checkoutId);
-        }
-
-        // Thêm một item mới vào mảng tạm
-        function addInventoryItem(checkoutId) {
-            if (!inventoryData[checkoutId]) {
-                inventoryData[checkoutId] = [];
-            }
-
-            const newItem = {
-                id: Date.now() + Math.random(), // Tạo ID tạm thời
-                item_name: '',
-                item_condition: '',
-                item_cost: 0
-            };
-
-            inventoryData[checkoutId].push(newItem);
-            updateInventoryDisplay(checkoutId);
-            updateDeductionTotal(checkoutId);
-
-            console.log(`Added new item to checkout ${checkoutId}:`, newItem);
-            console.log(`Current inventory data for checkout ${checkoutId}:`, inventoryData[checkoutId]);
-        }
-
-        // Xóa item khỏi mảng tạm
-        function removeInventoryItem(checkoutId, itemId) {
-            // Xác nhận trước khi xóa
-            if (!confirm('Bạn có chắc chắn muốn xóa mục này không?')) {
-                return;
-            }
-
-            if (inventoryData[checkoutId]) {
-                inventoryData[checkoutId] = inventoryData[checkoutId].filter(item => item.id !== itemId);
-                updateInventoryDisplay(checkoutId);
-                updateDeductionTotal(checkoutId);
-
-                console.log(`Removed item ${itemId} from checkout ${checkoutId}`);
-                console.log(`Current inventory data for checkout ${checkoutId}:`, inventoryData[checkoutId]);
-            }
-        }
-
-        // Cập nhật dữ liệu item trong mảng tạm
-        function updateInventoryItem(checkoutId, itemId, field, value) {
-            if (inventoryData[checkoutId]) {
-                const item = inventoryData[checkoutId].find(item => item.id === itemId);
-                if (item) {
-                    item[field] = field === 'item_cost' ? parseFloat(value) || 0 : value;
-                    updateDeductionTotal(checkoutId);
-
-                    console.log(`Updated item ${itemId} in checkout ${checkoutId}:`, item);
-                }
-            }
-        }
-
-        // Hiển thị dữ liệu inventory từ mảng tạm
-        function updateInventoryDisplay(checkoutId) {
-            const container = document.getElementById(`inventory_items_container_${checkoutId}`);
-            const jsonDisplay = document.getElementById(`inventory_json_display_${checkoutId}`);
-
-            if (!container) return;
-
-            // Clear container
-            container.innerHTML = '';
-
-            // Hiển thị JSON data
-            if (jsonDisplay) {
-                jsonDisplay.textContent = JSON.stringify(inventoryData[checkoutId] || [], null, 2);
-            }
-
-            // Tạo lại các input field
-            if (inventoryData[checkoutId]) {
-                inventoryData[checkoutId].forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'inventory-item mb-2';
-                    div.dataset.itemId = item.id;
-
-                    div.innerHTML = `
-                        <div class="row g-2">
-                            <div class="col-md-5">
-                                <input type="text"
-                                       class="form-control form-control-sm"
-                                       value="${item.item_name || ''}"
-                                       placeholder="Tên mục"
-                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_name', this.value)" requied>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="text"
-                                       class="form-control form-control-sm"
-                                       value="${item.item_condition || ''}"
-                                       placeholder="Tình trạng"
-                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_condition', this.value)">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number"
-                                       class="form-control form-control-sm"
-                                       value="${item.item_cost || 0}"
-                                       placeholder="Chi phí (VNĐ)"
-                                       step="0.01"
-                                       min="0"
-                                       onchange="updateInventoryItem(${checkoutId}, ${item.id}, 'item_cost', this.value)">
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="removeInventoryItem(${checkoutId}, ${item.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-
-                    container.appendChild(div);
-                });
-            }
-        }
-
-        // Cập nhật tổng tiền khấu trừ
-        function updateDeductionTotal(checkoutId) {
-            const totalInput = document.getElementById(`deduction_amount_total_${checkoutId}`);
-            if (!totalInput) return;
-
-            let total = 0;
-            if (inventoryData[checkoutId]) {
-                inventoryData[checkoutId].forEach(item => {
-                    const cost = parseFloat(item.item_cost) || 0;
-                    total += cost;
-                });
-            }
-
-            totalInput.value = total.toFixed(2);
-        }
-
-        // Chuẩn bị dữ liệu để submit
-        function prepareFormDataForSubmit(checkoutId) {
-            const form = document.getElementById(`checkoutForm${checkoutId}`);
-            if (!form || !inventoryData[checkoutId]) return;
-
-            // Xóa các input cũ
-            const oldInputs = form.querySelectorAll('input[name^="item_"]');
-            oldInputs.forEach(input => input.remove());
-
-            // Thêm các input mới từ mảng tạm
-            inventoryData[checkoutId].forEach(item => {
-                // Chỉ thêm những item có tên
-                if (item.item_name && item.item_name.trim() !== '') {
-                    const nameInput = document.createElement('input');
-                    nameInput.type = 'hidden';
-                    nameInput.name = 'item_name[]';
-                    nameInput.value = item.item_name;
-                    form.appendChild(nameInput);
-
-                    const conditionInput = document.createElement('input');
-                    conditionInput.type = 'hidden';
-                    conditionInput.name = 'item_condition[]';
-                    conditionInput.value = item.item_condition || '';
-                    form.appendChild(conditionInput);
-
-                    const costInput = document.createElement('input');
-                    costInput.type = 'hidden';
-                    costInput.name = 'item_cost[]';
-                    costInput.value = item.item_cost || 0;
-                    form.appendChild(costInput);
-                }
-            });
-
-            // Thêm deduction amount
-            const totalInput = document.getElementById(`deduction_amount_total_${checkoutId}`);
-            if (totalInput) {
-                const existingInput = form.querySelector('input[name="deduction_amount"]');
-                if (existingInput) {
-                    existingInput.remove();
-                }
-
-                const deductionInput = document.createElement('input');
-                deductionInput.type = 'hidden';
-                deductionInput.name = 'deduction_amount';
-                deductionInput.value = totalInput.value;
-                form.appendChild(deductionInput);
-            }
-
-            console.log(`Prepared form data for checkout ${checkoutId}`);
-            console.log('Final inventory data:', inventoryData[checkoutId]);
-        }
-
-        // Khởi tạo khi trang được load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded - Initializing checkout form with temporary storage');
-
-            // Khởi tạo dữ liệu cho tất cả các checkout form
-            document.querySelectorAll('form[id^="checkoutForm"]').forEach(form => {
-                const checkoutId = form.id.replace('checkoutForm', '');
-
-                // Lấy dữ liệu existing từ server (nếu có)
-                const existingData = getExistingInventoryData(checkoutId);
-                initializeInventoryData(checkoutId, existingData);
-
-                // Xử lý submit form
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    // Kiểm tra xem có ít nhất một item không
-                    if (!inventoryData[checkoutId] || inventoryData[checkoutId].length === 0) {
-                        alert('Vui lòng thêm ít nhất một mục kiểm kê!');
-                        return;
-                    }
-
-                    // Kiểm tra xem có item nào có tên không
-                    const validItems = inventoryData[checkoutId].filter(item =>
-                        item.item_name && item.item_name.trim() !== ''
-                    );
-
-                    if (validItems.length === 0) {
-                        alert('Vui lòng nhập tên cho ít nhất một mục kiểm kê!');
-                        return;
-                    }
-
-                    // Chuẩn bị dữ liệu và submit
-                    prepareFormDataForSubmit(checkoutId);
-
-                    // Submit form
-                    this.submit();
-                });
-            });
-
-            // Add event listeners cho các nút "Thêm mục"
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.add-inventory-item')) {
-                    e.preventDefault();
-                    const button = e.target.closest('.add-inventory-item');
-                    const checkoutId = button.getAttribute('data-checkout-id');
-                    addInventoryItem(checkoutId);
-                }
-            });
-
-            console.log('Checkout form initialization with temporary storage completed');
-        });
-
-        // Hàm helper để lấy dữ liệu existing từ server
-        function getExistingInventoryData(checkoutId) {
-            // Này sẽ được gọi từ Blade template với dữ liệu từ server
-            // Ví dụ: window.existingInventoryData[checkoutId]
-            if (window.existingInventoryData && window.existingInventoryData[checkoutId]) {
-                return window.existingInventoryData[checkoutId].map(item => ({
-                    id: Date.now() + Math.random(),
-                    item_name: item.item_name || '',
-                    item_condition: item.item_condition || '',
-                    item_cost: item.item_cost || 0
-                }));
-            }
-            return [];
-        }
-    </script>
-@endsection
+<script src="{{ asset('js/checkout.js') }}"></script>

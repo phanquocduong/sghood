@@ -215,7 +215,8 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::get('/{id}', [CheckoutController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [CheckoutController::class, 'update'])->name('update');
+        Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
+        Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
     });
 });
 

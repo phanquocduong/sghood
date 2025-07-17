@@ -49,4 +49,14 @@ class CheckoutController extends Controller
             return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
+    public function reInventory($id)
+    {
+        try {
+            $checkout = $this->checkoutService->reInventoryCheckout($id);
+
+            return redirect()->back()->with('success', 'Đã chuyển trạng thái checkout sang "Kiểm kê lại" thành công.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
 }

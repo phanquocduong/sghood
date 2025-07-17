@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Checkout;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class CheckoutService
 {
@@ -39,51 +40,109 @@ class CheckoutService
 
     public function updateCheckout($id, array $data)
     {
-        $checkout = Checkout::findOrFail($id);
+        return DB::transaction(function () use ($id, $data) {
+            $checkout = Checkout::findOrFail($id);
 
-        // Log dữ liệu đầu vào để debug
-        Log::info('Incoming data in CheckoutService:', $data);
+            // Xử lý inventory details
+            $inventoryDetails = [];
+            $deductionAmount = 0;
 
-        // Xử lý inventory details
-        $inventoryDetails = [];
-        $deductionAmount = 0;
+            if (isset($data['item_name']) && is_array($data['item_name'])) {
+                foreach ($data['item_name'] as $index => $name) {
+                    $name = trim($name);
+                    if ($name === '') {
+                        continue;
+                    }
 
-        // Kiểm tra nếu có dữ liệu item_name được gửi
-        if (isset($data['item_name']) && is_array($data['item_name'])) {
-            foreach ($data['item_name'] as $index => $name) {
-                $name = trim($name);
-                // Bỏ qua nếu tên mục rỗng
-                if ($name === '') {
-                    Log::warning('Skipped empty item name at index:', ['index' => $index]);
-                    continue;
+                    $itemCost = isset($data['item_cost'][$index]) ? (float) $data['item_cost'][$index] : 0;
+                    $itemQuantity = isset($data['item_quantity'][$index]) ? (int) $data['item_quantity'][$index] : 1;
+
+                    $inventoryDetails[] = [
+                        'item_name' => $name,
+                        'item_condition' => isset($data['item_condition'][$index]) ? trim($data['item_condition'][$index]) : '',
+                        'item_quantity' => $itemQuantity,
+                        'item_cost' => $itemCost,
+                    ];
+
+                    $deductionAmount += $itemCost * $itemQuantity;
+
+                    Log::info('Processed item ' . ($index + 1) . ':', [
+                        'name' => $name,
+                        'condition' => $data['item_condition'][$index] ?? '',
+                        'quantity' => $itemQuantity,
+                        'cost' => $itemCost,
+                    ]);
                 }
-
-                $itemCost = isset($data['item_cost'][$index]) ? (float) $data['item_cost'][$index] : 0;
-                $itemQuantity = isset($data['item_quantity'][$index]) ? (int) $data['item_quantity'][$index] : 1;
-
-                $inventoryDetails[] = [
-                    'item_name' => $name,
-                    'item_condition' => isset($data['item_condition'][$index]) ? trim($data['item_condition'][$index]) : '',
-                    'item_quantity' => $itemQuantity,
-                    'item_cost' => $itemCost,
-                ];
-                $deductionAmount += $itemCost * $itemQuantity;
-
-                Log::info('Processed item:', [
-                    'index' => $index,
-                    'name' => $name,
-                    'cost' => $itemCost,
-                    'quantity' => $itemQuantity,
-                ]);
             }
-        } else {
-            Log::warning('No item_name array provided in data:', $data);
-        }
 
-        // Xử lý hình ảnh
+            // Xử lý hình ảnh
+            $finalImages = $this->processImages($checkout, $data);
+
+            // Chuẩn bị dữ liệu để cập nhật
+            $updateData = [
+                'check_out_date' => $data['check_out_date'],
+                'has_left' => (int) $data['has_left'],
+                'inventory_status' => $data['status'],
+                'deduction_amount' => $deductionAmount,
+                'images' => !empty($finalImages) ? $finalImages : null,
+                'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
+                'updated_at' => now(),
+            ];
+
+            // Xử lý logic chuyển đổi user_confirmation_status
+            $this->handleUserConfirmationStatusTransition($checkout, $data['status'], $updateData);
+
+
+            // Cập nhật checkout
+            $updated = $checkout->update($updateData);
+
+            if ($updated) {
+                Log::info('Checkout updated successfully');
+                Log::info('Final checkout data:', $checkout->fresh()->toArray());
+            } else {
+                Log::error('Failed to update checkout');
+            }
+
+            Log::info('=== CHECKOUT UPDATE END ===');
+
+            return $checkout->fresh();
+        });
+    }
+
+    /**
+     * Xử lý logic chuyển đổi user_confirmation_status
+     */
+    private function handleUserConfirmationStatusTransition($checkout, $newStatus, &$updateData)
+    {
+        $currentStatus = $checkout->inventory_status;
+        $currentUserConfirmationStatus = $checkout->user_confirmation_status;
+
+
+        if ($currentStatus === 'Kiểm kê lại' &&
+            $newStatus === 'Đã kiểm kê' &&
+            $currentUserConfirmationStatus === 'Từ chối') {
+
+            $updateData['user_confirmation_status'] = 'Chưa xác nhận';
+
+            Log::info('User confirmation status changed:', [
+                'from' => $currentUserConfirmationStatus,
+                'to' => 'Chờ xác nhận',
+                'reason' => 'Status transition from "Kiểm kê lại" to "Đã kiểm kê"'
+            ]);
+        }
+    }
+
+    private function processImages($checkout, $data)
+    {
         $existingImages = $checkout->images ?? [];
-        $imagesToDelete = $data['images_to_delete'] ?? [];
+        $imagesToDelete = $data['deleted_images'] ?? [];
         $existingImagesKept = $data['existing_images'] ?? [];
+
+        Log::info('Processing images:', [
+            'existing' => $existingImages,
+            'to_delete' => $imagesToDelete,
+            'kept' => $existingImagesKept,
+        ]);
 
         // Xóa hình ảnh được yêu cầu
         foreach ($imagesToDelete as $imageToDelete) {
@@ -92,7 +151,7 @@ class CheckoutService
                 if (Storage::disk('public')->exists($imageToDelete)) {
                     Storage::disk('public')->delete($imageToDelete);
                 }
-                Log::info('Deleted image:', ['image' => $imageToDelete]);
+                Log::info('Deleted image: ' . $imageToDelete);
             }
         }
 
@@ -106,26 +165,41 @@ class CheckoutService
                     $fileName = 'checkout-' . time() . '-' . uniqid() . '.' . $extension;
                     $path = $image->storeAs('checkout_images', $fileName, 'public');
                     $finalImages[] = $path;
-                    Log::info('Uploaded new image:', ['path' => $path]);
+                    Log::info('Uploaded new image: ' . $path);
                 }
             }
         }
 
-        // Chuẩn bị dữ liệu để cập nhật
-        $updateData = [
-            'check_out_date' => $data['check_out_date'],
-            'has_left' => $data['has_left'],
-            'inventory_status' => $data['status'],
-            'deduction_amount' => $deductionAmount,
-            'images' => !empty($finalImages) ? $finalImages : null,
-            'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
-        ];
+        return $finalImages;
+    }
 
-        // Cập nhật checkout
-        $checkout->update($updateData);
+    public function reInventoryCheckout($id)
+    {
+        try {
+            $checkout = Checkout::findOrFail($id);
 
-        Log::info('Updated checkout:', $updateData);
+            Log::info('Re-inventory request for checkout: ' . $id);
+            Log::info('Current status: ' . $checkout->inventory_status);
 
-        return $checkout;
+            if ($checkout->inventory_status !== 'Đã kiểm kê') {
+                throw new \Exception('Chỉ có thể kiểm kê lại các checkout đã hoàn thành.');
+            }
+
+            $updated = $checkout->update([
+                'inventory_status' => 'Kiểm kê lại',
+                'updated_at' => now(),
+            ]);
+
+            if ($updated) {
+                Log::info('Successfully changed status to "Kiểm kê lại"');
+            } else {
+                Log::error('Failed to update status to "Kiểm kê lại"');
+            }
+
+            return $checkout->fresh();
+        } catch (\Exception $e) {
+            Log::error('Re-inventory error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
