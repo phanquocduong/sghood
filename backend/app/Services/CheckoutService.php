@@ -3,9 +3,14 @@
 namespace App\Services;
 
 use App\Models\Checkout;
+use App\Mail\CheckoutStatusUpdated;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class CheckoutService
 {
@@ -40,83 +45,185 @@ class CheckoutService
 
     public function updateCheckout($id, array $data)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $checkout = Checkout::findOrFail($id);
+        try {
+            return DB::transaction(function () use ($id, $data) {
+                $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
 
-            // Xử lý inventory details
-            $inventoryDetails = [];
-            $deductionAmount = 0;
+                // Xử lý inventory details
+                $inventoryDetails = [];
+                $deductionAmount = 0;
 
-            if (isset($data['item_name']) && is_array($data['item_name'])) {
-                foreach ($data['item_name'] as $index => $name) {
-                    $name = trim($name);
-                    if ($name === '') {
-                        continue;
+                if (isset($data['item_name']) && is_array($data['item_name'])) {
+                    foreach ($data['item_name'] as $index => $name) {
+                        $name = trim($name);
+                        if ($name === '') {
+                            continue;
+                        }
+
+                        $itemCost = isset($data['item_cost'][$index]) ? (float) $data['item_cost'][$index] : 0;
+                        $itemQuantity = isset($data['item_quantity'][$index]) ? (int) $data['item_quantity'][$index] : 1;
+
+                        $inventoryDetails[] = [
+                            'item_name' => $name,
+                            'item_condition' => isset($data['item_condition'][$index]) ? trim($data['item_condition'][$index]) : '',
+                            'item_quantity' => $itemQuantity,
+                            'item_cost' => $itemCost,
+                        ];
+
+                        $deductionAmount += $itemCost * $itemQuantity;
+
+                        Log::info('Processed item ' . ($index + 1) . ':', [
+                            'name' => $name,
+                            'condition' => $data['item_condition'][$index] ?? '',
+                            'quantity' => $itemQuantity,
+                            'cost' => $itemCost,
+                        ]);
                     }
+                }
 
-                    $itemCost = isset($data['item_cost'][$index]) ? (float) $data['item_cost'][$index] : 0;
-                    $itemQuantity = isset($data['item_quantity'][$index]) ? (int) $data['item_quantity'][$index] : 1;
+                // Xử lý hình ảnh
+                $finalImages = $this->processImages($checkout, $data);
 
-                    $inventoryDetails[] = [
-                        'item_name' => $name,
-                        'item_condition' => isset($data['item_condition'][$index]) ? trim($data['item_condition'][$index]) : '',
-                        'item_quantity' => $itemQuantity,
-                        'item_cost' => $itemCost,
-                    ];
+                // Chuẩn bị dữ liệu để cập nhật
+                $updateData = [
+                    'check_out_date' => $data['check_out_date'],
+                    'has_left' => (int) $data['has_left'],
+                    'inventory_status' => $data['status'],
+                    'deduction_amount' => $deductionAmount,
+                    'images' => !empty($finalImages) ? $finalImages : null,
+                    'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
+                    'updated_at' => now(),
+                ];
 
-                    $deductionAmount += $itemCost * $itemQuantity;
+                // Xử lý logic chuyển đổi user_confirmation_status
+                $this->handleUserConfirmationStatusTransition($checkout, $data['status'], $updateData);
 
-                    Log::info('Processed item ' . ($index + 1) . ':', [
-                        'name' => $name,
-                        'condition' => $data['item_condition'][$index] ?? '',
-                        'quantity' => $itemQuantity,
-                        'cost' => $itemCost,
+                // Kiểm tra xem trạng thái có thay đổi thành "Đã kiểm kê" hay không
+                $sendNotifications = ($data['status'] === 'Đã kiểm kê' && $checkout->inventory_status !== 'Đã kiểm kê');
+
+                // Cập nhật checkout
+                $updated = $checkout->update($updateData);
+
+                if ($updated) {
+                    Log::info('Checkout updated successfully', [
+                        'checkout_id' => $checkout->id,
+                        'inventory_status' => $data['status'],
+                        'deduction_amount' => $deductionAmount,
+                    ]);
+
+                    // Gửi thông báo nếu trạng thái là "Đã kiểm kê"
+                    if ($sendNotifications) {
+                        $user = $checkout->contract->user;
+                        $room = $checkout->contract->room;
+
+                        if (!$user || !$room) {
+                            Log::warning('User or room not found for checkout', [
+                                'checkout_id' => $checkout->id,
+                                'user_id' => $user ? $user->id : null,
+                                'room_id' => $room ? $room->id : null,
+                            ]);
+                        } else {
+                            // Gửi email
+                            try {
+                                $email = $user->email;
+                                if ($email) {
+                                    Mail::to($email)->send(new CheckoutStatusUpdated(
+                                        $checkout,
+                                        $user->name,
+                                        $room->name,
+                                        $data['check_out_date']
+                                    ));
+                                    Log::info('Checkout status email sent successfully', [
+                                        'email' => $email,
+                                        'checkout_id' => $checkout->id,
+                                    ]);
+                                } else {
+                                    Log::warning('No email found for user', [
+                                        'user_id' => $user->id,
+                                        'checkout_id' => $checkout->id,
+                                    ]);
+                                }
+                            } catch (\Exception $emailError) {
+                                Log::error('Error sending checkout status email', [
+                                    'error' => $emailError->getMessage(),
+                                    'checkout_id' => $checkout->id,
+                                ]);
+                            }
+
+                            // Tạo thông báo trong cơ sở dữ liệu
+                            try {
+                                $notificationData = [
+                                    'user_id' => $user->id,
+                                    'title' => 'Trạng thái kiểm kê đã được cập nhật',
+                                    'content' => 'Quá trình kiểm kê cho phòng ' . $room->name . ' đã hoàn tất. Vui lòng xem chi tiết.',
+                                    'status' => 'Chưa đọc',
+                                ];
+                                $notification = Notification::create($notificationData);
+                                Log::info('Notification created for checkout', [
+                                    'notification_id' => $notification->id,
+                                    'checkout_id' => $checkout->id,
+                                    'user_id' => $user->id,
+                                ]);
+
+                                // Gửi thông báo đẩy FCM
+                                if ($user->fcm_token) {
+                                    $messaging = app('firebase.messaging');
+                                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                                        ->withNotification(FirebaseNotification::create(
+                                            $notificationData['title'],
+                                            $notificationData['content']
+                                        ))
+                                        ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
+
+                                    try {
+                                        $messaging->send($fcmMessage);
+                                        Log::info('FCM sent to user', [
+                                            'user_id' => $user->id,
+                                            'checkout_id' => $checkout->id,
+                                        ]);
+                                    } catch (\Exception $fcmError) {
+                                        Log::error('FCM send error', [
+                                            'error' => $fcmError->getMessage(),
+                                            'user_id' => $user->id,
+                                            'checkout_id' => $checkout->id,
+                                        ]);
+                                    }
+                                } else {
+                                    Log::info('No FCM token found for user', [
+                                        'user_id' => $user->id,
+                                        'checkout_id' => $checkout->id,
+                                    ]);
+                                }
+                            } catch (\Exception $notificationError) {
+                                Log::error('Error creating notification', [
+                                    'error' => $notificationError->getMessage(),
+                                    'checkout_id' => $checkout->id,
+                                ]);
+                            }
+                        }
+                    }
+                } else {
+                    Log::error('Failed to update checkout', [
+                        'checkout_id' => $checkout->id,
                     ]);
                 }
-            }
 
-            // Xử lý hình ảnh
-            $finalImages = $this->processImages($checkout, $data);
-
-            // Chuẩn bị dữ liệu để cập nhật
-            $updateData = [
-                'check_out_date' => $data['check_out_date'],
-                'has_left' => (int) $data['has_left'],
-                'inventory_status' => $data['status'],
-                'deduction_amount' => $deductionAmount,
-                'images' => !empty($finalImages) ? $finalImages : null,
-                'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
-                'updated_at' => now(),
-            ];
-
-            // Xử lý logic chuyển đổi user_confirmation_status
-            $this->handleUserConfirmationStatusTransition($checkout, $data['status'], $updateData);
-
-
-            // Cập nhật checkout
-            $updated = $checkout->update($updateData);
-
-            if ($updated) {
-                Log::info('Checkout updated successfully');
-                Log::info('Final checkout data:', $checkout->fresh()->toArray());
-            } else {
-                Log::error('Failed to update checkout');
-            }
-
-            Log::info('=== CHECKOUT UPDATE END ===');
-
-            return $checkout->fresh();
-        });
+                return $checkout->fresh();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error in updateCheckout method', [
+                'checkout_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
     }
 
-    /**
-     * Xử lý logic chuyển đổi user_confirmation_status
-     */
     private function handleUserConfirmationStatusTransition($checkout, $newStatus, &$updateData)
     {
         $currentStatus = $checkout->inventory_status;
         $currentUserConfirmationStatus = $checkout->user_confirmation_status;
-
 
         if ($currentStatus === 'Kiểm kê lại' &&
             $newStatus === 'Đã kiểm kê' &&
@@ -126,8 +233,9 @@ class CheckoutService
 
             Log::info('User confirmation status changed:', [
                 'from' => $currentUserConfirmationStatus,
-                'to' => 'Chờ xác nhận',
-                'reason' => 'Status transition from "Kiểm kê lại" to "Đã kiểm kê"'
+                'to' => 'Chưa xác nhận',
+                'reason' => 'Status transition from "Kiểm kê lại" to "Đã kiểm kê"',
+                'checkout_id' => $checkout->id,
             ]);
         }
     }
@@ -142,6 +250,7 @@ class CheckoutService
             'existing' => $existingImages,
             'to_delete' => $imagesToDelete,
             'kept' => $existingImagesKept,
+            'checkout_id' => $checkout->id,
         ]);
 
         // Xóa hình ảnh được yêu cầu
@@ -151,7 +260,7 @@ class CheckoutService
                 if (Storage::disk('public')->exists($imageToDelete)) {
                     Storage::disk('public')->delete($imageToDelete);
                 }
-                Log::info('Deleted image: ' . $imageToDelete);
+                Log::info('Deleted image: ' . $imageToDelete, ['checkout_id' => $checkout->id]);
             }
         }
 
@@ -165,7 +274,7 @@ class CheckoutService
                     $fileName = 'checkout-' . time() . '-' . uniqid() . '.' . $extension;
                     $path = $image->storeAs('checkout_images', $fileName, 'public');
                     $finalImages[] = $path;
-                    Log::info('Uploaded new image: ' . $path);
+                    Log::info('Uploaded new image: ' . $path, ['checkout_id' => $checkout->id]);
                 }
             }
         }
@@ -178,8 +287,10 @@ class CheckoutService
         try {
             $checkout = Checkout::findOrFail($id);
 
-            Log::info('Re-inventory request for checkout: ' . $id);
-            Log::info('Current status: ' . $checkout->inventory_status);
+            Log::info('Re-inventory request for checkout', [
+                'checkout_id' => $id,
+                'current_status' => $checkout->inventory_status,
+            ]);
 
             if ($checkout->inventory_status !== 'Đã kiểm kê') {
                 throw new \Exception('Chỉ có thể kiểm kê lại các checkout đã hoàn thành.');
@@ -191,14 +302,18 @@ class CheckoutService
             ]);
 
             if ($updated) {
-                Log::info('Successfully changed status to "Kiểm kê lại"');
+                Log::info('Successfully changed status to "Kiểm kê lại"', ['checkout_id' => $id]);
             } else {
-                Log::error('Failed to update status to "Kiểm kê lại"');
+                Log::error('Failed to update status to "Kiểm kê lại"', ['checkout_id' => $id]);
             }
 
             return $checkout->fresh();
         } catch (\Exception $e) {
-            Log::error('Re-inventory error: ' . $e->getMessage());
+            Log::error('Re-inventory error', [
+                'checkout_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             throw $e;
         }
     }
