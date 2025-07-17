@@ -37,11 +37,13 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <select name="status" id="status" class="form-select">
+                            <select name="inventory_status" id="inventory_status" class="form-select">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="Chờ kiểm kê" {{ request('status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
+                                <option value="Chờ kiểm kê"
+                                    {{ request('inventory_status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
                                     kiểm kê</option>
-                                <option value="Đã kiểm kê" {{ request('status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
+                                <option value="Đã kiểm kê"
+                                    {{ request('inventory_status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
                                     kê</option>
                             </select>
                         </div>
@@ -98,10 +100,10 @@
                                     </td>
                                     <td class="text-center">
                                         <span
-                                            class="badge bg-{{ $checkout->status == 'Chờ kiểm kê' ? 'warning' : ($checkout->status == 'Đã kiểm kê' ? 'success' : 'dark') }} py-2 px-3">
-                                            <i class="{{ $checkout->status == 'Chờ kiểm kê' ? 'fas fa-clock' : ($checkout->status == 'Đã kiểm kê' ? 'fas fa-check-circle' : 'fas fa-times-circle') }} me-1"
+                                            class="badge bg-{{ $checkout->inventory_status == 'Chờ kiểm kê' ? 'warning' : ($checkout->inventory_status == 'Đã kiểm kê' ? 'success' : 'dark') }} py-2 px-3">
+                                            <i class="{{ $checkout->inventory_status == 'Chờ kiểm kê' ? 'fas fa-clock' : ($checkout->inventory_status == 'Đã kiểm kê' ? 'fas fa-check-circle' : 'fas fa-times-circle') }} me-1"
                                                 style="font-size: 8px;"></i>
-                                            {{ $checkout->status ?? 'N/A' }}
+                                            {{ $checkout->inventory_status ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -109,7 +111,7 @@
                                             data-bs-target="#checkoutModal{{ $checkout->id }}">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </button>
-                                        @if ($checkout->status !== 'Đã kiểm kê')
+                                        @if ($checkout->inventory_status !== 'Đã kiểm kê')
                                             <button type="button" class="btn btn-warning btn-sm shadow-sm"
                                                 data-bs-toggle="modal" data-bs-target="#editModal{{ $checkout->id }}">
                                                 <i class="fas fa-edit me-1"></i>Sửa
@@ -140,7 +142,8 @@
                                                 </p>
                                                 <p><strong>Rời đi:</strong>
                                                     {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}</p>
-                                                <p><strong>Trạng thái:</strong> {{ $checkout->status ?? 'N/A' }}</p>
+                                                <p><strong>Trạng thái:</strong> {{ $checkout->inventory_status ?? 'N/A' }}
+                                                </p>
                                                 <p><strong>Số tiền khấu trừ:</strong>
                                                     {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }}
                                                     VNĐ</p>
@@ -248,19 +251,24 @@
                                                         @enderror
                                                     </div>
 
+                                                    <!-- Change this part in your Blade template -->
                                                     <div class="mb-3">
-                                                        <label for="status{{ $checkout->id }}" class="form-label">Trạng
-                                                            thái <span style="color: red;">*</span></label>
-                                                        <select class="form-select" id="status{{ $checkout->id }}"
-                                                            name="status" required>
+                                                        <label for="inventory_status{{ $checkout->id }}"
+                                                            class="form-label">Trạng thái <span
+                                                                style="color: red;">*</span></label>
+                                                        <select class="form-select"
+                                                            id="inventory_status{{ $checkout->id }}" name="status"
+                                                            required>
                                                             <option value="Chờ kiểm kê"
-                                                                {{ $checkout->status == 'Chờ kiểm kê' ? 'selected' : '' }}>
-                                                                Chờ kiểm kê</option>
+                                                                {{ $checkout->inventory_status == 'Chờ kiểm kê' ? 'selected' : '' }}>
+                                                                Chờ kiểm kê
+                                                            </option>
                                                             <option value="Đã kiểm kê"
-                                                                {{ $checkout->status == 'Đã kiểm kê' ? 'selected' : '' }}>
-                                                                Đã kiểm kê</option>
+                                                                {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
+                                                                Đã kiểm kê
+                                                            </option>
                                                         </select>
-                                                        @error('status')
+                                                        @error('inventory_status')
                                                             <div class="text-danger small">{{ $message }}</div>
                                                         @enderror
                                                     </div>

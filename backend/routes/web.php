@@ -6,6 +6,7 @@ use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\MotelController;
@@ -46,6 +47,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Các route được bảo vệ bởi middleware admin
 Route::middleware('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/statistics', [StatisticController::class, 'index'])->name('statistics');
 
     // Notes Routes Group
     Route::prefix('notes')->name('notes.')->group(function () {
@@ -122,6 +124,7 @@ Route::middleware('admin')->group(function () {
         Route::put('/{id}/edit', [UserController::class, 'update'])->name('updateUser');
         Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
         Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/by-ids', [UserController::class, 'getByIds'])->name('byIds');
     });
 
     // Booking Routes Group
@@ -176,6 +179,7 @@ Route::middleware('admin')->group(function () {
         Route::post('/send', [MessageController::class, 'sendMessage'])->name('send');
         Route::get('/chat-box', [MessageController::class, 'showChat'])->name('chat-box');
         Route::post('/mark-as-read', [MessageController::class, 'markAsRead'])->name('mark-as-read');
+        Route::get('/header', [MessageController::class, 'header'])->name('header');
     });
 
     // Blog routes group
@@ -189,9 +193,10 @@ Route::middleware('admin')->group(function () {
         Route::get('/trash', [BlogController::class, 'trash'])->name('trash');
         Route::patch('/restore/{id}', [BlogController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
-
+        Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
+        Route::patch('/{id}/update-cate', [BlogController::class, 'updateCategory'])->name('updateCategory');
     });
-    Route::prefix('CKEditors')->name('ckeditors.')->group(function() {
+    Route::prefix('CKEditors')->name('ckeditors.')->group(function () {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
     });
 

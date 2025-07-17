@@ -15,6 +15,31 @@ class ContractExtensionController extends Controller
         private readonly ContractExtensionService $contractExtensionService,
     ) {}
 
+    public function extend(int $id, Request $request): JsonResponse
+    {
+        try {
+            $months = $request->input('months', 6); // Lấy giá trị months từ request, mặc định là 6 nếu không có
+            $result = $this->contractExtensionService->extendContract($id, $months);
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json(['message' => 'Yêu cầu gia hạn hợp đồng đã được gửi', 'extension_id' => $result['extension_id']], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi gia hạn hợp đồng', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi gia hạn hợp đồng'], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         try {

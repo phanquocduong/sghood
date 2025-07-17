@@ -38,7 +38,7 @@
                 <NuxtPage />
                 <!-- Copyrights -->
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 Trọ Việt.</div>
+                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
                 </div>
             </div>
         </div>

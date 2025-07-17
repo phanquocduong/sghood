@@ -11,6 +11,8 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "google/cloud-firestore": "^1.51",
+        "google/cloud-storage": "^1.48",
         "google/cloud-vision": "^2.0",
         "intervention/image": "^3.11",
         "kreait/firebase-php": "^7.19",

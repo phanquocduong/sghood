@@ -54,13 +54,13 @@
 
                         <ul>
                             <li>
-                                <NuxtLink to="/quan-ly/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
+                                <NuxtLink to="/quan-ly/thong-bao"> <i class="sl sl-icon-bell"></i> Thông báo </NuxtLink>
                             </li>
                             <li>
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
                             </li>
                             <li>
-                                <NuxtLink to="/quan-ly/dat-phong"> <i class="fa fa-calendar-check-o"></i> Đặt phòng </NuxtLink>
+                                <NuxtLink to="/quan-ly/dat-phong"> <i class="im im-icon-Bookmark"></i> Đặt phòng </NuxtLink>
                             </li>
                             <li>
                                 <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>
@@ -122,6 +122,30 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+@media screen and (max-width: 1024px) {
+  .user-menu .dropdown {
+    left: 50% !important;            /* Đặt gốc ở giữa */
+    transform: translateX(-45%) !important;  /* Căn giữa */
+    right: auto !important;          /* Gỡ right nếu có */
+    top: 48px;
+    width: 280px;
+  }
+}
+@media screen and (max-width: 640px) {
+.notification-icon {
+    margin-right: 20px;
+  }
+ .user-menu .dropdown {
+    left: 50% !important;            /* Đặt gốc ở giữa */
+    transform: translateX(-50%) !important;  /* Căn giữa */
+    right: auto !important;          /* Gỡ right nếu có */
+    top: 48px;
+    width: 280px;
+  }
+}
+.auth-container {
+    margin-left: auto;
+}
 .user-name img {
     width: 36px;
     height: 36px;
@@ -130,12 +154,7 @@ onBeforeUnmount(() => {
 }
 .header-widget {
     display: flex;
-}
-.auth-container {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    margin-top: -23px;
+    
 }
 
 /* Icon thông báo */
@@ -152,7 +171,8 @@ onBeforeUnmount(() => {
     background-color: #f1f1f1;
     transition: all 0.2s;
     cursor: pointer;
-    margin-left: -20px;
+    margin-left: 0px;
+    top: -3px;
 }
 
 .notification-icon:hover {
@@ -181,7 +201,7 @@ onBeforeUnmount(() => {
 /* Dùng class dropdown của template */
 .user-menu .dropdown {
     position: absolute;
-    right: -100px; /* dịch sang phải icon chuông */
+    right: -130px; /* dịch sang phải icon chuông */
     top: 48px; /* ngay phía dưới icon chuông */
     background: white;
     width: 220px;

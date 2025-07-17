@@ -56,6 +56,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useFormatPrice } from '~/composables/useFormatPrice';
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -64,22 +65,14 @@ const isModalOpen = ref(false);
 const selectedRoom = ref(null);
 const isLoading = ref(false);
 
-// Hàm định dạng giá tiền
-const formatPrice = price => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
-
-// Hàm định dạng phí
-const formatFees = fees => {
-    return fees.map(fee => ({
-        name: fee.name,
-        price: `${formatPrice(fee.price)}/${fee.unit}`
-    }));
-};
+// Sử dụng composable
+const { formatPrice, formatFees } = useFormatPrice();
 
 // Mở modal
 const openModal = room => {
-    selectedRoom.value = room;
+    selectedRoom.value = {
+        ...room
+    };
     isModalOpen.value = true;
 };
 

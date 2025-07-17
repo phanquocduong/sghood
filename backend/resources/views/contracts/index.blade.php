@@ -163,6 +163,7 @@ use Illuminate\Support\Facades\Storage;
                                             'Hoạt động' => 'success',
                                             'Kết thúc' => 'secondary',
                                             'Huỷ bỏ' => 'dark',
+                                            'Chờ thanh toán tiền cọc' => 'warning',
                                             default => 'light'
                                         };
                                         $iconClass = match ($calculatedStatus) {

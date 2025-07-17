@@ -2,12 +2,8 @@
 
 namespace App\Services\Apis;
 
-use App\Models\Checkout;
 use App\Models\Contract;
-use App\Models\ContractExtension;
-use App\Models\RefundRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -37,18 +33,7 @@ class ContractService
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
-                        ->where('type', 'Đặt cọc'),
-                    'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
-                        ->orderBy('created_at', 'desc'),
-                    'checkouts' => fn($query) => $query->select(
-                        'id',
-                        'contract_id',
-                        'check_out_date',
-                        'status',
-                        'deposit_refunded',
-                        'has_left',
-                        'note'
-                    )->orderBy('created_at', 'desc'),
+                        ->where('type', 'Đặt cọc')
                 ])
                 ->get()
                 ->map(fn ($contract) => [
@@ -63,9 +48,7 @@ class ContractService
                     'deposit_amount' => $contract->deposit_amount,
                     'rental_price' => $contract->rental_price,
                     'signed_at' => $contract->signed_at,
-                    'invoice_id' => $contract->invoices->first()?->id,
-                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
-                    'latest_checkout_status' => $contract->checkouts->first()?->status ?? null,
+                    'invoice_id' => $contract->invoices->first()?->id
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -588,172 +571,6 @@ class ContractService
                 'error' => $e->getMessage()
             ]);
             return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
-        }
-    }
-
-    private function generateExtensionContent(Contract $contract, Carbon $newEndDate): string
-    {
-        return '
-            <div class="contract-document">
-                <p><strong>Hợp đồng số: </strong>' . $contract->id . '</p>
-                <p><strong>Ngày gia hạn: </strong>' . now()->format('Y-m-d') . '</p>
-                <p><strong>Ngày kết thúc mới: </strong><span class="end-date">' . $newEndDate->format('Y-m-d') . '</span></p>
-                <p><strong>Giá thuê mới: </strong>' . number_format($contract->room->price, 0, ',', '.') . ' VND</p>
-                <p><em>Các điều khoản khác của hợp đồng gốc vẫn giữ nguyên hiệu lực.</em></p>
-            </div>
-        ';
-    }
-
-    public function extendContract(int $id, int $months): array
-    {
-        try {
-            $contract = Contract::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->where('status', 'Hoạt động')
-                ->first();
-
-            if (!$contract) {
-                return [
-                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền gia hạn',
-                    'status' => 404,
-                ];
-            }
-
-            $endDate = Carbon::parse($contract->end_date);
-            $today = Carbon::today();
-            $diffInDays = $endDate->diffInDays($today);
-
-            if ($diffInDays > 15) {
-                return [
-                    'error' => 'Hợp đồng chưa đến thời điểm có thể gia hạn (cần trong vòng 15 ngày trước khi hết hạn)',
-                    'status' => 400,
-                ];
-            }
-
-            if ($months < 1) {
-                return [
-                    'error' => 'Thời gian gia hạn phải ít nhất là 1 tháng',
-                    'status' => 400,
-                ];
-            }
-
-            // Gia hạn hợp đồng thêm số tháng được truyền vào
-            $newEndDate = $endDate->addMonths($months);
-
-            // Tạo phụ lục hợp đồng
-            $extensionContent = $this->generateExtensionContent($contract, $newEndDate);
-            $extension = ContractExtension::create([
-                'contract_id' => $contract->id,
-                'new_end_date' => $newEndDate,
-                'new_rental_price' => $contract->room->price,
-                'content' => $extensionContent,
-                'status' => 'Chờ duyệt',
-            ]);
-
-            // Gửi thông báo với ngữ cảnh "Gia hạn"
-            $this->notificationService->notifyContractForAdmins($contract, 'Gia hạn');
-
-            return [
-                'data' => $contract,
-                'extension_id' => $extension->id,
-                'status' => 200,
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Lỗi gia hạn hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
-    }
-
-    public function requestReturn(int $id, array $bankInfo, string $checkOutDate): array
-    {
-        try {
-            $contract = Contract::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->where('status', 'Hoạt động')
-                ->first();
-
-            if (!$contract) {
-                return [
-                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền trả phòng',
-                    'status' => 404,
-                ];
-            }
-
-            // Kiểm tra yêu cầu gia hạn
-            $latestExtension = $contract->extensions()->where('status', 'Chờ duyệt')->first();
-            if ($latestExtension) {
-                return [
-                    'error' => 'Hợp đồng đang có yêu cầu gia hạn chờ duyệt, không thể trả phòng',
-                    'status' => 400,
-                ];
-            }
-
-            // Kiểm tra tiền cọc
-            if ($contract->deposit_amount <= 0) {
-                return [
-                    'error' => 'Hợp đồng không có tiền cọc để hoàn',
-                    'status' => 400,
-                ];
-            }
-
-            $existingCheckout = $contract->checkouts()
-                ->where('status', '!=', 'Huỷ bỏ')
-                ->first();
-
-            if ($existingCheckout) {
-                return [
-                    'error' => 'Hợp đồng đã có yêu cầu trả phòng',
-                    'status' => 400,
-                ];
-            }
-
-            // Tạo bản ghi kiểm kê
-            $checkout = Checkout::create([
-                'contract_id' => $contract->id,
-                'check_out_date' => $checkOutDate,
-                'status' => 'Chờ kiểm kê',
-                'deposit_refunded' => false,
-                'has_left' => false,
-            ]);
-
-             // Tạo URL mã QR theo định dạng Sepay
-            $qrUrl = sprintf(
-                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=compact',
-                urlencode($bankInfo['account_number']),
-                urlencode($bankInfo['bank_name']),
-            );
-
-            // Tạo yêu cầu hoàn tiền
-            $refundRequest = RefundRequest::create([
-                'checkout_id' => $checkout->id,
-                'deposit_amount' => $contract->deposit_amount,
-                'status' => 'Chờ xử lý',
-                'bank_info' => $bankInfo,
-                'qr_code_path' => $qrUrl,
-            ]);
-
-            // Gửi thông báo cho admin
-            $this->notificationService->notifyContractForAdmins($contract, 'Trả phòng');
-
-            return [
-                'data' => [
-                    'contract' => $contract->fresh(),
-                    'checkout' => $checkout,
-                    'refund_request' => $refundRequest,
-                ],
-                'status' => 200,
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
         }
     }
 }

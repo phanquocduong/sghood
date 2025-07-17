@@ -246,7 +246,7 @@ export function useContract({
             });
             toast.success(response.message);
             showOTPModal.value = false;
-            router.push(`/quan-ly/hoa-don/${response.invoice_id}/thanh-toan`);
+            router.push(`/quan-ly/hoa-don/${response.invoice_code}/thanh-toan`);
         } catch (error) {
             console.error('Lỗi khi ký hợp đồng:', error);
             handleBackendError(error);

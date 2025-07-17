@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Apis;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Apis\UpdateContractRequest;
 use App\Models\Contract;
-use App\Models\ContractExtension;
 use App\Services\Apis\ContractService;
 use App\Services\Apis\InvoiceService;
 use App\Services\Apis\UserService;
@@ -95,6 +94,13 @@ class ContractController extends Controller
                 'identity_images.*' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             ]);
 
+            if (count($request->file('identity_images')) !== 2) {
+                return response()->json([
+                    'error' => 'Vui lòng tải lên đúng 2 ảnh: mặt trước và mặt sau CCCD.',
+                    'status' => 422,
+                ], 422);
+            }
+
             $cccdData = $this->contractService->extractIdentityImages($request->file('identity_images'));
 
             return response()->json([
@@ -102,8 +108,16 @@ class ContractController extends Controller
                 'message' => 'Trích xuất thông tin CCCD thành công',
             ]);
         } catch (ValidationException $e) {
+            $errors = $e->errors();
+            $errorMessage = 'Lỗi tải lên ảnh CCCD: ';
+            if (isset($errors['identity_images.0'])) {
+                $errorMessage .= 'Ảnh không hợp lệ (kiểm tra định dạng JPEG/PNG hoặc kích thước tối đa 2MB).';
+            } else {
+                $errorMessage .= 'Vui lòng kiểm tra lại ảnh tải lên.';
+            }
+
             return response()->json([
-                'error' => $e->errors(),
+                'error' => $errorMessage,
                 'status' => 422,
             ], 422);
         } catch (\Throwable $e) {
@@ -112,8 +126,17 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            $errorMessage = match (true) {
+                str_contains($e->getMessage(), 'đúng 2 ảnh') => $e->getMessage(),
+                str_contains($e->getMessage(), 'định dạng JPEG hoặc PNG') => $e->getMessage(),
+                str_contains($e->getMessage(), 'Google Vision API') => 'Lỗi xử lý ảnh CCCD. Vui lòng kiểm tra lại ảnh và thử lại.',
+                str_contains($e->getMessage(), 'Số CCCD không hợp lệ') => 'Số CCCD không đúng định dạng (9-12 số).',
+                str_contains($e->getMessage(), 'Không thể trích xuất đầy đủ thông tin') => 'Không thể nhận diện đầy đủ thông tin từ ảnh CCCD. Vui lòng đảm bảo thực hiện đúng hướng dẫn',
+                default => 'Lỗi xử lý ảnh CCCD. Vui lòng thử lại sau.'
+            };
+
             return response()->json([
-                'error' => $e->getMessage(),
+                'error' => $errorMessage,
                 'status' => 422,
             ], 422);
         }
@@ -168,7 +191,7 @@ class ContractController extends Controller
             return response()->json([
                 'message' => 'Hợp đồng đã được ký thành công. Vui lòng thanh toán tiền cọc.',
                 'data' => $updatedContract,
-                'invoice_id' => $invoice->id
+                'invoice_code' => $invoice->code
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Hợp đồng không tồn tại hoặc không ở trạng thái chờ ký.'], 404);
@@ -211,95 +234,6 @@ class ContractController extends Controller
                 'error' => $e->getMessage(),
             ]);
             return response()->json(['error' => 'Đã có lỗi xảy ra khi tải PDF.'], 500);
-        }
-    }
-
-    public function extend(int $id, Request $request): JsonResponse
-    {
-        try {
-            $months = $request->input('months', 6); // Lấy giá trị months từ request, mặc định là 6 nếu không có
-            $result = $this->contractService->extendContract($id, $months);
-
-            if (isset($result['error'])) {
-                return response()->json([
-                    'error' => $result['error'],
-                    'status' => $result['status'],
-                ], $result['status']);
-            }
-
-            return response()->json(['message' => 'Yêu cầu gia hạn hợp đồng đã được gửi', 'extension_id' => $result['extension_id']], 200);
-        } catch (\Throwable $e) {
-            Log::error('Lỗi gia hạn hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json(['error' => 'Đã có lỗi xảy ra khi gia hạn hợp đồng'], 500);
-        }
-    }
-
-    public function downloadExtensionPdf(int $id): JsonResponse
-    {
-        try {
-            $extension = ContractExtension::where('contract_id', $id)
-                ->whereHas('contract', fn($query) => $query->where('user_id', Auth::id()))
-                ->firstOrFail();
-
-            if (!$extension->file) {
-                return response()->json(['error' => 'Phụ lục chưa có file PDF.'], 400);
-            }
-
-            $fileUrl = url('/contract/extension/pdf/' . $extension->id);
-            return response()->json(['data' => ['file_url' => $fileUrl]]);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Phụ lục không tồn tại hoặc bạn không có quyền truy cập.'], 404);
-        } catch (\Throwable $e) {
-            Log::error('Lỗi tải PDF phụ lục', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            return response()->json(['error' => 'Đã có lỗi xảy ra khi tải PDF phụ lục.'], 500);
-        }
-    }
-
-    public function requestReturn(int $id, Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'bank_name' => 'required|string|max:255',
-                'account_number' => 'required|string|max:50',
-                'account_holder' => 'required|string|max:255',
-                'check_out_date' => 'required|date|after_or_equal:today',
-            ]);
-
-            $bankInfo = [
-                'bank_name' => $validated['bank_name'],
-                'account_number' => $validated['account_number'],
-                'account_holder' => $validated['account_holder'],
-            ];
-
-            $result = $this->contractService->requestReturn($id, $bankInfo, $validated['check_out_date']);
-
-            if (isset($result['error'])) {
-                return response()->json([
-                    'error' => $result['error'],
-                    'status' => $result['status'],
-                ], $result['status']);
-            }
-
-            return response()->json([
-                'message' => 'Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.',
-                'data' => $result['data'],
-            ], 200);
-        } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            return response()->json(['error' => 'Đã xảy ra lỗi khi gửi yêu cầu trả phòng.'], 500);
         }
     }
 }

@@ -43,8 +43,8 @@ class InvoiceController extends Controller
         }
     }
 
-   /**
-     * Lấy danh sách hóa đơn của user
+    /**
+     * Lấy danh sách hóa đơn của user với phân trang
      *
      * @param Request $request
      * @return JsonResponse
@@ -53,11 +53,16 @@ class InvoiceController extends Controller
     {
         try {
             $filters = $request->only(['sort', 'type', 'month', 'year']);
-            $invoices = $this->invoiceService->getUserInvoices($filters);
+            $perPage = $request->query('per_page', 10); // Số lượng hóa đơn mỗi trang
+            $invoices = $this->invoiceService->getUserInvoices($filters, $perPage);
 
             return response()->json([
                 'success' => true,
-                'data' => $invoices
+                'data' => $invoices->items(), // Dữ liệu hóa đơn
+                'current_page' => $invoices->currentPage(),
+                'total_pages' => $invoices->lastPage(),
+                'total' => $invoices->total(),
+                'per_page' => $invoices->perPage()
             ], 200);
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy danh sách hoá đơn', [

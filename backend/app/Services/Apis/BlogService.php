@@ -1,15 +1,54 @@
 <?php
+
 namespace App\Services\Apis;
+
 use App\Models\Blog;
 
 class BlogService
 {
-    public function getAll()
+    public function getAll(array $params = [])
     {
-        return Blog::latest()->get();
+        $query = Blog::query();
+
+        // Tìm kiếm
+        if (!empty($params['search'])) {
+            $search = $params['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $params['per_page'] ?? 10;
+
+        return $query->latest()->paginate($perPage);
     }
-    public function getBlogById($id)
+
+    public function getBlogBySlug($slug)
     {
-        return Blog::find($id);
+        return Blog::where('slug', $slug)->first();
+    }
+    public function getRelatedPosts(int $id, int $limit = 5)
+    {
+        $currentPost = Blog::findOrFail($id);
+
+        return Blog::where('id', '<>', $id)
+            ->where('category', $currentPost->category) // nếu $currentPost->category là Enum
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getPopularPosts(int $limit = 5)
+    {
+        return Blog::orderByDesc('views')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function increaseView(int $id)
+    {
+        Blog::where('id', $id)->increment('views');
     }
 }

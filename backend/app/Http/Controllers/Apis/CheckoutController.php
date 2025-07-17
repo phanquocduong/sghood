@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\CheckoutService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -13,6 +16,45 @@ class CheckoutController extends Controller
     public function __construct(CheckoutService $checkoutService)
     {
         $this->checkoutService = $checkoutService;
+    }
+
+    public function requestReturn(int $id, Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'bank_name' => 'required|string|max:255',
+                'account_number' => 'required|string|max:50',
+                'account_holder' => 'required|string|max:255',
+                'check_out_date' => 'required|date|after_or_equal:today',
+            ]);
+
+            $bankInfo = [
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder' => $validated['account_holder'],
+            ];
+
+            $result = $this->checkoutService->requestReturn($id, $bankInfo, $validated['check_out_date']);
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json([
+                'message' => 'Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.',
+                'data' => $result['data'],
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi yêu cầu trả phòng', [
+                'contract_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi gửi yêu cầu trả phòng.'], 500);
+        }
     }
 
     public function index(Request $request)

@@ -32,7 +32,9 @@ class ViewingScheduleService
             return [
                 'id' => $schedule->id,
                 'motel_id' => $schedule->motel->id,
+                'motel_slug' => $schedule->motel->slug,
                 'motel_name' => $schedule->motel->name,
+                'motel_address' => $schedule->motel->address,
                 'motel_image' => $schedule->motel->main_image->image_url,
                 'scheduled_at' => $schedule->scheduled_at,
                 'message' => $schedule->message,

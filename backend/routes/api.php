@@ -57,17 +57,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/contracts/{id}', [ContractController::class, 'update']);
     Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
     Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
-    Route::post('/contracts/{id}/extend', [ContractController::class, 'extend']);
-    Route::post('/contracts/{id}/return', [ContractController::class, 'requestReturn']);
 
+    Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);
     Route::get('/contract-extensions', [ContractExtensionController::class, 'index']);
     Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
 
+    Route::post('/contracts/{id}/return', [CheckoutController::class, 'requestReturn']);
     Route::get('/checkouts', [CheckoutController::class, 'index']);
     Route::post('/checkouts/{id}/reject', [CheckoutController::class, 'reject']);
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);
-    Route::post('/refund-requests/{id}/reject', [RefundRequestController::class, 'reject']);
+    Route::patch('/refund-requests/{id}', [RefundRequestController::class, 'update']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/months-years', [InvoiceController::class, 'getMonthsAndYears']);
@@ -102,11 +102,15 @@ Route::post('/messages/start-chat', [MessageController::class, 'startChat']);
 
 // Blog Routes
 Route::get('/blogs', [BlogController::class, 'index']);
-Route::get('/show/{id}', [BlogController::class, 'showBlog']);
+Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
+Route::get('/blogs/{id}/related', [BlogController::class, 'related']);
+Route::get('/blogs/popular', [BlogController::class, 'popular']);
+Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
 
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
+Route::post('/users/by-ids', [UserController::class, 'getByIds']);
 
 // Notification Routes
 Route::prefix('notifications')->group(function () {

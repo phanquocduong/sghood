@@ -31,23 +31,25 @@ class MeterReadingService
         })->paginate($perPage);
     }
 
-    public function getRooms()
+    public function getRoomsWithMotel()
     {
         $today = now();
 
-        // Khoảng thời gian cần loại trừ: từ ngày 28 tháng trước đến ngày 5 tháng sau
         $startDate = $today->copy()->subMonthNoOverflow()->day(28)->startOfDay();
         $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
 
-        // Lấy phòng đã thuê mà không có meter_readings nào trong khoảng trên
-        $rooms = Room::where('status', 'Đã Thuê')
+        // Lấy phòng đã thuê và chưa có meter_readings trong khoảng thời gian
+        $rooms = Room::with('motel') // eager load nhà trọ
+            ->where('status', 'Đã Thuê')
             ->whereDoesntHave('meterReadings', function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
-            ->get();
+            ->get()
+            ->groupBy('motel_id'); // group theo nhà trọ
 
         return $rooms;
     }
+
 
 
     public function createMeterReading(array $data)

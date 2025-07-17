@@ -10,7 +10,7 @@
                     <p><strong>Số hợp đồng:</strong> {{ contract.id }}</p>
                     <p><strong>Phòng:</strong> {{ contract.room_name }} - {{ contract.motel_name }}</p>
                     <p><strong>Ngày kết thúc:</strong> {{ formatDate(contract.end_date) }}</p>
-                    <p><strong>Tiền cọc:</strong> {{ formatCurrency(contract.deposit_amount) }}đ</p>
+                    <p><strong>Tiền cọc:</strong> {{ formatPrice(contract.deposit_amount) }}</p>
                     <hr />
                     <h5>
                         <strong
@@ -18,7 +18,7 @@
                         >
                     </h5>
                     <div class="form-group">
-                        <label for="check_out_date" class="form-label">Ngày trả phòng:</label>
+                        <label for="check_out_date" class="form-label">Ngày dự kiến rời phòng:</label>
                         <input
                             id="check_out_date"
                             v-model="returnForm.check_out_date"
@@ -84,9 +84,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useContractUtils } from '~/composables/useContractUtils';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
-const { formatDate, formatCurrency } = useContractUtils();
+const { formatDate } = useFormatDate();
+const { formatPrice } = useFormatPrice();
 
 const props = defineProps({
     contract: {

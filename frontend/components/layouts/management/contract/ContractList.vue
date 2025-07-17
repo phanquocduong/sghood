@@ -66,22 +66,6 @@ const downloadPdf = async id => {
 </script>
 
 <style>
-.button-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-}
-
-.modal-overlay {
-    z-index: 2000 !important;
-}
-
 .custom-modal-overlay {
     position: fixed;
     top: 0;

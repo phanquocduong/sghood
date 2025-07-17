@@ -9,18 +9,6 @@
                     <h3>
                         Hợp đồng #{{ item.id }} [{{ item.room_name }} - {{ item.motel_name }}]
                         <span :class="getStatusClass(item.status)">{{ item.status }}</span>
-                        <span
-                            v-if="item.latest_extension_status && item.latest_extension_status !== 'Huỷ bỏ'"
-                            :class="getExtensionStatusClass(item.latest_extension_status)"
-                        >
-                            {{ formatExtensionStatus(item.latest_extension_status) }}
-                        </span>
-                        <span
-                            v-if="item.latest_checkout_status && item.latest_checkout_status !== 'Huỷ bỏ'"
-                            :class="getCheckoutStatusClass(item.latest_checkout_status)"
-                        >
-                            {{ formatCheckoutStatus(item.latest_checkout_status) }}
-                        </span>
                     </h3>
                     <div class="inner-booking-list">
                         <h5>Ngày bắt đầu:</h5>
@@ -37,13 +25,13 @@
                     <div class="inner-booking-list">
                         <h5>Tiền cọc:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatCurrency(item.deposit_amount) }}đ</li>
+                            <li class="highlighted">{{ formatPrice(item.deposit_amount) }}</li>
                         </ul>
                     </div>
                     <div class="inner-booking-list">
                         <h5>Giá thuê mỗi tháng:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatCurrency(item.rental_price) }}đ</li>
+                            <li class="highlighted">{{ formatPrice(item.rental_price) }}</li>
                         </ul>
                     </div>
                     <div v-if="item.signed_at" class="inner-booking-list">
@@ -132,23 +120,15 @@ import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.css';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 import { useContractUtils } from '~/composables/useContractUtils';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
+const { formatPrice } = useFormatPrice();
+const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
-const {
-    formatDate,
-    formatDateTime,
-    formatCurrency,
-    getItemClass,
-    getStatusClass,
-    getExtensionStatusClass,
-    getCheckoutStatusClass,
-    formatExtensionStatus,
-    formatCheckoutStatus,
-    getActText,
-    isNearExpiration
-} = useContractUtils();
+const { getItemClass, getStatusClass, getActText, isNearExpiration } = useContractUtils();
 
 const props = defineProps({
     item: {

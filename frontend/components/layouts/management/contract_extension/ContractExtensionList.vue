@@ -18,7 +18,7 @@
                         <div class="inner-booking-list">
                             <h5>Hợp đồng:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ extension.contract_id }}</li>
+                                <li class="highlighted">#{{ extension.contract_id }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
@@ -30,7 +30,7 @@
                         <div class="inner-booking-list">
                             <h5>Giá thuê mới:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ formatCurrency(extension.new_rental_price) }}đ</li>
+                                <li class="highlighted">{{ formatPrice(extension.new_rental_price) }}</li>
                             </ul>
                         </div>
                         <div v-if="extension.rejection_reason" class="inner-booking-list">
@@ -67,6 +67,11 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
+
+const { formatPrice } = useFormatPrice();
+const { formatDate } = useFormatDate();
 
 const props = defineProps({
     extensions: {
@@ -80,13 +85,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['rejectExtension']);
-
-const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
-const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
 
 const getItemClass = status => {
     switch (status) {

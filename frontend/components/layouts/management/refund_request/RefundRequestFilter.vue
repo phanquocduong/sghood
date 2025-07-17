@@ -22,9 +22,7 @@
                     >
                         <option value="">Tất cả trạng thái</option>
                         <option value="Chờ xử lý">Chờ xử lý</option>
-                        <option value="Đã duyệt">Đã duyệt</option>
                         <option value="Đã xử lý">Đã xử lý</option>
-                        <option value="Từ chối">Từ chối</option>
                         <option value="Huỷ bỏ">Huỷ bỏ</option>
                     </select>
                 </div>

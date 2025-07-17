@@ -9,6 +9,7 @@ use App\Services\Apis\MessageService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -25,8 +26,14 @@ class MessageController extends Controller
         $senderId = Auth::id(); // Lấy ID người dùng đã đăng nhập
         $receiverId = $request->receiver_id; // ID người nhận từ request
         $messageText = $request->message;
+        $imageUrl = $request->image; // Lấy URL hình ảnh từ request
+        if ($request->has('image') && !empty($imageUrl) && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            $imageUrl = null;
+            Log::warning('Invalid image URL skipped:', ['image' => $imageUrl]);
+        }
 
-        $message = $this->messageService->sendMessage($senderId, $receiverId, $messageText);
+        // Gọi MessageService với cả $imageUrl
+        $message = $this->messageService->sendMessage($senderId, $receiverId, $messageText, $imageUrl);
 
         if (!$message) {
             return response()->json([
@@ -62,39 +69,38 @@ class MessageController extends Controller
         ]);
     }
     public function startChat(StartChatRequest $request)
-{
-    $userId = Auth::id(); // người dùng hiện tại
+    {
+        $userId = Auth::id(); // người dùng hiện tại
 
-    $adminId = null;
+        $adminId = null;
 
-    if ($request->has('receiver_id')) {
-        $requestedId = $request->receiver_id;
+        if ($request->has('receiver_id')) {
+            $requestedId = $request->receiver_id;
 
-        // Nếu receiver là chính user thì bỏ qua
-        if ($requestedId != $userId) {
-            $adminId = $requestedId;
+            // Nếu receiver là chính user thì bỏ qua
+            if ($requestedId != $userId) {
+                $adminId = $requestedId;
+            }
         }
-    }
 
-    // Gọi service
-    $message = $this->messageService->startChatAdmin($adminId, $userId);
+        // Gọi service
+        $message = $this->messageService->startChatAdmin($adminId, $userId);
 
-    if (!$message) {
+        if (!$message) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không thể bắt đầu cuộc trò chuyện, vui lòng thử lại sau.'
+            ], 500);
+        }
+
+        // adminId có thể được gán lại trong service
         return response()->json([
-            'status' => false,
-            'message' => 'Không thể bắt đầu cuộc trò chuyện, vui lòng thử lại sau.'
-        ], 500);
+            'status' => true,
+            'message' => 'Bắt đầu cuộc trò chuyện thành công',
+            'data' => $message,
+            'admin_id' => $message['sender_id'] == $userId
+                ? $message['receiver_id']
+                : $message['sender_id']
+        ]);
     }
-
-    // adminId có thể được gán lại trong service
-    return response()->json([
-        'status' => true,
-        'message' => 'Bắt đầu cuộc trò chuyện thành công',
-        'data' => $message,
-        'admin_id' => $message->sender_id == $userId
-            ? $message->receiver_id
-            : $message->sender_id
-    ]);
-}
-
 }

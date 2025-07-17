@@ -6,14 +6,12 @@
         <ul>
             <li v-for="item in items" :key="item.id">
                 <i class="list-box-icon sl sl-icon-doc"></i>
-                <strong v-if="item.type === 'Hàng tháng'"
-                    >Tiền {{ item.contract.room.name }} tháng {{ item.month }} năm {{ item.year }}</strong
-                >
-                <strong v-else>Đặt cọc {{ item.contract.room.name }} theo hợp đồng #{{ item.contract.room.id }}</strong>
+                <strong v-if="item.type === 'Hàng tháng'">Tiền phòng trọ tháng {{ item.month }}/{{ item.year }}</strong>
+                <strong v-else>Đặt cọc hợp đồng</strong>
                 <ul>
                     <li :class="getStatusClass(item.status)">{{ item.status }}</li>
                     <li>Mã: {{ item.code }}</li>
-                    <li>Tổng tiền: {{ formatCurrency(item.total_amount) }}đ</li>
+                    <li>Tổng tiền: {{ formatPrice(item.total_amount) }}</li>
                     <li>Ngày tạo: {{ formatDate(item.created_at) }}</li>
                 </ul>
                 <div class="buttons-to-right">
@@ -28,6 +26,12 @@
 </template>
 
 <script setup>
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useFormatDate } from '~/composables/useFormatDate';
+
+const { formatPrice } = useFormatPrice();
+const { formatDate } = useFormatDate();
+
 const props = defineProps({
     items: {
         type: Array,
@@ -38,19 +42,6 @@ const props = defineProps({
         required: true
     }
 });
-
-const formatCurrency = amount => new Intl.NumberFormat('vi-VN').format(amount);
-
-const formatDate = date => {
-    return new Date(date).toLocaleString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-};
 
 const getStatusClass = status => {
     switch (status) {

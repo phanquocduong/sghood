@@ -35,33 +35,42 @@
 
                         <!-- Nội dung bên phải -->
                         <div class="repair-content">
-                            <div class="repair-header">
-                                <h5>
-                                    <i class="fas fa-tools icon-repair"></i>
-                                    {{ req.title }}
-                                </h5>
+                            <!-- Sửa phần này trong repair-item -->
+<div class="repair-header">
+    <!-- Nút hủy + trạng thái bên phải -->
+    <div class="repair-actions">
+        <span
+          class="status-tag"
+          :class="{
+            pending: req.status === 'Chờ xác nhận',
+            inprogress: req.status === 'Đang thực hiện',
+            done: req.status === 'Hoàn thành',
+            canceled: req.status === 'Hủy bỏ'
+          }"
+        >
+          {{ req.status }}
+        </span>
+      <button
+        class="delete-btn"
+        v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+        @click="removeRequest(req.id)"
+        :disabled="isLoading === req.id"
+      >
+        <span v-if="isLoading === req.id" class="spinner"></span>
+        {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
+      </button>
+  
+    </div>
+  <!-- Tiêu đề bên trái -->
+  <div class="repair-title">
+    <h5>
+      <i class="fas fa-tools icon-repair"></i>
+      {{ req.title }}
+    </h5>
+  </div>
 
-                                <button
-                                    class="delete-btn"
-                                    v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-                                    @click="removeRequest(req.id)"
-                                    :disabled="isLoading === req.id"
-                                >
-                                    <span v-if="isLoading === req.id" class="spinner"></span>
-                                    {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
-                                </button>
-                                <span
-                                    class="status-tag"
-                                    :class="{
-                                        pending: req.status === 'Chờ xác nhận',
-                                        inprogress: req.status === 'Đang thực hiện',
-                                        done: req.status === 'Hoàn thành',
-                                        canceled: req.status === 'Hủy bỏ'
-                                    }"
-                                >
-                                    {{ req.status }}
-                                </span>
-                            </div>
+</div>
+
 
                             <p class="description">{{ req.description }}</p>
 
@@ -224,11 +233,11 @@ onMounted(() => {
 }
 
 .repair-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
 }
 
 .icon-repair {
@@ -286,10 +295,20 @@ onMounted(() => {
     align-items: center;
 }
 
-.right-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.repair-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.repair-title h5 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+    margin-bottom: 2px;
 }
 
 .delete-btn {
@@ -382,8 +401,10 @@ onMounted(() => {
 }
 h5 {
     font-size: 18px;
-    transform: translate(-8px);
+    transform: translate(-15px);
     font-weight: bold;
+    bottom: 5px;
+    top: 5px;
 }
 .slide-left-enter-active,
 .slide-right-enter-active {
@@ -495,5 +516,65 @@ h5 {
     background-color: white;
     color: #f91942;
     border-color: #f91942;
+}
+.repair-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+@media screen and (max-width:480px){
+    .box-title-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 10px; /* nhỏ hơn cho container nếu có chữ */
+        padding: 10px 12px;
+    }
+
+    .box-title-bar h4 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: auto;
+        width: 100%;
+        
+
+    }
+
+    .add-button {
+        font-size: 14px;
+        padding: 6px 10px;
+        height: auto;
+        margin-top: 0;
+        margin-right: 0;
+        width: 100%;
+        justify-content: center;
+    }
+      .repair-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .repair-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .delete-btn,
+  .status-tag {
+    flex-shrink: 0;
+  }
+  .mfp-arrow-left{
+    left :-60px
+  }
+  .mfp-arrow-right{
+    right :-60px
+  }
 }
 </style>

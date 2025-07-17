@@ -15,12 +15,13 @@
                     <h4>Liên kết nhanh</h4>
                     <ul class="footer-links">
                         <li><NuxtLink to="/">Trang chủ</NuxtLink></li>
-                        <li><NuxtLink to="danh-sach-nha-tro">Nhà trọ</NuxtLink></li>
+                        <li><NuxtLink to="/danh-sach-nha-tro">Nhà trọ</NuxtLink></li>
+                        <li><NuxtLink to="/chia-se-kinh-nghiem">Kinh nghiệm</NuxtLink></li>
                     </ul>
 
                     <ul class="footer-links">
-                        <li><a href="#">Chính sách bảo mật</a></li>
-                        <li><NuxtLink to="lien-he">Liên hệ</NuxtLink></li>
+                        <li><NuxtLink to="/ve-chung-toi">Về chúng tôi</NuxtLink></li>
+                        <li><NuxtLink to="/lien-he">Liên hệ</NuxtLink></li>
                     </ul>
                 </div>
 
@@ -55,7 +56,7 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 Trọ Việt.</div>
+                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
                 </div>
             </div>
         </div>
@@ -65,7 +66,6 @@
 <script setup>
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
-
 </script>
 
 <style scoped>

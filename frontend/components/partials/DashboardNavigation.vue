@@ -35,7 +35,7 @@ import { useAuthStore } from '~/stores/auth';
 const authUser = useAuthStore();
 const role = computed(() => authUser.user?.role || '');
 const FullnavItems = [
-    { path: '/quan-ly/thong-bao', icon: 'sl sl-icon-envelope-open', label: 'Thông báo' },
+    { path: '/quan-ly/thong-bao', icon: 'sl sl-icon-bell', label: 'Thông báo' },
     { path: '/quan-ly/ho-so-ca-nhan', icon: 'sl sl-icon-user', label: 'Hồ sơ cá nhân' },
     { path: '/quan-ly/lich-xem-nha-tro', icon: 'im im-icon-Dec', label: 'Lịch xem nhà trọ' },
     { path: '/quan-ly/dat-phong', icon: 'im im-icon-Bookmark', label: 'Đặt phòng' },

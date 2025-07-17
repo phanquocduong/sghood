@@ -55,7 +55,7 @@
                             <div class="info-item">
                                 <span class="label">Số tiền:</span>
                                 <div class="value-wrapper">
-                                    <span class="value">{{ formatCurrency(invoice?.total_amount) }}</span>
+                                    <span class="value">{{ formatPrice(invoice?.total_amount) }}</span>
                                     <button class="copy-btn" @click="copyToClipboard(invoice?.total_amount.toString())" title="Sao chép">
                                         <i class="fa fa-copy"></i>
                                     </button>
@@ -87,6 +87,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useNuxtApp } from '#app';
+import { useFormatPrice } from '~/composables/useFormatPrice';
 
 definePageMeta({
     layout: 'blank'
@@ -102,13 +103,7 @@ const paymentInterval = ref(null);
 const isLoading = ref(false);
 const isPaymentProcessed = ref(false);
 const toastId = 'payment-success';
-
-const formatCurrency = amount => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(amount);
-};
+const { formatPrice } = useFormatPrice();
 
 const copyToClipboard = async text => {
     try {

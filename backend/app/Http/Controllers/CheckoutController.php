@@ -17,7 +17,7 @@ class CheckoutController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['status', 'querySearch', 'sort_order']);
+        $filters = $request->only(['inventory_status', 'querySearch', 'sort_order']);
         $checkouts = $this->checkoutService->getCheckouts($filters);
 
         return view('checkouts.index', compact('checkouts'));
@@ -36,17 +36,17 @@ class CheckoutController extends Controller
     }
 
     public function update(CheckoutRequest $request, $id)
-{
-    try {
-        $data = $request->validated();
-        Log::info('Validated data in CheckoutController:', $data);
-        $checkout = $this->checkoutService->updateCheckout($id, $data);
-        Log::info('Checkout updated:', $checkout->toArray());
+    {
+        try {
+            $data = $request->validated();
+            Log::info('Validated data in CheckoutController:', $data);
+            $checkout = $this->checkoutService->updateCheckout($id, $data);
+            Log::info('Checkout updated:', $checkout->toArray());
 
-        return redirect()->route('checkouts.index')->with('success', 'Cập nhật checkout thành công');
-    } catch (\Exception $e) {
-        Log::error('Update error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-        return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+            return redirect()->route('checkouts.index')->with('success', 'Cập nhật checkout thành công');
+        } catch (\Exception $e) {
+            Log::error('Update error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
     }
-}
 }
