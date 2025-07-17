@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Xem Nhà Trọ Mới Chờ Duyệt</title>
+    <title>Lịch Xem Nhà Trọ Đã Được Cập Nhật</title>
     <style>
         body {
             margin: 0;
@@ -75,14 +75,14 @@
     <table class="container" cellpadding="0" cellspacing="0" border="0">
         <tr>
             <td class="header">
-                <h1>Lịch Xem Nhà Trọ Mới</h1>
+                <h1>Lịch Xem Nhà Trọ Đã Cập Nhật</h1>
                 <p>Thông báo từ Hệ thống Quản lý Lịch</p>
             </td>
         </tr>
         <tr>
             <td class="content">
                 <p>Kính gửi Quản trị viên,</p>
-                <p>Chúng tôi vừa nhận được một lịch xem nhà trọ mới từ hệ thống.</p>
+                <p>Chúng tôi vừa nhận được cập nhật cho một lịch xem nhà trọ từ hệ thống.</p>
                 <table class="details-table">
                     <tr>
                         <td class="label">Mã lịch</td>
@@ -111,9 +111,9 @@
                         <td class="highlight">{{ $schedule->status ?? 'Chưa xác định' }}</td>
                     </tr>
                     <tr>
-                        <td class="label">Thời gian gửi</td>
+                        <td class="label">Thời gian cập nhật</td>
                         <td class="highlight">
-                            {{ $schedule->created_at ? $schedule->created_at->format('d/m/Y H:i:s') : 'N/A' }}
+                            {{ $schedule->updated_at ? $schedule->updated_at->format('d/m/Y H:i:s') : 'N/A' }}
                         </td>
                     </tr>
                 </table>

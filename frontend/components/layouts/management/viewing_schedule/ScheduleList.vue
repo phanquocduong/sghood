@@ -1,15 +1,14 @@
 <template>
     <h4>Quản lý lịch xem nhà trọ</h4>
 
-    <!-- Hiển thị loading spinner -->
     <Loading :is-loading="isLoading" />
 
-    <ul v-if="!isLoading">
+    <ul>
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
                     <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
-                        <img :src="config.public.baseUrl + item.motel_image" alt="" />
+                        <img :src="config.public.baseUrl + item.motel_image" :alt="item.motel_name" />
                     </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">
@@ -45,7 +44,7 @@
                             </ul>
                         </div>
                         <div v-if="item.cancellation_reason && item.status === 'Huỷ bỏ'" class="inner-booking-list">
-                            <h5>Lý do bị từ chối:</h5>
+                            <h5>Lý do hủy:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ item.cancellation_reason }}</li>
                             </ul>
@@ -54,6 +53,9 @@
                 </div>
             </div>
             <div class="buttons-to-right">
+                <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openEditSchedulePopup(item)" class="button gray edit">
+                    <i class="sl sl-icon-pencil"></i> Sửa
+                </a>
                 <a
                     v-if="item.status === 'Chờ xác nhận'"
                     href="#"
@@ -85,43 +87,25 @@ import { useFormatDate } from '~/composables/useFormatDate';
 const { formatDate, formatTime } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
-    items: {
-        type: Array,
-        required: true
-    },
-    isLoading: {
-        type: Boolean,
-        required: true
-    }
+    items: { type: Array, required: true },
+    isLoading: { type: Boolean, required: true }
 });
 
-const emit = defineEmits(['rejectItem', 'openPopup']);
+const emit = defineEmits(['rejectItem', 'openPopup', 'editSchedule']);
 
-const getItemClass = status => {
-    switch (status) {
-        case 'Chờ xác nhận':
-            return 'pending-booking';
-        case 'Đã xác nhận':
-        case 'Hoàn thành':
-            return 'approved-booking';
-        case 'Huỷ bỏ':
-            return 'canceled-booking';
-        default:
-            return '';
-    }
+const statusClasses = {
+    'Chờ xác nhận': 'pending-booking',
+    'Đã xác nhận': 'approved-booking',
+    'Hoàn thành': 'approved-booking',
+    'Huỷ bỏ': 'canceled-booking'
 };
 
-const getStatusClass = status => {
-    let statusClass = 'booking-status';
-    if (status === 'Chờ xác nhận') {
-        statusClass += ' pending';
-    }
-    return statusClass;
-};
+const getItemClass = status => statusClasses[status] || '';
+const getStatusClass = status => `booking-status ${status === 'Chờ xác nhận' ? 'pending' : ''}`;
 
 const openConfirmRejectPopup = async id => {
-    const result = await Swal.fire({
-        title: 'Xác nhận hủy lịch xem nhà trọ',
+    const { isConfirmed } = await Swal.fire({
+        title: 'Xác nhận hủy lịch',
         text: 'Bạn có chắc chắn muốn hủy lịch xem nhà trọ này?',
         icon: 'warning',
         showCancelButton: true,
@@ -130,15 +114,11 @@ const openConfirmRejectPopup = async id => {
         confirmButtonColor: '#f91942',
         cancelButtonColor: '#e0e0e0'
     });
-
-    if (result.isConfirmed) {
-        emit('rejectItem', { id });
-    }
+    if (isConfirmed) emit('rejectItem', id);
 };
 
-const openPopup = motelId => {
-    emit('openPopup', motelId);
-};
+const openPopup = motelId => emit('openPopup', motelId);
+const openEditSchedulePopup = schedule => emit('editSchedule', schedule);
 </script>
 
 <style>
@@ -194,7 +174,7 @@ const openPopup = motelId => {
     border-radius: 5px !important;
     border: 1px solid #ccc !important;
     font-weight: 500 !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.3sEase !important;
 }
 
 .swal2-cancel:hover {

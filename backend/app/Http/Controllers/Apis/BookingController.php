@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Apis\BookingService;
 use Illuminate\Http\Request;
 use App\Http\Requests\Apis\StoreBookingRequest;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -76,7 +77,7 @@ class BookingController extends Controller
                 'message' => 'Hủy đặt phòng thành công',
                 'data' => $booking
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'Không tìm thấy đặt phòng.'
             ], 404);

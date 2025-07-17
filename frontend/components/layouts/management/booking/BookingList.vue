@@ -1,15 +1,14 @@
 <template>
     <h4>Quản lý đặt phòng</h4>
 
-    <!-- Hiển thị loading spinner -->
     <Loading :is-loading="isLoading" />
 
-    <ul v-if="!isLoading">
+    <ul>
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
                     <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
-                        <img :src="config.public.baseUrl + item.room_image" />
+                        <img :src="config.public.baseUrl + item.room_image" :alt="item.room_name - item.motel_name" />
                     </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">

@@ -4,7 +4,7 @@ namespace App\Http\Requests\Apis;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreScheduleRequest extends FormRequest
+class UpdateScheduleRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -21,8 +21,6 @@ class StoreScheduleRequest extends FormRequest
                 '13:00 chiều - 13:30 chiều,14:00 chiều - 14:30 chiều,15:00 chiều - 15:30 chiều,16:00 chiều - 16:30 chiều,17:00 chiều - 17:30 chiều',
             ],
             'message' => 'nullable|string|max:255',
-            'user_id' => 'required|exists:users,id',
-            'motel_id' => 'required|exists:motels,id',
         ];
     }
 
@@ -35,10 +33,6 @@ class StoreScheduleRequest extends FormRequest
             'timeSlot.in' => 'Khung giờ không hợp lệ.',
             'message.string' => 'Lời nhắn phải là chuỗi ký tự.',
             'message.max' => 'Lời nhắn không được vượt quá 255 ký tự.',
-            'user_id.required' => 'ID người dùng là bắt buộc.',
-            'user_id.exists' => 'Người dùng không tồn tại.',
-            'motel_id.required' => 'ID nhà trọ là bắt buộc.',
-            'motel_id.exists' => 'Nhà trọ không tồn tại.',
         ];
     }
 }

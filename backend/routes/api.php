@@ -40,9 +40,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/profile', [UserController::class, 'updateProfile']);
     Route::patch('/user/change-password', [UserController::class, 'changePassword']);
 
-    Route::get('/schedules', [ViewingScheduleController::class, 'index']);
-    Route::post('/schedules', [ViewingScheduleController::class, 'store']);
-    Route::post('/schedules/{id}/reject', [ViewingScheduleController::class, 'reject']);
+    Route::prefix('schedules')->controller(ViewingScheduleController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::post('{id}/reject', 'reject');
+        Route::patch('{id}', 'update');
+    });
 
     Route::get('/motels/{motel}/rooms', [MotelController::class, 'getRooms']);
 
