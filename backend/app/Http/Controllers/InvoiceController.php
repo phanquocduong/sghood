@@ -27,7 +27,7 @@ class InvoiceController extends Controller
 
         $perPage = $request->get('per_page', 15);
         $invoices = $this->invoiceService->getAllInvoices($filters, $perPage);
-        $stats = $this->invoiceService->getInvoiceStats();
+        $stats = $this->invoiceService->getInvoiceStats($filters);
 
         return view('invoices.index', [
             'invoices' => $invoices,

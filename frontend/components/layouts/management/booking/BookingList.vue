@@ -8,13 +8,17 @@
         <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <img :src="config.public.baseUrl + item.room_image" alt="" />
+                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
+                        <img :src="config.public.baseUrl + item.room_image" />
+                    </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">
                     <div class="inner">
                         <h3>
                             {{ item.room_name }} - {{ item.motel_name }}
-                            <span :class="getStatusClass(item.status)">{{ item.status }}</span>
+                            <span :class="getStatusClass(item.status)">{{
+                                item.status === 'Chấp nhận' ? 'Đã được chấp nhận' : item.status
+                            }}</span>
                         </h3>
                         <div class="inner-booking-list">
                             <h5>Ngày bắt đầu:</h5>
@@ -26,6 +30,12 @@
                             <h5>Ngày kết thúc:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ formatDate(item.end_date) }}</li>
+                            </ul>
+                        </div>
+                        <div class="inner-booking-list">
+                            <h5>Thời gian thuê:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ calculateRentalYears(item.start_date, item.end_date) }}</li>
                             </ul>
                         </div>
                         <div v-if="item.note" class="inner-booking-list">
@@ -62,7 +72,9 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { useFormatDate } from '~/composables/useFormatDate';
 
+const { formatDate } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
     items: {
@@ -77,9 +89,14 @@ const props = defineProps({
 
 const emit = defineEmits(['rejectItem']);
 
-const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const calculateRentalYears = (startDate, endDate) => {
+    if (!startDate || !endDate) return 'Không xác định';
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffInYears = end.getFullYear() - start.getFullYear();
+
+    if (diffInYears < 0) return 'Ngày không hợp lệ';
+    return `${diffInYears} năm`;
 };
 
 const getItemClass = status => {
@@ -118,7 +135,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', { id });
+        emit('rejectItem', id);
     }
 };
 </script>
@@ -128,63 +145,5 @@ const openConfirmRejectPopup = async id => {
     max-width: 150px;
     max-height: none;
     border-radius: 4px;
-}
-
-.swal2-container {
-    z-index: 10000 !important;
-}
-
-.swal2-popup {
-    width: 40em !important;
-    border-radius: 10px !important;
-    background-color: #ffffff !important;
-    padding: 20px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.swal2-title {
-    font-size: 2.2rem !important;
-    color: #333 !important;
-    font-weight: 600 !important;
-}
-
-.swal2-html-container {
-    font-size: 1.6rem !important;
-    color: #555 !important;
-    line-height: 2.2rem !important;
-}
-
-.swal2-confirm {
-    background-color: #f91942 !important;
-    color: #ffffff !important;
-    font-size: 1.4rem !important;
-    padding: 9px 18px !important;
-    border-radius: 5px !important;
-    font-weight: 500 !important;
-    transition: all 0.3s ease !important;
-}
-
-.swal2-confirm:hover {
-    background-color: #d81438 !important;
-}
-
-.swal2-cancel {
-    background-color: #e0e0e0 !important;
-    color: #333 !important;
-    font-size: 1.4rem !important;
-    padding: 9px 18px !important;
-    border-radius: 5px !important;
-    border: 1px solid #ccc !important;
-    font-weight: 500 !important;
-    transition: all 0.3s ease !important;
-}
-
-.swal2-cancel:hover {
-    background-color: #d0d0d0 !important;
-}
-
-.swal2-icon.swal2-warning {
-    border-color: #f91942 !important;
-    color: #f91942 !important;
 }
 </style>

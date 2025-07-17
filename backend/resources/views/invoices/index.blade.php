@@ -17,6 +17,33 @@
     @endif
 
     <div class="container-fluid py-5 px-4">
+        <!-- Filter Info -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Thống kê hiện tại:</strong>
+                    @if(!empty($filters['month']) || !empty($filters['year']))
+                        @if(!empty($filters['month']) && !empty($filters['year']))
+                            Tháng {{ $filters['month'] }}/{{ $filters['year'] }}
+                        @elseif(!empty($filters['month']))
+                            Tháng {{ $filters['month'] }} (tất cả năm)
+                        @elseif(!empty($filters['year']))
+                            Năm {{ $filters['year'] }} (tất cả tháng)
+                        @endif
+                    @else
+                        Tất cả hóa đơn
+                    @endif
+                    @if(!empty($filters['status']))
+                        | Trạng thái: {{ $filters['status'] }}
+                    @endif
+                    @if(!empty($filters['search']))
+                        | Tìm kiếm: "{{ $filters['search'] }}"
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <!-- Stats Cards -->
         <div class="row mb-4">
             <div class="col-lg-3 col-md-6 mb-3">
@@ -26,6 +53,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Tổng hóa đơn</h6>
                                 <h4 class="mb-0 text-success">{{ $stats['total'] }}</h4>
+                                <small class="text-muted">{{ number_format($stats['total_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-success">
                                 <i class="fas fa-file-invoice fa-2x"></i>
@@ -41,6 +69,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Đã trả</h6>
                                 <h4 class="mb-0 text-info">{{ $stats['paid'] }}</h4>
+                                <small class="text-muted">{{ number_format($stats['paid_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-info">
                                 <i class="fas fa-check-circle fa-2x"></i>
@@ -56,6 +85,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Chưa trả</h6>
                                 <h4 class="mb-0 text-warning">{{ $stats['unpaid'] }}</h4>
+                                <small class="text-muted">{{ number_format($stats['unpaid_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-warning">
                                 <i class="fas fa-clock fa-2x"></i>
@@ -65,19 +95,20 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
+                <!-- <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h6 class="text-muted mb-1">Đã hoàn tiền</h6>
-                                <h4 class="mb-0 text-danger">{{ $stats['overdue'] }}</h4>
+                                <h4 class="mb-0 text-danger">{{ $stats['refunded'] }}</h4>
+                                <small class="text-muted">{{ number_format($stats['refunded_amount'] ?? 0) }} VND</small>
                             </div>
                             <div class="text-danger">
-                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <i class="fas fa-undo fa-2x"></i>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -151,7 +182,7 @@
                                 <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Ngày tạo</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th>
+                                <!-- <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -182,7 +213,7 @@
                                             <i class="fas fa-eye"></i> Chi tiết
                                         </button>
                                     </td>
-                                    <td class="text-center">
+                                    <!-- <td class="text-center">
                                         @if($invoice->status === 'Đã trả')
                                             <button class="btn btn-warning btn-sm" onclick="updateInvoiceStatus({{ $invoice->id }}, 'Đã hoàn tiền')"
                                                 title="Hoàn tiền hóa đơn">
@@ -191,7 +222,7 @@
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
-                                    </td>
+                                    </td> -->
                                 </tr>
                             @empty
                                 <tr>
@@ -429,6 +460,29 @@
                             <p class="mt-2 text-muted">Đang tải thông tin...</p>
                         </div>
                     `;
+                });
+            }
+
+            // Auto-submit form when month/year changes
+            const monthSelect = document.querySelector('select[name="month"]');
+            const yearSelect = document.querySelector('select[name="year"]');
+            const statusSelect = document.querySelector('select[name="status"]');
+
+            if (monthSelect) {
+                monthSelect.addEventListener('change', function() {
+                    this.form.submit();
+                });
+            }
+
+            if (yearSelect) {
+                yearSelect.addEventListener('change', function() {
+                    this.form.submit();
+                });
+            }
+
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    this.form.submit();
                 });
             }
         });

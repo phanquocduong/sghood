@@ -1,6 +1,17 @@
 <template>
     <div class="tab-content" id="register" style="display: none">
+        <div class="progress-steps">
+            <span :class="{ active: !otpSent }">B1: Nhập SĐT</span>
+            <span :class="{ active: otpSent && !showRegisterFields }">B2: OTP</span>
+            <span :class="{ active: showRegisterFields }">B3: Đăng ký</span>
+        </div>
+
         <div v-show="!showRegisterFields">
+            <p class="info-text">
+                Nhập số điện thoại của bạn để nhận mã OTP. Chúng tôi sử dụng OTP để xác minh danh tính và bảo vệ tài khoản của bạn. Số điện
+                thoại của bạn được bảo mật tuyệt đối!
+            </p>
+            <div class="security-icon"><i class="im im-icon-Shield"></i> Dữ liệu của bạn được bảo mật!</div>
             <form @submit.prevent="handleSendOTP">
                 <div class="form-row form-row-wide">
                     <label for="phone">
@@ -14,7 +25,10 @@
                             required
                             pattern="^(\+84|0)(3|5|7|8|9)\d{8}$"
                             :disabled="otpSent"
+                            placeholder="+84xxxxxxxxx"
+                            autocomplete="tel"
                         />
+                        <span v-if="phoneError" class="error-text">{{ phoneError }}</span>
                     </label>
                 </div>
 
@@ -24,9 +38,11 @@
                         {{ loading ? 'Đang gửi...' : 'Gửi OTP' }}
                     </button>
                     <div id="recaptcha-container"></div>
+                    <p class="recaptcha-info">Hệ thống của chúng tôi sử dụng reCAPTCHA để bảo vệ chống bot.</p>
                 </div>
             </form>
 
+            <div v-if="otpSent" class="success-message">Mã OTP đã được gửi đến số {{ phone }}. Vui lòng kiểm tra tin nhắn!</div>
             <div v-if="otpSent">
                 <form @submit.prevent="authStore.verifyOTP">
                     <div class="form-row form-row-wide">
@@ -42,6 +58,7 @@
                     </button>
                 </form>
             </div>
+            <p class="support-text">Gặp vấn đề? <a href="mailto:sghoodvn@gmail.com">Liên hệ hỗ trợ</a></p>
         </div>
 
         <div v-show="showRegisterFields">
@@ -110,33 +127,30 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '~/stores/auth';
+import { ref } from 'vue';
 
 const authStore = useAuthStore();
 const { phone, otp, otpSent, showRegisterFields, name, email, password, confirmPassword, loading } = storeToRefs(authStore);
+const phoneError = ref('');
 
-// Hàm chuẩn hóa số điện thoại
 const normalizePhoneNumber = value => {
     let cleaned = value.replace(/[^0-9+]/g, '');
-
-    // Nếu số bắt đầu bằng 0, chuyển thành +84
     if (cleaned.startsWith('0')) {
         cleaned = '+84' + cleaned.slice(1);
     }
-
-    // Nếu số không bắt đầu bằng +84, thêm +84 vào
     if (!cleaned.startsWith('+84') && cleaned.length > 0) {
         cleaned = '+84' + cleaned;
     }
-
     return cleaned;
 };
 
-// Hàm xử lý gửi OTP
 const handleSendOTP = async () => {
-    // Chuẩn hóa số điện thoại trước khi gửi
     phone.value = normalizePhoneNumber(phone.value);
-
-    // Gọi hàm gửi OTP từ authStore
+    if (!phone.value.match(/^(\+84|0)(3|5|7|8|9)\d{8}$/)) {
+        phoneError.value = 'Vui lòng nhập số điện thoại hợp lệ (bắt đầu bằng +84 hoặc 0, theo sau là 9 chữ số).';
+        return;
+    }
+    phoneError.value = '';
     await authStore.sendOTP();
 };
 </script>
@@ -195,5 +209,85 @@ input:disabled {
 .tooltip:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
+}
+
+.info-text {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.security-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: #2ecc71;
+    margin-bottom: 15px;
+}
+
+.error-text {
+    color: #e74c3c;
+    font-size: 0.8em;
+    margin-top: 5px;
+    display: block;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    color: #999;
+}
+
+.progress-steps span.active {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.success-message {
+    background-color: #dff0d8;
+    color: #3c763d;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.recaptcha-info {
+    font-size: 0.8em;
+    color: #555;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.support-text {
+    font-size: 0.8em;
+    color: #555;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.support-text a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.support-text a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .input-text {
+        font-size: 1.1em;
+        padding: 12px;
+    }
+    .button {
+        padding: 12px;
+        font-size: 1.1em;
+    }
 }
 </style>

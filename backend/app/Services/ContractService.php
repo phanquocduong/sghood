@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\Notification;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -23,15 +24,15 @@ class ContractService
             $query = Contract::with(['user', 'room', 'booking']);
 
             // Apply search filter
-           if ($querySearch) {
+            if ($querySearch) {
                 $querySearch = trim($querySearch);
                 $query->where(function ($q) use ($querySearch) {
                     $q->orWhereHas('user', function ($userQuery) use ($querySearch) {
                         $userQuery->where('name', 'like', "%{$querySearch}%");
                     })
-                    ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
-                        $roomQuery->where('name', 'like', "%{$querySearch}%");
-                    });
+                        ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
+                            $roomQuery->where('name', 'like', "%{$querySearch}%");
+                        });
                 });
             }
 
@@ -54,7 +55,64 @@ class ContractService
         }
     }
 
-    public function getContractById(int $id): array
+    public function getContractsEndingSoon(): array
+    {
+        try {
+            // Lấy ngày hiện tại
+            $today = Carbon::now()->startOfDay();
+
+            // Lấy ngày 1 tháng tới
+            $oneMonthFromNow = $today->copy()->addMonth()->endOfDay();
+
+            Log::info('Getting contracts ending soon', [
+                'from_date' => $today->toDateString(),
+                'to_date' => $oneMonthFromNow->toDateString()
+            ]);
+
+            // Lấy các hợp đồng có end_date trong khoảng từ hôm nay đến 1 tháng sau
+            $contracts = Contract::with(['user', 'room', 'booking'])
+                ->where('status', 'Hoạt động')
+                ->whereDate('end_date', '>=', $today)
+                ->whereDate('end_date', '<=', $oneMonthFromNow)
+                ->orderBy('end_date', 'asc')
+                ->get();
+
+            if ($contracts->isEmpty()) {
+                return ['message' => 'Không có hợp đồng nào sắp hết hạn trong vòng 1 tháng tới', 'status' => 200, 'data' => []];
+            }
+
+            return ['data' => $contracts];
+        } catch (\Throwable $e) {
+            Log::error('Error getting contracts ending soon: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách hợp đồng sắp hết hạn', 'status' => 500];
+        }
+    }
+
+    public function signedContracts(): array{
+        // hợp đồng được kí hôm nay
+        try {
+            $today = Carbon::today();
+            $contracts = Contract::with(['user', 'room', 'booking'])
+                ->whereDate('signed_at', $today)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            if ($contracts->isEmpty()) {
+                return ['message' => 'Không có hợp đồng nào được ký hôm nay', 'status' => 200, 'data' => []];
+            }
+
+            return ['data' => $contracts];
+        } catch (\Throwable $e) {
+            Log::error('Error getting signed contracts: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách hợp đồng đã ký', 'status' => 500];
+        }
+    }
+
+    public function getContractById($id): array
     {
         try {
             $contract = Contract::with(['user', 'room', 'booking'])->find($id);

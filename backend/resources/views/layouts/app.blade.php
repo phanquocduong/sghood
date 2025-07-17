@@ -29,6 +29,17 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+
+    <!-- Custom CSS for dropdown -->
+    <style>
+        .dropdown.show .dropdown-menu {
+            display: block;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+    </style>
+
     @stack('styles')
 
 </head>

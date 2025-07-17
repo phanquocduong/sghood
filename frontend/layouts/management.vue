@@ -8,8 +8,11 @@
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
+                            <NuxtLink to="/"
+                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
+                            /></NuxtLink>
                             <NuxtLink to="/" class="dashboard-logo"
-                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt=""
+                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
                             /></NuxtLink>
                         </div>
 
@@ -28,7 +31,7 @@
         
         <!-- Dashboard -->
         <div id="dashboard">
-            <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i></a>
+            <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i>Thanh điều hướng</a>
             <DashboardNavigation />
             <Loading />
             <!-- Content -->
@@ -36,7 +39,7 @@
                 <NuxtPage />
                 <!-- Copyrights -->
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 Trọ Việt.</div>
+                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
                 </div>
             </div>
             <div>
@@ -116,17 +119,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#logo {
-    text-align: center;
-}
-
-#logo a {
-    margin: 0;
-}
-
-#logo img {
-    max-height: 55px;
-}
 .loading-overlay {
     position: fixed;
     top: 0;

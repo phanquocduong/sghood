@@ -28,6 +28,8 @@ class BlogController extends Controller
             'total' => $blogs->total(),
         ]);
     }
+
+
     public function showBlog($slug)
     {
         $blog = $this->blogService->getBlogBySlug($slug);

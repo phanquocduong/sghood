@@ -88,7 +88,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Current Status Display -->
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -134,7 +134,7 @@
                                 <p class="mb-0">
                                     <strong>Ngày hết hạn:</strong>
                                     <span
-                                        class="text-primary">{{ $contract->booking->end_date ? \Carbon\Carbon::parse($contract->booking->end_date)->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
+                                        class="text-primary">{{ $contract->end_date ? \Carbon\Carbon::parse($contract->end_date)->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
                                 </p>
                             </div>
                         </div>
@@ -145,7 +145,7 @@
                 @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hắt hạn')
                     <div class="card border-0 bg-white shadow-sm">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">
+                            <h6 class="mb-0 text-white">
                                 <i class="fas fa-sync-alt me-2"></i>Cập nhật trạng thái
                             </h6>
                         </div>
@@ -164,8 +164,6 @@
                                             @if ($currentStatus === 'Chờ duyệt')
                                                 <option value="Chờ chỉnh sửa">Chờ chỉnh sửa</option>
                                                 <option value="Chờ ký">Chờ ký</option>
-                                            @elseif($currentStatus === 'Chờ ký')
-                                                <option value="Hoạt động">Đã ký</option>
                                             @elseif($currentStatus === 'Hoạt động')
                                                 <option value="Kết thúc">Kết thúc hợp đồng</option>
                                             @endif

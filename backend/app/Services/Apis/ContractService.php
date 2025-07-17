@@ -28,24 +28,40 @@ class ContractService
     {
         try {
             return Contract::where('user_id', Auth::id())
-                ->select('id', 'room_id', 'start_date', 'end_date', 'status')
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at')
                 ->with([
-                    'room' => fn($query) => $query->select('id', 'name', 'motel_id')
+                    'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
-                        ->where('type', 'Đặt cọc')
-                        ->first()
+                        ->where('type', 'Đặt cọc'),
+                    'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
+                        ->orderBy('created_at', 'desc'),
+                    'checkouts' => fn($query) => $query->select(
+                        'id',
+                        'contract_id',
+                        'check_out_date',
+                        'status',
+                        'deposit_refunded',
+                        'has_left',
+                        'note'
+                    )->orderBy('created_at', 'desc'),
                 ])
                 ->get()
                 ->map(fn ($contract) => [
                     'id' => $contract->id,
                     'room_name' => $contract->room->name,
+                    'room_price' => $contract->room->price,
                     'motel_name' => $contract->room->motel->name,
                     'room_image' => $contract->room->main_image->image_url,
                     'start_date' => $contract->start_date->toIso8601String(),
                     'end_date' => $contract->end_date->toIso8601String(),
                     'status' => $contract->status,
-                    'invoice_id' => $contract->invoices->first()?->id
+                    'deposit_amount' => $contract->deposit_amount,
+                    'rental_price' => $contract->rental_price,
+                    'signed_at' => $contract->signed_at,
+                    'invoice_id' => $contract->invoices->first()?->id,
+                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
+                    'latest_checkout_status' => $contract->checkouts->first()?->status ?? null,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -60,7 +76,7 @@ class ContractService
     public function getContractDetail(int $id): array
     {
         try {
-            $contract = Contract::with('user')
+            $contract = Contract::with(['user', 'extensions'])
                 ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
@@ -87,6 +103,16 @@ class ContractService
                 'file' => $contract->file ? url($contract->file) : null,
                 'signed_at' => $contract->signed_at?->toDateTimeString(),
                 'user_phone' => $contract->user->phone,
+                'active_extensions' => $contract->extensions
+                    ->filter(fn($ext) => $ext->status === 'Hoạt động')
+                    ->map(fn($ext) => [
+                        'id' => $ext->id,
+                        'new_end_date' => $ext->new_end_date->toIso8601String(),
+                        'new_rental_price' => $ext->new_rental_price,
+                        'content' => $ext->content,
+                        'file' => $ext->file ? url($ext->file) : null,
+                        'status' => $ext->status,
+                    ])->values()->toArray(),
             ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy chi tiết hợp đồng', [
@@ -117,14 +143,6 @@ class ContractService
                     'error' => 'Hợp đồng không ở trạng thái có thể hủy',
                     'status' => 400,
                 ];
-            }
-
-            if ($contract->user->identity_document) {
-                $paths = explode('|', $contract->user->identity_document);
-                foreach ($paths as $path) {
-                    Storage::disk('private')->delete($path);
-                }
-                $contract->user->update(['identity_document' => null]);
             }
 
             $contract->update(['status' => 'Huỷ bỏ']);
@@ -317,6 +335,7 @@ class ContractService
             .mb-5 { margin-bottom: 3rem; }
             .mt-3 { margin-top: 1rem; }
             .mt-5 { margin-top: 3rem; }
+            .page-break { margin-top: 3rem; }
             .my-4 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
             .pt-3 { padding-top: 1rem; }
             .pt-4 { padding-top: 1.5rem; }
@@ -444,8 +463,6 @@ class ContractService
             .vietnamese-text {
                 font-family: "Noto Serif", "DejaVu Serif", serif;
             }
-            .contract-document > *:first-child { margin-top: 0; }
-            .contract-document > div:not(:first-child) { margin-top: 15mm; }
         </style>';
 
         // Xử lý content để tạo giao diện tương tự
@@ -516,7 +533,7 @@ class ContractService
     }
 
     /**
-     * T ạo và lưu file PDF hợp đồng
+     * Tạo và lưu file PDF hợp đồng
      */
     public function generateAndSaveContractPdf(int $contractId): array
     {
@@ -543,27 +560,13 @@ class ContractService
 
             // Tạo PDF
             $pdf = Pdf::loadHTML($htmlContent)
-                ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'Noto Serif',
                     'fontCache' => storage_path('fonts/'),
-                    'isRemoteEnabled' => false,
                     'isHtml5ParserEnabled' => true,
                     'isPhpEnabled' => false,
                     'dpi' => 96,
-                    'defaultPaperSize' => 'a4',
-                    'fontHeightRatio' => 1.0,
                     'isFontSubsettingEnabled' => true,
-                    'debugKeepTemp' => false,
-                    'debugCss' => false,
-                    'debugLayout' => false,
-                    'chroot' => public_path(),
-                    'enable_font_subsetting' => true,
-                    'tempDir' => storage_path('app/dompdf/'),
-                    'isUnicode' => true,
-                    'enable_html5_parser' => true,
-                    'enable_remote' => false,
-                    'logOutputFile' => storage_path('logs/dompdf.log'),
                 ]);
 
             // Lưu file PDF

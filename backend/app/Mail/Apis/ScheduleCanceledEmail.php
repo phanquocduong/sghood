@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Mail;
+namespace App\Mail\Apis;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class SchedulePendingEmail extends Mailable
+class ScheduleCanceledEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -19,7 +19,7 @@ class SchedulePendingEmail extends Mailable
 
     public function build()
     {
-        return $this->subject('Lịch xem nhà trọ mới chờ duyệt')
-                    ->view('emails.schedule_pending');
+        return $this->subject('Lịch xem nhà trọ đã bị hủy')
+                    ->view('emails.apis.schedule_canceled');
     }
 }

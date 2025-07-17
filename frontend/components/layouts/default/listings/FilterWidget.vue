@@ -1,6 +1,6 @@
 <!-- components/FilterWidget.vue -->
 <template>
-    <div class="widget margin-bottom-40">
+    <div class="widget margin-bottom-40 margin-top-60">
         <h3 class="margin-top-0 margin-bottom-30">Bộ lọc</h3>
 
         <!-- Keyword Input -->

@@ -1,8 +1,18 @@
 <template>
-    <div class="col-lg-3 col-md-3">
+    <div class="col-lg-3 col-md-12">
         <div class="dashboard-list-box margin-top-0">
             <h4 class="gray">Giấy tờ tùy thân</h4>
             <div class="dashboard-list-box-static">
+                <div class="upload-instructions">
+                    <h5>Hướng dẫn tải ảnh CCCD</h5>
+                    <ul>
+                        <li>Tải lên đúng 2 ảnh: mặt trước và mặt sau của căn cước công dân.</li>
+                        <li>Đảm bảo ảnh rõ nét, không bị mờ hoặc nhòe.</li>
+                        <li>Ảnh không được nghiêng, chụp thẳng để hiển thị đầy đủ thông tin.</li>
+                        <li>Cắt background sát với thẻ căn cước, không để các vật thể khác trong ảnh.</li>
+                        <li>Định dạng ảnh: JPEG hoặc PNG, kích thước tối đa 2MB mỗi ảnh.</li>
+                    </ul>
+                </div>
                 <p v-if="identityDocument?.has_valid" class="valid-message">Ảnh căn cước đã hợp lệ, không thể tải lên thêm.</p>
                 <div class="edit-profile-photo">
                     <form id="dropzone-upload" class="dropzone" :class="{ 'dropzone-disabled': identityDocument?.has_valid }"></form>
@@ -30,7 +40,7 @@ defineProps({
         type: Boolean,
         required: true
     }
-}); 
+});
 
 defineEmits(['save-contract', 'identity-upload']);
 </script>
@@ -88,5 +98,67 @@ defineEmits(['save-contract', 'identity-upload']);
 
 .edit-profile-photo {
     margin-bottom: 0;
+}
+
+.dashboard-list-box ul li {
+    padding: 6px 12px;
+}
+
+.upload-instructions {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.upload-instructions h5 {
+    font-size: 1.6rem;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.upload-instructions ul {
+    list-style-type: disc;
+    padding-left: 16px;
+    font-size: 1.4rem;
+    color: #555;
+}
+
+.upload-instructions li {
+    margin-bottom: 8px;
+}
+
+@media (max-width: 992px) {
+    .dashboard-list-box {
+        margin-top: 20px !important;
+    }
+
+    .upload-instructions h5 {
+        font-size: 1.5rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .upload-instructions h5 {
+        font-size: 1.4rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.2rem;
+        padding-left: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .upload-instructions h5 {
+        font-size: 1.3rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.1rem;
+        padding-left: 10px;
+    }
 }
 </style>

@@ -83,6 +83,7 @@
         </a>
       </div>
     </div>
+    <Comments/>
   </div>
 </div>
 

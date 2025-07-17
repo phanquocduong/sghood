@@ -18,11 +18,12 @@ class BlogService
                     ->orWhere('content', 'like', "%{$search}%");
             });
         }
-
         $perPage = $params['per_page'] ?? 6;
+
 
         return $query->latest()->paginate($perPage);
     }
+
     public function getBlogBySlug($slug)
     {
         return Blog::where('slug', $slug)->first();
@@ -49,6 +50,5 @@ class BlogService
     public function increaseView(int $id)
     {
         Blog::where('id', $id)->increment('views');
-
     }
 }

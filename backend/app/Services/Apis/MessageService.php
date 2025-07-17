@@ -18,7 +18,7 @@ class MessageService
     public function __construct()
     {
         $factory = (new Factory)
-            ->withServiceAccount(storage_path('firebase/firebase_credentials.json'));
+            ->withServiceAccount(storage_path('firebase/firebase-adminsdk.json'));
 
         $this->firestore = $factory->createFirestore()->database();
         $this->storage = $factory->createStorage();
@@ -138,6 +138,9 @@ class MessageService
         if (!$adminId) {
             $adminId = $this->assignOrGetAdminForUser($userId);
             if (!$adminId) {
+                Log::error('Không tìm thấy admin để bắt đầu chat', [
+                    'user_id' => $userId,
+                ]);
                 return null;
             }
         }
@@ -150,11 +153,16 @@ class MessageService
             return null;
         }
 
-        // Kiểm tra đã có đoạn chat chưa
+        // Tạo chatId
+        $ids = [$adminId, $userId];
+        sort($ids);
+        $chatId = 'chat_' . $ids[0] . '_' . $ids[1];
+
         $messagesRef = $this->firestore->collection('messages');
+
+        // Kiểm tra đã có chat chưa
         $query = $messagesRef
-            ->where('sender_id', 'in', [$adminId, $userId])
-            ->where('receiver_id', 'in', [$adminId, $userId])
+            ->where('chat_id', '=', $chatId)
             ->orderBy('created_at', 'ASC')
             ->limit(1);
 
@@ -163,22 +171,26 @@ class MessageService
         if ($documents->isEmpty()) {
             try {
                 $firstMessageData = [
-                    'sender_id' => $adminId,
+                    'chat_id'     => $chatId,
+                    'sender_id'   => $adminId,
                     'receiver_id' => $userId,
-                    'message' => 'Chào bạn! Tôi có thể giúp gì cho bạn ?',
-                    'imageUrl' => '', // Không có hình ảnh
-                    'is_read' => false,
-                    'created_at' => now()->toDateTimeString(),
+                    'message'     => 'Chào bạn! Tôi có thể giúp gì cho bạn ?',
+                    'imageUrl'    => null,
+                    'is_read'     => false,
+                    'created_at'  => now()->toDateTimeString(),
                 ];
 
                 $docRef = $messagesRef->add($firstMessageData);
 
                 Log::info('Đã tạo tin nhắn chào mừng (Firestore)', [
-                    'document_id' => $docRef->id()
+                    'document_id' => $docRef->id(),
+                    'chat_id' => $chatId,
+                    'user_id' => $userId,
+                    'admin_id' => $adminId
                 ]);
 
                 return $firstMessageData;
-            } catch (FirebaseException $e) {
+            } catch (\Throwable $e) {
                 Log::error('Lỗi khi tạo tin nhắn chào mừng (Firestore)', [
                     'error' => $e->getMessage(),
                     'admin_id' => $adminId,
@@ -186,11 +198,13 @@ class MessageService
                 ]);
                 return null;
             }
-        } else {
-            $firstDoc = $documents->rows()[0];
-            return $firstDoc->data();
         }
+
+        // Nếu đã có → trả về tin nhắn đầu tiên
+        return $documents->rows()[0]->data();
     }
+
+
 
     private function assignOrGetAdminForUser(int $userId): ?int
     {

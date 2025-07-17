@@ -10,7 +10,7 @@
                 <div v-show="user" class="auth-container">
                     <div class="user-menu notification-wrapper">
                         <div class="notification-icon" @click="toggleDropdown">
-                            <i class="fa fa-bell-o"></i>
+                            <i class="sl sl-icon-bell"></i>
                             <span class="badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
                         </div>
 
@@ -54,13 +54,13 @@
 
                         <ul>
                             <li>
-                                <NuxtLink to="/thong-bao"> <i class="fa fa-bell-o"></i> Thông báo </NuxtLink>
+                                <NuxtLink to="/quan-ly/thong-bao"> <i class="sl sl-icon-bell"></i> Thông báo </NuxtLink>
                             </li>
                             <li>
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
                             </li>
                             <li>
-                                <NuxtLink to="/quan-ly/dat-phong"> <i class="fa fa-calendar-check-o"></i> Đặt phòng </NuxtLink>
+                                <NuxtLink to="/quan-ly/dat-phong"> <i class="im im-icon-Bookmark"></i> Đặt phòng </NuxtLink>
                             </li>
                             <li>
                                 <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>

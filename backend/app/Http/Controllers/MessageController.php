@@ -131,4 +131,14 @@ class MessageController extends Controller
 
         return collect($messagesArray);
     }
+
+    public function header()
+    {
+        $messages = $this->messageService->getLatestUnreadForHeader();
+
+        return response()->json([
+            'unread_count' => $messages['unread_count'],
+            'latest' => $messages['latest'],
+        ]);
+    }
 }

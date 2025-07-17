@@ -1673,7 +1673,7 @@ html.mm-blocking #mm-blocker {
 }
 
 .mm-menu.mm-offcanvas {
-    z-index: 1000;
+    z-index: 0;
     display: none;
     position: fixed;
 }
@@ -5070,7 +5070,7 @@ button.panel-cancel:active {
     position: fixed;
     top: 0;
     width: 100%;
-    z-index: 1100;
+    z-index: 1001;
     background-color: #fff;
 }
 
@@ -6117,6 +6117,7 @@ input#booking-time {
 #titlebar.listing-titlebar {
     background: transparent;
     margin: 2px 0 0 0;
+    padding-bottom: 0;
 }
 
 /* alternative listing page */
@@ -14221,7 +14222,7 @@ span.like-icon {
 ---------------------------------------------------------------------- */
 #dashboard {
     background-color: #f7f7f7;
-    min-height: 100vh;
+    /* min-height: 100vh; */
     display: flex;
     flex-wrap: wrap;
     padding-top: 80px;
@@ -14237,9 +14238,10 @@ span.like-icon {
     padding: 40px 45px;
     padding-bottom: 0;
     position: relative;
-    z-index: 10;
+    z-index: 999;
     height: 100%;
     margin-left: 260px;
+    min-height: 100vh;
 }
 
 .dashboard-nav,
@@ -14335,7 +14337,7 @@ header.fullwidth.dashboard .container {
     background-color: #2a2a2a;
     display: block;
     box-shadow: 0px 0px 12px 0px rgba(0, 0, 0, 0.12);
-    z-index: 11;
+    z-index: 1000;
 }
 
 a.dashboard-responsive-nav-trigger {
@@ -14507,7 +14509,7 @@ a.dashboard-responsive-nav-trigger {
 
 #dashboard #titlebar h2 {
     font-size: 30px;
-    line-height: 38px;
+    line-height: 40px;
 }
 
 /* ---------------------------------- */
@@ -15441,7 +15443,7 @@ a.close-list-item {
     position: relative;
     font-weight: 500;
     margin: 0;
-    line-height: 27px;
+    line-height: 30px;
 }
 
 .list-box-listing-content .inner span {
@@ -20159,7 +20161,7 @@ h3.headline {
 
 h2.headline {
     font-size: 34px;
-    line-height: 40px;
+    line-height: 44px;
     margin: 0 0 30px 0;
 }
 
@@ -21271,6 +21273,9 @@ h4 span.headline-detail {
         font-weight: 600;
         transition: 0.2s;
         display: block;
+        font-size: 16px !important;
+        line-height: 28px !important;
+        height: fit-content;
     }
 
     a.dashboard-responsive-nav-trigger i {
@@ -21566,10 +21571,6 @@ h4 span.headline-detail {
 
     .opening-day .chosen-container {
         vertical-align: initial;
-    }
-
-    .dashboard-content .dashboard-list-box-static {
-        margin-bottom: 40px;
     }
 
     .office-address {

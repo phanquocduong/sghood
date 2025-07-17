@@ -1,16 +1,19 @@
 <template>
+    <Loading :is-loading="isLoading" />
     <div class="container">
         <!-- Content -->
         <div class="row sticky-wrapper">
             <div class="col-lg-8 col-md-8 padding-right-30">
-                <ListingTitlebar :title="motel.name" :location="motel.address" :tag="motel.district_name" />
+                <ListingTitlebar
+                    :title="motel.name"
+                    :address="motel.address"
+                    :district="motel.district_name"
+                    :description="motel.description"
+                />
 
                 <div class="listing-section">
-                    <p>{{ motel.description }}</p>
-
-                    <ListingAmenities :amenities="motel.amenities" />
-
                     <ListingGallery :images="motel.images" />
+                    <ListingAmenities :amenities="motel.amenities" />
                 </div>
 
                 <div id="listing-location" class="listing-section">
@@ -29,8 +32,8 @@
 
             <!-- Sidebar -->
             <div class="col-lg-4 col-md-4 margin-top-75 sticky">
-                <ListingPricing :title="'Phí hàng tháng'" :fees="motel.fees" />
                 <ViewingScheduleForm :motel-id="motel.id" />
+                <ListingPricing :title="'Phí hàng tháng'" :fees="motel.fees" />
             </div>
         </div>
 
@@ -53,29 +56,23 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useFormatPrice } from '~/composables/useFormatPrice';
 
 const { $api } = useNuxtApp();
 const route = useRoute();
 const motel = ref({});
 const isModalOpen = ref(false);
 const selectedRoom = ref(null);
+const isLoading = ref(false);
 
-// Hàm định dạng giá tiền
-const formatPrice = price => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
-
-// Hàm định dạng phí
-const formatFees = fees => {
-    return fees.map(fee => ({
-        name: fee.name,
-        price: `${formatPrice(fee.price)}/${fee.unit}`
-    }));
-};
+// Sử dụng composable
+const { formatPrice, formatFees } = useFormatPrice();
 
 // Mở modal
 const openModal = room => {
-    selectedRoom.value = room;
+    selectedRoom.value = {
+        ...room
+    };
     isModalOpen.value = true;
 };
 
@@ -87,6 +84,7 @@ const closeModal = () => {
 
 // Fetch dữ liệu từ API khi component được mounted
 onMounted(async () => {
+    isLoading.value = true;
     try {
         const response = await $api(`/motels/${route.params.slug}`, { method: 'GET' });
         const data = response.data;
@@ -100,6 +98,8 @@ onMounted(async () => {
         motel.value = data;
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu chi tiết nhà trọ', error);
+    } finally {
+        isLoading.value = false;
     }
 });
 </script>

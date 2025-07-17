@@ -6,7 +6,7 @@
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
                     <BookingFilter v-model:filter="filter" @update:filter="fetchBookings" />
-                    <BookingList :items="bookings" :is-loading="isLoading" @reject-item="rejectBooking" @open-popup="openPopup" />
+                    <BookingList :items="bookings" :is-loading="isLoading" @reject-item="rejectBooking" />
                 </div>
             </div>
         </div>
@@ -52,7 +52,7 @@ const fetchBookings = async () => {
     }
 };
 
-const rejectBooking = async ({ id }) => {
+const rejectBooking = async id => {
     isLoading.value = true;
     try {
         await $api(`/bookings/${id}/reject`, {

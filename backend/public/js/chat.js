@@ -155,9 +155,11 @@ function reloadUserList() {
         const newUserList = temp.querySelector('div[style*="width: 25%"]');
         if (newUserList) {
             $('div[style*="width: 25%"]').replaceWith(newUserList);
+            listenUnreadMessages(); // chạy lại listener
         }
     });
 }
+
 
 
 function listenUnreadMessages() {
@@ -169,51 +171,50 @@ function listenUnreadMessages() {
         .onSnapshot(snapshot => {
             const unreadCountMap = {};
 
+            // ✅ Gom số lượng theo sender_id
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const senderId = data.sender_id;
+                const senderId = String(data.sender_id);
                 unreadCountMap[senderId] = (unreadCountMap[senderId] || 0) + 1;
             });
 
-            // Cập nhật badge từng user
-            document.querySelectorAll('.unread-badge').forEach(badge => {
-                const userId = parseInt(badge.dataset.userId);
-                const count = unreadCountMap[userId] || 0;
-
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            });
-
-            // Gắn badge nếu chưa có
+            // 🎯 Cập nhật badge từng user
             document.querySelectorAll('.load-chat').forEach(link => {
-                const userId = parseInt(link.dataset.userId);
+                const userId = link.dataset.userId; // giữ string cho an toàn
                 const count = unreadCountMap[userId] || 0;
 
                 const container = link.querySelector('div[style*="justify-content: space-between"]');
-                if (count > 0 && !container.querySelector('.unread-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'unread-badge';
-                    badge.dataset.userId = userId;
+                if (!container) return;
+
+                let badge = container.querySelector('.unread-badge');
+
+                if (count > 0) {
+                    if (!badge) {
+                        // Tạo mới badge
+                        badge = document.createElement('span');
+                        badge.className = 'unread-badge';
+                        badge.dataset.userId = userId;
+                        badge.style.cssText = `
+                            background-color: red;
+                            color: white;
+                            font-size: 12px;
+                            border-radius: 12px;
+                            padding: 2px 6px;
+                            min-width: 20px;
+                            display: inline-block;
+                            margin-left: 8px;
+                        `;
+                        container.appendChild(badge);
+                    }
                     badge.textContent = count;
-                    badge.style.cssText = `
-                        background-color: red;
-                        color: white;
-                        font-size: 12px;
-                        border-radius: 12px;
-                        padding: 2px 6px;
-                        min-width: 20px;
-                        display: inline-block;
-                        margin-left: 8px;
-                    `;
-                    container.appendChild(badge);
+                    badge.style.display = 'inline-block';
+                } else {
+                    // Ẩn badge nếu đã đọc hết
+                    if (badge) badge.style.display = 'none';
                 }
             });
 
-            // ✅ Cập nhật tổng số unread trên navbar
+            // 🎯 Cập nhật tổng số unread trên navbar
             const totalUnread = Object.values(unreadCountMap).reduce((sum, count) => sum + count, 0);
             const navbarBadge = document.getElementById('navbarUnreadTotal');
             if (navbarBadge) {
@@ -226,6 +227,7 @@ function listenUnreadMessages() {
             }
         });
 }
+
 
 
 function markMessagesAsRead() {

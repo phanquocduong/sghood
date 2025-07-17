@@ -19,20 +19,22 @@ class BlogController extends Controller
     }
     public function index(Request $request)
     {
-        $searchQuery =  (string) $request->input('querySearch', '');
-        $status = (string)  $request->input('status', null);
+        $searchQuery = (string) $request->input('querySearch', '');
+        $status = (string) $request->input('status', null);
         $sortOption = (string) $request->input('sort_by', 'created_at_desc');
-        $perPage = (string) $request->input('perPage', 10);
-        $blogs = $this->blogService->getAllBlogs($searchQuery, $status, $sortOption, $perPage = 10);
-        $data = [
-            'searchQuery'=>$searchQuery,
-            'status'=>$status,
-            'sortOption'=>$sortOption,
-            'perPage'=>$perPage,
-            'blogs'=>$blogs
-        ];
-        return view('blogs.index', $data);
+        $perPage = (int) $request->input('perPage', 10);
+
+        $blogs = $this->blogService->getAllBlogs($searchQuery, $status, $sortOption, $perPage);
+
+        return view('blogs.index', [
+            'searchQuery' => $searchQuery,
+            'status' => $status,
+            'sortOption' => $sortOption,
+            'perPage' => $perPage,
+            'blogs' => $blogs,
+        ]);
     }
+
     public function create()
     {
         return view('blogs.create');
@@ -60,11 +62,11 @@ class BlogController extends Controller
         $perPage = (string) $request->input('perPage', 10);
         $blogs = $this->blogService->getDeleteBlogs($searchQuery, $status, $sortOption, $perPage = 10);
         $data = [
-            'searchQuery'=>$searchQuery,
-            'status'=>$status,
-            'sortOption'=>$sortOption,
-            'perPage'=>$perPage,
-            'blogs'=>$blogs
+            'searchQuery' => $searchQuery,
+            'status' => $status,
+            'sortOption' => $sortOption,
+            'perPage' => $perPage,
+            'blogs' => $blogs
         ];
         return view('blogs.trash', $data);
     }
@@ -121,9 +123,10 @@ class BlogController extends Controller
         return redirect()->route('blogs.trash')->with('success', 'Khôi phục bài viết thành công!');
     }
 
-    public function Forcedelete(int $id) {
+    public function Forcedelete(int $id)
+    {
         $result = $this->blogService->ForcedeleteBlog($id);
-        if(isset($result['error'])) {
+        if (isset($result['error'])) {
             return redirect()->back()->with('error', $result['error']);
         }
 
@@ -133,5 +136,18 @@ class BlogController extends Controller
     {
         $blogs = $this->blogService->detailBlog($id);
         return view('blogs.detail_blog', compact('blogs'));
+    }
+    public function updateCategory(Request $request, $id)
+    {
+        $request->validate([
+            'category' => 'required|in:news,guide,promotion,law,experience',
+        ]);
+
+        $blog = Blog::findOrFail($id);
+
+        $blog->category = $request->category;
+        $blog->save();
+
+        return back()->with('success', 'Cập nhật thể loại bài viết thành công.');
     }
 }

@@ -353,14 +353,16 @@ const sendMessage = async (payload = null) => {
     // Gửi tin nhắn lên Firestore (realtime)
  await addDoc(collection($firebaseDb, 'messages'), {
   text: type === 'image' ? '' : text,
-  content: type === 'image' ? text : '',
+  content: type === 'image' ? Rawtext : '',
   type,
   sender_id: currentUserId.value,
   receiver_id: AdminId.value,
   createdAt: serverTimestamp(),
   is_read: false,
   chatId
+
 })
+
 
     // Optionally: gọi API gửi nữa nếu backend cần lưu
 

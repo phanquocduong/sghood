@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Providers;
 
 use App\Models\Notification;
@@ -44,11 +45,50 @@ class AppServiceProvider extends ServiceProvider
         putenv("GOOGLE_APPLICATION_CREDENTIALS=$absolutePath");
 
         View::composer('*', function ($view) {
+            // ===========================
+            // Notifications từ MySQL
+            // ===========================
             $unreadCount = Notification::where('status', 'Chưa đọc')->count();
             $latestNotifications = Notification::latest()->take(3)->get();
 
-            $view->with('unreadCount', $unreadCount)
-                ->with('latestNotifications', $latestNotifications);
+            // ===========================
+            // Messages chưa đọc từ Firestore
+            // ===========================
+            $unreadMessageCount = 0;
+            $latestMessages = [];
+
+            try {
+                $firestore = (new Factory)->createFirestore();
+                $db = $firestore->database();
+
+                $messagesRef = $db->collection('messages');
+
+                // Đếm chưa đọc (is_read = false)
+                $unreadQuery = $messagesRef->where('is_read', '=', false);
+                $unreadDocs = $unreadQuery->documents();
+                $unreadMessageCount = $unreadDocs->size();
+
+                // Lấy 3 message mới nhất
+                $latestQuery = $messagesRef->orderBy('created_at', 'DESC')->limit(3);
+                $latestDocs = $latestQuery->documents();
+
+                foreach ($latestDocs as $doc) {
+                    if ($doc->exists()) {
+                        $data = $doc->data();
+                        $data['id'] = $doc->id(); // lưu ID
+                        $latestMessages[] = $data;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('Error fetching messages from Firestore: ' . $e->getMessage());
+            }
+
+            $view->with([
+                'unreadCount' => $unreadCount,
+                'latestNotifications' => $latestNotifications,
+                'unreadMessageCount' => $unreadMessageCount,
+                'latestMessages' => $latestMessages,
+            ]);
         });
     }
 }
