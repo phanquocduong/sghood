@@ -21,6 +21,7 @@ use App\Http\Controllers\Apis\BlogController;
 use App\Http\Controllers\Apis\CheckoutController;
 use App\Http\Controllers\Apis\ContractExtensionController;
 use App\Http\Controllers\Apis\RefundRequestController;
+use App\Http\Controllers\Apis\CommentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +107,12 @@ Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
 Route::get('/blogs/{id}/related', [BlogController::class, 'related']);
 Route::get('/blogs/popular', [BlogController::class, 'popular']);
 Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
+// Comment blogs route
+Route::get('/blogs/{blog}/comments', [CommentController::class, 'getAllCommentBlog']);
+Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'sendComment']);
+Route::put('/comments/{id}', [CommentController::class, 'editComment']);
+Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
+Route::post('/comments/{comment}/reaction', [CommentController::class, 'react']);
 
 
 // Get all admin users
