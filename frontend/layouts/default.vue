@@ -55,7 +55,7 @@
             <div>
                 <ChatBox
                     v-if="user"
-                    :key="`chat-${isChatOpen}`"
+                    
                     :isOpen="isChatOpen"
                     @close="isChatOpen = false"
                     @unread="onUnreadMessage"

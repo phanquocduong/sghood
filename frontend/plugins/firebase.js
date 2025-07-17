@@ -8,7 +8,7 @@ export default defineNuxtPlugin(() => {
         apiKey: 'AIzaSyAnEYDqg-BwdYKJLoz1bDG1x62JnRsVVB0',
         authDomain: 'tro-viet.firebaseapp.com',
         projectId: 'tro-viet',
-        storageBucket: 'tro-viet.appspot.com',
+        storageBucket: 'tro-viet.firebasestorage.app',
         messagingSenderId: '1000506063285',
         appId: '1:1000506063285:web:47e80b8489d09c8ce8c1fc',
         measurementId: 'G-LRB092W6Y5'

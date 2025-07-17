@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\BlogService;
+use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
@@ -12,12 +13,19 @@ class BlogController extends Controller
     {
         $this->blogService = $blogService;
     }
-    public function index()
+    public function index(Request $request)
     {
-        $blog = $this->blogService->getAll();
+        $blogs = $this->blogService->getAll($request->all());
+
         return response()->json([
             'success' => true,
-            'data' => $blog
+            'data' => $blogs->items(),
+            'current_page' => $blogs->currentPage(),
+            'last_page' => $blogs->lastPage(),
+            'next_page_url' => $blogs->nextPageUrl(),
+            'prev_page_url' => $blogs->previousPageUrl(),
+            'per_page' => $blogs->perPage(),
+            'total' => $blogs->total(),
         ]);
     }
     public function showBlog($slug)

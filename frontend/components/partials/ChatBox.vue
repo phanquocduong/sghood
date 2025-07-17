@@ -133,18 +133,23 @@ const handleFileUpload = async (e) => {
   if (!file) return
 
   try{
+
     const imageUrl = await uploadImageToFirebase(file, $firebaseStorage)
+    console.log('Uploading image:', file)
+console.log('Upload to:', $firebaseStorage)
     await sendMessage({
       content:imageUrl,
       type:'image'
     })
+    console.log('image uploaded:', imageUrl)
   }catch(err){
     console.error('Upload image error:',err)
   }
 }
 watch(()=>props.isOpen,(open)=>{
   if(open){
-    lastRealtime.value = Date.now()
+
+    markMessagesAsRead()
   }
 })
 
@@ -255,10 +260,21 @@ const initChat = async () => {
       id: msg.id || `${msg.created_at}_${msg.sender_id}`, // fallback nếu không có id
       from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
       text: msg.message,
-      createdAt: msg.created_at
+      createdAt: msg.createdAt?.seconds ? msg.createdAt.seconds * 1000 : Date.now(),
+      type: msg.type || 'text',
+      content : msg.content || '',
+      
     }))
 
     messages.value = [...incoming]
+
+
+if (incoming.length > 0) {
+  const lastMessage = incoming[incoming.length - 1].createdAt
+  lastRealtime.value = new Date(lastMessage).getTime()
+  localStorage.setItem('lastRealtime', lastRealtime.value)
+}
+
     scrollToBottom()
 
     // 3) Lắng nghe realtime từ Firestore
@@ -280,7 +296,8 @@ const initChat = async () => {
     text: d.text,
     type: d.type || 'text',
     content: d.content || '',
-    createdAt: d.createdAt?.seconds || Date.now()
+    createdAt: d.createdAt?.toMillis?.() || Date.now()
+
   }
 })
 
@@ -291,26 +308,26 @@ const initChat = async () => {
 
         messages.value = [...messages.value, ...newUniqueMessages]
         scrollToBottom()
-        const hasAdmin = newUniqueMessages.some(m => 
-          m.from === 'admin' && (typeof m.createdAt == 'number' ? m.createdAt *1000 :m.createdAt) > lastRealtime.value
-        )
+        const hasAdmin = newUniqueMessages.some(m => {
+              const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000)
+        return m.from === 'admin' && createdAt > Math.floor(lastRealtime.value / 1000)
+      })
+
         if(hasAdmin){
+        lastRealtime.value = Date.now()
+        localStorage.setItem('lastRealtime', lastRealtime.value.toString())
+        console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value))
+
           emit ('unread')
           const audio = notiSound.value
           if(audio){
-            audio.currentTime = 0 
+            audio.currentTime = 0
             audio.play().catch(err=>{
             console.warn('khong the phat am thanh',err)
           })
           }
         }
-        const audio = notiSound.value
-        if(audio){
-          audio.currentTime = 0 
-          audio.play().catch(err=>{
-            console.warn('khong the phat am thanh',err)
-          })
-        }
+        
       }
     })
   } catch (error) {
@@ -321,8 +338,8 @@ const initChat = async () => {
 }
 const sendMessage = async (payload = null) => {
 
-  const Rawtext =payload?.content || newMessage.value
-  const type = payload?.type || 'image'
+  const type = payload?.type || 'text'
+  const Rawtext = type === 'image' ? payload?.content : newMessage.value
   const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 
@@ -341,6 +358,7 @@ const sendMessage = async (payload = null) => {
   sender_id: currentUserId.value,
   receiver_id: AdminId.value,
   createdAt: serverTimestamp(),
+  is_read: false,
   chatId
 })
 
@@ -367,22 +385,26 @@ const sendMessage = async (payload = null) => {
 }
 
 onMounted(() => {
+  const storeRealtime = localStorage.getItem('lastRealtime')
+  if(!storeRealtime){
+    lastRealtime.value= 0
 
+  }else{
+    lastRealtime.value = parseInt(storeRealtime)
+  }
   initChat() 
   initActions()
-  
-    setTimeout(() => {
-    const audio = notiSound.value
-    if (audio) {
-      audio.play().catch(err => console.warn('Không thể phát âm thanh:', err))
-    }
-  }, 1000)
+
 })
 
 onBeforeUnmount(() => {
   if (unsubscribe) unsubscribe()
 })
 
+const markMessagesAsRead = ()=>{
+  lastRealtime.value = Date.now()
+  localStorage.setItem('lastRealtime', lastRealtime.value.toString())
+}
 </script>
 
 

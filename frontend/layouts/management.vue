@@ -25,6 +25,7 @@
                 </div>
             </div>
         </header>
+        
         <!-- Dashboard -->
         <div id="dashboard">
             <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i></a>
@@ -38,54 +39,80 @@
                     <div class="copyrights">© 2025 Trọ Việt.</div>
                 </div>
             </div>
+            <div>
+                <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
+                <div>
+                    <ChatBox
+                        v-if="user"
+                        
+                        :isOpen="isChatOpen"
+                        @close="isChatOpen = false"
+                        @unread="onUnreadMessage"
+                    ></ChatBox>
+                </div>
+            </div>
         </div>
-    </div>
+      </div>
 </template>
 
 <script setup>
-import { useAuthStore } from '~/stores/auth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { ref, watch, nextTick, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useRoute } from 'vue-router';
-import { ref, watch, nextTick } from 'vue';
-// Lấy store và router
-const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
+import { useAuthStore } from '~/stores/auth';
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
-watch(
-    () => route.fullPath,
-    async () => {
-        isLoading.value = true;
-        await nextTick();
-        setTimeout(() => {
-            isLoading.value = false;
-        }, 500);
-    },
-    { immediate: true }
-);
+const isChatOpen = ref(false);
+const unreadMessages = ref(0);
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+const toast = useToast();
+const router = useRouter();
 
-// Kiểm tra trạng thái đăng nhập
-const checkAuth = async () => {
-    // Nếu chưa có thông tin user, thử lấy từ server
-    if (!authStore.user) {
-        await authStore.fetchUser();
-    }
-
-    // Nếu vẫn không có user (chưa đăng nhập), chuyển hướng đến trang đăng nhập
-    if (!authStore.user) {
-        toast.error('Vui lòng đăng nhập!');
-        router.push('/'); // Thay '/login' bằng đường dẫn đến trang đăng nhập của bạn
-    }
+const toggleChat = () => {
+  isChatOpen.value = !isChatOpen.value;
+  if (isChatOpen.value) {
+    unreadMessages.value = 0;
+  }
 };
 
-// Gọi hàm kiểm tra ngay khi component được mount
+const onUnreadMessage = () => {
+  if (!isChatOpen.value) {
+    unreadMessages.value++;
+  }
+};
+
+watch(
+  () => route.fullPath,
+  async () => {
+    isLoading.value = true;
+    await nextTick();
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 500);
+  },
+  { immediate: true }
+);
+
+const checkAuth = async () => {
+  if (!authStore.user) {
+    await authStore.fetchUser();
+  }
+
+  if (!authStore.user) {
+    toast.error('Vui lòng đăng nhập!');
+    router.push('/');
+  }
+};
+
 onMounted(() => {
-    checkAuth();
+  checkAuth();
+    console.log("user ở manager:", user.value);
+
 });
+
 </script>
 
 <style scoped>

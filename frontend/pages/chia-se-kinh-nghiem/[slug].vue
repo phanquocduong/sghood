@@ -20,44 +20,72 @@
     <!-- Content -->
     <div class="container blog-page" v-if="!loading">
       <div class="row">
-        <!-- Main Post Content -->
-        <div class="col-lg-9 col-md-8 padding-right-30">
-          <!-- Blog Post -->
-          <div class="blog-post single-post" v-if="blog">
-            <img class="post-img" :src="blog.thumbnail" alt="">
-            <div class="post-content">
-              <h3>{{ blog.title }}</h3>
-              <ul class="post-meta">
-                <li>{{ blog.date }}</li>
-                <li><a href="#">{{ blog.category || 'Chưa phân loại' }}</a></li>
-                <li><a href="#">{{ blog.comments || 0 }} bình luận</a></li>
-              </ul>
-              <p v-html="blog.content"></p>
+      
+       <!-- Main Post Content -->
+<div class="col-lg-9 col-md-8 padding-right-30">
+  <!-- Kết quả tìm kiếm -->
+  <div v-if="searchKeyword">
+    <h4 class="headline margin-top-25">Kết quả tìm kiếm cho "{{ searchKeyword }}"</h4>
 
-              <!-- Share Buttons -->
-              <ul class="share-buttons margin-top-40">
-                <li><a href="#"><i class="fa fa-facebook"></i> Share</a></li>
-                <li><a href="#"><i class="fa fa-twitter"></i> Tweet</a></li>
-              </ul>
+    <div v-if="blogList.length > 0" class="row">
+      <div class="col-md-12" v-for="item in blogList" :key="item.id">
+        <NuxtLink :to="item.url" class="blog-compact-item-container">
+          <div class="blog-compact-item">
+            <img :src="item.thumbnail" alt="">
+            <span class="blog-item-tag">Tìm thấy</span>
+            <div class="blog-compact-item-content">
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.excerpt }}</p>
             </div>
           </div>
+        </NuxtLink>
+      </div>
+    </div>
 
-          <!-- Related Posts -->
-          <h4 class="headline margin-top-25">Bài viết liên quan</h4>
-          <div class="row">
-            <div class="col-md-6" v-for="item in relatedPosts" :key="item.id">
-              <a :href="item.url" class="blog-compact-item-container">
-                <div class="blog-compact-item">
-                  <img :src="item.thumbnail" alt="">
-                  <span class="blog-item-tag">Liên quan</span>
-                  <div class="blog-compact-item-content">
-                    <h3>{{ item.title }}</h3>
-                  </div>
-                </div>
-              </a>
+    <div v-else>
+      <p class="text-gray-500">Không tìm thấy bài viết phù hợp với từ khóa "{{ searchKeyword }}"</p>
+    </div>
+  </div>
+
+  <!-- Bài viết chi tiết -->
+  <div v-else>
+    <div class="blog-post single-post" v-if="blog">
+      <img class="post-img" :src="blog.thumbnail" alt="">
+      <div class="post-content">
+        <h3>{{ blog.title }}</h3>
+        <ul class="post-meta">
+          <li>{{ blog.created_at }}</li>
+          <li><a href="#">{{ blog.category || 'Chưa phân loại' }}</a></li>
+          <li><a href="#">{{ blog.comments || 0 }} bình luận</a></li>
+        </ul>
+        <p v-html="blog.content"></p>
+
+        <!-- Share Buttons -->
+        <ul class="share-buttons margin-top-40">
+          <li><a href="#"><i class="fa fa-facebook"></i> Share</a></li>
+          <li><a href="#"><i class="fa fa-twitter"></i> Tweet</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Related Posts -->
+    <h4 class="headline margin-top-25">Bài viết liên quan</h4>
+    <div class="row">
+      <div class="col-md-6" v-for="item in relatedPosts" :key="item.id">
+        <a :href="item.url" class="blog-compact-item-container">
+          <div class="blog-compact-item">
+            <img :src="item.thumbnail" alt="">
+            <span class="blog-item-tag">Liên quan</span>
+            <div class="blog-compact-item-content">
+              <h3>{{ item.title }}</h3>
             </div>
           </div>
-        </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 
         <!-- Sidebar -->
         <div class="col-lg-3 col-md-4">
@@ -65,7 +93,7 @@
             <div class="widget">
               <h3 class="margin-top-0">Tìm kiếm</h3>
               <div class="search-blog-input">
-                <input type="text" class="search-field" placeholder="Gõ và enter...">
+                <input type="text" class="search-field" placeholder="Gõ và enter..." v-model="searchKeyword" @keyup.enter="searchBlogs(searchKeyword)">
               </div>
             </div>
 
@@ -118,13 +146,59 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNuxtApp, useRuntimeConfig } from '#app'
 const route = useRoute()
+const searchKeyword = ref('')
 const blog = ref((null))
 const loading = ref(false)
 const {$api} = useNuxtApp()
 const relatedPosts = ref([])
+const blogList = ref([])
 const popularPosts = ref([])
-const baseUrl = useRuntimeConfig().public.baseUrl;
+const baseUrl = useRuntimeConfig().public.baseUrl
 const hasIncreasedView = ref(false)
+const currentPage = ref(1)
+const totalPages = ref(1)
+function formatDate(dateStr = '') {
+  if (!dateStr) return 'Không rõ ngày';
+
+  // Xử lý dạng dd-MM-yyyy
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+    const [day, month, year] = dateStr.split('-');
+    dateStr = `${year}-${month}-${day}`; // Đổi sang yyyy-MM-dd
+  }
+
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+const searchBlogs = async(keyWord , page = 1 , perPage=5) =>{
+  try{
+    const res = await $api(`/blogs?search=${encodeURIComponent(keyWord)}&page=${page}&per_page=${perPage}`,{
+      method:'GET',
+       headers:{
+        'Content-Type': 'application/json',
+      },
+    })
+    blogList.value= res.data.map(g=>({
+      id : g.id,
+      title :g.title,
+     thumbnail: g.thumbnail?.startsWith('/storage')
+    ? baseUrl + g.thumbnail
+    : g.thumbnail,
+      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+    }))
+    console.log('searchBlogs',res)
+    currentPage.value = res.current_page || 1
+    totalPages.value = res.last_page || 1
+  }catch(e){
+    console.log('searchBlogs error',e)
+  }
+}
 const fetchBlogs = async(slug)=>{
   loading.value = true
   try{
@@ -144,8 +218,9 @@ const fetchBlogs = async(slug)=>{
       content: fixedContent,
       date: res.data.created_at,
       category: res.data.category || 'Tin tức',
-      
+      created_at: formatDate(res.data.created_at)
     }
+    
     console.log('fetchblogs',res)
     if(!hasIncreasedView.value){
         await $api(`/blogs/${res.data.id}/increase-view`,{
@@ -165,6 +240,7 @@ const fetchBlogs = async(slug)=>{
       url: `/chia-se-kinh-nghiem/${g.slug}`,
       date: g.created_at
     }))
+    
   }catch(e){
     console.log('sai o dau do', e)
   }finally{
@@ -217,11 +293,21 @@ const fetchRelatedPosts = async(id)=>{
     console.log('sai o dau do', e)
   }
 }
+
 onMounted(async()=>{
-  await fetchBlogs()
-  await FetchPopularPosts()
-  if(blog.value?.id){
-  await  fetchRelatedPosts(blog.value.id)
+   const keyWord = route.query.search
+  const page = route.query.page || 1
+
+  if (keyWord) {
+    // Nếu đang tìm kiếm bài viết
+    await searchBlogs(keyWord, page)
+  } else {
+    // Nếu đang xem chi tiết 1 bài viết
+    await fetchBlogs()
+    await FetchPopularPosts()
+    if (blog.value?.id) {
+      await fetchRelatedPosts(blog.value.id)
+    }
   }
 })
 function stripHtml(html = '') {
