@@ -9,18 +9,6 @@
                     <h3>
                         Hợp đồng #{{ item.id }} [{{ item.room_name }} - {{ item.motel_name }}]
                         <span :class="getStatusClass(item.status)">{{ item.status }}</span>
-                        <span
-                            v-if="item.latest_extension_status && item.latest_extension_status !== 'Huỷ bỏ'"
-                            :class="getExtensionStatusClass(item.latest_extension_status)"
-                        >
-                            {{ formatExtensionStatus(item.latest_extension_status) }}
-                        </span>
-                        <span
-                            v-if="item.latest_checkout_status && item.latest_checkout_status !== 'Huỷ bỏ'"
-                            :class="getCheckoutStatusClass(item.latest_checkout_status)"
-                        >
-                            {{ formatCheckoutStatus(item.latest_checkout_status) }}
-                        </span>
                     </h3>
                     <div class="inner-booking-list">
                         <h5>Ngày bắt đầu:</h5>
@@ -140,16 +128,7 @@ const toast = useToast();
 const { formatPrice } = useFormatPrice();
 const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
-const {
-    getItemClass,
-    getStatusClass,
-    getExtensionStatusClass,
-    getCheckoutStatusClass,
-    formatExtensionStatus,
-    formatCheckoutStatus,
-    getActText,
-    isNearExpiration
-} = useContractUtils();
+const { getItemClass, getStatusClass, getActText, isNearExpiration } = useContractUtils();
 
 const props = defineProps({
     item: {

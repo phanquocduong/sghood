@@ -33,18 +33,7 @@ class ContractService
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
-                        ->where('type', 'Đặt cọc'),
-                    'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
-                        ->orderBy('created_at', 'desc'),
-                    'checkouts' => fn($query) => $query->select(
-                        'id',
-                        'contract_id',
-                        'check_out_date',
-                        'status',
-                        'deposit_refunded',
-                        'has_left',
-                        'note'
-                    )->orderBy('created_at', 'desc'),
+                        ->where('type', 'Đặt cọc')
                 ])
                 ->get()
                 ->map(fn ($contract) => [
@@ -59,9 +48,7 @@ class ContractService
                     'deposit_amount' => $contract->deposit_amount,
                     'rental_price' => $contract->rental_price,
                     'signed_at' => $contract->signed_at,
-                    'invoice_id' => $contract->invoices->first()?->id,
-                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
-                    'latest_checkout_status' => $contract->checkouts->first()?->status ?? null,
+                    'invoice_id' => $contract->invoices->first()?->id
                 ])
                 ->toArray();
         } catch (\Throwable $e) {

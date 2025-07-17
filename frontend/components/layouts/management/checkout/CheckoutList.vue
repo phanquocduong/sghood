@@ -5,7 +5,7 @@
     <Loading :is-loading="isLoading" />
 
     <ul v-if="!isLoading">
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
+        <li v-for="item in items" :key="item.id" :class="getItemClass(item.inventory_status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
                     <img :src="config.public.baseUrl + item.room_image" alt="" />
@@ -14,18 +14,23 @@
                     <div class="inner">
                         <h3>
                             Hợp đồng #{{ item.contract_id }} [{{ item.room_name }} - {{ item.motel_name }}]
-                            <span :class="getStatusClass(item.status)">{{ item.status }}</span>
+                            <span :class="getInventoryStatusClass(item.inventory_status)">{{ item.inventory_status }}</span>
+                            <span
+                                v-if="item.inventory_status === 'Đã kiểm kê'"
+                                :class="getUserConfirmationStatusClass(item.user_confirmation_status)"
+                                >{{ getUserConfirmationStatusText(item.user_confirmation_status) }}</span
+                            >
                         </h3>
-                        <div class="inner-booking-list">
-                            <h5>Ngày trả phòng:</h5>
+                        <div v-if="item.user_rejection_reason" class="inner-booking-list">
+                            <h5>Lý do từ chối:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ formatDate(item.check_out_date) }}</li>
+                                <li>{{ item.user_rejection_reason }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
-                            <h5>Trạng thái hoàn tiền cọc:</h5>
+                            <h5>Ngày dự kiến rời phòng:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ item.deposit_refunded ? 'Đã hoàn' : 'Chưa hoàn' }}</li>
+                                <li class="highlighted">{{ formatDate(item.check_out_date) }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
@@ -40,6 +45,12 @@
                                 <li class="highlighted">{{ formatPrice(item.deduction_amount) }}</li>
                             </ul>
                         </div>
+                        <div v-if="item.final_refunded_amount" class="inner-booking-list">
+                            <h5>Số tiền hoàn lại cuối cùng:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ formatPrice(item.final_refunded_amount) }}</li>
+                            </ul>
+                        </div>
                         <div v-if="item.note" class="inner-booking-list">
                             <h5>Ghi chú:</h5>
                             <ul class="booking-list">
@@ -50,11 +61,11 @@
                 </div>
             </div>
             <div class="buttons-to-right">
-                <a v-if="item.status === 'Đã kiểm kê'" href="#" class="button gray approve">
-                    <i class="im im-icon-Check"></i> Chi tiết kiểm kê
+                <a v-if="item.inventory_status === 'Đã kiểm kê'" href="#" class="button gray approve">
+                    <i class="im im-icon-Check"></i> Xem kiểm kê
                 </a>
                 <a
-                    v-if="item.status === 'Chờ kiểm kê'"
+                    v-if="item.inventory_status === 'Chờ kiểm kê'"
                     href="#"
                     @click.prevent="openConfirmRejectPopup(item.id)"
                     class="button gray reject"
@@ -94,6 +105,7 @@ const emit = defineEmits(['rejectItem']);
 const getItemClass = status => {
     switch (status) {
         case 'Chờ kiểm kê':
+        case 'Kiểm kê lại':
             return 'pending-booking';
         case 'Đã kiểm kê':
             return 'approved-booking';
@@ -104,10 +116,11 @@ const getItemClass = status => {
     }
 };
 
-const getStatusClass = status => {
+const getInventoryStatusClass = status => {
     let statusClass = 'booking-status';
     switch (status) {
         case 'Chờ kiểm kê':
+        case 'Kiểm kê lại':
             statusClass += ' pending';
             break;
         case 'Đã kiểm kê':
@@ -118,6 +131,35 @@ const getStatusClass = status => {
             break;
     }
     return statusClass;
+};
+
+const getUserConfirmationStatusClass = status => {
+    let statusClass = 'booking-status';
+    switch (status) {
+        case 'Chưa xác nhận':
+            statusClass += ' pending user-confirmation-status';
+            break;
+        case 'Đồng ý':
+            statusClass += ' approved';
+            break;
+        case 'Từ chối':
+            statusClass += ' canceled user-confirmation-status';
+            break;
+    }
+    return statusClass;
+};
+
+const getUserConfirmationStatusText = status => {
+    switch (status) {
+        case 'Chưa xác nhận':
+            return 'Chờ xác nhận từ bạn';
+        case 'Đồng ý':
+            return 'Bạn đã đồng ý';
+        case 'Từ chối':
+            return 'Bạn đã từ chối';
+        default:
+            return '';
+    }
 };
 
 const openConfirmRejectPopup = async id => {
@@ -147,5 +189,19 @@ const openConfirmRejectPopup = async id => {
     max-width: 150px;
     max-height: none;
     border-radius: 4px;
+}
+
+.booking-status.pending.user-confirmation-status {
+    background-color: #61b2db !important;
+}
+
+.booking-status.canceled.user-confirmation-status {
+    background-color: #ee3535 !important;
+}
+
+.approved-booking .inner-booking-list ul li.highlighted.reject.user-confirmation-status,
+.pending-booking .inner-booking-list ul li.highlighted.reject.user-confirmation-status {
+    background-color: #eee !important;
+    color: #777 !important;
 }
 </style>

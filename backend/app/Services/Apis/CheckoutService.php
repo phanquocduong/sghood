@@ -61,7 +61,6 @@ class CheckoutService
             $checkout = Checkout::create([
                 'contract_id' => $contract->id,
                 'check_out_date' => $checkOutDate,
-                'status' => 'Chờ kiểm kê',
                 'deposit_refunded' => false,
                 'has_left' => false,
             ]);
@@ -111,8 +110,8 @@ class CheckoutService
             })
             ->with(['contract.room.motel', 'contract.room.images']);
 
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+        if (!empty($filters['inventory_status'])) {
+            $query->where('inventory_status', $filters['inventory_status']);
         }
 
         $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
@@ -124,11 +123,13 @@ class CheckoutService
                 'check_out_date' => $checkout->check_out_date,
                 'inventory_details' => $checkout->inventory_details,
                 'deduction_amount' => $checkout->deduction_amount,
-                'status' => $checkout->status,
-                'deposit_refunded' => $checkout->deposit_refunded,
+                'final_refunded_amount' => $checkout->final_refunded_amount,
+                'inventory_status' => $checkout->inventory_status,
+                'user_confirmation_status' => $checkout->user_confirmation_status,
+                'user_rejection_reason' => $checkout->user_rejection_reason,
                 'has_left' => $checkout->has_left,
-                'note' => $checkout->note,
                 'images' => $checkout->images,
+                'note' => $checkout->note,
                 'room_name' => $checkout->contract->room->name,
                 'motel_name' => $checkout->contract->room->motel->name,
                 'room_image' => $checkout->contract->room->main_image->image_url,
@@ -143,11 +144,11 @@ class CheckoutService
         $checkout = Checkout::findOrFail($id);
 
         // Cập nhật trạng thái của Checkout thành 'Huỷ bỏ'
-        $checkout->update(['status' => 'Huỷ bỏ']);
+        $checkout->update(['inventory_status' => 'Huỷ bỏ']);
 
         // Cập nhật trạng thái của RefundRequest liên kết (nếu có) thành 'Huỷ bỏ'
         if ($checkout->refund_request) {
-            $checkout->refund_request->update(['status' => 'Huỷ bỏ']);
+            $checkout->refund_request->update(['inventory_status' => 'Huỷ bỏ']);
         }
 
         return $checkout;

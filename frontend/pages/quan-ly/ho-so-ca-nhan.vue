@@ -18,7 +18,7 @@
         <!-- Profile -->
         <div class="col-lg-6 col-md-12">
             <div class="dashboard-list-box margin-top-0">
-                <h4 class="gray">Thông tin hồ sơ</h4>
+                <h4 class="gray">Thông tin cá nhân</h4>
                 <div class="dashboard-list-box-static">
                     <div class="edit-profile-photo">
                         <ClientOnly>
