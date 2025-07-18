@@ -16,6 +16,7 @@ class TransactionService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('refund_request_id', 'like', '%' . $filters['search'] . '%')
                   ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
                       $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
                   });
