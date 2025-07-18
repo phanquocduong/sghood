@@ -83,7 +83,9 @@
         </a>
       </div>
     </div>
-    <Comments/>
+    
+    <Comments :key="commentsKey"/>
+   
   </div>
 </div>
 
@@ -146,6 +148,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNuxtApp, useRuntimeConfig } from '#app'
+import Comments from '~/components/partials/comments/Comments.vue'
 const route = useRoute()
 const searchKeyword = ref('')
 const blog = ref((null))
@@ -158,6 +161,10 @@ const baseUrl = useRuntimeConfig().public.baseUrl
 const hasIncreasedView = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const commentsKey = ref(0)
+const reloadComments = () =>{
+  commentsKey.value += 1 
+}
 function formatDate(dateStr = '') {
   if (!dateStr) return 'Không rõ ngày';
 
@@ -203,7 +210,8 @@ const searchBlogs = async(keyWord , page = 1 , perPage=5) =>{
 const fetchBlogs = async(slug)=>{
   loading.value = true
   try{
-    const slug = route.params.slug
+    if(!slug) slug = route.params.slug
+    if(!slug) return
     const res = await $api(`/show/${slug}`,{
       method:'GET',
       headers:{
@@ -306,8 +314,10 @@ onMounted(async()=>{
     // Nếu đang xem chi tiết 1 bài viết
     await fetchBlogs()
     await FetchPopularPosts()
-    if (blog.value?.id) {
+    if (blog.value && blog.value.id) {
       await fetchRelatedPosts(blog.value.id)
+        await nextTick() 
+      reloadComments()
     }
   }
 })

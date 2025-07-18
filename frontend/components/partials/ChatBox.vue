@@ -99,10 +99,9 @@ import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
 import { uploadImageToFirebase } from '~/utils/uploadImage'
 const { $firebaseStorage } = useNuxtApp()
-console.log('storage:', $firebaseStorage)
-console.log('storage type:', $firebaseStorage.constructor?.name)
 const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 const currentUserId = ref(authStore.user?.id || null)
 const token = ref(authStore.token || '')
 const behavior = useBehaviorStore();
@@ -113,7 +112,6 @@ const notiSound = ref(null)
 const AdminId = ref(null)
 const messageContainer = ref(null)
 let unsubscribe = null // để dừng listener khi unmount
-const { user } = storeToRefs(authStore)
 const config = useRuntimeConfig()
 const isLoading = ref(false);
 const rawAction = ref([])
@@ -148,7 +146,6 @@ console.log('Upload to:', $firebaseStorage)
 }
 watch(()=>props.isOpen,(open)=>{
   if(open){
-
     markMessagesAsRead()
   }
 })

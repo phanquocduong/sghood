@@ -20,10 +20,56 @@ class CommentController extends Controller
         $this->commentService =  $commentService;
     }
 
-    public function getAllCommentBlog($blogId)
+  public function getCommentsByBlog($blogSlug)
+{
+    $blog = Blog::where('slug', $blogSlug)->firstOrFail();
+
+    $comments = CommentBlog::where('blog_id', $blog->id)
+        ->whereNull('parent_id')
+        ->with([
+            'children.user:id,name,avatar',
+            'user:id,name,avatar'
+        ])
+        ->select([
+            'id', 'content', 'created_at', 'updated_at',
+            'likes_count', 'dislikes_count', 'parent_id', 'blog_id', 'user_id'
+        ])
+        ->latest()
+        ->paginate(10);
+
+    $data = $comments->getCollection()->map(fn($comment) => $this->formatComment($comment));
+
+    return response()->json([
+        'success' => true,
+        'data' => $data,
+        'meta' => [
+            'current_page' => $comments->currentPage(),
+            'last_page' => $comments->lastPage(),
+            'total' => $comments->total(),
+        ]
+    ]);
+}
+
+    private function formatComment($comment)
     {
-        $comments = $this->commentService->getCommentsByBlog($blogId);
-        return response()->json(['success' => true, 'data' => $comments]);
+        return [
+            'id' => $comment->id,
+            'content' => $comment->content,
+            'created_at' => $comment->created_at,
+            'updated_at' => $comment->updated_at,
+            'likes' => $comment->likes_count,
+            'dislikes' => $comment->dislikes_count,
+            'parent' => $comment->parent_id,
+            'blog_id' => $comment->blog_id,
+            'user' => [
+                'id' => $comment->user->id,
+                'name' => $comment->user->name,
+                'avatar' => $comment->user->avatar,
+            ],
+            'children' => $comment->children->map(function ($child) {
+                return $this->formatComment($child);
+            }),
+        ];
     }
 
     public function sendComment(SendCommentRequest $request, Blog $blog)
