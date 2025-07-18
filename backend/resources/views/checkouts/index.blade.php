@@ -45,7 +45,8 @@
                                     {{ request('inventory_status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
                                     kiểm kê</option>
                                 <option value="Kiểm kê lại"
-                                    {{ request('inventory_status') == 'Kiểm kê lại' ? 'selected' : '' }}>Kiểm kê lại</option>
+                                    {{ request('inventory_status') == 'Kiểm kê lại' ? 'selected' : '' }}>Kiểm kê lại
+                                </option>
                                 <option value="Đã kiểm kê"
                                     {{ request('inventory_status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
                                     kê</option>
@@ -75,11 +76,12 @@
                         style="text-align: center">
                         <thead class="table-dark">
                             <tr>
-                                <th scope="col" style="width: 10%;" class="text-center">STT</th>
+                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
                                 <th scope="col" style="width: 15%;">Tên phòng</th>
-                                <th scope="col" style="width: 20%;" class="text-center">Ngày checkout</th>
+                                <th scope="col" style="width: 15%;" class="text-center">Ngày checkout</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Rời đi</th>
-                                <th scope="col" style="width: 20%;" class="text-center">Trạng thái</th>
+                                <th scope="col" style="width: 10%;" class="text-center">Trạng thái</th>
+                                <th scope="col" style="width: 20%;" class="text-center">Trạng thái người dùng</th>
                                 <th scope="col" style="width: 20%;" class="text-center">Thao tác</th>
                             </tr>
                         </thead>
@@ -111,8 +113,23 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-info btn-sm shadow-sm" data-bs-toggle="modal"
-                                            data-bs-target="#checkoutModal{{ $checkout->id }}">
+                                        <span
+                                            class="badge bg-{{ $checkout->user_confirmation_status == 'Đồng ý' ? 'success' : ($checkout->user_confirmation_status == 'Từ chối' ? 'danger' : 'warning') }} py-2 px-3">
+                                            <i class="{{ $checkout->user_confirmation_status == 'Đồng ý' ? 'fas fa-check-circle' : ($checkout->user_confirmation_status == 'Từ chối' ? 'fas fa-times-circle' : 'fas fa-clock') }} me-1"
+                                                style="font-size: 8px;"></i>
+                                            {{ $checkout->user_confirmation_status ?? 'Chờ xác nhận' }}
+                                        </span>
+                                        @if ($checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason))
+                                            <div class="mt-1">
+                                                <small class="text-danger">
+                                                </small>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button"
+                                            class="btn btn-{{ $checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason) ? 'danger' : 'info' }} btn-sm shadow-sm"
+                                            data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $checkout->id }}">
                                             <i class="fas fa-eye me-1"></i>Xem
                                         </button>
                                         @if ($checkout->inventory_status !== 'Đã kiểm kê')
@@ -145,17 +162,56 @@
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p><strong>Tên phòng:</strong> {{ $checkout->contract->room->name }}</p>
-                                                <p><strong>Ngày checkout:</strong>
-                                                    {{ $checkout->check_out_date ? \Carbon\Carbon::parse($checkout->check_out_date)->format('d/m/Y') : 'N/A' }}
-                                                </p>
-                                                <p><strong>Rời đi:</strong>
-                                                    {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}</p>
-                                                <p><strong>Trạng thái:</strong> {{ $checkout->inventory_status ?? 'N/A' }}
-                                                </p>
-                                                <p><strong>Số tiền khấu trừ:</strong>
-                                                    {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }}
-                                                    VNĐ</p>
+                                                <div class="row">
+                                                    <!-- Left Column - Basic Info -->
+                                                    <div class="col-md-6">
+                                                        <p><strong>Tên phòng:</strong>
+                                                            {{ $checkout->contract->room->name }}</p>
+                                                        <p><strong>Ngày checkout:</strong>
+                                                            {{ $checkout->check_out_date ? \Carbon\Carbon::parse($checkout->check_out_date)->format('d/m/Y') : 'N/A' }}
+                                                        </p>
+                                                        <p><strong>Rời đi:</strong>
+                                                            {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}
+                                                        </p>
+                                                        <p><strong>Trạng thái:</strong>
+                                                            {{ $checkout->inventory_status ?? 'N/A' }}
+                                                        </p>
+                                                        <p><strong>Trạng thái người dùng:</strong>
+                                                            <span
+                                                                class="badge bg-{{ $checkout->user_confirmation_status == 'Đồng ý' ? 'success' : ($checkout->user_confirmation_status == 'Từ chối' ? 'danger' : 'warning') }}">
+                                                                {{ $checkout->user_confirmation_status ?? 'Chờ xác nhận' }}
+                                                            </span>
+                                                        </p>
+                                                        <p><strong>Số tiền khấu trừ:</strong>
+                                                            {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }}
+                                                            VNĐ</p>
+                                                        <p><strong>Tiền cọc:</strong>
+                                                            {{ $checkout->contract->deposit_amount ? number_format($checkout->contract->deposit_amount, 0, ',', '.') : 'N/A' }}
+                                                            VNĐ</p>
+                                                        <p><strong>Số tiền hoàn lại:</strong>
+                                                            {{ $checkout->final_refunded_amount ? number_format($checkout->final_refunded_amount, 0, ',', '.') : 'N/A' }}
+                                                            VNĐ</p>
+                                                    </div>
+
+                                                    <!-- Right Column - Rejection Reason or Additional Info -->
+                                                    <div class="col-md-6">
+                                                        @if ($checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason))
+                                                            <div class="alert alert-danger">
+                                                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Lý do
+                                                                    từ chối:</h6>
+                                                                <p class="mb-0">{{ $checkout->user_rejection_reason }}
+                                                                </p>
+                                                            </div>
+                                                        @else
+                                                            <div class="text-muted">
+                                                                <i class="fas fa-info-circle me-2"></i>
+                                                                <small>Không có lý do từ chối</small>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <hr>
 
                                                 <div class="row">
                                                     <div class="col-md-6">
@@ -268,24 +324,27 @@
                                                         <select class="form-select"
                                                             id="inventory_status{{ $checkout->id }}" name="status"
                                                             required>
-                                                            @if($checkout->inventory_status == 'Chờ kiểm kê')
-                                                                <option value="Chờ kiểm kê" selected>Chờ kiểm kê</option>
+                                                            @if ($checkout->inventory_status == 'Chờ kiểm kê')
+                                                                {{-- <option value="Chờ kiểm kê" selected>Chờ kiểm kê</option> --}}
                                                                 <option value="Đã kiểm kê">Đã kiểm kê</option>
                                                             @else
-                                                            <option value="Kiểm kê lại"
-                                                                {{ $checkout->inventory_status == 'Kiểm kê lại' ? 'selected' : '' }}>
-                                                                Kiểm kê lại
-                                                            </option>
-                                                            <option value="Đã kiểm kê"
-                                                                {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
-                                                                Đã kiểm kê
-                                                            </option>
+                                                                {{-- <option value="Kiểm kê lại"
+                                                                    {{ $checkout->inventory_status == 'Kiểm kê lại' ? 'selected' : '' }}>
+                                                                    Kiểm kê lại
+                                                                </option> --}}
+                                                                <option value="Đã kiểm kê"
+                                                                    {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
+                                                                    Đã kiểm kê
+                                                                </option>
                                                             @endif
                                                         </select>
                                                         @error('inventory_status')
                                                             <div class="text-danger small">{{ $message }}</div>
                                                         @enderror
                                                     </div>
+                                                    <p><strong>Tiền cọc:</strong>
+                                                        {{ $checkout->contract->deposit_amount ? number_format($checkout->contract->deposit_amount, 0, ',', '.') : 'N/A' }}
+                                                        VNĐ</p>
 
                                                     <!-- Inventory Details Section -->
                                                     <!-- Trong modal Edit section, thay thế phần Inventory Details -->
@@ -304,16 +363,7 @@
                                                                 <div id="inventory_items_container_{{ $checkout->id }}">
                                                                     <!-- Các item sẽ được tạo động bằng JavaScript -->
                                                                 </div>
-
-                                                                <!-- Hiển thị JSON data để debug -->
-                                                                {{-- <div class="mt-3">
-                                                                    <h6>JSON Data (Debug):</h6>
-                                                                    <pre id="inventory_json_display_{{ $checkout->id }}"
-                                                                        style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">
-</pre>
-                                                                </div> --}}
                                                             </div>
-
                                                             <div class="col-md-12">
                                                                 <h6>Hình ảnh</h6>
                                                                 <div class="mb-2">
@@ -364,7 +414,7 @@
                                                             </div>
 
                                                             <!-- Total Deduction Amount (Readonly) -->
-                                                            <div class="col-md-12">
+                                                            <div class="col-md-6">
                                                                 <div class="mb-3">
                                                                     <label
                                                                         for="deduction_amount_total_{{ $checkout->id }}"
@@ -377,15 +427,26 @@
                                                                         readonly>
                                                                 </div>
                                                             </div>
+
+                                                            <!-- Final Refunded Amount (Readonly) -->
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label for="final_refunded_amount_{{ $checkout->id }}"
+                                                                        class="form-label">Số tiền hoàn trả cuối cùng
+                                                                        (VNĐ)
+                                                                    </label>
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm"
+                                                                        id="final_refunded_amount_{{ $checkout->id }}"
+                                                                        readonly
+                                                                        style="background-color: #e8f5e8; font-weight: bold;">
+                                                                    <input type="hidden"
+                                                                        id="deposit_amount_{{ $checkout->id }}"
+                                                                        value="{{ $checkout->contract->deposit_amount ?? 0 }}">
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    <script>
-                                                        // Truyền dữ liệu existing từ server vào JavaScript
-                                                        window.existingInventoryData = window.existingInventoryData || {};
-                                                        window.existingInventoryData[{{ $checkout->id }}] = @json($checkout->inventory_details ?? []);
-                                                    </script>
-
                                                     <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                                                 </form>
                                             </div>
@@ -417,5 +478,15 @@
             </div>
         </div>
     </div>
+    <script>
+        // Truyền dữ liệu inventory từ server xuống JavaScript
+        window.existingInventoryData = {
+            @foreach ($checkouts as $checkout)
+                '{{ $checkout->id }}': {!! json_encode($checkout->inventory_details ?? []) !!},
+            @endforeach
+        };
+
+        console.log('Existing inventory data loaded:', window.existingInventoryData);
+    </script>
 @endsection
 <script src="{{ asset('js/checkout.js') }}"></script>

@@ -194,6 +194,12 @@
                     <span class="info-value">{{ number_format($checkout->deduction_amount, 0, ',', '.') }} VNĐ</span>
                 </div>
                 @endif
+                @if($checkout->final_refunded_amount)
+                <div class="info-row">
+                    <span class="info-label">💵 Số tiền hoàn trả:</span>
+                    <span class="info-value">{{ number_format($checkout->final_refunded_amount, 0, ',', '.') }} VNĐ</span>
+                </div>
+                @endif
             </div>
 
             <p class="message">

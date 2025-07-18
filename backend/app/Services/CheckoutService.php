@@ -48,6 +48,7 @@ class CheckoutService
         try {
             return DB::transaction(function () use ($id, $data) {
                 $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
+                $depositAmount = $checkout->contract->deposit_amount ?? 0;
 
                 // Xử lý inventory details
                 $inventoryDetails = [];
@@ -70,6 +71,7 @@ class CheckoutService
                             'item_cost' => $itemCost,
                         ];
 
+                        // Chỉ cộng chi phí khấu hao, không cộng tiền cọc
                         $deductionAmount += $itemCost * $itemQuantity;
 
                         Log::info('Processed item ' . ($index + 1) . ':', [
@@ -81,6 +83,14 @@ class CheckoutService
                     }
                 }
 
+                // Tính số tiền hoàn trả cuối cùng
+                $finalRefundedAmount = $depositAmount - $deductionAmount;
+
+                // Đảm bảo số tiền hoàn trả không âm
+                if ($finalRefundedAmount < 0) {
+                    $finalRefundedAmount = 0;
+                }
+
                 // Xử lý hình ảnh
                 $finalImages = $this->processImages($checkout, $data);
 
@@ -90,6 +100,7 @@ class CheckoutService
                     'has_left' => (int) $data['has_left'],
                     'inventory_status' => $data['status'],
                     'deduction_amount' => $deductionAmount,
+                    'final_refunded_amount' => $finalRefundedAmount, // Thêm trường này
                     'images' => !empty($finalImages) ? $finalImages : null,
                     'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
                     'updated_at' => now(),
@@ -108,7 +119,9 @@ class CheckoutService
                     Log::info('Checkout updated successfully', [
                         'checkout_id' => $checkout->id,
                         'inventory_status' => $data['status'],
+                        'deposit_amount' => $depositAmount,
                         'deduction_amount' => $deductionAmount,
+                        'final_refunded_amount' => $finalRefundedAmount,
                     ]);
 
                     // Gửi thông báo nếu trạng thái là "Đã kiểm kê"
@@ -123,7 +136,7 @@ class CheckoutService
                                 'room_id' => $room ? $room->id : null,
                             ]);
                         } else {
-                            // Gửi email
+                            // Gửi email với thông tin số tiền hoàn trả
                             try {
                                 $email = $user->email;
                                 if ($email) {
@@ -136,6 +149,7 @@ class CheckoutService
                                     Log::info('Checkout status email sent successfully', [
                                         'email' => $email,
                                         'checkout_id' => $checkout->id,
+                                        'final_refunded_amount' => $finalRefundedAmount,
                                     ]);
                                 } else {
                                     Log::warning('No email found for user', [
@@ -155,7 +169,7 @@ class CheckoutService
                                 $notificationData = [
                                     'user_id' => $user->id,
                                     'title' => 'Trạng thái kiểm kê đã được cập nhật',
-                                    'content' => 'Quá trình kiểm kê cho phòng ' . $room->name . ' đã hoàn tất. Vui lòng xem chi tiết.',
+                                    'content' => 'Quá trình kiểm kê cho phòng ' . $room->name . ' đã hoàn tất. Số tiền hoàn trả: ' . number_format($finalRefundedAmount, 0, ',', '.') . ' VNĐ. Vui lòng xem chi tiết.',
                                     'status' => 'Chưa đọc',
                                 ];
                                 $notification = Notification::create($notificationData);
@@ -225,15 +239,19 @@ class CheckoutService
         $currentStatus = $checkout->inventory_status;
         $currentUserConfirmationStatus = $checkout->user_confirmation_status;
 
-        if ($currentStatus === 'Kiểm kê lại' &&
+        if (
+            $currentStatus === 'Kiểm kê lại' &&
             $newStatus === 'Đã kiểm kê' &&
-            $currentUserConfirmationStatus === 'Từ chối') {
+            $currentUserConfirmationStatus === 'Từ chối'
+        ) {
 
             $updateData['user_confirmation_status'] = 'Chưa xác nhận';
+            $updateData['user_rejection_reason'] = null;
 
             Log::info('User confirmation status changed:', [
                 'from' => $currentUserConfirmationStatus,
                 'to' => 'Chưa xác nhận',
+                'user_rejection_reason' => 'cleared',
                 'reason' => 'Status transition from "Kiểm kê lại" to "Đã kiểm kê"',
                 'checkout_id' => $checkout->id,
             ]);
@@ -286,11 +304,6 @@ class CheckoutService
     {
         try {
             $checkout = Checkout::findOrFail($id);
-
-            Log::info('Re-inventory request for checkout', [
-                'checkout_id' => $id,
-                'current_status' => $checkout->inventory_status,
-            ]);
 
             if ($checkout->inventory_status !== 'Đã kiểm kê') {
                 throw new \Exception('Chỉ có thể kiểm kê lại các checkout đã hoàn thành.');
