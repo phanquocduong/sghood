@@ -4,7 +4,7 @@
     <Loading :is-loading="isLoading" />
 
     <ul>
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
+        <li v-for="item in bookings" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
                     <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
@@ -16,9 +16,15 @@
                         <h3>
                             {{ item.room_name }} - {{ item.motel_name }}
                             <span :class="getStatusClass(item.status)">{{
-                                item.status === 'Chấp nhận' ? 'Đã được chấp nhận' : item.status
+                                item.status === 'Chấp nhận' ? 'Được chấp nhận' : item.status
                             }}</span>
                         </h3>
+                        <div v-if="item.cancellation_reason && item.status === 'Từ chối'" class="inner-booking-list">
+                            <h5>Lý do QTV từ chối:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ item.cancellation_reason }}</li>
+                            </ul>
+                        </div>
                         <div class="inner-booking-list">
                             <h5>Ngày bắt đầu:</h5>
                             <ul class="booking-list">
@@ -43,12 +49,6 @@
                                 <li class="highlighted">{{ item.note }}</li>
                             </ul>
                         </div>
-                        <div v-if="item.cancellation_reason && item.status === 'Huỷ bỏ'" class="inner-booking-list">
-                            <h5>Lý do huỷ:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.cancellation_reason }}</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -63,7 +63,7 @@
                 </a>
             </div>
         </li>
-        <div v-if="!items.length" class="col-md-12 text-center">
+        <div v-if="!bookings.length" class="col-md-12 text-center">
             <p>Chưa có đặt phòng nào.</p>
         </div>
     </ul>
@@ -76,7 +76,7 @@ import { useFormatDate } from '~/composables/useFormatDate';
 const { formatDate } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
-    items: {
+    bookings: {
         type: Array,
         required: true
     },
@@ -86,7 +86,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem']);
+const emit = defineEmits(['cancelBooking']);
 
 const calculateRentalYears = (startDate, endDate) => {
     if (!startDate || !endDate) return 'Không xác định';
@@ -134,7 +134,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', id);
+        emit('cancelBooking', id);
     }
 };
 </script>

@@ -61,7 +61,12 @@
                 </div>
             </div>
             <div class="buttons-to-right">
-                <a v-if="item.inventory_status === 'Đã kiểm kê'" href="#" class="button gray approve">
+                <a
+                    v-if="item.inventory_status === 'Đã kiểm kê'"
+                    href="#"
+                    @click.prevent="emitOpenInventoryPopup(item)"
+                    class="button gray approve"
+                >
                     <i class="im im-icon-Check"></i> Xem kiểm kê
                 </a>
                 <a
@@ -89,6 +94,7 @@ import { useFormatDate } from '~/composables/useFormatDate';
 const { formatDate } = useFormatDate();
 const { formatPrice } = useFormatPrice();
 const config = useRuntimeConfig();
+
 const props = defineProps({
     items: {
         type: Array,
@@ -100,7 +106,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem']);
+const emit = defineEmits(['rejectItem', 'openInventoryPopup']);
 
 const getItemClass = status => {
     switch (status) {
@@ -154,9 +160,9 @@ const getUserConfirmationStatusText = status => {
         case 'Chưa xác nhận':
             return 'Chờ xác nhận từ bạn';
         case 'Đồng ý':
-            return 'Bạn đã đồng ý';
+            return 'Bạn đã đồng ý với kết quả';
         case 'Từ chối':
-            return 'Bạn đã từ chối';
+            return 'Bạn đã từ chối kết quả';
         default:
             return '';
     }
@@ -182,9 +188,13 @@ const openConfirmRejectPopup = async id => {
         emit('rejectItem', id);
     }
 };
+
+const emitOpenInventoryPopup = item => {
+    emit('openInventoryPopup', item);
+};
 </script>
 
-<style>
+<style scoped>
 .bookings .list-box-listing-img {
     max-width: 150px;
     max-height: none;

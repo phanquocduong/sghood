@@ -4,7 +4,7 @@
     <Loading :is-loading="isLoading" />
 
     <ul>
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.status)">
+        <li v-for="item in schedules" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
                     <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
@@ -16,9 +16,15 @@
                         <h3>
                             {{ item.motel_name }}
                             <span :class="getStatusClass(item.status)">{{
-                                item.status === 'Hoàn thành' ? 'Đã hoàn thành' : item.status
+                                item.status === 'Hoàn thành' ? 'Đã hoàn thành' : item.status === 'Từ chối' ? 'Bị từ chối' : item.status
                             }}</span>
                         </h3>
+                        <div v-if="item.rejection_reason && item.status === 'Từ chối'" class="inner-booking-list">
+                            <h5>Lý do QTV từ chối:</h5>
+                            <ul class="booking-list">
+                                <li>{{ item.rejection_reason }}</li>
+                            </ul>
+                        </div>
                         <div class="inner-booking-list">
                             <h5>Địa chỉ:</h5>
                             <ul class="booking-list">
@@ -38,15 +44,9 @@
                             </ul>
                         </div>
                         <div v-if="item.message" class="inner-booking-list">
-                            <h5>Lời nhắn của bạn:</h5>
+                            <h5>Lời nhắn từ bạn:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ item.message }}</li>
-                            </ul>
-                        </div>
-                        <div v-if="item.cancellation_reason && item.status === 'Huỷ bỏ'" class="inner-booking-list">
-                            <h5>Lý do hủy:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ item.cancellation_reason }}</li>
                             </ul>
                         </div>
                     </div>
@@ -54,7 +54,7 @@
             </div>
             <div class="buttons-to-right">
                 <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openEditSchedulePopup(item)" class="button gray edit">
-                    <i class="sl sl-icon-pencil"></i> Sửa
+                    <i class="sl sl-icon-pencil"></i> Chỉnh sửa
                 </a>
                 <a
                     v-if="item.status === 'Chờ xác nhận'"
@@ -74,7 +74,7 @@
                 </a>
             </div>
         </li>
-        <div v-if="!items.length" class="col-md-12 text-center">
+        <div v-if="!schedules.length" class="col-md-12 text-center">
             <p>Chưa có lịch xem nhà trọ nào.</p>
         </div>
     </ul>
@@ -87,17 +87,18 @@ import { useFormatDate } from '~/composables/useFormatDate';
 const { formatDate, formatTime } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
-    items: { type: Array, required: true },
+    schedules: { type: Array, required: true },
     isLoading: { type: Boolean, required: true }
 });
 
-const emit = defineEmits(['rejectItem', 'openPopup', 'editSchedule']);
+const emit = defineEmits(['cancelSchedule', 'openPopup', 'editSchedule']);
 
 const statusClasses = {
     'Chờ xác nhận': 'pending-booking',
     'Đã xác nhận': 'approved-booking',
     'Hoàn thành': 'approved-booking',
-    'Huỷ bỏ': 'canceled-booking'
+    'Huỷ bỏ': 'canceled-booking',
+    'Từ chối': 'canceled-booking'
 };
 
 const getItemClass = status => statusClasses[status] || '';
@@ -114,7 +115,7 @@ const openConfirmRejectPopup = async id => {
         confirmButtonColor: '#f91942',
         cancelButtonColor: '#e0e0e0'
     });
-    if (isConfirmed) emit('rejectItem', id);
+    if (isConfirmed) emit('cancelSchedule', id);
 };
 
 const openPopup = motelId => emit('openPopup', motelId);
@@ -124,8 +125,11 @@ const openEditSchedulePopup = schedule => emit('editSchedule', schedule);
 <style>
 .bookings .list-box-listing-img {
     max-width: 150px;
-    max-height: none;
     border-radius: 4px;
+}
+
+.button.gray.edit:hover {
+    background-color: #61b2db !important;
 }
 
 .swal2-container {

@@ -43,15 +43,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('schedules')->controller(ViewingScheduleController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::post('{id}/reject', 'reject');
+        Route::patch('{id}/cancel', 'cancel');
         Route::patch('{id}', 'update');
     });
 
     Route::get('/motels/{motel}/rooms', [MotelController::class, 'getRooms']);
 
-    Route::get('/bookings', [BookingController::class, 'index']);
-    Route::post('/bookings', [BookingController::class, 'store']);
-    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
+    Route::prefix('bookings')->controller(BookingController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::post('/{id}/cancel', 'cancel');
+    });
 
     Route::get('/contracts', [ContractController::class, 'index']);
     Route::get('/contracts/{id}', [ContractController::class, 'show']);
@@ -68,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/contracts/{id}/return', [CheckoutController::class, 'requestReturn']);
     Route::get('/checkouts', [CheckoutController::class, 'index']);
     Route::post('/checkouts/{id}/reject', [CheckoutController::class, 'reject']);
+    Route::post('/checkouts/{id}/confirm', [CheckoutController::class, 'confirm']);
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);
     Route::patch('/refund-requests/{id}', [RefundRequestController::class, 'update']);

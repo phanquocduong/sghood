@@ -12,8 +12,8 @@
                 <select name="status" v-model="filter.status" class="chosen-select" @change="updateFilter('status', $event.target.value)">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Chờ xác nhận">Chờ xác nhận</option>
-                    <option value="Chấp nhận">Chấp nhận</option>
-                    <option value="Từ chối">Từ chối</option>
+                    <option value="Chấp nhận">Được chấp nhận</option>
+                    <option value="Từ chối">Bị từ chối</option>
                     <option value="Huỷ bỏ">Huỷ bỏ</option>
                 </select>
             </div>

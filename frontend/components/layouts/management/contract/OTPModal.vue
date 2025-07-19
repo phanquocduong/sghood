@@ -1,175 +1,292 @@
 <template>
-    <div v-if="show" class="modal-overlay">
-        <div class="modal-content">
-            <h4>Xác minh OTP</h4>
-            <p>
-                Mã OTP đã được gửi đến số điện thoại {{ maskedPhone }} <br />
-                Vui lòng nhập mã OTP:
-            </p>
-            <input v-model="otpCode" type="text" class="form-control" placeholder="Nhập mã OTP" maxlength="6" />
-            <div class="modal-actions">
-                <button class="btn btn-clear" @click="$emit('close')">Hủy</button>
-                <button class="btn btn-confirm" @click="$emit('confirm')" :disabled="otpCode.length !== 6 || loading">
-                    <span v-if="loading" class="button-spinner"></span>
-                    {{ loading ? 'Đang xác minh...' : 'Xác minh' }}
+    <div id="otp-dialog" class="mfp-hide white-popup">
+        <div class="otp-header">
+            <h2 class="otp-title">Xác minh OTP</h2>
+            <p class="otp-subtitle">Mã OTP đã được gửi đến số điện thoại</p>
+            <p class="otp-phone">{{ maskedPhone }}</p>
+        </div>
+
+        <div class="otp-content">
+            <div class="otp-input-group">
+                <label for="otp-input" class="otp-label">Nhập mã OTP:</label>
+                <input
+                    id="otp-input"
+                    v-model="otpCode"
+                    type="text"
+                    class="otp-input"
+                    placeholder="Nhập 6 chữ số"
+                    maxlength="6"
+                    autocomplete="off"
+                    :class="{ 'otp-input-error': otpCode.length > 0 && otpCode.length < 6 }"
+                />
+                <div class="otp-input-indicator">
+                    <span v-for="n in 6" :key="n" :class="['otp-dot', { filled: n <= otpCode.length }]"></span>
+                </div>
+            </div>
+
+            <div class="otp-actions">
+                <button @click="closeModal" class="otp-btn otp-btn-cancel" type="button">
+                    <span class="btn-text">Hủy</span>
+                </button>
+                <button
+                    @click="$emit('confirm')"
+                    class="otp-btn otp-btn-confirm"
+                    :disabled="otpCode.length !== 6 || loading"
+                    :class="{ loading: loading }"
+                >
+                    <span v-if="loading" class="btn-spinner"></span>
+                    <span class="btn-text">{{ loading ? 'Đang xác minh...' : 'Xác minh' }}</span>
                 </button>
             </div>
-            <div id="recaptcha-container" class="recaptcha-container"></div>
         </div>
+
+        <div id="recaptcha-container" class="recaptcha-container"></div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, nextTick } from 'vue';
+import { computed } from 'vue';
 
-const prop = defineProps({
-    show: { type: Boolean, required: true },
+const props = defineProps({
     phoneNumber: { type: String, required: true },
     loading: { type: Boolean, required: true }
 });
 
-defineEmits(['close', 'confirm']);
+const emit = defineEmits(['confirm']);
 
 const otpCode = defineModel('otpCode', { type: String, default: '' });
 
 const maskedPhone = computed(() => {
-    if (!prop.phoneNumber) return '';
-    const phone = prop.phoneNumber.replace(/^\+84/, '0');
+    if (!props.phoneNumber) return '';
+    const phone = props.phoneNumber.replace(/^\+84/, '0');
     return phone.slice(0, 3) + '****' + phone.slice(-4);
 });
 
-onMounted(async () => {
-    if (prop.show) {
-        await nextTick();
-        const recaptchaContainer = document.getElementById('recaptcha-container');
-        if (!recaptchaContainer) {
-            console.error('recaptcha-container not found in DOM');
-        } else {
-            console.log('recaptcha-container found:', recaptchaContainer);
-        }
+const closeModal = () => {
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
     }
-});
+};
 </script>
 
 <style scoped>
-.modal-overlay {
-    position: fixed;
+/* Sử dụng class white-popup chuẩn của Magnific Popup */
+#otp-dialog {
+    position: relative;
+    background: #fff;
+    padding: 0;
+    width: auto;
+    max-width: 500px;
+    margin: 20px auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.otp-header {
+    background: linear-gradient(135deg, #ff3366 0%, #ff4757 100%);
+    color: white;
+    padding: 40px 30px 30px;
+    text-align: center;
+    position: relative;
+}
+
+.otp-header::before {
+    content: '';
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* Tăng độ mờ cho nền */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    animation: fadeIn 0.3s ease-in-out;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 20px
+    );
 }
 
-.modal-content {
-    background: #fff;
-    border-radius: 16px;
-    padding: 32px;
-    max-width: 450px;
-    width: 90%;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    animation: slideUp 0.3s ease-in-out;
-}
-
-.modal-content h4 {
-    font-size: 2.2rem;
+.otp-title {
+    font-size: 28px;
     font-weight: 700;
-    color: #f91942; /* Màu chủ đạo cho tiêu đề */
-    margin-bottom: 12px;
+    margin: 0 0 12px;
+    position: relative;
+    z-index: 1;
 }
 
-.modal-content p {
-    font-size: 1.4rem;
-    color: #4b5563;
-    margin-bottom: 20px;
-    line-height: 2.4rem;
+.otp-subtitle {
+    font-size: 15px;
+    margin: 0 0 8px;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
 }
 
-.form-control {
+.otp-phone {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 24px;
+    border-radius: 25px;
+    display: inline-block;
+    margin-top: 12px;
+    letter-spacing: 1px;
+}
+
+.otp-content {
+    padding: 40px 30px 30px;
+    background: #fff;
+}
+
+.otp-input-group {
+    margin-bottom: 40px;
+}
+
+.otp-label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.otp-input {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 1.4rem;
-    margin-bottom: 24px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.form-control:focus {
+    padding: 20px;
+    border: 3px solid #e8ecf0;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 8px;
+    transition: all 0.3s ease;
+    background: #fafbfc;
     outline: none;
-    border-color: #f91942; /* Màu chủ đạo khi focus */
-    box-shadow: 0 0 0 3px rgba(249, 25, 66, 0.2);
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
 }
 
-.modal-actions {
+.otp-input:focus {
+    border-color: #ff3366;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 51, 102, 0.1);
+    transform: translateY(-2px);
+}
+
+.otp-input-error {
+    border-color: #ff6b6b;
+    background: #fff5f5;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.otp-input-indicator {
     display: flex;
+    justify-content: center;
     gap: 12px;
+    margin-top: 20px;
+}
+
+.otp-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #e8ecf0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+}
+
+.otp-dot.filled {
+    background: #ff3366;
+    transform: scale(1.3);
+    border-color: #ff3366;
+    box-shadow: 0 0 10px rgba(255, 51, 102, 0.4);
+}
+
+.otp-actions {
+    display: flex;
+    gap: 15px;
     justify-content: center;
 }
 
-.btn {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 1.3rem;
+.otp-btn {
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-}
-
-.btn-clear {
-    background: #fff;
-    border: 2px solid #d1d5db;
-    color: #4b5563;
-}
-
-.btn-clear:hover:not(:disabled) {
-    background: #f3f4f6;
-    border: 2px solid #ccc;
-}
-
-.btn-clear:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(249, 25, 66, 0.2);
-}
-
-.btn-confirm {
-    background: #f91942; /* Màu chủ đạo */
-    color: #fff;
     border: none;
+    min-width: 130px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.btn-confirm:hover:not(:disabled) {
-    background: #d11336; /* Màu chủ đạo tối hơn khi hover */
+.otp-btn-cancel {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.otp-btn-cancel:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.otp-btn-confirm {
+    background: linear-gradient(135deg, #ff3366 0%, #ff4757 100%);
     color: white;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
 }
 
-.btn-confirm:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(249, 25, 66, 0.3);
+.otp-btn-confirm:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 51, 102, 0.4);
 }
 
-.btn-confirm:disabled {
+.otp-btn-confirm:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-.button-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid white;
+.otp-btn-confirm.loading {
+    pointer-events: none;
+}
+
+.btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    border-top-color: transparent;
+    border-top-color: #fff;
     animation: spin 1s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
 }
 
 @keyframes spin {
@@ -178,46 +295,147 @@ onMounted(async () => {
     }
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+.btn-text {
+    white-space: nowrap;
+}
+
+.recaptcha-container {
+    padding: 0 30px 30px;
+    display: flex;
+    justify-content: center;
+    background: #fff;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    #otp-dialog {
+        max-width: 95%;
+        margin: 10px auto;
     }
-    to {
-        opacity: 1;
+
+    .otp-header {
+        padding: 30px 20px 25px;
+    }
+
+    .otp-title {
+        font-size: 22px;
+    }
+
+    .otp-subtitle {
+        font-size: 14px;
+    }
+
+    .otp-phone {
+        font-size: 16px;
+        padding: 10px 20px;
+    }
+
+    .otp-content {
+        padding: 30px 20px 25px;
+    }
+
+    .otp-input {
+        padding: 16px;
+        font-size: 20px;
+        letter-spacing: 4px;
+    }
+
+    .otp-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .otp-btn {
+        padding: 14px 28px;
+        font-size: 14px;
+        min-width: auto;
+    }
+
+    .recaptcha-container {
+        padding: 0 20px 25px;
     }
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+/* Magnific Popup compatibility */
+.mfp-content {
+    position: relative;
 }
 
-@media (max-width: 480px) {
-    .modal-content {
-        padding: 24px;
+.mfp-close-btn-in .mfp-close {
+    color: #fff;
+    right: 6px;
+    top: 6px;
+    opacity: 0.8;
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.mfp-close-btn-in .mfp-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Animation effects */
+.mfp-zoom-in .mfp-content {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease-in-out;
+}
+
+.mfp-zoom-in.mfp-ready .mfp-content {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.mfp-zoom-in.mfp-removing .mfp-content {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    #otp-dialog {
+        background: #1e1e1e;
     }
 
-    .modal-content h4 {
-        font-size: 1.5rem;
+    .otp-content {
+        background: #1e1e1e;
     }
 
-    .modal-content p {
-        font-size: 1rem;
+    .otp-label {
+        color: #e1e5e9;
     }
 
-    .form-control {
-        font-size: 1rem;
+    .otp-input {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e1e5e9;
     }
 
-    .btn {
-        font-size: 1rem;
-        padding: 10px;
+    .otp-input:focus {
+        background: #333;
+        border-color: #ff3366;
+    }
+
+    .otp-btn-cancel {
+        background: #2d2d2d;
+        color: #e1e5e9;
+        border-color: #444;
+    }
+
+    .otp-btn-cancel:hover {
+        background: #333;
+        border-color: #555;
+    }
+
+    .recaptcha-container {
+        background: #1e1e1e;
     }
 }
 </style>

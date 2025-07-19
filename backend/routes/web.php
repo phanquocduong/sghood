@@ -233,20 +233,6 @@ Route::get('/contract/pdf/{id}', function ($id) {
     abort(404, 'File hợp đồng không tồn tại');
 });
 
-// // File tải file PDF phụ lục hợp đồng
-// Route::get('/contract/extension/pdf/{id}', function ($id) {
-//     $extension = ContractExtension::where('id', $id)
-//             ->whereHas('contract', fn($query) => $query->where('user_id', Auth::id()))
-//             ->firstOrFail();
-
-//     if ($extension->file && Storage::disk('private')->exists($extension->file)) {
-//         $filePath = Storage::disk('private')->path($extension->file);
-//         return response()->download($filePath, "contract-extension-{$id}.pdf");
-//     }
-
-//     abort(404, 'File phụ lục hợp đồng không tồn tại');
-// });
-
 // Route for meter reading index
 Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
 Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');

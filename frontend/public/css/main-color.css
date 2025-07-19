@@ -149,6 +149,7 @@ input:checked + .slider,
 #mapnav-buttons a:hover,
 #sign-in-dialog .mfp-close:hover,
 #edit-schedule-dialog .mfp-close:hover,
+#otp-dialog .mfp-close:hover,
 #small-dialog .mfp-close:hover {
     background-color: #f91942;
 }

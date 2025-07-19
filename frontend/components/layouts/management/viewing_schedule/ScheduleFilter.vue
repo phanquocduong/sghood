@@ -13,6 +13,7 @@
                     <option value="">Tất cả trạng thái</option>
                     <option value="Chờ xác nhận">Chờ xác nhận</option>
                     <option value="Đã xác nhận">Đã xác nhận</option>
+                    <option value="Từ chối">Bị từ chối</option>
                     <option value="Hoàn thành">Hoàn thành</option>
                     <option value="Huỷ bỏ">Huỷ bỏ</option>
                 </select>
