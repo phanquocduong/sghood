@@ -137,9 +137,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '~/stores/auth';
+import { useRoute } from 'vue-router'
 import { useToast } from 'vue-toastification';
 import { useBehaviorStore } from '~/stores/behavior';
-import { useRoute } from 'vue-router'
 // api config
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;

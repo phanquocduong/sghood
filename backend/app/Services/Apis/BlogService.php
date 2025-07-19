@@ -18,8 +18,8 @@ class BlogService
                     ->orWhere('content', 'like', "%{$search}%");
             });
         }
+        $perPage = $params['per_page'] ?? 6;
 
-        $perPage = $params['per_page'] ?? 10;
 
         return $query->latest()->paginate($perPage);
     }
