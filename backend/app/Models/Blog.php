@@ -10,7 +10,7 @@ class Blog extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'content', 'thumbnail', 'status', 'view', 'author_id'
+        'title', 'slug', 'category', 'content', 'thumbnail', 'status', 'view', 'author_id'
     ];
 
     protected $dates = ['deleted_at'];

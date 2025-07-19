@@ -26,8 +26,11 @@ class BlogService
 
     public function getBlogBySlug($slug)
     {
-        return Blog::where('slug', $slug)->first();
+        return Blog::select('id', 'title', 'slug', 'content', 'created_at')
+            ->where('slug', $slug)
+            ->first();
     }
+
     public function getRelatedPosts(int $id, int $limit = 5)
     {
         $currentPost = Blog::findOrFail($id);

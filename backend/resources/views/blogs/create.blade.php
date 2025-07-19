@@ -71,18 +71,18 @@
                     <div class="mb-3">
                         <label class="form-label">Thể loại</label>
                         <select class="form-select" id="category" name="category">
-                            <option value="news">News</option>
-                            <option value="guide">Guide</option>
-                            <option value="promotion">Promotion</option>
-                            <option value="law">Law</option>
-                            <option value="experience">Experience</option>
+                            <option value="Tin tức">Tin tức</option>
+                            <option value="Hướng dẫn">Hướng dẫn</option>
+                            <option value="Khuyến mãi">Khuyến mãi</option>
+                            <option value="Pháp luật">Pháp luật</option>
+                            <option value="Kinh nghiệm">Kinh nghiệm</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Trạng thái</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="draft">Nháp</option>
-                            <option value="published">Đã xuất bản</option>
+                            <option value="Nháp">Nháp</option>
+                            <option value="Đã xuất bản">Đã xuất bản</option>
                         </select>
                     </div>
                     <div class="d-flex justify-content-end mt-4 gap-2">

@@ -24,9 +24,10 @@ class BlogStoreRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'status' => 'nullable|string|in:draft,published',
+            'status' => 'nullable|string|in:Nháp,Đã xuất bản', // Validate status
             'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'author_id' => 'required|exists:users,id', // Assuming you want to validate the author_id against the users table
+            'category' => 'nullable|string|in:Tin tức,Hướng dẫn,Khuyến mãi,Pháp luật,Kinh nghiệm', // Validate category
         ];
     }
     public function messages()

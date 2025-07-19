@@ -2,23 +2,40 @@
 
 namespace App\Services\Apis;
 
+use App\Models\Blog;
 use App\Models\CommentBlog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class CommentService
 {
-    public function getCommentsByBlog($blogId)
+    public function getCommentsByBlog($blogSlug)
     {
-        return CommentBlog::where('blog_id', $blogId)
+        $blog = Blog::where('slug', $blogSlug)->firstOrFail();
+
+        return CommentBlog::where('blog_id', $blog->id)
             ->whereNull('parent_id')
-            ->with('children') // nếu model có quan hệ children
+            ->with([
+                'children.user',
+                'user'
+            ])
             ->latest()
             ->get();
     }
 
     public function createComment($blogId, $userId, array $data)
     {
+        $lastComment = CommentBlog::where('user_id', $userId)
+            ->where('blog_id', $blogId)
+            ->latest()
+            ->first();
+
+        if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < 30) {
+            throw ValidationException::withMessages([
+                'spam' => 'Bạn đang bình luận quá nhanh. Vui lòng chờ 30 giây.'
+            ]);
+        }
+
         return CommentBlog::create([
             'blog_id' => $blogId,
             'user_id' => $userId,
