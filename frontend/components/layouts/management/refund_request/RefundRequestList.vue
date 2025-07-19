@@ -48,7 +48,7 @@
                 </div>
             </div>
             <div class="buttons-to-right">
-                <button class="button gray approve" @click="openQRModal(item)">
+                <button v-if="item.status === 'Chờ xử lý'" class="button gray approve" @click="openQRModal(item)">
                     <i class="im im-icon-Bank"></i> Kiểm tra thông tin chuyển khoản
                 </button>
             </div>
