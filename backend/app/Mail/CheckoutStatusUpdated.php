@@ -15,13 +15,15 @@ class CheckoutStatusUpdated extends Mailable
     public $userName;
     public $roomName;
     public $checkOutDate;
+    public $finalRefundedAmount;
 
-    public function __construct(Checkout $checkout, $userName, $roomName, $checkOutDate)
+    public function __construct(Checkout $checkout, $userName, $roomName, $checkOutDate, $finalRefundedAmount = 0)
     {
         $this->checkout = $checkout;
         $this->userName = $userName;
         $this->roomName = $roomName;
         $this->checkOutDate = $checkOutDate;
+        $this->finalRefundedAmount = $finalRefundedAmount;
     }
 
     public function build()
@@ -32,6 +34,7 @@ class CheckoutStatusUpdated extends Mailable
                         'userName' => $this->userName,
                         'roomName' => $this->roomName,
                         'checkOutDate' => $this->checkOutDate,
+                        'finalRefundedAmount' => $this->finalRefundedAmount,
                         'checkout' => $this->checkout,
                     ]);
     }

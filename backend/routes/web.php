@@ -23,6 +23,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
 use App\Http\Controllers\ContractExtensionController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\RefundController;
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
@@ -217,6 +218,12 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
         Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
         Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
+    });
+
+    // Refund routes
+    Route::prefix('refunds')->name('refunds.')->group(function () {
+        Route::get('/', [RefundController::class, 'index'])->name('index');
+        Route::match(['put', 'patch'], '/{id}', [RefundController::class, 'confirm'])->name('confirm');
     });
 });
 

@@ -46,11 +46,11 @@
             <a href="{{ route('motels.index') }}" class="nav-item nav-link {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}"><i class="fa fa-building me-2"></i>Nhà trọ</a>
 
             <!-- Quản lý hệ thống -->
-            <div class="nav-item dropdown {{ request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
-                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
+            <div class="nav-item dropdown {{ request()->routeIs('refunds.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('refunds.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('checkouts.*') || request()->routeIs('refunds.*') ? 'show' : '' }}">
                     <a href="{{ route('checkouts.index') }}" class="dropdown-item {{ request()->routeIs('checkouts.*') ? 'active' : '' }}">Yêu cầu trả phòng</a>
-                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Yêu cầu hoàn tiền</a>
+                    <a href="{{ route('refunds.index') }}" class="dropdown-item {{ request()->routeIs('refunds.*') ? 'active' : '' }}">Yêu cầu hoàn tiền</a>
                 </div>
             </div>
 
