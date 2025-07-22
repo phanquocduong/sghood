@@ -60,6 +60,14 @@
                         </button>
                     </div>
                 </div>
+                <div v-if="!selectedCheckout.has_left && selectedCheckout.user_confirmation_status === 'Đồng ý'" class="inventory-actions">
+                    <div class="booking-actions">
+                        <button @click="confirmLeftRoom" class="button" :disabled="leaveLoading">
+                            <span v-if="leaveLoading" class="spinner"></span>
+                            <i v-else class="fa fa-door-open"></i> {{ leaveLoading ? 'Đang xử lý...' : 'Xác nhận đã rời phòng' }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -70,7 +78,7 @@
                     <CheckoutList
                         :items="checkouts"
                         :is-loading="isLoading"
-                        @reject-item="rejectCheckout"
+                        @cancel-checkout="cancelCheckout"
                         @open-inventory-popup="openInventoryPopup"
                     />
                 </div>
@@ -102,9 +110,9 @@ const { formatPrice } = useFormatPrice();
 const selectedCheckout = ref({});
 const showRejectionForm = ref(false);
 const rejectionReason = ref('');
-const buttonLoading = ref(false);
 const confirmLoading = ref(false);
 const rejectLoading = ref(false);
+const leaveLoading = ref(false);
 
 const fetchCheckouts = async () => {
     isLoading.value = true;
@@ -118,10 +126,10 @@ const fetchCheckouts = async () => {
     }
 };
 
-const rejectCheckout = async id => {
+const cancelCheckout = async id => {
     isLoading.value = true;
     try {
-        await $api(`/checkouts/${id}/reject`, {
+        await $api(`/checkouts/${id}/cancel`, {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
@@ -207,6 +215,23 @@ const submitRejection = async () => {
         handleBackendError(error, toast);
     } finally {
         rejectLoading.value = false;
+    }
+};
+
+const confirmLeftRoom = async () => {
+    leaveLoading.value = true;
+    try {
+        await $api(`/checkouts/${selectedCheckout.value.id}/left-room`, {
+            method: 'POST',
+            headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
+        });
+        toast.success('Xác nhận đã rời phòng thành công');
+        closeModal();
+        await fetchCheckouts();
+    } catch (error) {
+        handleBackendError(error, toast);
+    } finally {
+        leaveLoading.value = false;
     }
 };
 

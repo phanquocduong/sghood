@@ -10,10 +10,10 @@
                 </div>
                 <div class="company-details">
                     <h3><strong>SGHood</strong></h3>
-                    <p>SĐT: +84 828 283 169</p>
-                    <p>Email: sghoodvn@gmail.com</p>
-                    <p>Website: www.sghood.com.vn</p>
-                    <p>Địa chỉ: TP. Hồ Chí Minh, Việt Nam</p>
+                    <p>SĐT: {{ config.contact_phone }}</p>
+                    <p>Email: {{ config.contact_email }}</p>
+                    <p>Website: {{ config.website_address }}</p>
+                    <p>Địa chỉ: {{ config.office_address }}</p>
                 </div>
             </div>
 
@@ -205,12 +205,20 @@
         <!-- Footer -->
         <div class="row">
             <div class="col-md-12 text-center">
-                <strong v-if="invoice.type === 'Hàng tháng'">Lưu ý: Vui lòng thanh toán đúng hạn từ ngày 1 đến ngày 10 hằng tháng</strong>
-                <strong v-else>Lưu ý: Vui lòng thanh toán tiền cọc để hợp đồng được kích hoạt thuận tiện cho việc vào ở</strong>
+                <strong v-if="invoice.type === 'Hàng tháng' && invoice.status === 'Chưa trả'">
+                    Lưu ý: Vui lòng thanh toán đúng hạn từ ngày 1 đến ngày 10 hằng tháng. Có thể thanh toán trực tuyến hoặc tiền mặt tại văn
+                    phòng quản lý.
+                </strong>
+                <strong v-if="invoice.type === 'Đặt cọc' && invoice.status === 'Chưa trả'">
+                    Lưu ý: Vui lòng thanh toán tiền cọc để kích hoạt hợp đồng. Có thể thanh toán trực tuyến hoặc tiền mặt tại văn phòng quản
+                    lý.
+                </strong>
                 <ul id="footer">
-                    <li><span>www.sghood.com.vn</span></li>
-                    <li>sghoodvn@gmail.com</li>
-                    <li>(+84) 828 28 3169</li>
+                    <li>
+                        <span>{{ config.website_address }}</span>
+                    </li>
+                    <li>{{ config.contact_email }}</li>
+                    <li>{{ config.contact_phone }}</li>
                 </ul>
             </div>
         </div>
@@ -240,6 +248,7 @@ definePageMeta({
 const { formatPrice } = useFormatPrice();
 const { formatDate } = useFormatDate();
 const { $api } = useNuxtApp();
+const config = useState('configs');
 const route = useRoute();
 const toast = useToast();
 const invoice = ref(null);

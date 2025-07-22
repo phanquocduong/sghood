@@ -1,12 +1,12 @@
 <template>
     <ClientOnly>
-        <div v-if="config.banner" class="main-search-container" :data-background-image="baseUrl + config.banner">
+        <div v-if="config.home_banner" class="main-search-container" :data-background-image="baseUrl + config.home_banner">
             <div class="main-search-inner">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
-                            <h2 v-if="config?.title_banner_h2">{{ config.title_banner_h2 }}</h2>
-                            <h4 v-if="config?.title_banner_h4">{{ config.title_banner_h4 }}</h4>
+                            <h2 v-if="config?.home_banner_title">{{ config.home_banner_title }}</h2>
+                            <h4 v-if="config?.home_banner_subtitle">{{ config.home_banner_subtitle }}</h4>
 
                             <div class="main-search-input">
                                 <div class="main-search-input-item">

@@ -72,7 +72,7 @@
                 <a
                     v-if="item.inventory_status === 'Chờ kiểm kê'"
                     href="#"
-                    @click.prevent="openConfirmRejectPopup(item.id)"
+                    @click.prevent="openConfirmCancelPopup(item.id)"
                     class="button gray reject"
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
@@ -106,7 +106,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem', 'openInventoryPopup']);
+const emit = defineEmits(['cancelCheckout', 'openInventoryPopup']);
 
 const getItemClass = status => {
     switch (status) {
@@ -168,7 +168,7 @@ const getUserConfirmationStatusText = status => {
     }
 };
 
-const openConfirmRejectPopup = async id => {
+const openConfirmCancelPopup = async id => {
     const result = await Swal.fire({
         title: 'Xác nhận hủy yêu cầu trả phòng',
         text: 'Bạn có chắc chắn muốn hủy yêu cầu trả phòng này?',
@@ -185,7 +185,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', id);
+        emit('cancelCheckout', id);
     }
 };
 
@@ -202,16 +202,10 @@ const emitOpenInventoryPopup = item => {
 }
 
 .booking-status.pending.user-confirmation-status {
-    background-color: #61b2db !important;
+    background-color: #2196f3 !important;
 }
 
 .booking-status.canceled.user-confirmation-status {
-    background-color: #ee3535 !important;
-}
-
-.approved-booking .inner-booking-list ul li.highlighted.reject.user-confirmation-status,
-.pending-booking .inner-booking-list ul li.highlighted.reject.user-confirmation-status {
-    background-color: #eee !important;
-    color: #777 !important;
+    background-color: #e42929 !important;
 }
 </style>

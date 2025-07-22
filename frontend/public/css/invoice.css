@@ -36,7 +36,7 @@ body {
     width: auto;
     max-width: 900px;
     padding: 60px;
-    margin: 50px auto 0 auto;
+    margin: 50px auto;
     border-radius: 4px;
 }
 
@@ -155,7 +155,7 @@ th span::after {
     padding: 10px 20px;
     display: block;
     text-align: center;
-    margin: 25px auto 50px auto;
+    margin: 0 auto 50px auto;
     max-width: 190px;
     transition: 0.3s;
     text-decoration: none !important;

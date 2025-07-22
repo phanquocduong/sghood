@@ -201,11 +201,6 @@ export function useContract({
             return false;
         }
 
-        if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
-            toast.error('Magnific Popup không được tải.');
-            return false;
-        }
-
         // Mở modal OTP
         window.jQuery.magnificPopup.open({
             items: { src: '#otp-dialog', type: 'inline' },

@@ -2,16 +2,12 @@
 
 namespace App\Services\Apis;
 
+use App\Jobs\Apis\SendCheckoutNotification;
 use App\Models\Checkout;
 use App\Models\Contract;
 use App\Models\RefundRequest;
-use App\Models\User;
-use App\Mail\Apis\CheckoutStatusEmail;
-use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Kreait\Firebase\Messaging\CloudMessage;
 
 class CheckoutService
 {
@@ -86,8 +82,13 @@ class CheckoutService
                 'qr_code_path' => $qrUrl,
             ]);
 
-            // Gửi thông báo cho admin
-            $this->notificationService->notifyContractForAdmins($contract, 'Trả phòng');
+            // Gửi thông báo qua job queue
+            SendCheckoutNotification::dispatch(
+                $checkout,
+                'pending',
+                'Yêu cầu trả phòng #' . $checkout->id,
+                "Người dùng {$contract->user->name} đã tạo yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$contract->id} vào ngày {$checkOutDate}."
+            );
 
             return [
                 'data' => [
@@ -95,14 +96,9 @@ class CheckoutService
                     'checkout' => $checkout,
                     'refund_request' => $refundRequest,
                 ],
-                'status' => 200,
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi yêu cầu trả phòng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -144,7 +140,7 @@ class CheckoutService
         return $checkouts->values();
     }
 
-    public function rejectCheckout($id)
+    public function cancelCheckout($id)
     {
         $checkout = Checkout::findOrFail($id);
 
@@ -156,8 +152,13 @@ class CheckoutService
             $checkout->refund_request->update(['inventory_status' => 'Huỷ bỏ']);
         }
 
-        // Gửi thông báo và email cho admin
-        $this->notifyAdmins($checkout, 'cancel');
+        // Gửi thông báo qua job queue
+        SendCheckoutNotification::dispatch(
+            $checkout,
+            'canceled',
+            'Yêu cầu trả phòng #' . $checkout->id . ' đã bị hủy',
+            "Người dùng {$checkout->contract->user->name} đã hủy yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$checkout->contract->id}."
+        );
 
         return $checkout;
     }
@@ -172,8 +173,39 @@ class CheckoutService
             'user_rejection_reason' => $userRejectionReason,
         ]);
 
-        // Gửi thông báo và email cho admin
-        $this->notifyAdmins($checkout, $status === 'Đồng ý' ? 'confirm' : 'reject');
+        // Gửi thông báo qua job queue
+        $action = $status === 'Đồng ý' ? 'confirm' : 'reject';
+        $title = $action === 'confirm'
+            ? "Kết quả kiểm kê trả phòng #{$checkout->id} đã được người dùng đồng ý"
+            : "Kết quả kiểm kê #{$checkout->id} bị người dùng từ chối";
+        $body = $action === 'confirm'
+            ? "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract->id}) đã được người dùng {$checkout->contract->user->name} xác nhận đồng ý."
+            : "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract_id}) bị người dùng {$checkout->contract->user->name} từ chối. Lý do: " . ($userRejectionReason ?? 'Không cung cấp') . ".";
+
+        SendCheckoutNotification::dispatch($checkout, $action, $title, $body);
+
+        return $checkout;
+    }
+
+    public function confirmLeftRoom($id)
+    {
+        $checkout = Checkout::findOrFail($id);
+
+        // Kiểm tra xem người dùng đã đồng ý với kiểm kê chưa
+        if ($checkout->user_confirmation_status !== 'Đồng ý') {
+            throw new \Exception('Không thể xác nhận rời phòng khi chưa đồng ý với kết quả kiểm kê.');
+        }
+
+        // Cập nhật trạng thái rời phòng
+        $checkout->update(['has_left' => true]);
+
+        // Gửi thông báo qua job queue
+        SendCheckoutNotification::dispatch(
+            $checkout,
+            'left-room',
+            "Người dùng đã xác nhận rời phòng #{$checkout->id}",
+            "Người dùng {$checkout->contract->user->name} đã xác nhận rời phòng #{$checkout->id} cho hợp đồng #{$checkout->contract->id}."
+        );
 
         return $checkout;
     }
@@ -186,67 +218,5 @@ class CheckoutService
             default => 'desc',
         };
     }
-
-    private function notifyAdmins($checkout, $action)
-    {
-        try {
-            $admins = User::where('role', 'Quản trị viên')->get();
-
-            if ($admins->isEmpty()) {
-                Log::warning('Không tìm thấy admin với role Quản trị viên');
-                return;
-            }
-
-            $time = now()->format('d/m/Y H:i');
-
-            $title = match ($action) {
-                'confirm' => "Kết quả kiểm kê trả phòng #{$checkout->id} đã được người dùng đồng ý",
-                'reject' => "Kết quả kiểm kê #{$checkout->id} bị người dùng từ chối",
-                'cancel' => "Yêu cầu trả phòng #{$checkout->id} bị hủy",
-                default => "Yêu cầu trả phòng #{$checkout->id} đã cập nhật trạng thái mới"
-            };
-
-            $body = match ($action) {
-                'confirm' => "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract->id}) đã được người dùng {$checkout->contract->user->name} xác nhận đồng ý.",
-                'reject' => "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract_id}) bị người dùng {$checkout->contract->user->name} từ chối. Lý do: " . ($checkout->user_rejection_reason ?? 'Không cung cấp') . ".",
-                'cancel' => "Yêu cầu trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract->id}) từ {$checkout->contract->user->name} đã bị hủy.",
-                default => "Yêu cầu trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract->id}) từ {$checkout->contract->user->name} đã được cập nhật trạng thái mới.",
-            };
-
-            // Gửi email cho admin
-            Mail::to($admins->pluck('email'))->send(new CheckoutStatusEmail($checkout, $action));
-
-            $messaging = app('firebase.messaging');
-
-            foreach ($admins as $admin) {
-                // Tạo thông báo trong cơ sở dữ liệu
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'title' => $title,
-                    'content' => $body,
-                ]);
-
-                // Gửi thông báo push qua Firebase nếu admin có FCM token
-                if ($admin->fcm_token) {
-                    $baseUrl = config('app.url');
-                    $link = "$baseUrl/checkouts";
-                    $message = CloudMessage::fromArray([
-                        'token' => $admin->fcm_token,
-                        'notification' => ['title' => $title, 'body' => $body],
-                        'data' => [
-                            'link' => $link,
-                        ],
-                    ]);
-
-                    $messaging->send($message);
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::error('Lỗi gửi thông báo cho admin về yêu cầu trả phòng', [
-                'checkout_id' => $checkout->id,
-                'action' => $action,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
 }
+?>

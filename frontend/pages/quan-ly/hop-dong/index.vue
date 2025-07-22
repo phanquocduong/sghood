@@ -1,12 +1,13 @@
 <template>
     <Titlebar title="Hợp đồng" />
+
     <div class="row">
         <div class="col-lg-12 col-md-12">
             <div class="dashboard-list-box margin-top-0">
                 <ContractList
                     :items="contracts"
                     :is-loading="isLoading"
-                    @reject-item="rejectItem"
+                    @cancel-contract="cancelContract"
                     @extend-contract="extendContract"
                     @return-contract="returnContract"
                 />
@@ -26,13 +27,11 @@ definePageMeta({
 const contracts = ref([]);
 const isLoading = ref(false);
 
-const { fetchContracts, rejectItem, extendContract, returnContract } = useContractActions({ isLoading, contracts });
+const { fetchContracts, cancelContract, extendContract, returnContract } = useContractActions({ isLoading, contracts });
 
 onMounted(async () => {
     await fetchContracts();
 });
 </script>
 
-<style scoped>
-/* Không cần style vì đã được xử lý trong ContractList.vue */
-</style>
+<style scoped></style>

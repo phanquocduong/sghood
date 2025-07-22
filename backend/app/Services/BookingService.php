@@ -306,7 +306,7 @@ class BookingService
                         <p class="mb-2"><strong>2. TRÁCH NHIỆM MỖI BÊN</strong></p>
 
                         <div class="mb-3">
-                            <p class="mb-2"><strong>a) Bên A:</strong></p>
+                            <p class="mb-2 page-break"><strong>a) Bên A:</strong></p>
                             <div class="ms-3">
                                 <p class="mb-1">- Trong thời gian hợp đồng chủ nhà sẽ không tăng giá tiền nhà.</p>
                                 <p class="mb-1">- Kịp thời sửa chữa hư hỏng trong quá trình sử dụng.</p>

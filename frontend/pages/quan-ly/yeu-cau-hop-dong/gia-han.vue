@@ -6,7 +6,7 @@
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
                     <ContractExtensionFilter v-model:filter="filter" @update:filter="fetchExtensions" />
-                    <ContractExtensionList :extensions="extensions" :is-loading="isLoading" @reject-extension="rejectExtension" />
+                    <ContractExtensionList :extensions="extensions" :is-loading="isLoading" @cancel-extension="cancelExtension" />
                 </div>
             </div>
         </div>
@@ -16,29 +16,18 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
+import { useApi } from '~/composables/useApi';
 
 definePageMeta({
     layout: 'management'
 });
 
 const { $api } = useNuxtApp();
+const { handleBackendError } = useApi();
 const extensions = ref([]);
 const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const toast = useToast();
-
-const handleBackendError = error => {
-    const data = error.response?._data;
-    if (data?.error) {
-        toast.error(data.error);
-        return;
-    }
-    if (data?.errors) {
-        Object.values(data.errors).forEach(err => toast.error(err[0]));
-        return;
-    }
-    toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
-};
 
 const fetchExtensions = async () => {
     isLoading.value = true;
@@ -47,16 +36,16 @@ const fetchExtensions = async () => {
         extensions.value = response.data;
         console.log(extensions.value);
     } catch (error) {
-        handleBackendError(error);
+        handleBackendError(error, toast);
     } finally {
         isLoading.value = false;
     }
 };
 
-const rejectExtension = async id => {
+const cancelExtension = async id => {
     isLoading.value = true;
     try {
-        const response = await $api(`/contract-extensions/${id}/reject`, {
+        const response = await $api(`/contract-extensions/${id}/cancel`, {
             method: 'POST',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
@@ -65,7 +54,7 @@ const rejectExtension = async id => {
         await fetchExtensions();
         toast.success(response.message);
     } catch (error) {
-        handleBackendError(error);
+        handleBackendError(error, toast);
     } finally {
         isLoading.value = false;
     }

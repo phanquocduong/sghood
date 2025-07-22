@@ -129,7 +129,7 @@ const openEditSchedulePopup = schedule => emit('editSchedule', schedule);
 }
 
 .button.gray.edit:hover {
-    background-color: #61b2db !important;
+    background-color: #2196f3 !important;
 }
 
 .swal2-container {

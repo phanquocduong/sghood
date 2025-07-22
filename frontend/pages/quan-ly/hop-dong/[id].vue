@@ -1,6 +1,7 @@
 <template>
     <Loading :is-loading="loading" />
-    <div v-if="!loading" class="contract-page">
+
+    <div class="contract-page">
         <Titlebar :title="`Hợp đồng #${contract?.id} (${contract?.status})`" />
 
         <div class="row">
