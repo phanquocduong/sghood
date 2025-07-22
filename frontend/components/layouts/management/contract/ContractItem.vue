@@ -3,7 +3,7 @@
     <li :class="getItemClass(item.status)">
         <div class="list-box-listing bookings">
             <div class="list-box-listing-img">
-                <img :src="config.public.baseUrl + item.room_image" alt="Room image" />
+                <img :src="useRuntimeConfig().public.baseUrl + item.room_image" alt="Room image" />
             </div>
             <div class="list-box-listing-content">
                 <div class="inner">
@@ -45,7 +45,7 @@
             </div>
         </div>
         <div class="buttons-to-right">
-            <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openConfirmRejectPopup(item.id)" class="button gray reject">
+            <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openConfirmCancelPopup(item.id)" class="button gray reject">
                 <i class="sl sl-icon-close"></i> Hủy bỏ
             </a>
             <a v-if="item.status === 'Hoạt động'" href="#" class="button gray approve" @click.prevent="emit('downloadPdf', item.id)">
@@ -116,6 +116,7 @@ import { useFormatDate } from '~/composables/useFormatDate';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
+const config = useState('configs');
 const { formatPrice } = useFormatPrice();
 const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
@@ -126,23 +127,20 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    config: {
-        type: Object,
-        required: true
-    },
     today: {
         type: String,
         required: true
     }
 });
 
-const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract', 'downloadPdf']);
+const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract', 'downloadPdf']);
 
 const selectedContract = ref({});
 const otpPhoneNumber = ref('');
 const otpCode = ref('');
 const otpLoading = ref(false);
 const currentAction = ref(null);
+const banks = ref(config.value.supported_banks);
 const returnForm = ref({
     check_out_date: '',
     bank_name: '',
@@ -160,7 +158,7 @@ const validateReturnForm = () => {
 
 const isExtendFormValid = computed(() => extendForm.value.months >= 1);
 
-const openConfirmRejectPopup = async id => {
+const openConfirmCancelPopup = async id => {
     const result = await Swal.fire({
         title: 'Xác nhận hủy hợp đồng',
         text: 'Bạn có chắc chắn muốn hủy hợp đồng này?',
@@ -173,7 +171,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', id);
+        emit('cancelContract', id);
     }
 };
 
@@ -424,155 +422,6 @@ const requestOTPForReturn = async formData => {
     currentAction.value = 'return';
     await requestOTP();
 };
-
-const banks = ref([
-    { value: 'ACB', label: 'ACB - Ngân hàng TMCP Á Châu', logo: 'https://qr.sepay.vn/assets/img/banklogo/ACB.png' },
-    { value: 'VPBank', label: 'VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng', logo: 'https://qr.sepay.vn/assets/img/banklogo/VPB.png' },
-    { value: 'TPBank', label: 'TPBank - Ngân hàng TMCP Tiên Phong', logo: 'https://qr.sepay.vn/assets/img/banklogo/TPB.png' },
-    { value: 'MSB', label: 'MSB - Ngân hàng TMCP Hàng Hải', logo: 'https://qr.sepay.vn/assets/img/banklogo/MSB.png' },
-    { value: 'NamABank', label: 'NamABank - Ngân hàng TMCP Nam Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/NAB.png' },
-    {
-        value: 'LienVietPostBank',
-        label: 'LienVietPostBank - Ngân hàng TMCP Bưu Điện Liên Việt',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/LPB.png'
-    },
-    {
-        value: 'VietCapitalBank',
-        label: 'VietCapitalBank - Ngân hàng TMCP Bản Việt',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VCCB.png'
-    },
-    {
-        value: 'BIDV',
-        label: 'BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/BIDV.png'
-    },
-    { value: 'Sacombank', label: 'Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín', logo: 'https://qr.sepay.vn/assets/img/banklogo/STB.png' },
-    { value: 'VIB', label: 'VIB - Ngân hàng TMCP Quốc tế Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/VIB.png' },
-    {
-        value: 'HDBank',
-        label: 'HDBank - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/HDB.png'
-    },
-    { value: 'SeABank', label: 'SeABank - Ngân hàng TMCP Đông Nam Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/SEAB.png' },
-    {
-        value: 'GPBank',
-        label: 'GPBank - Ngân hàng Thương mại TNHH MTV Dầu Khí Toàn Cầu',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/GPB.png'
-    },
-    {
-        value: 'PVcomBank',
-        label: 'PVcomBank - Ngân hàng TMCP Đại Chúng Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/PVCB.png'
-    },
-    { value: 'NCB', label: 'NCB - Ngân hàng TMCP Quốc Dân', logo: 'https://qr.sepay.vn/assets/img/banklogo/NCB.png' },
-    {
-        value: 'ShinhanBank',
-        label: 'ShinhanBank - Ngân hàng TNHH MTV Shinhan Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SHBVN.png'
-    },
-    { value: 'SCB', label: 'SCB - Ngân hàng TMCP Sài Gòn', logo: 'https://qr.sepay.vn/assets/img/banklogo/SCB.png' },
-    { value: 'PGBank', label: 'PGBank - Ngân hàng TMCP Xăng dầu Petrolimex', logo: 'https://qr.sepay.vn/assets/img/banklogo/PGB.png' },
-    {
-        value: 'Agribank',
-        label: 'Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VBA.png'
-    },
-    {
-        value: 'Techcombank',
-        label: 'Techcombank - Ngân hàng TMCP Kỹ thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/TCB.png'
-    },
-    {
-        value: 'SaigonBank',
-        label: 'SaigonBank - Ngân hàng TMCP Sài Gòn Công Thương',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SGICB.png'
-    },
-    { value: 'DongABank', label: 'DongABank - Ngân hàng TMCP Đông Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/DOB.png' },
-    { value: 'BacABank', label: 'BacABank - Ngân hàng TMCP Bắc Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/BAB.png' },
-    {
-        value: 'StandardChartered',
-        label: 'StandardChartered - Ngân hàng TNHH MTV Standard Chartered Bank Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SCVN.png'
-    },
-    {
-        value: 'Oceanbank',
-        label: 'Oceanbank - Ngân hàng Thương mại TNHH MTV Đại Dương',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/Oceanbank.png'
-    },
-    { value: 'VRB', label: 'VRB - Ngân hàng Liên doanh Việt - Nga', logo: 'https://qr.sepay.vn/assets/img/banklogo/VRB.png' },
-    { value: 'ABBANK', label: 'ABBANK - Ngân hàng TMCP An Bình', logo: 'https://qr.sepay.vn/assets/img/banklogo/ABB.png' },
-    { value: 'VietABank', label: 'VietABank - Ngân hàng TMCP Việt Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/VAB.png' },
-    {
-        value: 'Eximbank',
-        label: 'Eximbank - Ngân hàng TMCP Xuất Nhập khẩu Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/EIB.png'
-    },
-    {
-        value: 'VietBank',
-        label: 'VietBank - Ngân hàng TMCP Việt Nam Thương Tín',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VIETBANK.png'
-    },
-    { value: 'IndovinaBank', label: 'IndovinaBank - Ngân hàng TNHH Indovina', logo: 'https://qr.sepay.vn/assets/img/banklogo/IVB.png' },
-    { value: 'BaoVietBank', label: 'BaoVietBank - Ngân hàng TMCP Bảo Việt', logo: 'https://qr.sepay.vn/assets/img/banklogo/BVB.png' },
-    {
-        value: 'PublicBank',
-        label: 'PublicBank - Ngân hàng TNHH MTV Public Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/PBVN.png'
-    },
-    { value: 'SHB', label: 'SHB - Ngân hàng TMCP Sài Gòn - Hà Nội', logo: 'https://qr.sepay.vn/assets/img/banklogo/SHB.png' },
-    {
-        value: 'CBBank',
-        label: 'CBBank - Ngân hàng Thương mại TNHH MTV Xây dựng Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/CBB.png'
-    },
-    { value: 'OCB', label: 'OCB - Ngân hàng TMCP Phương Đông', logo: 'https://qr.sepay.vn/assets/img/banklogo/OCB.png' },
-    { value: 'KienLongBank', label: 'KienLongBank - Ngân hàng TMCP Kiên Long', logo: 'https://qr.sepay.vn/assets/img/banklogo/KLB.png' },
-    { value: 'CIMB', label: 'CIMB - Ngân hàng TNHH MTV CIMB Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/CIMB.png' },
-    { value: 'HSBC', label: 'HSBC - Ngân hàng TNHH MTV HSBC (Việt Nam)', logo: 'https://qr.sepay.vn/assets/img/banklogo/HSBC.png' },
-    {
-        value: 'DBSBank',
-        label: 'DBSBank - DBS Bank Ltd - Chi nhánh Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/DBS.png'
-    },
-    {
-        value: 'Nonghyup',
-        label: 'Nonghyup - Ngân hàng Nonghyup - Chi nhánh Hà Nội',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/NHB HN.png'
-    },
-    {
-        value: 'HongLeong',
-        label: 'HongLeong - Ngân hàng TNHH MTV Hong Leong Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/HLBVN.png'
-    },
-    { value: 'Woori', label: 'Woori - Ngân hàng TNHH MTV Woori Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/WVN.png' },
-    {
-        value: 'UnitedOverseas',
-        label: 'UnitedOverseas - Ngân hàng United Overseas - Chi nhánh TP. Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/UOB.png'
-    },
-    {
-        value: 'KookminHN',
-        label: 'KookminHN - Ngân hàng Kookmin - Chi nhánh Hà Nội',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/KBHN.png'
-    },
-    {
-        value: 'KookminHCM',
-        label: 'KookminHCM - Ngân hàng Kookmin - Chi nhánh Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/KBHCM.png'
-    },
-    { value: 'COOPBANK', label: 'COOPBANK - Ngân hàng Hợp tác xã Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/COOPBANK.png' },
-    {
-        value: 'VietinBank',
-        label: 'VietinBank - Ngân hàng TMCP Công thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/ICB.png'
-    },
-    { value: 'MBBank', label: 'MBBank - Ngân hàng TMCP Quân đội', logo: 'https://qr.sepay.vn/assets/img/banklogo/MB.png' },
-    {
-        value: 'Vietcombank',
-        label: 'Vietcombank - Ngân hàng TMCP Ngoại Thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VCB.png'
-    }
-]);
 </script>
 
 <style scoped></style>

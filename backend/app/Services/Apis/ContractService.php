@@ -2,6 +2,7 @@
 
 namespace App\Services\Apis;
 
+use App\Jobs\Apis\SendContractNotification;
 use App\Models\Contract;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -12,22 +13,13 @@ class ContractService
 {
     public function __construct(
         private readonly IdentityDocumentService $identityDocumentService,
-        private readonly NotificationService $notificationService,
     ) {}
-
-    public function getSuccessMessage(string $oldStatus): string
-    {
-        return match ($oldStatus) {
-            'Chờ xác nhận' => 'Hợp đồng đã được lưu và đang chờ duyệt',
-            'Chờ chỉnh sửa' => 'Hợp đồng đã được chỉnh sửa và gửi lại để duyệt',
-            default => 'Hợp đồng đã được cập nhật thành công',
-        };
-    }
 
     public function getUserContracts(): array
     {
         try {
-            return Contract::where('user_id', Auth::id())
+            return Contract::query()
+                ->where('user_id', Auth::id())
                 ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at')
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
@@ -35,7 +27,7 @@ class ContractService
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
                         ->where('type', 'Đặt cọc'),
                     'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
-                        ->orderBy('created_at', 'desc'),
+                        ->latest(),
                     'checkouts' => fn($query) => $query->select(
                         'id',
                         'contract_id',
@@ -43,31 +35,28 @@ class ContractService
                         'inventory_status',
                         'has_left',
                         'note'
-                    )->orderBy('created_at', 'desc')
+                    )->latest(),
                 ])
                 ->get()
-                ->map(fn ($contract) => [
+                ->map(fn (Contract $contract) => [
                     'id' => $contract->id,
                     'room_name' => $contract->room->name,
                     'room_price' => $contract->room->price,
                     'motel_name' => $contract->room->motel->name,
                     'room_image' => $contract->room->main_image->image_url,
-                    'start_date' => $contract->start_date->toIso8601String(),
-                    'end_date' => $contract->end_date->toIso8601String(),
+                    'start_date' => $contract->start_date->toDateString(),
+                    'end_date' => $contract->end_date->toDateString(),
                     'status' => $contract->status,
                     'deposit_amount' => $contract->deposit_amount,
                     'rental_price' => $contract->rental_price,
-                    'signed_at' => $contract->signed_at,
+                    'signed_at' => $contract->signed_at?->toDateTimeString(),
                     'invoice_id' => $contract->invoices->first()?->id,
-                    'latest_extension_status' => $contract->extensions->first()?->status ?? null,
-                    'latest_checkout_status' => $contract->checkouts->first()?->inventory_status ?? null,
+                    'latest_extension_status' => $contract->extensions->first()?->status,
+                    'latest_checkout_status' => $contract->checkouts->first()?->inventory_status,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
-            Log::error('Lỗi lấy danh sách hợp đồng', [
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi lấy danh sách hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -75,7 +64,8 @@ class ContractService
     public function getContractDetail(int $id): array
     {
         try {
-            $contract = Contract::with(['user', 'extensions'])
+            $contract = Contract::query()
+                ->with(['user', 'extensions'])
                 ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
@@ -114,19 +104,16 @@ class ContractService
                     ])->values()->toArray(),
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi lấy chi tiết hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi lấy chi tiết hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
 
-    public function rejectContract(int $id): array
+    public function cancelContract(int $id): array
     {
         try {
-            $contract = Contract::where('id', $id)
+            $contract = Contract::query()
+                ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
 
@@ -146,29 +133,25 @@ class ContractService
 
             $contract->update(['status' => 'Huỷ bỏ']);
 
-            return [
-                'data' => $contract,
-                'status' => 200,
-            ];
+            SendContractNotification::dispatch(
+                $contract,
+                'canceled',
+                "Hợp đồng #{$contract->id} đã bị hủy",
+                "Người dùng {$contract->user->name} đã hủy hợp đồng #{$contract->id}."
+            );
+
+            return ['data' => $contract->fresh()];
         } catch (\Throwable $e) {
-            Log::error('Lỗi hủy hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi hủy hợp đồng:' . $e->getMessage());
             throw $e;
         }
-    }
-
-    public function extractIdentityImages(array $images): array
-    {
-        return $this->identityDocumentService->extractIdentityImages($images);
     }
 
     public function saveContract(string $content, int $id): Contract
     {
         try {
-            $contract = Contract::where('user_id', Auth::id())
+            $contract = Contract::query()
+                ->where('user_id', Auth::id())
                 ->where('id', $id)
                 ->firstOrFail();
 
@@ -179,15 +162,19 @@ class ContractService
                 'status' => 'Chờ duyệt'
             ]);
 
-            $this->notificationService->notifyContractForAdmins($contract, $oldStatus);
+            $type = $oldStatus === 'Chờ xác nhận' ? 'pending' : 'updated';
+            $title = $oldStatus === 'Chờ xác nhận'
+                ? "Hợp đồng mới #{$contract->id} đang chờ duyệt"
+                : "Hợp đồng #{$contract->id} đã được chỉnh sửa";
+            $body = $oldStatus === 'Chờ xác nhận'
+                ? "Người dùng {$contract->user->name} đã gửi hợp đồng #{$contract->id} để duyệt."
+                : "Người dùng {$contract->user->name} đã chỉnh sửa hợp đồng #{$contract->id}.";
+
+            SendContractNotification::dispatch($contract, $type, $title, $body);
 
             return $contract->fresh();
         } catch (\Throwable $e) {
-            Log::error('Lỗi cập nhật hợp đồng', [
-                'user_id' => Auth::id(),
-                'contract_id' => $id,
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Lỗi cập nhật hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -195,7 +182,8 @@ class ContractService
     public function signContract(int $contractId, string $signature, string $content): Contract
     {
         try {
-            $contract = Contract::where('user_id', Auth::id())
+            $contract = Contract::query()
+                ->where('user_id', Auth::id())
                 ->where('id', $contractId)
                 ->where('status', 'Chờ ký')
                 ->firstOrFail();
@@ -211,16 +199,16 @@ class ContractService
                 'signed_at' => now(),
             ]);
 
-            // Thông báo admin
-            $this->notificationService->notifyContractForAdmins($contract, 'Chờ ký');
+            SendContractNotification::dispatch(
+                $contract,
+                'signed',
+                "Hợp đồng #{$contract->id} đã được ký",
+                "Hợp đồng #{$contract->id} từ người dùng {$contract->user->name} đã được ký và đang chờ thanh toán tiền cọc."
+            );
 
             return $contract->fresh();
         } catch (\Throwable $e) {
-            Log::error('Lỗi ký hợp đồng', [
-                'user_id' => Auth::id(),
-                'contract_id' => $contractId,
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Lỗi ký hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -244,85 +232,17 @@ class ContractService
         // CSS được thiết kế để hỗ trợ tiếng Việt và đảm bảo định dạng A4
         $css = '
         <style>
-            @page {
-                margin: 15mm 20mm;
-                size: A4;
-            }
-
-            @page {
-                @top {
-                    content: "";
-                    height: 15mm;
-                }
-            }
-
-            * {
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-
-            body {
-                font-size: 12px;
-                line-height: 1.4;
-                color: #212529;
-                background: white;
-                padding: 0;
-                margin: 0;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-
-            .container-fluid {
-                width: 100%;
-                padding: 0;
-            }
-
-            .contract-document {
-                max-width: 210mm;
-                min-height: 297mm;
-                background: white;
-                font-size: 12px;
-                line-height: 1.4;
-                padding: 15mm 20mm;
-                margin: 0 auto;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-
-            h1, h2, h3, h4, h5, h6 {
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-                font-weight: bold;
-                margin: 0;
-            }
-
-            h3 {
-                font-size: 16px;
-                font-weight: bold;
-                letter-spacing: 0.3px;
-                margin: 0;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-
-            p {
-                margin-bottom: 0.4rem;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-                line-height: 1.4;
-            }
-
-            strong, b {
-                font-weight: bold;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-
-            u {
-                text-decoration: underline;
-            }
-
-            em, i {
-                font-style: italic;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-
+            @page { margin: 15mm 20mm; size: A4;}
+            @page { @top { content: ""; height: 15mm; } }
+            * { font-family: "Noto Serif", "DejaVu Serif", serif; box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-size: 12px; line-height: 1.4; color: #212529; background: white; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-document { max-width: 210mm; min-height: 297mm; background: white; font-size: 12px; line-height: 1.4; padding: 15mm 20mm; margin: 0 auto; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            h1, h2, h3, h4, h5, h6 { font-family: "Noto Serif", "DejaVu Serif", serif; font-weight: bold; margin: 0; }
+            h3 { font-size: 16px; font-weight: bold; letter-spacing: 0.3px; margin: 0; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            p { margin-bottom: 0.4rem; font-family: "Noto Serif", "DejaVu Serif", serif; line-height: 1.4; }
+            strong, b { font-weight: bold; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            u { text-decoration: underline; }
+            em, i { font-style: italic; font-family: "Noto Serif", "DejaVu Serif", serif;}
             .text-center { text-align: center; }
             .text-end { text-align: right; }
             .text-justify { text-align: justify; }
@@ -344,145 +264,47 @@ class ContractService
             .border { border: 1px solid #000; }
             .border-dark { border-color: #000; }
             .d-inline-block { display: inline-block; }
-            .row {
-                display: table;
-                width: 100%;
-                margin-bottom: 1rem;
-            }
-            .col-2 {
-                display: table-cell;
-                width: 16.66%;
-                vertical-align: top;
-                padding-right: 15px;
-            }
-            .col-6 {
-                display: table-cell;
-                width: 50%;
-                vertical-align: top;
-                padding-right: 15px;
-            }
-            .col-10 {
-                display: table-cell;
-                width: 83.33%;
-                vertical-align: top;
-                padding-right: 15px;
-            }
-            .col-6:last-child, .col-2:last-child {
-                padding-right: 0;
-                padding-left: 15px;
-            }
-            .form-control.flat-line {
-                border: none;
-                border-bottom: 1px dotted #666;
-                border-radius: 0;
-                outline: none;
-                background: transparent;
-                height: auto;
-                box-shadow: none;
-                font-weight: bold;
-                display: inline-block;
-                vertical-align: bottom;
-                margin: 0 0 5px 0;
-                padding: 0 0 2px 0;
-                min-width: 100px;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-document .text-center.mb-4 > div:first-child strong {
-                font-size: 12px;
-                letter-spacing: 0.2px;
-                font-weight: bold;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-document .text-center.mb-4 > div:nth-child(2) u strong {
-                font-weight: bold;
-                text-decoration: underline;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-document .text-center.mb-4 > div .my-4 h3 {
-                font-size: 16px;
-                font-weight: bold;
-                letter-spacing: 0.3px;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-document .text-end .border {
-                display: inline-block;
-                border: 1px solid #000;
-                padding: 0.2rem 0.4rem;
-                font-weight: bold;
-                font-size: 11px;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-content-section p {
-                margin-bottom: 0.4rem;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .contract-content-section .ms-3 p {
-                margin-left: 1rem;
-                margin-bottom: 0.4rem;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .party-section p {
-                margin-bottom: 0.2rem;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .signature-row {
-                margin-top: 3rem;
-                padding-top: 1.5rem;
-            }
-            input[type="text"], .form-control {
-                border: none;
-                border-bottom: 1px dotted #666;
-                background: transparent;
-                font-weight: bold;
-                display: inline-block;
-                vertical-align: bottom;
-                margin: 0 5px;
-                padding: 0 0 2px 0;
-                outline: none;
-                box-shadow: none;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
-            .input-placeholder {
-                display: inline-block;
-                border-bottom: 1px dotted #666;
-                min-width: 150px;
-                height: 22px;
-                margin: 0 5px;
-                vertical-align: bottom;
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
+            .row { display: table; width: 100%; margin-bottom: 1rem; }
+            .col-2 { display: table-cell; width: 16.66%; vertical-align: top; padding-right: 15px; }
+            .col-6 { display: table-cell; width: 50%; vertical-align: top; padding-right: 15px; }
+            .col-10 { display: table-cell; width: 83.33%; vertical-align: top; padding-right: 15px; }
+            .col-6:last-child, .col-2:last-child { padding-right: 0; padding-left: 15px; }
+            .form-control.flat-line { border: none; border-bottom: 1px dotted #666; border-radius: 0; outline: none; background: transparent; height: auto; box-shadow: none; font-weight: bold; display: inline-block; vertical-align: bottom; margin: 0 0 5px 0; padding: 0 0 2px 0; min-width: 100px; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-document .text-center.mb-4 > div:first-child strong { font-size: 12px; letter-spacing: 0.2px; font-weight: bold; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-document .text-center.mb-4 > div:nth-child(2) u strong { font-weight: bold; text-decoration: underline; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-document .text-center.mb-4 > div .my-4 h3 { font-size: 16px; font-weight: bold; letter-spacing: 0.3px; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-document .text-end .border { display: inline-block; border: 1px solid #000; padding: 0.2rem 0.4rem; font-weight: bold; font-size: 11px; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-content-section p { margin-bottom: 0.4rem; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .contract-content-section .ms-3 p { margin-left: 1rem; margin-bottom: 0.4rem; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .party-section p { margin-bottom: 0.2rem; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .signature-row { margin-top: 3rem; padding-top: 1.5rem; }
+            input[type="text"], .form-control { border: none; border-bottom: 1px dotted #666; background: transparent; font-weight: bold; display: inline-block; vertical-align: bottom; margin: 0 5px; padding: 0 0 2px 0; outline: none; box-shadow: none; font-family: "Noto Serif", "DejaVu Serif", serif; }
+            .input-placeholder { display: inline-block; border-bottom: 1px dotted #666; min-width: 150px; height: 22px; margin: 0 5px; vertical-align: bottom; font-family: "Noto Serif", "DejaVu Serif", serif; }
             .input-placeholder.wide { min-width: 300px; }
             .input-placeholder.medium { min-width: 200px; }
             .input-placeholder.small { min-width: 100px; }
-            div, span, td, th, input, label, select, textarea {
-                font-family: "Noto Serif", "DejaVu Serif", serif !important;
-                color: #212529;
-            }
+            div, span, td, th, input, label, select, textarea { font-family: "Noto Serif", "DejaVu Serif", serif !important; color: #212529; }
             .contract-document { box-shadow: none; }
-            .vietnamese-text {
-                font-family: "Noto Serif", "DejaVu Serif", serif;
-            }
+            .vietnamese-text { font-family: "Noto Serif", "DejaVu Serif", serif; }
         </style>';
 
         // Xử lý content để tạo giao diện tương tự
         $processedContent = $this->processContent($content);
 
-        // Tạo HTML hoàn chỉnh với meta charset UTF-8
-        $htmlContent = '<!DOCTYPE html>
+        return <<<HTML
+        <!DOCTYPE html>
         <html lang="vi">
         <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Hợp đồng</title>
-            ' . $css . '
+            {$css}
         </head>
-        <body class="vietnamese-text">';
-
-        $htmlContent .= $processedContent;
-        $htmlContent .= '</body></html>';
-
-        return $htmlContent;
+        <body class="vietnamese-text">
+            {$processedContent}
+        </body>
+        </html>
+        HTML;
     }
 
     /**
@@ -538,14 +360,15 @@ class ContractService
     {
         try {
             // Lấy thông tin hợp đồng
-            $contract = Contract::where('id', $contractId)
+            $contract = Contract::query()
+                ->where('id', $contractId)
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 
             // Kiểm tra xem file PDF đã tồn tại chưa
             $filename = 'pdf/contracts/contract-' . $contract->id . '-' . time() . '.pdf';
+
             if ($contract->file && Storage::disk('private')->exists($contract->file)) {
-                Log::info('PDF file already exists for contract', ['contract_id' => $contract->id]);
                 return ['data' => $contract->file];
             }
 
@@ -568,20 +391,12 @@ class ContractService
                     'isFontSubsettingEnabled' => true,
                 ]);
 
-            // Lưu file PDF
-            $pdfContent = $pdf->output();
-            Storage::disk('private')->put($filename, $pdfContent);
-
-            // Cập nhật thông tin hợp đồng
+            Storage::disk('private')->put($filename, $pdf->output());
             $contract->update(['file' => $filename]);
 
             return ['data' => $filename];
         } catch (\Throwable $e) {
-            Log::error('Lỗi tạo và lưu PDF hợp đồng', [
-                'contract_id' => $contractId,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Lỗi tạo và lưu PDF hợp đồng:' . $e->getMessage());
             return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
         }
     }

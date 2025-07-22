@@ -1,3 +1,4 @@
+<!-- pages/quan-ly/hoa-don/[id]/thanh-toan.vue -->
 <template>
     <Loading :is-loading="isLoading" />
     <div v-if="!isLoading" class="payment-section">
@@ -77,6 +78,20 @@
                         </p>
                     </div>
                 </div>
+                <div class="method cash-method">
+                    <h4><i class="fa fa-money-bill"></i> Cách 3: Thanh toán tiền mặt</h4>
+                    <p>Vui lòng mang hóa đơn đến văn phòng SGHood để nộp tiền mặt.</p>
+                    <div class="cash-info">
+                        <p><strong>Địa chỉ:</strong> {{ config.office_address }}</p>
+                        <p><strong>Giờ làm việc:</strong> {{ config.working_time }}</p>
+                        <p><strong>Số tiền:</strong> {{ formatPrice(invoice?.total_amount) }}</p>
+                        <p><strong>Mã hóa đơn:</strong> {{ invoice?.code }}</p>
+                        <p class="note">
+                            <i class="im im-icon-Information"></i> Lưu ý: Mang theo mã hóa đơn <strong>{{ invoice?.code }}</strong> để xác
+                            nhận thanh toán.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -94,6 +109,7 @@ definePageMeta({
 });
 
 const { $api } = useNuxtApp();
+const config = useState('configs');
 const route = useRoute();
 const toast = useToast();
 const invoice = ref(null);
@@ -132,10 +148,7 @@ const downloadQRCode = async () => {
 
         // Giải phóng URL object
         window.URL.revokeObjectURL(url);
-
-        toast.success('Đã tải mã QR thành công!', { id: 'download-success' });
     } catch (error) {
-        toast.error('Không thể tải mã QR. Vui lòng thử lại.', { id: 'download-error' });
         console.error('Lỗi tải mã QR:', error);
     }
 };
@@ -278,6 +291,15 @@ onUnmounted(() => {
     border: 1px solid #d9d9d9;
 }
 
+.qr-method,
+.manual-method {
+    flex: 1 1 45%;
+}
+
+.cash-method {
+    flex: 1 1 90%;
+}
+
 .method:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
@@ -310,6 +332,7 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    margin-top: 20px;
 }
 
 .qr-code .status.success {
@@ -456,12 +479,17 @@ onUnmounted(() => {
     }
 
     .methods-container {
-        gap: 15px;
+        flex-direction: column; /* Chuyển thành cột trên màn hình nhỏ */
+        align-items: center; /* Căn giữa các method */
     }
 
     .method {
-        min-width: 100%;
-        padding: 20px;
+        min-width: 100%; /* Chiếm toàn bộ chiều rộng */
+        margin-bottom: 20px; /* Khoảng cách giữa các method */
+    }
+
+    .cash-method {
+        margin-top: 20px; /* Giữ khoảng cách trên màn hình nhỏ */
     }
 
     .qr-code img {
@@ -708,5 +736,15 @@ onUnmounted(() => {
     .download-btn i {
         font-size: 12px;
     }
+}
+
+/* Đảm bảo cash-method có thiết kế tương tự các method khác */
+.cash-info,
+.info-grid {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+    text-align: left; /* Căn trái nội dung chi tiết */
 }
 </style>

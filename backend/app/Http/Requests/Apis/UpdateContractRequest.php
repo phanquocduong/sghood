@@ -7,24 +7,28 @@ use Illuminate\Support\Facades\Auth;
 
 class UpdateContractRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'contract_content' => ['required', 'string'],
+            'contract_content' => ['required', 'string', 'max:65535'],
             'identity_images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'contract_content.required' => 'Nội dung hợp đồng là bắt buộc.',
+            'contract_content.string' => 'Nội dung hợp đồng phải là chuỗi ký tự.',
+            'contract_content.max' => 'Nội dung hợp đồng không được vượt quá :max ký tự.',
+            'identity_images.*.image' => 'Tệp tải lên phải là hình ảnh.',
+            'identity_images.*.mimes' => 'Hình ảnh phải có định dạng jpeg, png hoặc jpg.',
+            'identity_images.*.max' => 'Hình ảnh không được lớn hơn :max KB.',
         ];
     }
 }
