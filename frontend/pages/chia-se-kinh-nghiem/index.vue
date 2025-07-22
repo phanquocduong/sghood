@@ -26,24 +26,22 @@
             <p>Đang tải bài viết...</p>
           </div>
 
-        <div v-else>
-  <div class="row">
+          <!-- Kết quả tìm kiếm -->
+         <div v-if="searchKeyword">
+  <h4 class="headline margin-top-25">Kết quả tìm kiếm cho "{{ searchKeyword }}"</h4>
+  <div v-if="blogPosts.length > 0" class="row">
+    <!-- hiển thị kết quả tìm kiếm -->
     <div v-for="post in blogPosts" :key="post.id" class="col-md-6 col-sm-12 mb-4">
       <div class="blog-post">
         <NuxtLink :to="post.url" class="post-img">
           <img :src="post.thumbnail" :alt="post.title" />
         </NuxtLink>
-
         <div class="post-content">
-          <h3>
-            <NuxtLink :to="post.url">{{ post.title }}</NuxtLink>
-          </h3>
-
+          <h3><NuxtLink :to="post.url">{{ post.title }}</NuxtLink></h3>
           <ul class="post-meta">
             <li>{{ post.created_at }}</li>
             <li><a href="#">Chia sẻ kinh nghiệm</a></li>
           </ul>
-
           <div class="post-excerpt">
             <p v-html="post.excerpt"></p>
           </div>
@@ -51,43 +49,76 @@
       </div>
     </div>
   </div>
-
-  <!-- Pagination -->
-  <div class="pagination-container margin-bottom-40" v-if="totalPages > 1">
-    <nav class="pagination">
-      <ul>
-        <li v-if="currentPage > 1">
-          <a href="#" @click.prevent="goToPage(currentPage - 1)">
-            <i class="sl sl-icon-arrow-left"></i>
-          </a>
-        </li>
-
-        <li v-for="page in totalPages" :key="page">
-          <a
-            href="#"
-            :class="{ 'current-page': page === currentPage }"
-            @click.prevent="goToPage(page)"
-          >
-            {{ page }}
-          </a>
-        </li>
-
-        <li v-if="currentPage < totalPages">
-          <a href="#" @click.prevent="goToPage(currentPage + 1)">
-            <i class="sl sl-icon-arrow-right"></i>
-          </a>
-        </li>
-      </ul>
-    </nav>
+  <div v-else>
+    <p class="text-gray-500">Không tìm thấy bài viết phù hợp với từ khóa "{{ searchKeyword }}"</p>
   </div>
 </div>
 
-
+<!-- ✅ Thêm phần này để hiển thị blog mặc định nếu không có search -->
+<div v-else class="row">
+  <div v-for="post in blogPosts" :key="post.id" class="col-md-6 col-sm-12 mb-4">
+    <div class="blog-post">
+      <NuxtLink :to="post.url" class="post-img">
+        <img :src="post.thumbnail" :alt="post.title" />
+      </NuxtLink>
+      <div class="post-content">
+        <h3><NuxtLink :to="post.url">{{ post.title }}</NuxtLink></h3>
+        <ul class="post-meta">
+          <li>{{ post.created_at }}</li>
+          <li><a href="#">Chia sẻ kinh nghiệm</a></li>
+        </ul>
+        <div class="post-excerpt">
+          <p v-html="post.excerpt"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          <!-- Phân trang -->
+          <div class="pagination-container margin-bottom-40" v-if="totalPages > 1">
+            <nav class="pagination">
+              <ul>
+                <li v-if="currentPage > 1">
+                  <a href="#" @click.prevent="goToPage(currentPage - 1)">
+                    <i class="sl sl-icon-arrow-left"></i>
+                  </a>
+                </li>
+                <li v-for="page in totalPages" :key="page">
+                  <a
+                    href="#"
+                    :class="{ 'current-page': page === currentPage }"
+                    @click.prevent="goToPage(page)"
+                  >
+                    {{ page }}
+                  </a>
+                </li>
+                <li v-if="currentPage < totalPages">
+                  <a href="#" @click.prevent="goToPage(currentPage + 1)">
+                    <i class="sl sl-icon-arrow-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
 
         <!-- Sidebar -->
         <div class="col-lg-3 col-md-4">
           <div class="sidebar right">
+            <!-- Tìm kiếm -->
+            <div class="widget">
+              <h3 class="margin-top-0">Tìm kiếm</h3>
+              <div class="search-blog-input">
+                <input
+                  type="text"
+                  class="search-field"
+                  placeholder="Gõ và enter..."
+                  v-model="searchKeyword"
+                  @keyup.enter="searchBlogs(searchKeyword)"
+                />
+              </div>
+            </div>
+
             <!-- Popular Posts -->
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
@@ -97,7 +128,7 @@
                     <div class="widget-thumb">
                       <NuxtLink :to="post.url">
                         <img :src="post.thumbnail" :alt="post.title" />
-                         <span class="hover-icon"><i class="fa fa fa-search-plus"></i></span>
+                        <span class="hover-icon"><i class="fa fa fa-search-plus"></i></span>
                       </NuxtLink>
                     </div>
                     <div class="widget-text">
@@ -124,17 +155,27 @@
       </div>
     </div>
   </div>
+
+  
 </template>
 
 
 <script setup>
 import { onMounted, ref } from 'vue'
 const loading = ref(false)
+const searchKeyword = ref('')
 const {$api} = useNuxtApp()
+const blog = ref((null))
+
 const blogPosts = ref([])
 const popularPosts=ref([])
 const currentPage = ref(1)
+const route = useRoute()
 const totalPages = ref(1)
+const commentsKey = ref(0)
+const reloadComments = () =>{
+  commentsKey.value += 1 
+}
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const goToPage = (page) =>{
   if(page !== currentPage.value) {
@@ -222,9 +263,47 @@ const fetchBlogs = async(page=1)=>{
     loading.value = false
   }
 }
-onMounted(()=>{
-  fetchBlogs(1)
-  FetchPopularPosts()
+const searchBlogs = async(keyWord , page = 1 , perPage=5) =>{
+  try{
+    const res = await $api(`/blogs?search=${encodeURIComponent(keyWord)}&page=${page}&per_page=${perPage}`,{
+      method:'GET',
+       headers:{
+        'Content-Type': 'application/json',
+      },
+    })
+    blogPosts.value= res.data.map(g=>({
+      id : g.id,
+      title :g.title,
+     thumbnail: g.thumbnail?.startsWith('/storage')
+    ? baseUrl + g.thumbnail
+    : g.thumbnail,
+      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+    }))
+    console.log('searchBlogs',res)
+    currentPage.value = res.current_page || 1
+    totalPages.value = res.last_page || 1
+  }catch(e){
+    console.log('searchBlogs error',e)
+  }
+}
+onMounted( async()=>{
+  const keyWord = route.query.search
+  const page = route.query.page || 1
+
+  if (keyWord) {
+    // Nếu đang tìm kiếm bài viết
+    await searchBlogs(keyWord, page)
+  } else {
+    // Nếu đang xem chi tiết 1 bài viết
+    await fetchBlogs(1)
+    await FetchPopularPosts()
+    if (blog.value && blog.value.id) {
+      await fetchRelatedPosts(blog.value.id)
+        await nextTick() 
+      reloadComments()
+    }
+  }
 })
 function stripHtml(html = '') {
   return html.replace(/<[^>]*>/g, '')
