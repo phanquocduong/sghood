@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Checkout;
 use App\Mail\CheckoutStatusUpdated;
+use App\Models\Transaction;
 use App\Models\Notification;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +42,7 @@ class CheckoutService
 
     public function getCheckoutById($id)
     {
-        return Checkout::with(['contract.room'])->findOrFail($id);
+        return Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
     }
 
     public function updateCheckout($id, array $data)
@@ -71,7 +73,6 @@ class CheckoutService
                             'item_cost' => $itemCost,
                         ];
 
-                        // Chỉ cộng chi phí khấu hao, không cộng tiền cọc
                         $deductionAmount += $itemCost * $itemQuantity;
 
                         Log::info('Processed item ' . ($index + 1) . ':', [
@@ -84,12 +85,7 @@ class CheckoutService
                 }
 
                 // Tính số tiền hoàn trả cuối cùng
-                $finalRefundedAmount = $depositAmount - $deductionAmount;
-
-                // Đảm bảo số tiền hoàn trả không âm
-                if ($finalRefundedAmount < 0) {
-                    $finalRefundedAmount = 0;
-                }
+                $finalRefundedAmount = max(0, $depositAmount - $deductionAmount);
 
                 // Xử lý hình ảnh
                 $finalImages = $this->processImages($checkout, $data);
@@ -100,16 +96,16 @@ class CheckoutService
                     'has_left' => (int) $data['has_left'],
                     'inventory_status' => $data['status'],
                     'deduction_amount' => $deductionAmount,
-                    'final_refunded_amount' => $finalRefundedAmount, // Thêm trường này
-                    'images' => !empty($finalImages) ? $finalImages : null,
-                    'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : null,
+                    'final_refunded_amount' => $finalRefundedAmount,
+                    'images' => !empty($finalImages) ? $finalImages : $checkout->images,
+                    'inventory_details' => !empty($inventoryDetails) ? $inventoryDetails : $checkout->inventory_details,
                     'updated_at' => now(),
                 ];
 
-                // Xử lý logic chuyển đổi user_confirmation_status
+                // Xử lý chuyển đổi user_confirmation_status
                 $this->handleUserConfirmationStatusTransition($checkout, $data['status'], $updateData);
 
-                // Kiểm tra xem trạng thái có thay đổi thành "Đã kiểm kê" hay không
+                // Kiểm tra và gửi thông báo nếu trạng thái thay đổi thành "Đã kiểm kê"
                 $sendNotifications = ($data['status'] === 'Đã kiểm kê' && $checkout->inventory_status !== 'Đã kiểm kê');
 
                 // Cập nhật checkout
@@ -124,7 +120,6 @@ class CheckoutService
                         'final_refunded_amount' => $finalRefundedAmount,
                     ]);
 
-                    // Gửi thông báo nếu trạng thái là "Đã kiểm kê"
                     if ($sendNotifications) {
                         $user = $checkout->contract->user;
                         $room = $checkout->contract->room;
@@ -136,7 +131,7 @@ class CheckoutService
                                 'room_id' => $room ? $room->id : null,
                             ]);
                         } else {
-                            // Gửi email với thông tin số tiền hoàn trả
+                            // Gửi email
                             try {
                                 $email = $user->email;
                                 if ($email) {
@@ -164,7 +159,7 @@ class CheckoutService
                                 ]);
                             }
 
-                            // Tạo thông báo trong cơ sở dữ liệu
+                            // Tạo thông báo
                             try {
                                 $notificationData = [
                                     'user_id' => $user->id,
@@ -189,19 +184,11 @@ class CheckoutService
                                         ))
                                         ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
 
-                                    try {
-                                        $messaging->send($fcmMessage);
-                                        Log::info('FCM sent to user', [
-                                            'user_id' => $user->id,
-                                            'checkout_id' => $checkout->id,
-                                        ]);
-                                    } catch (\Exception $fcmError) {
-                                        Log::error('FCM send error', [
-                                            'error' => $fcmError->getMessage(),
-                                            'user_id' => $user->id,
-                                            'checkout_id' => $checkout->id,
-                                        ]);
-                                    }
+                                    $messaging->send($fcmMessage);
+                                    Log::info('FCM sent to user', [
+                                        'user_id' => $user->id,
+                                        'checkout_id' => $checkout->id,
+                                    ]);
                                 } else {
                                     Log::info('No FCM token found for user', [
                                         'user_id' => $user->id,
@@ -217,9 +204,7 @@ class CheckoutService
                         }
                     }
                 } else {
-                    Log::error('Failed to update checkout', [
-                        'checkout_id' => $checkout->id,
-                    ]);
+                    Log::error('Failed to update checkout', ['checkout_id' => $checkout->id]);
                 }
 
                 return $checkout->fresh();
@@ -244,7 +229,6 @@ class CheckoutService
             $newStatus === 'Đã kiểm kê' &&
             $currentUserConfirmationStatus === 'Từ chối'
         ) {
-
             $updateData['user_confirmation_status'] = 'Chưa xác nhận';
             $updateData['user_rejection_reason'] = null;
 
@@ -271,7 +255,6 @@ class CheckoutService
             'checkout_id' => $checkout->id,
         ]);
 
-        // Xóa hình ảnh được yêu cầu
         foreach ($imagesToDelete as $imageToDelete) {
             if (($key = array_search($imageToDelete, $existingImages)) !== false) {
                 unset($existingImages[$key]);
@@ -284,7 +267,6 @@ class CheckoutService
 
         $finalImages = array_values(array_intersect($existingImages, $existingImagesKept));
 
-        // Thêm hình ảnh mới
         if (isset($data['images']) && is_array($data['images'])) {
             foreach ($data['images'] as $image) {
                 if ($image instanceof \Illuminate\Http\UploadedFile && $image->isValid()) {
@@ -323,6 +305,135 @@ class CheckoutService
             return $checkout->fresh();
         } catch (\Exception $e) {
             Log::error('Re-inventory error', [
+                'checkout_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function confirmCheckout($id, $request)
+    {
+        try {
+            return DB::transaction(function () use ($id, $request) {
+                $checkout = Checkout::with(['contract.room', 'contract.user', 'contract.invoices'])->findOrFail($id);
+
+                // Kiểm tra điều kiện hợp lệ
+                if ($checkout->inventory_status !== 'Đã kiểm kê' || $checkout->user_confirmation_status !== 'Đồng ý') {
+                    throw new \Exception('Yêu cầu không hợp lệ để xác nhận hoàn tiền.');
+                }
+
+                // Cập nhật trạng thái thành Đã xử lý
+                $checkout->refund_status = 'Đã xử lý';
+                $checkout->save();
+
+                // Lấy invoice_id của hóa đơn có type là "đặt cọc"
+                $depositInvoice = $checkout->contract->invoices()
+                    ->where('type', 'đặt cọc')
+                    ->where('status', 'Đã trả') // Giả sử hóa đơn đặt cọc đã hoàn tất
+                    ->first();
+
+                if (!$depositInvoice) {
+                    throw new \Exception('Không tìm thấy hóa đơn đặt cọc cho hợp đồng này.');
+                }
+
+                $invoiceId = $depositInvoice->id;
+
+                Invoice::where('id', $invoiceId)->update([
+                    'refunded_at' => now()
+                ]);
+
+                // Tạo giao dịch
+                Transaction::create([
+                    'invoice_id' => $invoiceId,
+                    'reference_code' => $request->input('reference_code'),
+                    'transfer_amount' => $checkout->final_refunded_amount,
+                    'content' => 'Hoàn tiền cho phòng ' . ($checkout->contract->room->name ?? 'N/A'),
+                    'transfer_type' => 'out',
+                    'transaction_date' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Gửi thông báo
+                $user = $checkout->contract->user;
+                $room = $checkout->contract->room;
+
+                if ($user && $room) {
+                    // Gửi email
+                    try {
+                        $email = $user->email;
+                        if ($email) {
+                            Mail::to($email)->send(new CheckoutStatusUpdated(
+                                $checkout,
+                                $user->name,
+                                $room->name,
+                                $checkout->check_out_date
+                            ));
+                            Log::info('Checkout confirmation email sent successfully', [
+                                'email' => $email,
+                                'checkout_id' => $checkout->id,
+                                'final_refunded_amount' => $checkout->final_refunded_amount,
+                            ]);
+                        }
+                    } catch (\Exception $emailError) {
+                        Log::error('Error sending checkout confirmation email', [
+                            'error' => $emailError->getMessage(),
+                            'checkout_id' => $checkout->id,
+                        ]);
+                    }
+
+                    // Tạo thông báo trong cơ sở dữ liệu
+                    try {
+                        $notificationData = [
+                            'user_id' => $user->id,
+                            'title' => 'Xác nhận hoàn tiền thành công',
+                            'content' => 'Hoàn tiền cho phòng ' . $room->name . ' đã được xử lý. Số tiền: ' . number_format($checkout->final_refunded_amount, 0, ',', '.') . ' VNĐ. Mã tham chiếu: ' . $request->input('reference_code'),
+                            'status' => 'Chưa đọc',
+                        ];
+                        $notification = Notification::create($notificationData);
+                        Log::info('Notification created for checkout confirmation', [
+                            'notification_id' => $notification->id,
+                            'checkout_id' => $checkout->id,
+                            'user_id' => $user->id,
+                        ]);
+
+                        // Gửi thông báo đẩy FCM
+                        if ($user->fcm_token) {
+                            $messaging = app('firebase.messaging');
+                            $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
+                                ->withNotification(FirebaseNotification::create(
+                                    $notificationData['title'],
+                                    $notificationData['content']
+                                ))
+                                ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
+
+                            $messaging->send($fcmMessage);
+                            Log::info('FCM sent to user for confirmation', [
+                                'user_id' => $user->id,
+                                'checkout_id' => $checkout->id,
+                            ]);
+                        }
+                    } catch (\Exception $notificationError) {
+                        Log::error('Error creating notification for confirmation', [
+                            'error' => $notificationError->getMessage(),
+                            'checkout_id' => $checkout->id,
+                        ]);
+                    }
+                }
+
+                Log::info('Checkout confirmed successfully', [
+                    'checkout_id' => $checkout->id,
+                    'reference_code' => $request->input('reference_code'),
+                    'transfer_amount' => $request->input('transfer_amount'),
+                    'invoice_id' => $invoiceId,
+                ]);
+
+                return $checkout->fresh();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error in confirmCheckout method', [
                 'checkout_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

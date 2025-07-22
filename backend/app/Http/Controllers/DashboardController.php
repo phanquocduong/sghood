@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Services\ContractExtensionsService;
+use App\Services\ContractExtensionService;
 use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +12,8 @@ use App\Services\NoteService;
 use App\Services\RoomService;
 use App\Services\RepairRequestService;
 use App\Services\ScheduleService;
+use App\Services\MessageService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
@@ -22,7 +24,7 @@ class DashboardController extends Controller
     protected $contractService;
     protected $contractExtensionsService;
 
-    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionsService $contractExtensionsService)
+    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionService $contractExtensionsService)
     {
         $this->noteService = $noteService;
         $this->repairRequestService = $repairRequestService;
@@ -63,8 +65,18 @@ class DashboardController extends Controller
             $repairRequests = $allRepairRequests;
             Log::info('Using fallback - All Repair Requests Count: ' . $repairRequests->count());
         }
+        //messages
+        $authId = Auth::id();
+        if (!$authId) {
+            return redirect()->route('login')->with('error', 'Bạn cần đăng nhập để xem tin nhắn.');
+        }
+        $messages = MessageService::getAllMessages();
+        if (isset($messages['error'])) {
+            return redirect()->route('dashboard')->with('error', $messages['error']);
+        }
 
-        return view('dashboard', compact('notes', 'repairRequests','schedules','contracts','justSignedContracts', 'contractExtensions'));
+        $messages = $messages['data'];
+        return view('dashboard', compact('notes', 'repairRequests','schedules','contracts','justSignedContracts', 'contractExtensions', 'messages'));
     }
 
 }

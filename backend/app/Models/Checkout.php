@@ -21,25 +21,22 @@ class Checkout extends Model
         'has_left',
         'images',
         'note',
+        'bank_info',
+        'qr_code_path',
+        'refund_status',
+        'receipt_path',
     ];
 
     protected $casts = [
         'inventory_details' => 'array',
         'images' => 'array',
+        'bank_info' => 'array',
         'check_out_date' => 'date',
         'has_left' => 'boolean',
     ];
 
-    /**
-     * Quan hệ 1-1 với hợp đồng
-     */
     public function contract()
     {
         return $this->belongsTo(Contract::class);
-    }
-
-    public function refund_request()
-    {
-        return $this->hasOne(RefundRequest::class);
     }
 }

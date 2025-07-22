@@ -59,4 +59,17 @@ class CheckoutController extends Controller
             return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
+
+    public function confirm(Request $request, $id)
+    {
+        try {
+            $checkout = $this->checkoutService->confirmCheckout($id, $request);
+
+            return redirect()->route('checkouts.index')
+                ->with('success', 'Xác nhận hoàn tiền thành công.');
+        } catch (\Exception $e) {
+            Log::error('Error confirming checkout: ' . $e->getMessage());
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

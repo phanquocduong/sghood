@@ -5,16 +5,11 @@ namespace App\Services\Apis;
 use App\Jobs\Apis\SendCheckoutNotification;
 use App\Models\Checkout;
 use App\Models\Contract;
-use App\Models\RefundRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutService
 {
-    public function __construct(
-        private readonly NotificationService $notificationService,
-    ) {}
-
     public function requestReturn(int $id, array $bankInfo, string $checkOutDate): array
     {
         try {
@@ -30,7 +25,6 @@ class CheckoutService
                 ];
             }
 
-            // Kiểm tra yêu cầu gia hạn
             $latestExtension = $contract->extensions()->where('status', 'Chờ duyệt')->first();
             if ($latestExtension) {
                 return [
@@ -39,7 +33,6 @@ class CheckoutService
                 ];
             }
 
-            // Kiểm tra tiền cọc
             if ($contract->deposit_amount <= 0) {
                 return [
                     'error' => 'Hợp đồng không có tiền cọc để hoàn',
@@ -58,31 +51,23 @@ class CheckoutService
                 ];
             }
 
-            // Tạo bản ghi kiểm kê
-            $checkout = Checkout::create([
-                'contract_id' => $contract->id,
-                'check_out_date' => $checkOutDate,
-                'deposit_refunded' => false,
-                'has_left' => false,
-            ]);
-
-            // Tạo URL mã QR theo định dạng Sepay
             $qrUrl = sprintf(
                 'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
                 urlencode($bankInfo['account_number']),
                 urlencode($bankInfo['bank_name']),
             );
 
-            // Tạo yêu cầu hoàn tiền
-            $refundRequest = RefundRequest::create([
-                'checkout_id' => $checkout->id,
-                'deposit_amount' => $contract->deposit_amount,
-                'status' => 'Chờ xử lý',
+            $checkout = Checkout::create([
+                'contract_id' => $contract->id,
+                'check_out_date' => $checkOutDate,
                 'bank_info' => $bankInfo,
                 'qr_code_path' => $qrUrl,
+                'inventory_status' => 'Chờ kiểm kê',
+                'user_confirmation_status' => 'Chưa xác nhận',
+                'refund_status' => 'Chờ xử lý',
+                'has_left' => false,
             ]);
 
-            // Gửi thông báo qua job queue
             SendCheckoutNotification::dispatch(
                 $checkout,
                 'pending',
@@ -94,28 +79,22 @@ class CheckoutService
                 'data' => [
                     'contract' => $contract->fresh(),
                     'checkout' => $checkout,
-                    'refund_request' => $refundRequest,
                 ],
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng:' . $e->getMessage());
+            Log::error('Lỗi yêu cầu trả phòng: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    public function getCheckouts(array $filters)
+    public function getCheckouts()
     {
         $query = Checkout::query()
             ->whereHas('contract', function ($query) {
                 $query->where('user_id', Auth::id());
             })
-            ->with(['contract.room.motel', 'contract.room.images']);
-
-        if (!empty($filters['inventory_status'])) {
-            $query->where('inventory_status', $filters['inventory_status']);
-        }
-
-        $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
+            ->with(['contract.room.motel', 'contract.room.images'])
+            ->orderBy('created_at', 'desc');
 
         $checkouts = $query->get()->map(function ($checkout) {
             return [
@@ -131,9 +110,16 @@ class CheckoutService
                 'has_left' => $checkout->has_left,
                 'images' => $checkout->images,
                 'note' => $checkout->note,
+                'bank_info' => $checkout->bank_info,
+                'qr_code_path' => $checkout->qr_code_path,
+                'refund_status' => $checkout->refund_status,
+                'receipt_path' => $checkout->receipt_path,
                 'room_name' => $checkout->contract->room->name,
                 'motel_name' => $checkout->contract->room->motel->name,
                 'room_image' => $checkout->contract->room->main_image->image_url,
+                'contract' => [
+                    'deposit_amount' => $checkout->contract->deposit_amount,
+                ],
             ];
         });
 
@@ -144,15 +130,11 @@ class CheckoutService
     {
         $checkout = Checkout::findOrFail($id);
 
-        // Cập nhật trạng thái của Checkout thành 'Huỷ bỏ'
-        $checkout->update(['inventory_status' => 'Huỷ bỏ']);
+        $checkout->update([
+            'inventory_status' => 'Huỷ bỏ',
+            'refund_status' => 'Huỷ bỏ'
+        ]);
 
-        // Cập nhật trạng thái của RefundRequest liên kết (nếu có) thành 'Huỷ bỏ'
-        if ($checkout->refund_request) {
-            $checkout->refund_request->update(['inventory_status' => 'Huỷ bỏ']);
-        }
-
-        // Gửi thông báo qua job queue
         SendCheckoutNotification::dispatch(
             $checkout,
             'canceled',
@@ -167,13 +149,11 @@ class CheckoutService
     {
         $checkout = Checkout::findOrFail($id);
 
-        // Cập nhật trạng thái xác nhận của người dùng
         $checkout->update([
             'user_confirmation_status' => $status,
             'user_rejection_reason' => $userRejectionReason,
         ]);
 
-        // Gửi thông báo qua job queue
         $action = $status === 'Đồng ý' ? 'confirm' : 'reject';
         $title = $action === 'confirm'
             ? "Kết quả kiểm kê trả phòng #{$checkout->id} đã được người dùng đồng ý"
@@ -191,15 +171,12 @@ class CheckoutService
     {
         $checkout = Checkout::findOrFail($id);
 
-        // Kiểm tra xem người dùng đã đồng ý với kiểm kê chưa
         if ($checkout->user_confirmation_status !== 'Đồng ý') {
             throw new \Exception('Không thể xác nhận rời phòng khi chưa đồng ý với kết quả kiểm kê.');
         }
 
-        // Cập nhật trạng thái rời phòng
         $checkout->update(['has_left' => true]);
 
-        // Gửi thông báo qua job queue
         SendCheckoutNotification::dispatch(
             $checkout,
             'left-room',
@@ -210,13 +187,56 @@ class CheckoutService
         return $checkout;
     }
 
-    protected function getSortOrder($sort)
+    public function updateBankInfo(int $id, array $bankInfo): array
     {
-        return match ($sort) {
-            'oldest' => 'asc',
-            'latest', 'default' => 'desc',
-            default => 'desc',
-        };
+        try {
+            $checkout = Checkout::query()
+                ->where('id', $id)
+                ->where('refund_status', 'Chờ xử lý')
+                ->whereHas('contract', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->first();
+
+            if (!$checkout) {
+                return [
+                    'error' => 'Không tìm thấy yêu cầu trả phòng hoặc bạn không có quyền chỉnh sửa.',
+                    'status' => 404,
+                ];
+            }
+
+            $qrUrl = sprintf(
+                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
+                urlencode($bankInfo['account_number']),
+                urlencode($bankInfo['bank_name'])
+            );
+
+            $checkout->update([
+                'bank_info' => $bankInfo,
+                'qr_code_path' => $qrUrl,
+            ]);
+
+            SendCheckoutNotification::dispatch(
+                $checkout,
+                'update-bank',
+                "Thông tin chuyển khoản yêu cầu trả phòng #{$checkout->id} đã được cập nhật",
+                "Người dùng {$checkout->contract->user->name} đã cập nhật thông tin chuyển khoản cho yêu cầu trả phòng #{$checkout->id}."
+            );
+
+            return [
+                'data' => [
+                    'checkout' => $checkout,
+                ],
+                'message' => 'Cập nhật thông tin chuyển khoản thành công',
+                'status' => 200,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+                'checkout_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 }
-?>

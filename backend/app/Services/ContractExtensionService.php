@@ -228,4 +228,27 @@ class ContractExtensionService
             ]);
         }
     }
+
+
+    protected $contractExtensions;
+
+    public function __construct(ContractExtension $contractExtensions)
+    {
+        $this->contractExtensions = $contractExtensions;
+    }
+
+    public function getAllExtensions()
+    {
+        return $this->contractExtensions->all();
+    }
+
+    public function getExtensionById($id)
+    {
+        return $this->contractExtensions->find($id);
+    }
+
+    public function getPendingApprovals()
+    {
+        return $this->contractExtensions->where('status', 'chờ duyệt')->get();
+    }
 }

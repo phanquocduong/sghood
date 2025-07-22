@@ -16,10 +16,7 @@
                             <NuxtLink to="/quan-ly/yeu-cau-hop-dong/gia-han">Gia hạn</NuxtLink>
                         </li>
                         <li>
-                            <NuxtLink href="/quan-ly/yeu-cau-hop-dong/tra-phong">Trả phòng</NuxtLink>
-                        </li>
-                        <li>
-                            <a href="/quan-ly/yeu-cau-hop-dong/hoan-tien">Hoàn tiền</a>
+                            <NuxtLink to="/quan-ly/yeu-cau-hop-dong/tra-phong">Trả phòng</NuxtLink>
                         </li>
                     </ul>
                 </li>

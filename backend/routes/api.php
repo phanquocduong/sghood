@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/cancel', 'cancel');
         Route::post('/{id}/confirm', 'confirm');
         Route::post('/{id}/left-room', 'leftRoom');
+        Route::post('/{id}/update-bank', 'updateBank');
     });
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);

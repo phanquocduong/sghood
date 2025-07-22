@@ -46,13 +46,7 @@
             <a href="{{ route('motels.index') }}" class="nav-item nav-link {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}"><i class="fa fa-building me-2"></i>Nhà trọ</a>
 
             <!-- Quản lý hệ thống -->
-            <div class="nav-item dropdown {{ request()->routeIs('refunds.*') || request()->routeIs('checkouts.*') ? 'show' : '' }}">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('refunds.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Trả phòng</a>
-                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('checkouts.*') || request()->routeIs('refunds.*') ? 'show' : '' }}">
-                    <a href="{{ route('checkouts.index') }}" class="dropdown-item {{ request()->routeIs('checkouts.*') ? 'active' : '' }}">Yêu cầu trả phòng</a>
-                    <a href="{{ route('refunds.index') }}" class="dropdown-item {{ request()->routeIs('refunds.*') ? 'active' : '' }}">Yêu cầu hoàn tiền</a>
-                </div>
-            </div>
+            <a href="{{ route('checkouts.index') }}" class="nav-item nav-link {{ request()->routeIs('checkouts.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}"><i class="fa-solid fa-handshake-slash"></i>Trả phòng</a>
 
             <!-- Quản lý vận hành -->
             <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_requests.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
@@ -75,6 +69,9 @@
             </a>
             <!-- Quản lý blog -->
             <a href="{{ route('blogs.index') }}" class="nav-item nav-link {{ request()->routeIs('blogs.*') ? 'active' : '' }}"><i class="fa fa-newspaper me-2"></i>Blog</a>
+            {{-- <!-- Quản lý bình luận -->
+            <a href="{{ route('comments.index') }}" class="nav-item nav-link {{ request()->routeIs('comments.*') ? 'active' : '' }}"><i class="fa fa-comments me-2"></i>Bình luận</a> --}}
+
         </div>
     </nav>
 </div>

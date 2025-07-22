@@ -85,7 +85,7 @@ class CommentController extends Controller
 
     {
         // Gán tạm user_id cố định để test
-        $userId = 1; // ví dụ: admin có id=1
+        $userId = Auth::id();
 
         $this->commentService->replayComment(
             $blog->id,

@@ -23,7 +23,7 @@ class BlogService
         if (!empty($params['category'])) {
             $query->where('category', $params['category']);
         }
-        
+
         $perPage = $params['per_page'] ?? 6;
 
 
