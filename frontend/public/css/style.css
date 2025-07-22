@@ -9620,14 +9620,13 @@ section.fullwidth .blog-post {
     z-index: 119;
     transition: 0.3s;
     transform: translateY(-80%);
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    border-radius: 50%;
-    background-color: #66676b;
-    background-image: url(../images/plus-icon.svg);
+    background-color: transparent !important;
+    box-shadow: none !important;
+    background-image: url(../images/eye-solid.svg);
     background-repeat: no-repeat;
     background-position: 50%;
+    width: 40px; /* tuỳ chỉnh kích thước icon */
+    height: 40px;
 }
 
 .post-img:hover:before {
@@ -15426,11 +15425,11 @@ a.close-list-item {
 }
 
 .canceled-booking .bookings .inner h3 span.booking-status {
-    background-color: #e42929; /* Đỏ đậm hơn từ #ee3535 */
+    background-color: #ee3535; /* Đỏ đậm hơn từ #ee3535 */
 }
 
 .bookings .inner h3 span.booking-status.unpaid {
-    background-color: #e42929; /* Đỏ đậm hơn */
+    background-color: #ee3535; /* Đỏ đậm hơn */
 }
 
 /* Content */

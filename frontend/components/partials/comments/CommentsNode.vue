@@ -3,7 +3,7 @@
   <li v-if="comment">
     <div class="avatar">
      <img
-  class="avatar"
+  class="comment-avatar" style="padding: 0 0 0 0"
  :src="comment.user_id === authStore.user?.id
   ? baseUrl + authStore.user.avatar
   : (comment.user?.avatar ? baseUrl + comment.user.avatar : defaultAvatar)"
@@ -53,6 +53,7 @@
         @refresh="fetchComments"
       />
     </ul>
+ 
   </li>
 </template>
 
@@ -64,6 +65,7 @@ import { ref } from 'vue'
 import { useToast } from 'vue-toastification';
 const config = useRuntimeConfig()
 const baseUrl = config.public.baseUrl
+
 const props = defineProps({
   comment: {
     type: Object,
@@ -83,6 +85,8 @@ const toast = useToast()
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
 const defaultAvatar = '/images/sghood_logo1.png'
+
+
 const HandleReply = async (blog_id) => {
   if(ReplayContent.value.trim() === '') {
     toast('Vui lòng nhập nội dung bình luận')
@@ -90,7 +94,7 @@ const HandleReply = async (blog_id) => {
   }
   loading.value = true
   try{
-    const res = await $api(`/blogs/${blog_id}/send-comment`, {
+    const res = await $api(`/blogs/${blog_id}/replay-comment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -140,6 +144,21 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+.comment {
+  display: flex;
+  align-items: center; /* căn giữa theo chiều dọc */
+  gap: 15px; /* hoặc dùng padding nếu bạn muốn khoảng cách cố định */
+}
+
+.comment-avatar {
+  padding: 0; /* bỏ padding để dễ kiểm soát */
+  width: 60px;
+  height: 60px;
+
+  margin-top :20px;
+  object-fit: cover;
+}
+
 
 
 

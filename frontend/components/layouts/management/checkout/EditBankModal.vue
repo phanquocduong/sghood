@@ -8,8 +8,8 @@
             <div class="booking-form-grid">
                 <div class="form-row">
                     <div class="form-col">
-                        <p><strong>Số hợp đồng:</strong> {{ refundRequest?.contract_id }}</p>
-                        <p><strong>Tiền cọc:</strong> {{ formatPrice(refundRequest?.deposit_amount) }}</p>
+                        <p><strong>Số hợp đồng:</strong> {{ checkout?.contract_id }}</p>
+                        <p><strong>Tiền cọc:</strong> {{ formatPrice(checkout?.contract?.deposit_amount) }}</p>
                         <hr />
                         <h5>
                             <strong
@@ -19,12 +19,7 @@
                         <label><i class="fa fa-university"></i> Ngân hàng thụ hưởng:</label>
                         <select id="bank_name" v-model="editBankForm.bank_name" class="modal-bank-select" ref="bankSelect" required>
                             <option value="">Chọn ngân hàng</option>
-                            <option
-                                v-for="bank in banks"
-                                :key="bank.value"
-                                :value="bank.value"
-                                :data-option-template="`<span style='display: flex; align-items: center;'><img style='max-width: 79px; margin-right: 8px; border-radius: 4px;' src='${bank.logo}' alt='${bank.label} logo' /><span style='overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);'>${bank.label}</span></span>`"
-                            >
+                            <option v-for="bank in banks" :key="bank.value" :value="bank.value">
                                 {{ bank.label }}
                             </option>
                         </select>
@@ -78,7 +73,7 @@ const { formatPrice } = useFormatPrice();
 const toast = useToast();
 
 const props = defineProps({
-    refundRequest: { type: Object, required: true },
+    checkout: { type: Object, required: true },
     banks: { type: Array, required: true },
     updateLoading: { type: Boolean, default: false }
 });
@@ -94,16 +89,14 @@ const editBankForm = ref({
 const bankSelect = ref(null);
 let tomSelectInstance = null;
 
-// Đồng bộ dữ liệu ngân hàng cũ khi refundRequest thay đổi
 watch(
-    () => props.refundRequest,
-    newRefundRequest => {
+    () => props.checkout,
+    newCheckout => {
         editBankForm.value = {
-            bank_name: newRefundRequest?.bank_info?.bank_name || '',
-            account_number: newRefundRequest?.bank_info?.account_number || '',
-            account_holder: newRefundRequest?.bank_info?.account_holder || ''
+            bank_name: newCheckout?.bank_info?.bank_name || '',
+            account_number: newCheckout?.bank_info?.account_number || '',
+            account_holder: newCheckout?.bank_info?.account_holder || ''
         };
-        // Cập nhật TomSelect nếu đã khởi tạo
         if (tomSelectInstance && editBankForm.value.bank_name) {
             tomSelectInstance.setValue(editBankForm.value.bank_name);
         }
@@ -122,7 +115,7 @@ const handleUpdateBankInfo = async () => {
         return;
     }
     emit('update-bank-info', {
-        id: props.refundRequest.id,
+        id: props.checkout.id,
         bankInfo: { ...editBankForm.value }
     });
 };
@@ -162,7 +155,6 @@ const initTomSelect = () => {
             editBankForm.value.bank_name = value;
         }
     });
-    // Đặt giá trị ban đầu cho TomSelect
     if (editBankForm.value.bank_name) {
         tomSelectInstance.setValue(editBankForm.value.bank_name);
     }

@@ -138,7 +138,7 @@
                                 <td>
                                     @if($bookingItem->status === 'Từ chối')
                                         <span class="text-danger fst-italic">
-                                            {{ $bookingItem->cancellation_reason ?? 'Không có lý do từ chối' }}
+                                            {{ $bookingItem->rejection_reason ?? 'Không có lý do từ chối' }}
                                         </span>
                                     @else
                                         <span class="text-muted fst-italic">

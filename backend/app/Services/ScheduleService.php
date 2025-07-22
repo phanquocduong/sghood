@@ -16,7 +16,7 @@ class ScheduleService
             if ($querySearch) {
                 $query->where(function ($q) use ($querySearch) {
                     $q->where('message', 'like', "%$querySearch%")
-                        ->orWhere('cancellation_reason', 'like', "%$querySearch%")
+                        ->orWhere('rejection_reason', 'like', "%$querySearch%")
                         ->orWhereHas('user', function ($q) use ($querySearch) {
                             $q->where('name', 'like', "%$querySearch%")
                                 ->orWhere('email', 'like', "%$querySearch%");
@@ -73,9 +73,11 @@ class ScheduleService
             // Cập nhật trạng thái mới và lý do hủy (nếu có)
             $schedule->status = $newStatus;
             if ($newStatus === 'Huỷ bỏ' && $cancelReason) {
-                $schedule->cancellation_reason = $cancelReason;
+                $schedule->rejection_reason = $cancelReason;
+            } elseif ($newStatus === 'Từ chối' && $cancelReason) {
+                $schedule->rejection_reason = $cancelReason;
             } elseif ($newStatus !== 'Huỷ bỏ') {
-                $schedule->cancellation_reason = null;
+                $schedule->rejection_reason = null;
             }
             $schedule->save();
 
@@ -102,7 +104,7 @@ class ScheduleService
                     'user_email' => $schedule->user->email,
                     'old_status' => $oldStatus,
                     'new_status' => $newStatus,
-                    'cancel_reason' => $schedule->cancellation_reason ?? 'N/A'
+                    'cancel_reason' => $schedule->rejection_reason ?? 'N/A'
                 ]);
             }
         } catch (\Exception $e) {

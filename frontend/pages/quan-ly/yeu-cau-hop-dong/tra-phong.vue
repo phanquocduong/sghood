@@ -5,16 +5,34 @@
         <!-- Modal Dialog for Inventory Details -->
         <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
             <div class="small-dialog-header">
-                <h3>Chi tiết kiểm kê</h3>
-                <p class="booking-subtitle">Danh sách kiểm kê tài sản phòng</p>
+                <h3>Chi tiết kiểm kê và hoàn tiền</h3>
+                <p class="booking-subtitle">Thông tin kiểm kê tài sản và hoàn tiền</p>
             </div>
             <div class="message-reply margin-top-0">
+                <!-- Financial Information -->
+                <div
+                    v-if="selectedCheckout.contract || selectedCheckout.deduction_amount || selectedCheckout.final_refunded_amount"
+                    class="financial-info"
+                >
+                    <h4>Thông tin tài chính</h4>
+                    <div class="financial-details">
+                        <p v-if="selectedCheckout.contract?.deposit_amount">
+                            <strong>Tiền cọc hợp đồng:</strong> {{ formatPrice(selectedCheckout.contract.deposit_amount) }}
+                        </p>
+                        <p v-if="selectedCheckout.deduction_amount">
+                            <strong>Số tiền khấu hao (Đền bù):</strong> {{ formatPrice(selectedCheckout.deduction_amount) }}
+                        </p>
+                        <p v-if="selectedCheckout.final_refunded_amount !== null">
+                            <strong>Số tiền hoàn lại cuối cùng:</strong> {{ formatPrice(selectedCheckout.final_refunded_amount) }}
+                        </p>
+                    </div>
+                </div>
                 <!-- Inventory Images -->
                 <div v-if="selectedCheckout.images && selectedCheckout.images.length" class="inventory-images">
                     <h4>Hình ảnh kiểm kê</h4>
                     <div class="image-gallery">
                         <div v-for="(image, index) in selectedCheckout.images" :key="index" class="image-item">
-                            <img :src="config.public.baseUrl + '/storage/' + image" :alt="'Hình ảnh kiểm kê ' + (index + 1)" />
+                            <img :src="useRuntimeConfig().public.baseUrl + '/storage/' + image" :alt="'Hình ảnh kiểm kê ' + (index + 1)" />
                         </div>
                     </div>
                 </div>
@@ -37,6 +55,7 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Rejection Form -->
                 <div v-if="selectedCheckout.user_confirmation_status === 'Chưa xác nhận'" class="inventory-actions">
                     <div v-if="showRejectionForm" class="rejection-form">
                         <label><i class="fa fa-sticky-note"></i> Lý do từ chối:</label>
@@ -60,6 +79,7 @@
                         </button>
                     </div>
                 </div>
+                <!-- Confirm Left Room -->
                 <div v-if="!selectedCheckout.has_left && selectedCheckout.user_confirmation_status === 'Đồng ý'" class="inventory-actions">
                     <div class="booking-actions">
                         <button @click="confirmLeftRoom" class="button" :disabled="leaveLoading">
@@ -71,15 +91,63 @@
             </div>
         </div>
 
+        <!-- Modal Dialog for Bank Info and QR Code -->
+        <div id="otp-dialog" class="zoom-anim-dialog mfp-hide">
+            <div class="small-dialog-header">
+                <h3>Kiểm tra thông tin chuyển khoản</h3>
+                <p class="booking-subtitle">Vui lòng quét mã QR để kiểm tra thông tin chuyển khoản</p>
+            </div>
+            <div class="message-reply margin-top-0">
+                <div class="modal-content">
+                    <p v-if="selectedCheckout?.bank_info" class="mt-3">
+                        <strong>Thông tin ngân hàng:</strong>
+                        <br />
+                        <span v-html="formatBankInfo(selectedCheckout?.bank_info)"></span>
+                    </p>
+                    <div v-if="selectedCheckout?.bank_info" class="qr-code">
+                        <h5>Test mã QR chuyển khoản</h5>
+                        <img
+                            :src="`https://qr.sepay.vn/img?bank=${selectedCheckout.bank_info.bank_name}&acc=${selectedCheckout.bank_info.account_number}&amount=&des=&template=qronly`"
+                            alt="Mã QR"
+                            style="max-width: 400px; margin: 0 auto; display: block"
+                        />
+                    </div>
+                    <div v-if="selectedCheckout?.receipt_path" class="receipt">
+                        <h5>Ảnh biên lai</h5>
+                        <img
+                            :src="useRuntimeConfig().public.baseUrl + '/storage/' + selectedCheckout.receipt_path"
+                            alt="Biên lai"
+                            style="max-width: 400px; margin: 0 auto; display: block"
+                        />
+                    </div>
+                    <p class="mt-3"><em>Nếu thông tin không đúng, vui lòng chỉnh sửa:</em></p>
+                    <button class="button gray" @click="openEditBankModal">Chỉnh sửa thông tin chuyển khoản</button>
+                </div>
+                <div class="booking-actions">
+                    <button @click="closeBankInfoModal" class="button gray" type="button"><i class="fa fa-times"></i> Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Bank Modal -->
+        <EditBankModal
+            :checkout="selectedCheckout"
+            :banks="banks"
+            :update-loading="updateLoading"
+            @close="closeEditBankModal"
+            @update-bank-info="handleUpdateBankInfo"
+        />
+
         <div class="row">
+            <nearby-motels />
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <CheckoutFilter v-model:filter="filter" @update:filter="fetchCheckouts" />
                     <CheckoutList
                         :items="checkouts"
                         :is-loading="isLoading"
                         @cancel-checkout="cancelCheckout"
                         @open-inventory-popup="openInventoryPopup"
+                        @open-bank-info-popup="openBankInfoPopup"
                     />
                 </div>
             </div>
@@ -93,15 +161,15 @@ import { useToast } from 'vue-toastification';
 import { useApi } from '~/composables/useApi';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useRuntimeConfig } from '#app';
+import TomSelect from 'tom-select';
 
 definePageMeta({
     layout: 'management'
 });
 
 const { $api } = useNuxtApp();
-const config = useRuntimeConfig();
+const config = useState('configs');
 const checkouts = ref([]);
-const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const toast = useToast();
 const { handleBackendError } = useApi();
@@ -113,11 +181,13 @@ const rejectionReason = ref('');
 const confirmLoading = ref(false);
 const rejectLoading = ref(false);
 const leaveLoading = ref(false);
+const updateLoading = ref(false);
+const banks = ref(config.value.supported_banks);
 
 const fetchCheckouts = async () => {
     isLoading.value = true;
     try {
-        const response = await $api('/checkouts', { method: 'GET', params: filter.value });
+        const response = await $api('/checkouts', { method: 'GET' });
         checkouts.value = response.data;
     } catch (error) {
         handleBackendError(error, toast);
@@ -168,10 +238,38 @@ const openInventoryPopup = item => {
     });
 };
 
+const openBankInfoPopup = item => {
+    selectedCheckout.value = item;
+    if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+        console.error('Magnific Popup không được tải');
+        toast.error('Lỗi khi mở modal kiểm tra thông tin ngân hàng.');
+        return;
+    }
+    window.jQuery.magnificPopup.open({
+        items: { src: '#otp-dialog', type: 'inline' },
+        fixedContentPos: false,
+        fixedBgPos: true,
+        overflowY: 'auto',
+        closeBtnInside: true,
+        preloader: false,
+        midClick: true,
+        removalDelay: 300,
+        mainClass: 'my-mfp-zoom-in',
+        closeOnBgClick: false
+    });
+};
+
 const closeModal = () => {
     if (window.jQuery && window.jQuery.fn.magnificPopup) {
         window.jQuery.magnificPopup.close();
     }
+};
+
+const closeBankInfoModal = () => {
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
+    selectedCheckout.value = null;
 };
 
 const submitApproval = async () => {
@@ -235,33 +333,171 @@ const confirmLeftRoom = async () => {
     }
 };
 
+const openEditBankModal = () => {
+    if (!selectedCheckout.value) {
+        toast.error('Vui lòng chọn một yêu cầu trả phòng trước.');
+        return;
+    }
+    if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+        console.error('Magnific Popup không được tải');
+        toast.error('Lỗi khi mở modal chỉnh sửa ngân hàng.');
+        return;
+    }
+    window.jQuery.magnificPopup.open({
+        items: { src: '#edit-schedule-dialog', type: 'inline' },
+        fixedContentPos: false,
+        fixedBgPos: true,
+        overflowY: 'auto',
+        closeBtnInside: true,
+        preloader: false,
+        midClick: true,
+        removalDelay: 300,
+        mainClass: 'my-mfp-zoom-in',
+        closeOnBgClick: false,
+        callbacks: {
+            open: () => {
+                const selectElement = document.getElementById('bank_name');
+                if (selectElement && !selectElement.tomselect) {
+                    new TomSelect(selectElement, {
+                        plugins: ['dropdown_input'],
+                        valueField: 'value',
+                        labelField: 'label',
+                        searchField: ['label'],
+                        options: banks.value,
+                        render: {
+                            option: (data, escape) => `
+                                <span style="display: flex; align-items: center;">
+                                    <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;"
+                                         src="${escape(data.logo || '')}"
+                                         alt="${escape(data.label)} logo"
+                                         onerror="this.style.display='none'"/>
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                        ${escape(data.label)}
+                                    </span>
+                                </span>`,
+                            item: (data, escape) => `
+                                <span style="display: flex; align-items: center;">
+                                    <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;"
+                                         src="${escape(data.logo || '')}"
+                                         alt="${escape(data.label)} logo"
+                                         onerror="this.style.display='none'"/>
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                        ${escape(data.label)}
+                                    </span>
+                                </span>`,
+                            no_results: () => '<div class="no-results">Không tìm thấy ngân hàng</div>'
+                        },
+                        onChange: value => {
+                            editBankForm.value.bank_name = value;
+                        }
+                    });
+                }
+            }
+        }
+    });
+};
+
+const closeEditBankModal = () => {
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
+};
+
+const handleUpdateBankInfo = async ({ id, bankInfo }) => {
+    updateLoading.value = true;
+    try {
+        const response = await $api(`/checkouts/${id}/update-bank`, {
+            method: 'POST',
+            headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value },
+            body: {
+                bank_info: bankInfo
+            }
+        });
+        toast.success(response.message);
+        closeEditBankModal();
+        await fetchCheckouts();
+    } catch (error) {
+        handleBackendError(error);
+    } finally {
+        updateLoading.value = false;
+    }
+};
+
+const formatBankInfo = bankInfo => {
+    if (!bankInfo || typeof bankInfo !== 'object') return 'Không có thông tin';
+    const fields = [
+        bankInfo.bank_name ? `Ngân hàng: ${bankInfo.bank_name}` : '',
+        bankInfo.account_number ? `Số tài khoản: ${bankInfo.account_number}` : '',
+        bankInfo.account_holder ? `Chủ tài khoản: ${bankInfo.account_holder}` : ''
+    ].filter(Boolean);
+    return fields.join('<br>');
+};
+
 onMounted(() => {
     fetchCheckouts();
 });
 </script>
 
 <style scoped>
-.spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
+@import '~/public/css/viewing-schedules.css';
+
+/* Financial Information */
+.financial-info {
+    margin: 20px 0;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+.financial-info h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 12px;
 }
 
-.button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.financial-details {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 4px 16px;
+    border-left: 4px solid #667eea;
+}
+
+.financial-details p {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+
+/* Refund Information */
+.modal-content {
+    padding: 16px;
+}
+
+.modal-content p {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+
+.qr-code,
+.receipt {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.qr-code h5,
+.receipt h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.refund-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
 }
 
 /* Table Styles */
@@ -387,11 +623,10 @@ onMounted(() => {
     font-weight: 500;
 }
 
-/* Buttonpatient Actions */
+/* Button Actions */
 .inventory-actions {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
 }
 
 .booking-actions {
@@ -435,7 +670,7 @@ onMounted(() => {
     border: 2px solid transparent;
 }
 
-.oanh button:not(.gray):hover:not(:disabled) {
+.button:not(.gray):hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }

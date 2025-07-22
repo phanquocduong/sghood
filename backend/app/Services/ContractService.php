@@ -150,6 +150,17 @@ class ContractService
             $contract->update(['status' => $status]);
             $contract->refresh();
 
+            // Cập nhật status người dùng thành "Người đăng ký" khi hợp đồng kết thúc
+            if ($status === 'Kết thúc' && $oldStatus !== 'Kết thúc') {
+                if ($contract->user) {
+                    $contract->user->update(['role' => 'Người đăng ký']);
+                    Log::info('User status updated to "Người đăng ký"', [
+                        'user_id' => $contract->user->id,
+                        'contract_id' => $contract->id
+                    ]);
+                }
+            }
+
             // Gửi email thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa"
             if ($status === 'Chờ chỉnh sửa' && $oldStatus !== 'Chờ chỉnh sửa') {
                 $this->sendContractRevisionEmail($contract);

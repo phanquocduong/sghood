@@ -94,24 +94,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <!-- <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-1">Đã hoàn tiền</h6>
-                                <h4 class="mb-0 text-danger">{{ $stats['refunded'] }}</h4>
-                                <small class="text-muted">{{ number_format($stats['refunded_amount'] ?? 0) }} VND</small>
-                            </div>
-                            <div class="text-danger">
-                                <i class="fas fa-undo fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
-            </div>
         </div>
-
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
                 style="background: linear-gradient(90deg, #28a745, #20c997); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -181,8 +164,8 @@
                                 <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Ngày tạo</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
-                                <!-- <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -209,20 +192,14 @@
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
                                     <td class="text-center">{{ $invoice->created_at->format('d/m/Y') }}</td>
                                     <td class="text-center">
+                                        {{ $invoice->refunded_at ? \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="text-center">
                                         <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})" title="Xem chi tiết hóa đơn">
                                             <i class="fas fa-eye"></i> Chi tiết
                                         </button>
                                     </td>
-                                    <!-- <td class="text-center">
-                                        @if($invoice->status === 'Đã trả')
-                                            <button class="btn btn-warning btn-sm" onclick="updateInvoiceStatus({{ $invoice->id }}, 'Đã hoàn tiền')"
-                                                title="Hoàn tiền hóa đơn">
-                                                <i class="fas fa-undo"></i> Hoàn tiền
-                                            </button>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td> -->
+
                                 </tr>
                             @empty
                                 <tr>

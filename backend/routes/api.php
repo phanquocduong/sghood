@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/cancel', 'cancel');
         Route::post('/{id}/confirm', 'confirm');
         Route::post('/{id}/left-room', 'leftRoom');
+        Route::post('/{id}/update-bank', 'updateBank');
     });
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);
@@ -124,7 +125,8 @@ Route::get('/blogs/popular', [BlogController::class, 'popular']);
 Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
 // Comment blogs route
 Route::get('/blogs/{slug}/comments', [CommentController::class, 'getCommentsByBlog']);
-Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'sendComment']);
+Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'SendComment']);
+Route::post('/blogs/{blog}/replay-comment', [CommentController::class, 'ReplayComment']);
 Route::put('/comments/{id}', [CommentController::class, 'editComment']);
 Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
 Route::post('/comments/{comment}/reaction', [CommentController::class, 'react']);
