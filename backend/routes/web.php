@@ -21,7 +21,9 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContractExtensionController;
+
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
@@ -194,6 +196,8 @@ Route::middleware('admin')->group(function () {
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
         Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
         Route::patch('/{id}/update-cate', [BlogController::class, 'updateCategory'])->name('updateCategory');
+        Route::get('/{id}/comments', [CommentController::class, 'index'])->name('comment');
+        Route::post('/{id}/comments', [CommentController::class, 'reply'])->name('comment.reply');
     });
     Route::prefix('CKEditors')->name('ckeditors.')->group(function () {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');

@@ -65,6 +65,9 @@
             </a>
             <!-- Quản lý blog -->
             <a href="{{ route('blogs.index') }}" class="nav-item nav-link {{ request()->routeIs('blogs.*') ? 'active' : '' }}"><i class="fa fa-newspaper me-2"></i>Blog</a>
+            {{-- <!-- Quản lý bình luận -->
+            <a href="{{ route('comments.index') }}" class="nav-item nav-link {{ request()->routeIs('comments.*') ? 'active' : '' }}"><i class="fa fa-comments me-2"></i>Bình luận</a> --}}
+
         </div>
     </nav>
 </div>
