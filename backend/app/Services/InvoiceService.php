@@ -12,35 +12,35 @@ class InvoiceService
      * Lấy danh sách hóa đơn với filter và pagination
      */
     public function getAllInvoices(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        $query = Invoice::with(['contract.user', 'contract.room', 'meterReading'])
-            ->select('id', 'contract_id', 'meter_reading_id', 'code', 'total_amount', 'status', 'month', 'year', 'created_at');
+{
+    $query = Invoice::with(['contract.user', 'contract.room', 'meterReading'])
+        ->select('id', 'contract_id', 'meter_reading_id', 'code', 'total_amount', 'status', 'month', 'year', 'created_at', 'refunded_at');
 
-        // Tìm kiếm theo code hóa đơn
-        if (!empty($filters['search'])) {
-            $query->where('code', 'like', '%' . $filters['search'] . '%');
-        }
-
-        // Lọc theo tháng (chỉ khi user chọn tháng cụ thể)
-        if (!empty($filters['month'])) {
-            $query->where('month', $filters['month']);
-        }
-
-        // Lọc theo năm (chỉ khi user chọn năm cụ thể)
-        if (!empty($filters['year'])) {
-            $query->where('year', $filters['year']);
-        }
-
-        // Lọc theo trạng thái
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        // Sắp xếp
-        $query->orderBy('created_at', 'desc');
-
-        return $query->paginate($perPage);
+    // Tìm kiếm theo code hóa đơn
+    if (!empty($filters['search'])) {
+        $query->where('code', 'like', '%' . $filters['search'] . '%');
     }
+
+    // Lọc theo tháng (chỉ khi user chọn tháng cụ thể)
+    if (!empty($filters['month'])) {
+        $query->where('month', $filters['month']);
+    }
+
+    // Lọc theo năm (chỉ khi user chọn năm cụ thể)
+    if (!empty($filters['year'])) {
+        $query->where('year', $filters['year']);
+    }
+
+    // Lọc theo trạng thái
+    if (!empty($filters['status'])) {
+        $query->where('status', $filters['status']);
+    }
+
+    // Sắp xếp
+    $query->orderBy('created_at', 'desc');
+
+    return $query->paginate($perPage);
+}
 
     /**
      * Lấy chi tiết hóa đơn theo ID

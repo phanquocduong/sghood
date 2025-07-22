@@ -19,6 +19,7 @@ class Invoice extends Model
         'junk_fee',
         'internet_fee',
         'service_fee',
+        'refunded_at',
         'total_amount',
         'status'
     ];

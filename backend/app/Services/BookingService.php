@@ -549,7 +549,7 @@ class BookingService
     }
 
 
-    public function updateBookingStatus($id, $status, $cancellation_reason = null)
+    public function updateBookingStatus($id, $status, $rejection_reason = null)
     {
         try {
             $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
@@ -559,12 +559,12 @@ class BookingService
                 'booking_id' => $id,
                 'old_status' => $oldStatus,
                 'new_status' => $status,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
 
             $updateData = ['status' => $status];
-            if ($cancellation_reason) {
-                $updateData['cancellation_reason'] = $cancellation_reason;
+            if ($rejection_reason) {
+                $updateData['rejection_reason'] = $rejection_reason;
             }
 
             $booking->update($updateData);
@@ -664,7 +664,7 @@ class BookingService
             // Gửi email từ chối (giữ nguyên logic cũ)
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                 try {
-                    Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
+                    Mail::to($booking->user->email)->send(new BookingRejected($booking, $rejection_reason ?? ''));
                     Log::info('Rejection email sent successfully', [
                         'booking_id' => $id,
                         'user_email' => $booking->user->email
@@ -690,19 +690,19 @@ class BookingService
         }
     }
 
-    public function updateBookingCancellation($id, $cancellation_reason)
+    public function updateBookingCancellation($id, $rejection_reason)
     {
         try {
             $booking = Booking::findOrFail($id);
 
             // Log before update
-            Log::info('Updating booking cancellation_reason', [
+            Log::info('Updating booking rejection_reason', [
                 'booking_id' => $id,
-                'old_cancellation_reason' => $booking->cancellation_reason,
-                'new_cancellation_reason' => $cancellation_reason
+                'old_rejection_reason' => $booking->rejection_reason,
+                'new_rejection_reason' => $rejection_reason
             ]);
 
-            $booking->update(['cancellation_reason' => $cancellation_reason]);
+            $booking->update(['rejection_reason' => $rejection_reason]);
 
             // Reload to get fresh data
             $booking->refresh();
@@ -714,30 +714,30 @@ class BookingService
         } catch (\Throwable $e) {
             Log::error('Error updating booking Cancellation: ' . $e->getMessage(), [
                 'booking_id' => $id,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật lý do', 'status' => 500];
         }
     }
 
-    public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
+    public function updateBookingStatusAndCancellation_reason($id, $status, $rejection_reason)
     {
         try {
-            return DB::transaction(function () use ($id, $status, $cancellation_reason) {
+            return DB::transaction(function () use ($id, $status, $rejection_reason) {
                 $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
                 $oldStatus = $booking->status;
 
-                Log::info('Updating booking status and cancellation_reason', [
+                Log::info('Updating booking status and rejection_reason', [
                     'booking_id' => $id,
                     'old_status' => $oldStatus,
                     'new_status' => $status,
-                    'old_cancellation_reason' => $booking->cancellation_reason,
-                    'new_cancellation_reason' => $cancellation_reason
+                    'old_rejection_reason' => $booking->rejection_reason,
+                    'new_rejection_reason' => $rejection_reason
                 ]);
 
                 $updateData = ['status' => $status];
-                if ($cancellation_reason) {
-                    $updateData['cancellation_reason'] = $cancellation_reason;
+                if ($rejection_reason) {
+                    $updateData['rejection_reason'] = $rejection_reason;
                 }
 
                 $booking->update($updateData);
@@ -791,7 +791,7 @@ class BookingService
                 // Gửi email từ chối
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
                     try {
-                        Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
+                        Mail::to($booking->user->email)->send(new BookingRejected($booking, $rejection_reason ?? ''));
                         Log::info('Rejection email sent successfully', [
                             'booking_id' => $id,
                             'user_email' => $booking->user->email
@@ -810,10 +810,10 @@ class BookingService
             Log::error('Booking not found: ' . $e->getMessage(), ['booking_id' => $id]);
             return ['error' => 'Không tìm thấy đặt phòng', 'status' => 404];
         } catch (\Throwable $e) {
-            Log::error('Error updating booking status and cancellation_reason: ' . $e->getMessage(), [
+            Log::error('Error updating booking status and rejection_reason: ' . $e->getMessage(), [
                 'booking_id' => $id,
                 'status' => $status,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật thông tin đặt phòng', 'status' => 500];
         }
