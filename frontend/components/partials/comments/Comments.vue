@@ -9,8 +9,8 @@
       <template v-for="comment in comments" :key="comment.id" >
         <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh=" fetchComments" />
       </template> 
-      <div id="add-review" class="add-review-box" v-if="authStore.length === 0" >
- 
+      <div id="add-review" class="add-review-box" v-if="authStore.user">
+
          <!-- Add Review -->
          <h3 class="listing-desc-headline margin-bottom-35">Add Review</h3>
    
@@ -43,8 +43,10 @@
                            :disabled="loading"
                            style="margin-bottom: 10px; margin-top: -10px"
                        >
-                           <span v-if="loading" class="spinner"></span>
-                           {{ loading ? ' Đang gửi...' : 'Gửi đi' }}>Gửi</button>
+                           <span v-if="loading" class="spinner">
+                           </span>
+                           {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
+                          </button>
          </form>
  
        </div>
@@ -79,7 +81,7 @@ const fetchComments = async () => {
       },
     })
     comments.value = res.data || []
-    if(res.data.length > 0){
+    if(Array.isArray(res.data) && res.data.length > 0){
       blog_id.value = res.data[0].blog_id
     }
     console.log('Comments:', res.data)
@@ -88,6 +90,7 @@ const fetchComments = async () => {
   }
 }
 const AddReplay = async (blog_id) => {
+  
   if(ReplayContent.value.trim() === '') {
     toast('Vui lòng nhập nội dung bình luận')
     return
@@ -99,10 +102,10 @@ const AddReplay = async (blog_id) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
+      body:({
         content: ReplayContent.value,
         user_id: authStore.user?.id,
-        
+       
       })
     })
     console.log('Reply response:', res)
@@ -117,11 +120,26 @@ const AddReplay = async (blog_id) => {
     loading.value = false
   }
 }
+const getBlogId = async (slug) => {
+  try {
+    const res = await $api(`/show/${slug}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    blog_id.value = res.data?.id
+  } catch (error) {
+    console.error('Lỗi khi lấy blog ID:', error)
+  }
+}
+
 // 👀 Theo dõi slug thay đổi
 watch(slug, (s) => {
   if (s) fetchComments()
 }, { immediate: true })
-onMounted(() => {
+onMounted(async() => {
+  await getBlogId(slug.value)
     if (authStore.user) {
         name.value = authStore.user.name || '';
         email.value = authStore.user.email || '';

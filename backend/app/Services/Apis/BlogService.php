@@ -32,7 +32,7 @@ class BlogService
 
     public function getBlogBySlug($slug)
     {
-        return Blog::select('id', 'title', 'slug', 'content', 'created_at')
+        return Blog::select('thumbnail', 'id', 'title', 'slug', 'content', 'created_at')
             ->where('slug', $slug)
             ->first();
     }
