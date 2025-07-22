@@ -14,20 +14,20 @@ class Checkout extends Model
         'check_out_date',
         'inventory_details',
         'deduction_amount',
-        'status',
-        'deposit_refunded',
+        'final_refunded_amount',
+        'inventory_status',
+        'user_confirmation_status',
+        'user_rejection_reason',
         'has_left',
         'images',
         'note',
     ];
 
     protected $casts = [
-        'check_out_date'     => 'date',
-        'inventory_details'  => 'array',
-        'images'             => 'array',
-        'deduction_amount'   => 'integer',
-        'deposit_refunded'   => 'boolean',
-        'has_left'           => 'boolean',
+        'inventory_details' => 'array',
+        'images' => 'array',
+        'check_out_date' => 'date',
+        'has_left' => 'boolean',
     ];
 
     /**

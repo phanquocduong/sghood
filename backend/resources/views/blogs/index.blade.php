@@ -27,7 +27,7 @@
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="status">
                             <option value="">Tất cả trạng thái</option>
-                            @foreach (['Chờ xác nhận', 'Đang thực hiện', 'Hoàn thành', 'Huỷ bỏ'] as $status)
+                            @foreach (['Đã xuất bản', 'Nháp'] as $status)
                                 <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
                                     {{ $status }}
                                 </option>
@@ -70,7 +70,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if ($blogs)
+                        @if ($blogs->count() > 0)
                             @foreach ($blogs as $blog)
                                 <tr class="table-row">
                                     <td>{{ $blog->id }}</td>
@@ -93,19 +93,17 @@
                                             @method('PATCH')
                                             <select name="category" class="form-select form-select-sm"
                                                 onchange="confirmCategoryChange(this)">
-                                                <option value="news"
-                                                    {{ $blog->category == 'news' ? 'selected' : '' }}>News
+                                                <option value="Tin tức" {{ $blog->category == 'Tin tức' ? 'selected' : '' }}>
+                                                    Tin tức
                                                 </option>
-                                                <option value="guide"
-                                                    {{ $blog->category == 'guide' ? 'selected' : '' }}>Guide</option>
-                                                <option value="promotion"
-                                                    {{ $blog->category == 'promotion' ? 'selected' : '' }}>Promotion
+                                                <option value="Hướng dẫn" {{ $blog->category == 'Hướng dẫn' ? 'selected' : '' }}>
+                                                    Hướng dẫn
                                                 </option>
-                                                <option value="law"
-                                                    {{ $blog->category == 'law' ? 'selected' : '' }}>Law
+                                                <option value="Khuyến mãi" {{ $blog->category == 'Khuyến mãi' ? 'selected' : '' }}>Khuyến mãi
                                                 </option>
-                                                <option value="experience"
-                                                    {{ $blog->category == 'experience' ? 'selected' : '' }}>Experience
+                                                <option value="Pháp luật" {{ $blog->category == 'Pháp luật' ? 'selected' : '' }}>Pháp luật
+                                                </option>
+                                                <option value="Kinh nghiệm" {{ $blog->category == 'Kinh nghiệm' ? 'selected' : '' }}>Kinh nghiệm
                                                 </option>
                                             </select>
                                         </form>
@@ -131,8 +129,8 @@
                             @endforeach
                         @else
                             <tr>
-                                <td>
-                                    Không có bài viết nào
+                                <td colspan="7">
+                                    <p>Không có bài viết nào</p>
                                 </td>
                             </tr>
                         @endif
@@ -168,4 +166,3 @@
         }
     </script>
 @endsection
-

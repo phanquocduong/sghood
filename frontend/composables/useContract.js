@@ -19,7 +19,6 @@ export function useContract({
     const { sendOTP, verifyOTP } = useFirebaseAuth();
 
     const phoneNumber = ref(null); // Lưu số điện thoại từ contract
-    const showOTPModal = ref(false); // Hiển thị modal nhập OTP
     const otpCode = ref(''); // Mã OTP người dùng nhập
 
     const processContractContent = () => {
@@ -193,24 +192,49 @@ export function useContract({
             return false;
         }
 
-        // Hiển thị modal OTP
-        showOTPModal.value = true;
-
         // Đợi DOM cập nhật
         await nextTick();
 
         // Kiểm tra client-side và container
         if (typeof window === 'undefined' || !document.getElementById('recaptcha-container')) {
             toast.error('Không thể khởi tạo reCAPTCHA. Vui lòng thử lại.');
-            showOTPModal.value = false;
             return false;
         }
 
-        const success = await sendOTP(phoneNumber.value);
-        if (!success) {
-            showOTPModal.value = false;
+        if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+            toast.error('Magnific Popup không được tải.');
+            return false;
         }
-        return success;
+
+        // Mở modal OTP
+        window.jQuery.magnificPopup.open({
+            items: { src: '#otp-dialog', type: 'inline' },
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            preloader: false,
+            midClick: true,
+            removalDelay: 300,
+            mainClass: 'my-mfp-zoom-in',
+            closeOnBgClick: false,
+            callbacks: {
+                open: async () => {
+                    const success = await sendOTP(phoneNumber.value);
+                    if (!success) {
+                        window.jQuery.magnificPopup.close();
+                        toast.error('Lỗi khi gửi OTP. Vui lòng thử lại.');
+                        return;
+                    }
+                    const otpInput = document.getElementById('otp-input');
+                    if (otpInput) {
+                        setTimeout(() => otpInput.focus(), 100);
+                    }
+                }
+            }
+        });
+
+        return true;
     };
 
     const signContract = async () => {
@@ -245,7 +269,10 @@ export function useContract({
                 headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
             });
             toast.success(response.message);
-            showOTPModal.value = false;
+            // Đóng modal OTP
+            if (window.jQuery && window.jQuery.fn.magnificPopup) {
+                window.jQuery.magnificPopup.close();
+            }
             router.push(`/quan-ly/hoa-don/${response.invoice_code}/thanh-toan`);
         } catch (error) {
             console.error('Lỗi khi ký hợp đồng:', error);
@@ -316,7 +343,6 @@ export function useContract({
         confirmOTPAndSign,
         saveContract,
         phoneNumber,
-        showOTPModal,
         otpCode
     };
 }

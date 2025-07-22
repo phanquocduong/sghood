@@ -1,3 +1,4 @@
+<!-- ContractItem.vue -->
 <template>
     <li :class="getItemClass(item.status)">
         <div class="list-box-listing bookings">
@@ -9,18 +10,6 @@
                     <h3>
                         Hợp đồng #{{ item.id }} [{{ item.room_name }} - {{ item.motel_name }}]
                         <span :class="getStatusClass(item.status)">{{ item.status }}</span>
-                        <span
-                            v-if="item.latest_extension_status && item.latest_extension_status !== 'Huỷ bỏ'"
-                            :class="getExtensionStatusClass(item.latest_extension_status)"
-                        >
-                            {{ formatExtensionStatus(item.latest_extension_status) }}
-                        </span>
-                        <span
-                            v-if="item.latest_checkout_status && item.latest_checkout_status !== 'Huỷ bỏ'"
-                            :class="getCheckoutStatusClass(item.latest_checkout_status)"
-                        >
-                            {{ formatCheckoutStatus(item.latest_checkout_status) }}
-                        </span>
                     </h3>
                     <div class="inner-booking-list">
                         <h5>Ngày bắt đầu:</h5>
@@ -102,34 +91,24 @@
             </a>
         </div>
 
+        <!-- Include modals but hidden by default for Magnific Popup -->
+        <ExtendModal :contract="selectedContract" :otpLoading="otpLoading" @close="closeExtendModal" @confirm="confirmExtendContract" />
         <ReturnModal
-            v-if="showReturnModal"
             :contract="selectedContract"
             :banks="banks"
             :today="today"
+            :otpLoading="otpLoading"
             @close="closeReturnModal"
             @request-otp="requestOTPForReturn"
         />
-
-        <ExtendModal v-if="showExtendModal" :contract="selectedContract" @close="closeExtendModal" @confirm="confirmExtendContract" />
-
-        <OTPModal
-            :show="showOTPModal"
-            :phone-number="otpPhoneNumber"
-            :loading="otpLoading"
-            v-model:otp-code="otpCode"
-            @close="closeOTPModal"
-            @confirm="confirmOTP"
-        />
+        <OTPModal :phone-number="otpPhoneNumber" :loading="otpLoading" v-model:otp-code="otpCode" @confirm="confirmOTP" />
     </li>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed } from 'vue';
 import { useToast } from 'vue-toastification';
 import Swal from 'sweetalert2';
-import TomSelect from 'tom-select';
-import 'tom-select/dist/css/tom-select.css';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 import { useContractUtils } from '~/composables/useContractUtils';
 import { useFormatPrice } from '~/composables/useFormatPrice';
@@ -140,16 +119,7 @@ const toast = useToast();
 const { formatPrice } = useFormatPrice();
 const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
-const {
-    getItemClass,
-    getStatusClass,
-    getExtensionStatusClass,
-    getCheckoutStatusClass,
-    formatExtensionStatus,
-    formatCheckoutStatus,
-    getActText,
-    isNearExpiration
-} = useContractUtils();
+const { getItemClass, getStatusClass, getActText, isNearExpiration } = useContractUtils();
 
 const props = defineProps({
     item: {
@@ -168,9 +138,6 @@ const props = defineProps({
 
 const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract', 'downloadPdf']);
 
-const showReturnModal = ref(false);
-const showExtendModal = ref(false);
-const showOTPModal = ref(false);
 const selectedContract = ref({});
 const otpPhoneNumber = ref('');
 const otpCode = ref('');
@@ -185,7 +152,6 @@ const returnForm = ref({
 const extendForm = ref({
     months: 6
 });
-let tomSelectInstance = null;
 
 const validateReturnForm = () => {
     const form = returnForm.value;
@@ -193,12 +159,6 @@ const validateReturnForm = () => {
 };
 
 const isExtendFormValid = computed(() => extendForm.value.months >= 1);
-
-const calculatedNewEndDate = computed(() => {
-    if (!selectedContract.value.end_date || !extendForm.value.months) return '';
-    const currentEndDate = new Date(selectedContract.value.end_date);
-    return new Date(currentEndDate.setMonth(currentEndDate.getMonth() + extendForm.value.months));
-});
 
 const openConfirmRejectPopup = async id => {
     const result = await Swal.fire({
@@ -220,7 +180,28 @@ const openConfirmRejectPopup = async id => {
 const openConfirmExtendPopup = contract => {
     selectedContract.value = contract;
     extendForm.value.months = 6;
-    showExtendModal.value = true;
+    if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+        console.error('Magnific Popup không được tải');
+        toast.error('Lỗi khi mở form gia hạn.');
+        return;
+    }
+    window.jQuery.magnificPopup.open({
+        items: { src: '#small-dialog', type: 'inline' },
+        fixedContentPos: false,
+        fixedBgPos: true,
+        overflowY: 'auto',
+        closeBtnInside: true,
+        preloader: false,
+        midClick: true,
+        removalDelay: 300,
+        mainClass: 'my-mfp-zoom-in',
+        closeOnBgClick: false,
+        callbacks: {
+            open: () => {
+                window.jQuery(durationSelect.value).trigger('chosen:updated');
+            }
+        }
+    });
 };
 
 const confirmExtendContract = async months => {
@@ -228,7 +209,7 @@ const confirmExtendContract = async months => {
         toast.error('Vui lòng chọn thời gian gia hạn hợp lệ.');
         return;
     }
-    showExtendModal.value = false;
+    extendForm.value.months = months;
     try {
         const response = await $api(`/contracts/${selectedContract.value.id}`, { method: 'GET' });
         otpPhoneNumber.value = response.data.user_phone || '';
@@ -237,8 +218,6 @@ const confirmExtendContract = async months => {
             return;
         }
         currentAction.value = 'extend';
-        extendForm.value.months = months; // Đồng bộ months từ modal
-        showOTPModal.value = true;
         await requestOTP();
     } catch (error) {
         toast.error('Lỗi khi lấy thông tin hợp đồng.');
@@ -247,9 +226,11 @@ const confirmExtendContract = async months => {
 };
 
 const closeExtendModal = () => {
-    showExtendModal.value = false;
     selectedContract.value = {};
     extendForm.value.months = 6;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
 };
 
 const openReturnModal = async contract => {
@@ -267,7 +248,63 @@ const openReturnModal = async contract => {
             account_number: '',
             account_holder: ''
         };
-        showReturnModal.value = true;
+        if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+            console.error('Magnific Popup không được tải');
+            toast.error('Lỗi khi mở form trả phòng.');
+            return;
+        }
+        window.jQuery.magnificPopup.open({
+            items: { src: '#edit-schedule-dialog', type: 'inline' },
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            preloader: false,
+            midClick: true,
+            removalDelay: 300,
+            mainClass: 'my-mfp-zoom-in',
+            closeOnBgClick: false,
+            callbacks: {
+                open: () => {
+                    const selectElement = document.getElementById('bank_name');
+                    if (selectElement && !selectElement.tomselect) {
+                        new TomSelect(selectElement, {
+                            plugins: ['dropdown_input'],
+                            valueField: 'value',
+                            labelField: 'label',
+                            searchField: ['label'],
+                            options: banks.value,
+                            render: {
+                                option: (data, escape) => `
+                                    <span style="display: flex; align-items: center;">
+                                        <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;" 
+                                             src="${escape(data.logo || '')}" 
+                                             alt="${escape(data.label)} logo" 
+                                             onerror="this.style.display='none'"/>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                            ${escape(data.label)}
+                                        </span>
+                                    </span>`,
+                                item: (data, escape) => `
+                                    <span style="display: flex; align-items: center;">
+                                        <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;" 
+                                             src="${escape(data.logo || '')}" 
+                                             alt="${escape(data.label)} logo" 
+                                             onerror="this.style.display='none'"/>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                            ${escape(data.label)}
+                                        </span>
+                                    </span>`,
+                                no_results: () => '<div class="no-results">Không tìm thấy ngân hàng</div>'
+                            },
+                            onChange: value => {
+                                returnForm.value.bank_name = value;
+                            }
+                        });
+                    }
+                }
+            }
+        });
     } catch (error) {
         toast.error('Lỗi khi lấy thông tin hợp đồng.');
         console.error(error);
@@ -275,8 +312,6 @@ const openReturnModal = async contract => {
 };
 
 const closeReturnModal = () => {
-    showReturnModal.value = false;
-    showOTPModal.value = false;
     selectedContract.value = {};
     returnForm.value = {
         check_out_date: '',
@@ -286,18 +321,19 @@ const closeReturnModal = () => {
     };
     otpCode.value = '';
     otpPhoneNumber.value = '';
-    if (tomSelectInstance) {
-        tomSelectInstance.destroy();
-        tomSelectInstance = null;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
     }
 };
 
 const closeOTPModal = () => {
-    showOTPModal.value = false;
     selectedContract.value = {};
     otpCode.value = '';
     otpPhoneNumber.value = '';
     currentAction.value = null;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
 };
 
 const requestOTP = async () => {
@@ -306,16 +342,38 @@ const requestOTP = async () => {
         return;
     }
     try {
-        await nextTick();
+        otpLoading.value = true;
         const success = await sendOTP(otpPhoneNumber.value);
         if (!success) {
-            showOTPModal.value = false;
             toast.error('Lỗi khi gửi OTP. Vui lòng thử lại.');
+            otpLoading.value = false;
+            return;
         }
+        window.jQuery.magnificPopup.open({
+            items: { src: '#otp-dialog', type: 'inline' },
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            preloader: false,
+            midClick: true,
+            removalDelay: 300,
+            mainClass: 'my-mfp-zoom-in',
+            closeOnBgClick: false,
+            callbacks: {
+                open: () => {
+                    const otpInput = document.getElementById('otp-input');
+                    if (otpInput) {
+                        otpInput.focus();
+                    }
+                }
+            }
+        });
     } catch (error) {
         console.error('Lỗi khi gửi OTP:', error);
         toast.error('Lỗi khi gửi OTP. Vui lòng thử lại.');
-        showOTPModal.value = false;
+    } finally {
+        otpLoading.value = false;
     }
 };
 
@@ -329,9 +387,8 @@ const confirmOTP = async () => {
             return;
         }
         if (currentAction.value === 'return') {
-            console.log(selectedContract.value.id);
-            console.log(returnForm.value);
             if (validateReturnForm()) {
+                console.log(returnForm.value);
                 emit('returnContract', selectedContract.value.id, returnForm.value);
                 closeReturnModal();
             } else {
@@ -349,8 +406,7 @@ const confirmOTP = async () => {
                 return;
             }
         }
-        showOTPModal.value = false;
-        currentAction.value = null;
+        closeOTPModal();
     } catch (error) {
         console.error('Lỗi khi xác minh OTP:', error);
         toast.error('Lỗi khi xác minh OTP. Vui lòng thử lại.');
@@ -360,55 +416,14 @@ const confirmOTP = async () => {
 };
 
 const requestOTPForReturn = async formData => {
-    returnForm.value = { ...formData }; // Đồng bộ formData từ modal
+    returnForm.value = { ...formData };
     if (!validateReturnForm()) {
         toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng và tài khoản ngân hàng.');
         return;
     }
-    showReturnModal.value = false;
     currentAction.value = 'return';
-    showOTPModal.value = true;
     await requestOTP();
 };
-
-watch(showReturnModal, async newValue => {
-    if (newValue) {
-        await nextTick();
-        const selectElement = document.getElementById('bank_name');
-        if (selectElement && !selectElement.tomselect) {
-            tomSelectInstance = new TomSelect(selectElement, {
-                plugins: ['dropdown_input'],
-                valueField: 'value',
-                labelField: 'label',
-                searchField: ['label'],
-                options: banks.value,
-                render: {
-                    option: (data, escape) => `
-                        <span style="display: flex; align-items: center;">
-                            <img style="max-width: 40px; margin-right: 12px; border-radius: 4px;" 
-                                 src="${escape(data.logo || '')}" 
-                                 alt="${escape(data.label)} logo" 
-                                 onerror="this.style.display='none'"/>
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 52px);">
-                                ${escape(data.label)}
-                            </span>
-                        </span>`,
-                    item: (data, escape) => `
-                        <span style="display: flex; align-items: center;">
-                            <img style="max-width: 40px; margin-right: 12px; border-radius: 4px;" 
-                                 src="${escape(data.logo || '')}" 
-                                 alt="${escape(data.label)} logo" 
-                                 onerror="this.style.display='none'"/>
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 52px);">
-                                ${escape(data.label)}
-                            </span>
-                        </span>`,
-                    no_results: () => '<div class="no-results">Không tìm thấy kết quả</div>'
-                }
-            });
-        }
-    }
-});
 
 const banks = ref([
     { value: 'ACB', label: 'ACB - Ngân hàng TMCP Á Châu', logo: 'https://qr.sepay.vn/assets/img/banklogo/ACB.png' },

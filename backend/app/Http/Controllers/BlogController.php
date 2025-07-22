@@ -78,8 +78,9 @@ class BlogController extends Controller
             $data['title'] = $validatedData['title'];
             $data['content'] = $validatedData['content'];
             $data['author_id'] = $validatedData['author_id']; // Lấy ID của người dùng đang đăng nhập
-            $data['status'] = $validatedData['status'] ?? 'draft'; // Mặc định là 'draft' nếu không có giá trị
+            $data['status'] = $validatedData['status'] ?? 'Nháp'; // Mặc định là 'Nháp' nếu không có giá trị
             $data['thumbnail'] = $request->file('thumbnail'); // Lấy tệp hình ảnh từ request
+            $data['category'] = $validatedData['category'] ?? 'Tin tức'; // Lấy thể loại từ dữ liệu đã xác thực
 
             $blog = $this->blogService->createBlog($data);
 
@@ -140,7 +141,7 @@ class BlogController extends Controller
     public function updateCategory(Request $request, $id)
     {
         $request->validate([
-            'category' => 'required|in:news,guide,promotion,law,experience',
+            'category' => 'required|in:Tin tức,Hướng dẫn,Khuyến mãi,Pháp luật,Kinh nghiệm',
         ]);
 
         $blog = Blog::findOrFail($id);

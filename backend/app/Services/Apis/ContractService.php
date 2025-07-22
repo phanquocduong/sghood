@@ -40,11 +40,10 @@ class ContractService
                         'id',
                         'contract_id',
                         'check_out_date',
-                        'status',
-                        'deposit_refunded',
+                        'inventory_status',
                         'has_left',
                         'note'
-                    )->orderBy('created_at', 'desc'),
+                    )->orderBy('created_at', 'desc')
                 ])
                 ->get()
                 ->map(fn ($contract) => [
@@ -61,7 +60,7 @@ class ContractService
                     'signed_at' => $contract->signed_at,
                     'invoice_id' => $contract->invoices->first()?->id,
                     'latest_extension_status' => $contract->extensions->first()?->status ?? null,
-                    'latest_checkout_status' => $contract->checkouts->first()?->status ?? null,
+                    'latest_checkout_status' => $contract->checkouts->first()?->inventory_status ?? null,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {

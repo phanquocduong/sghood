@@ -15347,6 +15347,7 @@ a.close-list-item {
     font-weight: 600;
     margin: 0;
     color: #666;
+    margin-right: 5px;
 }
 
 .inner-booking-list ul {
@@ -19073,6 +19074,8 @@ button.mfp-close {
 }
 
 #small-dialog .mfp-close,
+#edit-schedule-dialog .mfp-close,
+#otp-dialog .mfp-close,
 #sign-in-dialog,
 .mfp-close,
 .mfp-close:hover {
@@ -19081,7 +19084,9 @@ button.mfp-close {
 
 /* Popup close button*/
 #sign-in-dialog .mfp-close,
-#small-dialog .mfp-close {
+#small-dialog .mfp-close,
+#otp-dialog .mfp-close,
+#edit-schedule-dialog .mfp-close {
     color: #666;
     background-color: #e4e4e4;
     border-radius: 50%;
@@ -19092,6 +19097,8 @@ button.mfp-close {
 }
 
 #sign-in-dialog .mfp-close:hover,
+#otp-dialog .mfp-close:hover,
+#edit-schedule-dialog .mfp-close:hover,
 #small-dialog .mfp-close:hover {
     color: #fff;
     transform: rotate(0);
@@ -19100,6 +19107,10 @@ button.mfp-close {
 
 #sign-in-dialog .mfp-close::after,
 #sign-in-dialog .mfp-close::before,
+#edit-schedule-dialog .mfp-close::after,
+#edit-schedule-dialog .mfp-close::before,
+#otp-dialog .mfp-close::after,
+#otp-dialog .mfp-close::before,
 #small-dialog .mfp-close::after,
 #small-dialog .mfp-close::before {
     top: 4px;
@@ -19236,6 +19247,8 @@ button.mfp-close {
 
 /* Popup */
 #sign-in-dialog,
+#edit-schedule-dialog,
+#otp-dialog,
 #small-dialog {
     background: #fff;
     padding: 40px;
@@ -19253,6 +19266,8 @@ button.mfp-close {
 }
 
 #sign-in-dialog span.line,
+#edit-schedule-dialog span.line,
+#otp-dialog span.line,
 #small-dialog span.line {
     padding-top: 0;
 }
@@ -21648,6 +21663,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog,
+    #edit-schedule-dialog,
+    #otp-dialog,
     #small-dialog {
         background: #fff;
         padding: 30px;
@@ -21655,6 +21672,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog .mfp-close,
+    #edit-schedule-dialog .mfp-close,
+    #otp-dialog .mfp-close,
     #small-dialog .mfp-close {
         top: 24px;
         right: 30px;
@@ -21743,6 +21762,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog,
+    #edit-schedule-dialog,
+    #otp-dialog,
     #small-dialog {
         max-width: 75vw;
     }

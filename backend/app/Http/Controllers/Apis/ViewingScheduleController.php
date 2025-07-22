@@ -4,9 +4,14 @@ namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
 use App\Services\Apis\ViewingScheduleService;
-use Illuminate\Http\Request;
 use App\Http\Requests\Apis\StoreScheduleRequest;
+use App\Http\Requests\Apis\UpdateScheduleRequest;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ViewingScheduleController extends Controller
 {
@@ -17,55 +22,73 @@ class ViewingScheduleController extends Controller
         $this->viewingScheduleService = $viewingScheduleService;
     }
 
-    public function index(Request $request)
+    protected function jsonResponse($data, int $status = 200, array $headers = []): JsonResponse
+    {
+        return response()->json($data, $status, $headers);
+    }
+
+    public function index(Request $request): JsonResponse
     {
         try {
             $filters = $request->only(['sort', 'status']);
             $schedules = $this->viewingScheduleService->getSchedules($filters);
-            return response()->json([
-                'data' => $schedules
-            ], 200);
+            return response()->json(['data' => $schedules], 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi lấy danh sách lịch xem nhà trọ. Vui lòng thử lại.'
-            ], 500);
+            Log::error('Đã có lỗi xảy ra khi lấy danh sách lịch xem nhà trọ: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi lấy danh sách lịch xem nhà trọ.'], 500);
         }
     }
 
-    public function store(StoreScheduleRequest $request)
+    public function store(StoreScheduleRequest $request): JsonResponse
     {
         try {
             $validated = $request->validated();
             $validated['user_id'] = Auth::id();
-
             $schedule = $this->viewingScheduleService->createSchedule($validated);
             return response()->json([
                 'message' => 'Đặt lịch xem nhà trọ thành công',
-                'data' => $schedule
+                'data' => $schedule,
             ], 201);
+        } catch (HttpResponseException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi đặt lịch xem nhà trọ: ' . $e->getMessage()
-            ], 500);
+            Log::error('Đã có lỗi xảy ra khi đặt lịch xem nhà trọ: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi đặt lịch xem nhà trọ.'], 500);
         }
     }
 
-    public function reject($id)
+    public function update(UpdateScheduleRequest $request, $id): JsonResponse
     {
         try {
-            $schedule = $this->viewingScheduleService->rejectSchedule($id);
+            $schedule = $this->viewingScheduleService->updateSchedule($id, $request->validated());
+            return response()->json([
+                'message' => 'Cập nhật lịch xem nhà trọ thành công',
+                'data' => $schedule,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json(['error' => 'Không tìm thấy lịch xem nhà trọ.'], 404);
+        } catch (HttpResponseException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Đã có lỗi xảy ra khi cập nhật lịch xem nhà trọ: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi cập nhật lịch xem nhà trọ.'], 500);
+        }
+    }
+
+    public function cancel($id): JsonResponse
+    {
+        try {
+            $schedule = $this->viewingScheduleService->cancelSchedule($id);
             return response()->json([
                 'message' => 'Hủy lịch xem nhà trọ thành công',
-                'data' => $schedule
+                'data' => $schedule,
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Không tìm thấy lịch xem nhà trọ.'
-            ], 404);
+        } catch (ModelNotFoundException) {
+            return response()->json(['error' => 'Không tìm thấy lịch xem nhà trọ.'], 404);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi hủy lịch xem nhà trọ. Vui lòng thử lại.'
-            ], 500);
+            Log::error('Đã có lỗi xảy ra khi hủy lịch xem nhà trọ: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi hủy lịch xem nhà trọ.'], 500);
         }
     }
 }
+

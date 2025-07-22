@@ -20,35 +20,43 @@ class CommentController extends Controller
         $this->commentService =  $commentService;
     }
 
-  public function getCommentsByBlog($blogSlug)
-{
-    $blog = Blog::where('slug', $blogSlug)->firstOrFail();
+    public function getCommentsByBlog($blogSlug)
+    {
+        $blog = Blog::where('slug', $blogSlug)->firstOrFail();
 
-    $comments = CommentBlog::where('blog_id', $blog->id)
-        ->whereNull('parent_id')
-        ->with([
-            'children.user:id,name,avatar',
-            'user:id,name,avatar'
-        ])
-        ->select([
-            'id', 'content', 'created_at', 'updated_at',
-            'likes_count', 'dislikes_count', 'parent_id', 'blog_id', 'user_id'
-        ])
-        ->latest()
-        ->paginate(10);
+        $comments = CommentBlog::where('blog_id', $blog->id)
+            ->whereNull('parent_id')
+            ->with([
+                'children.user:id,name,avatar',
+                'user:id,name,avatar'
+            ])
+            ->select([
+                'id',
+                'content',
+                'created_at',
+                'updated_at',
+                'likes_count',
+                'dislikes_count',
+                'parent_id',
+                'blog_id',
+                'user_id'
+            ])
+            ->latest()
+            ->paginate(10);
 
-    $data = $comments->getCollection()->map(fn($comment) => $this->formatComment($comment));
+        $data = $comments->getCollection()->map(fn($comment) => $this->formatComment($comment));
 
-    return response()->json([
-        'success' => true,
-        'data' => $data,
-        'meta' => [
-            'current_page' => $comments->currentPage(),
-            'last_page' => $comments->lastPage(),
-            'total' => $comments->total(),
-        ]
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'meta' => [
+                'current_page' => $comments->currentPage(),
+                'last_page' => $comments->lastPage(),
+                'total' => $comments->total(),
+            ]
+        ]);
+    }
+
 
     private function formatComment($comment)
     {
@@ -72,10 +80,12 @@ class CommentController extends Controller
         ];
     }
 
+
     public function ReplayComment(SendCommentRequest $request, Blog $blog)
+
     {
         // Gán tạm user_id cố định để test
-        $userId = Auth::id(); // ví dụ: admin có id=1
+        $userId = 1; // ví dụ: admin có id=1
 
         $this->commentService->replayComment(
             $blog->id,

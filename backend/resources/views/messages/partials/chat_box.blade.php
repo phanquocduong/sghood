@@ -25,8 +25,8 @@
         @csrf
         <input type="hidden" name="receiver_id" value="{{ $selectedUserId }}">
         <input type="text" name="message" id="messageInput" class="form-control me-2" placeholder="Nhập tin nhắn..." required>
-        <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;">
-        <button type="button" class="btn btn-secondary" id="uploadImageBtn">Chọn ảnh</button>
+        {{-- <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;"> --}}
+        {{-- <button type="button" class="btn btn-secondary" id="uploadImageBtn">Chọn ảnh</button> --}}
         <button type="submit" class="btn btn-primary" id="sendBtn">Gửi</button>
     </form>
 @else

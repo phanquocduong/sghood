@@ -13,11 +13,16 @@ class Transaction extends Model
         'transfer_type',
         'transfer_amount',
         'reference_code',
+        'refund_request_id',
     ];
 
     // Relationships
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
+    }
+    public function refundRequest()
+    {
+        return $this->belongsTo(RefundRequest::class);
     }
 }

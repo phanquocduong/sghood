@@ -89,12 +89,12 @@ class BlogService
             $blog = new Blog();
             $blog->title = $data['title'];
             $blog->slug = Str::slug($data['title']);
-            // $blog->excerpt = isset($data['excerpt']) ? $data['excerpt'] : '';
             $blog->content = $data['content'];
-            // $blog->thumbnail = isset($data['thumbnail']) ? $data['thumbnail'] : null;
             $blog->thumbnail = $this->uploadBlogImage($data['thumbnail']);
             $blog->status = isset($data['status']) ? $data['status'] : 'draft';
             $blog->author_id = $data['author_id'];
+            $blog->category = $data['category'] ?? 'Tin tức'; // Default category if not provided
+            $blog->views = 0; // Initialize view count to 0
             $blog->save();
 
             return $blog;

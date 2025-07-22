@@ -34,42 +34,6 @@ export function useContractUtils() {
         return `${statusClass} ${statusMap[status] || ''}`;
     };
 
-    const getExtensionStatusClass = extensionStatus => {
-        const statusClass = 'booking-status';
-        const statusMap = {
-            'Chờ duyệt': 'pending extension-status',
-            'Hoạt động': 'approved',
-            'Từ chối': 'canceled extension-status'
-        };
-        return `${statusClass} ${statusMap[extensionStatus] || ''}`;
-    };
-
-    const getCheckoutStatusClass = checkoutStatus => {
-        const statusClass = 'booking-status';
-        const statusMap = {
-            'Chờ kiểm kê': 'pending checkout-status',
-            'Đã kiểm kê': 'approved'
-        };
-        return `${statusClass} ${statusMap[checkoutStatus] || ''}`;
-    };
-
-    const formatExtensionStatus = status => {
-        const statusMap = {
-            'Chờ duyệt': 'Chờ duyệt gia hạn',
-            'Hoạt động': 'Đã gia hạn',
-            'Từ chối': 'Từ chối gia hạn'
-        };
-        return statusMap[status] || status;
-    };
-
-    const formatCheckoutStatus = status => {
-        const statusMap = {
-            'Chờ kiểm kê': 'Chờ kiểm kê trả phòng',
-            'Đã kiểm kê': 'Đã kiểm kê'
-        };
-        return statusMap[status] || status;
-    };
-
     const getActText = status => {
         const statusMap = {
             'Chờ xác nhận': 'Hoàn thiện thông tin',
@@ -87,10 +51,6 @@ export function useContractUtils() {
         isNearExpiration,
         getItemClass,
         getStatusClass,
-        getExtensionStatusClass,
-        getCheckoutStatusClass,
-        formatExtensionStatus,
-        formatCheckoutStatus,
         getActText
     };
 }

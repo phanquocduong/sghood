@@ -22,6 +22,8 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
 use App\Http\Controllers\ContractExtensionController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\RefundController;
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
@@ -209,6 +211,20 @@ Route::middleware('admin')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
     });
+
+    Route::prefix('checkouts')->name('checkouts.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::get('/{id}', [CheckoutController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
+        Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
+        Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
+    });
+
+    // Refund routes
+    Route::prefix('refunds')->name('refunds.')->group(function () {
+        Route::get('/', [RefundController::class, 'index'])->name('index');
+        Route::match(['put', 'patch'], '/{id}', [RefundController::class, 'confirm'])->name('confirm');
+    });
 });
 
 
@@ -223,20 +239,6 @@ Route::get('/contract/pdf/{id}', function ($id) {
 
     abort(404, 'File hợp đồng không tồn tại');
 });
-
-// // File tải file PDF phụ lục hợp đồng
-// Route::get('/contract/extension/pdf/{id}', function ($id) {
-//     $extension = ContractExtension::where('id', $id)
-//             ->whereHas('contract', fn($query) => $query->where('user_id', Auth::id()))
-//             ->firstOrFail();
-
-//     if ($extension->file && Storage::disk('private')->exists($extension->file)) {
-//         $filePath = Storage::disk('private')->path($extension->file);
-//         return response()->download($filePath, "contract-extension-{$id}.pdf");
-//     }
-
-//     abort(404, 'File phụ lục hợp đồng không tồn tại');
-// });
 
 // Route for meter reading index
 Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
