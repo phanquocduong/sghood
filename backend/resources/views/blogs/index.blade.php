@@ -63,6 +63,7 @@
                             <th scope="col">Stt</th>
                             <th scope="col">Hình ảnh</th>
                             <th scope="col" style="width: 30%;">Tiêu đề</th>
+                            <th scope="col">Bình luận</th>
                             <th scope="col">Tác giả</th>
                             <th scope="col">Thể loại</th>
                             <th scope="col">Ngày đăng</th>
@@ -85,7 +86,8 @@
                                                 style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                         @endif
                                     </td>
-                                    <td><a href="{{ route('blogs.detail', $blog->id) }}">{{ $blog->title }}</a></td>
+                                    <td><a href="{{ route('blogs.detail', $blog->id) }}">{{ Str::limit($blog->title, 30) }}</a></td>
+                                    <td><a href="{{ route('blogs.comment', $blog->id) }}">{{ $blog->comments_count }}</a></td>
                                     <td>{{ $blog->author->name }}</td>
                                     <td>
                                         <form action="{{ route('blogs.updateCategory', $blog->id) }}" method="POST">

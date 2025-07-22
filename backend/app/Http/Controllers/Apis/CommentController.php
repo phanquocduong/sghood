@@ -84,7 +84,7 @@ class CommentController extends Controller
     public function sendComment(SendCommentRequest $request, Blog $blog)
     {
         // Gán tạm user_id cố định để test
-        $userId = 1; // ví dụ: admin có id=1
+        $userId = Auth::id();
 
         $this->commentService->createComment(
             $blog->id,
