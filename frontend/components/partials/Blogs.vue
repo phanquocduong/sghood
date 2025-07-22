@@ -10,6 +10,7 @@
           <!-- Ảnh bài viết -->
           <NuxtLink :to="post.url" class="post-img">
             <img :src="post.thumbnail" :alt="post.title" />
+            <span class="hover-icon"><i class="fa fa-eye"></i></span>
           </NuxtLink>
 
           <!-- Ngày tạo bài viết -->
@@ -123,5 +124,28 @@ onMounted(() => {
 }
 .blog-post:hover {
   transform: translateY(-5px);
+}
+.post-img {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  height: 250px;
+}
+/* Ẩn icon mặc định */
+
+
+/* Icon mới */
+.hover-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 24px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.custom-hover-icon:hover .hover-icon {
+  opacity: 1;
 }
 </style>

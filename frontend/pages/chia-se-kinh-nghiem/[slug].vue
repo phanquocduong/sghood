@@ -93,20 +93,6 @@
         <!-- Sidebar -->
         <div class="col-lg-3 col-md-4">
           <div class="sidebar right">
-            <div class="widget">
-              <h3 class="margin-top-0">Tìm kiếm</h3>
-              <div class="search-blog-input">
-                <input type="text" class="search-field" placeholder="Gõ và enter..." v-model="searchKeyword" @keyup.enter="searchBlogs(searchKeyword)">
-              </div>
-            </div>
-
-            <div class="widget margin-top-40">
-              <h3>Liên hệ</h3>
-              <div class="info-box">
-                <p>Nếu bạn có thắc mắc, đừng ngần ngại!</p>
-                <a href="/lien-he" class="button fullwidth"><i class="fa fa-envelope-o"></i> Gửi thông tin</a>
-              </div>
-            </div>
 
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
@@ -150,7 +136,6 @@ import { useRoute } from 'vue-router'
 import { useNuxtApp, useRuntimeConfig } from '#app'
 import Comments from '~/components/partials/comments/Comments.vue'
 const route = useRoute()
-const searchKeyword = ref('')
 const blog = ref((null))
 const loading = ref(false)
 const {$api} = useNuxtApp()
@@ -161,10 +146,6 @@ const baseUrl = useRuntimeConfig().public.baseUrl
 const hasIncreasedView = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
-const commentsKey = ref(0)
-const reloadComments = () =>{
-  commentsKey.value += 1 
-}
 function formatDate(dateStr = '') {
   if (!dateStr) return 'Không rõ ngày';
 
@@ -182,30 +163,6 @@ function formatDate(dateStr = '') {
     month: '2-digit',
     year: 'numeric',
   });
-}
-const searchBlogs = async(keyWord , page = 1 , perPage=5) =>{
-  try{
-    const res = await $api(`/blogs?search=${encodeURIComponent(keyWord)}&page=${page}&per_page=${perPage}`,{
-      method:'GET',
-       headers:{
-        'Content-Type': 'application/json',
-      },
-    })
-    blogList.value= res.data.map(g=>({
-      id : g.id,
-      title :g.title,
-     thumbnail: g.thumbnail?.startsWith('/storage')
-    ? baseUrl + g.thumbnail
-    : g.thumbnail,
-      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
-      url: `/chia-se-kinh-nghiem/${g.slug}`,
-    }))
-    console.log('searchBlogs',res)
-    currentPage.value = res.current_page || 1
-    totalPages.value = res.last_page || 1
-  }catch(e){
-    console.log('searchBlogs error',e)
-  }
 }
 const fetchBlogs = async(slug)=>{
   loading.value = true
@@ -249,7 +206,7 @@ const fetchBlogs = async(slug)=>{
       url: `/chia-se-kinh-nghiem/${g.slug}`,
       date: g.created_at
     }))
-    
+     
   }catch(e){
     console.log('sai o dau do', e)
   }finally{
@@ -304,23 +261,14 @@ const fetchRelatedPosts = async(id)=>{
 }
 
 onMounted(async()=>{
-   const keyWord = route.query.search
-  const page = route.query.page || 1
-
-  if (keyWord) {
-    // Nếu đang tìm kiếm bài viết
-    await searchBlogs(keyWord, page)
-  } else {
-    // Nếu đang xem chi tiết 1 bài viết
-    await fetchBlogs()
-    await FetchPopularPosts()
-    if (blog.value && blog.value.id) {
+   await fetchBlogs()
+   await FetchPopularPosts()
+   if (blog.value && blog.value.id) {
       await fetchRelatedPosts(blog.value.id)
         await nextTick() 
-      reloadComments()
     }
   }
-})
+)
 function stripHtml(html = '') {
   return html.replace(/<[^>]*>/g, '')
 }

@@ -56,6 +56,7 @@
 
               {{ hint }}
             </li>
+          
           </ul>
         </div>
 
@@ -81,6 +82,14 @@
 </div>
 
           <button @click="sendMessage()">Gửi</button>
+  <button
+  class="suggestion-item"
+  style="background-color: #ffe0e0; color: #b71c1c"
+  @click="resetHint"
+>
+  🧹 Reset hint
+</button>
+
 
         </div>
       </template>
@@ -120,6 +129,12 @@ const fileInput = ref(null)
 const props = defineProps({
   isOpen:Boolean
 })
+const resetHint = () => {
+  localStorage.removeItem(local_hint_key.value)
+  initActions() // cập nhật lại danh sách rawAction
+  console.log('Hint đã được reset.')
+}
+
 const selectFile = () => {
   if (fileInput.value) {
     fileInput.value.click()
@@ -186,7 +201,7 @@ const initActions = () => {
 }
 
 const handleClick = (text,index)=>{
-  sendMessage(text)
+  sendMessage({ type: 'text', content: text })
   saveUserHint(text)
    const key = `usedHints_${currentUserId.value}`
   const raw = localStorage.getItem(key)
@@ -336,7 +351,7 @@ if (incoming.length > 0) {
 const sendMessage = async (payload = null) => {
 
   const type = payload?.type || 'text'
-  const Rawtext = type === 'image' ? payload?.content : newMessage.value
+  const Rawtext = payload?.content || newMessage.value
   const text = String(Rawtext).trim()
   if (!text || !AdminId.value) return
 

@@ -81,12 +81,30 @@ class CommentController extends Controller
     }
 
 
-    public function sendComment(SendCommentRequest $request, Blog $blog)
+    public function ReplayComment(SendCommentRequest $request, Blog $blog)
+
     {
         // Gán tạm user_id cố định để test
         $userId = Auth::id();
 
-        $this->commentService->createComment(
+        $this->commentService->replayComment(
+            $blog->id,
+            $userId,
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã gửi bình luận'
+        ], 201);
+    }
+
+    public function SendComment(SendCommentRequest $request, Blog $blog)
+    {
+        // Gán tạm user_id cố định để test
+        $userId = Auth::id(); // ví dụ: admin có id=1
+
+        $this->commentService->sendComment(
             $blog->id,
             $userId,
             $request->validated()

@@ -5,6 +5,11 @@ export const questionMap = {
         'Đội ngũ nhân viên có chuyên nghiệp không?',
         'Có hỗ trợ khách hàng 24/7 không?'
     ],
+     'chia-se-kinh-nghiem': [
+        'Nhà trọ có kinh nghiệm bao lâu trong lĩnh vực cho thuê phòng trọ?',
+        'Đội ngũ nhân viên có chuyên nghiệp không?',
+        'Có hỗ trợ khách hàng 24/7 không?'
+    ],
     '/': ['Tôi có thể đặt cọc online không?', 'Có được xem phòng trước khi thuê không?'],
     default: ['Tôi cần hỗ trợ']
 };

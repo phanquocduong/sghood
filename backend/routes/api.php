@@ -125,7 +125,8 @@ Route::get('/blogs/popular', [BlogController::class, 'popular']);
 Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
 // Comment blogs route
 Route::get('/blogs/{slug}/comments', [CommentController::class, 'getCommentsByBlog']);
-Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'sendComment']);
+Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'SendComment']);
+Route::post('/blogs/{blog}/replay-comment', [CommentController::class, 'ReplayComment']);
 Route::put('/comments/{id}', [CommentController::class, 'editComment']);
 Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
 Route::post('/comments/{comment}/reaction', [CommentController::class, 'react']);
