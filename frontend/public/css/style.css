@@ -15426,11 +15426,11 @@ a.close-list-item {
 }
 
 .canceled-booking .bookings .inner h3 span.booking-status {
-    background-color: #e42929; /* Đỏ đậm hơn từ #ee3535 */
+    background-color: #ee3535; /* Đỏ đậm hơn từ #ee3535 */
 }
 
 .bookings .inner h3 span.booking-status.unpaid {
-    background-color: #e42929; /* Đỏ đậm hơn */
+    background-color: #ee3535; /* Đỏ đậm hơn */
 }
 
 /* Content */
