@@ -200,7 +200,7 @@ use Illuminate\Support\Facades\Storage;
                                                     class="btn btn-outline-secondary btn-sm shadow-sm"
                                                     disabled
                                                     title="Không có file">
-                                                <i class="fas fa-file-times me-1"></i>N/A
+                                                <i class="fa-solid fa-rotate-right"></i>
                                             </button>
                                         @endif
                                     </div>

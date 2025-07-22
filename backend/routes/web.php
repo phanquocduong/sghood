@@ -218,12 +218,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
         Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
         Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
-    });
-
-    // Refund routes
-    Route::prefix('refunds')->name('refunds.')->group(function () {
-        Route::get('/', [RefundController::class, 'index'])->name('index');
-        Route::match(['put', 'patch'], '/{id}', [RefundController::class, 'confirm'])->name('confirm');
+        Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
     });
 });
 
