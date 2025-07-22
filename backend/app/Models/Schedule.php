@@ -16,20 +16,18 @@ class Schedule extends Model
         'scheduled_at',
         'message',
         'status',
-        'created_at',
-        'updated_at',
+        'rejection_reason'
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public $timestamps = true;
 
     const STATUS_PENDING = 'Chờ xác nhận';
     const STATUS_CONFIRMED = 'Đã xác nhận';
+    const STATUS_REFUSED = 'Từ chối';
     const STATUS_COMPLETED = 'Hoàn thành';
     const STATUS_CANCELED = 'Huỷ bỏ';
 

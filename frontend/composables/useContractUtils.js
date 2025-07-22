@@ -1,9 +1,14 @@
 export function useContractUtils() {
+    const config = useState('configs');
     const isNearExpiration = endDate => {
+        const nearExpirationDays = Number(config.value.is_near_expiration);
+        if (nearExpirationDays === -1) {
+            return true;
+        }
         const today = new Date();
         const end = new Date(endDate);
         const diffInDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-        return diffInDays <= 15 && diffInDays >= 0;
+        return diffInDays <= nearExpirationDays;
     };
 
     const getItemClass = status => {
@@ -34,42 +39,6 @@ export function useContractUtils() {
         return `${statusClass} ${statusMap[status] || ''}`;
     };
 
-    const getExtensionStatusClass = extensionStatus => {
-        const statusClass = 'booking-status';
-        const statusMap = {
-            'Chờ duyệt': 'pending extension-status',
-            'Hoạt động': 'approved',
-            'Từ chối': 'canceled extension-status'
-        };
-        return `${statusClass} ${statusMap[extensionStatus] || ''}`;
-    };
-
-    const getCheckoutStatusClass = checkoutStatus => {
-        const statusClass = 'booking-status';
-        const statusMap = {
-            'Chờ kiểm kê': 'pending checkout-status',
-            'Đã kiểm kê': 'approved'
-        };
-        return `${statusClass} ${statusMap[checkoutStatus] || ''}`;
-    };
-
-    const formatExtensionStatus = status => {
-        const statusMap = {
-            'Chờ duyệt': 'Chờ duyệt gia hạn',
-            'Hoạt động': 'Đã gia hạn',
-            'Từ chối': 'Từ chối gia hạn'
-        };
-        return statusMap[status] || status;
-    };
-
-    const formatCheckoutStatus = status => {
-        const statusMap = {
-            'Chờ kiểm kê': 'Chờ kiểm kê trả phòng',
-            'Đã kiểm kê': 'Đã kiểm kê'
-        };
-        return statusMap[status] || status;
-    };
-
     const getActText = status => {
         const statusMap = {
             'Chờ xác nhận': 'Hoàn thiện thông tin',
@@ -78,7 +47,8 @@ export function useContractUtils() {
             'Chờ duyệt': 'Xem chi tiết',
             'Chờ thanh toán tiền cọc': 'Xem chi tiết',
             'Hoạt động': 'Xem chi tiết',
-            'Kết thúc': 'Xem chi tiết'
+            'Kết thúc': 'Xem chi tiết',
+            'Huỷ bỏ': 'Xem chi tiết'
         };
         return statusMap[status] || '';
     };
@@ -87,10 +57,6 @@ export function useContractUtils() {
         isNearExpiration,
         getItemClass,
         getStatusClass,
-        getExtensionStatusClass,
-        getCheckoutStatusClass,
-        formatExtensionStatus,
-        formatCheckoutStatus,
         getActText
     };
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Apis;
 
+use App\Jobs\Apis\SendCheckoutNotification;
 use App\Models\Checkout;
 use App\Models\Contract;
 use App\Models\RefundRequest;
@@ -47,7 +48,7 @@ class CheckoutService
             }
 
             $existingCheckout = $contract->checkouts()
-                ->where('status', '!=', 'Huỷ bỏ')
+                ->where('inventory_status', '!=', 'Huỷ bỏ')
                 ->first();
 
             if ($existingCheckout) {
@@ -61,12 +62,11 @@ class CheckoutService
             $checkout = Checkout::create([
                 'contract_id' => $contract->id,
                 'check_out_date' => $checkOutDate,
-                'status' => 'Chờ kiểm kê',
                 'deposit_refunded' => false,
                 'has_left' => false,
             ]);
 
-             // Tạo URL mã QR theo định dạng Sepay
+            // Tạo URL mã QR theo định dạng Sepay
             $qrUrl = sprintf(
                 'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
                 urlencode($bankInfo['account_number']),
@@ -82,8 +82,13 @@ class CheckoutService
                 'qr_code_path' => $qrUrl,
             ]);
 
-            // Gửi thông báo cho admin
-            $this->notificationService->notifyContractForAdmins($contract, 'Trả phòng');
+            // Gửi thông báo qua job queue
+            SendCheckoutNotification::dispatch(
+                $checkout,
+                'pending',
+                'Yêu cầu trả phòng #' . $checkout->id,
+                "Người dùng {$contract->user->name} đã tạo yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$contract->id} vào ngày {$checkOutDate}."
+            );
 
             return [
                 'data' => [
@@ -91,14 +96,9 @@ class CheckoutService
                     'checkout' => $checkout,
                     'refund_request' => $refundRequest,
                 ],
-                'status' => 200,
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi yêu cầu trả phòng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -111,8 +111,8 @@ class CheckoutService
             })
             ->with(['contract.room.motel', 'contract.room.images']);
 
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+        if (!empty($filters['inventory_status'])) {
+            $query->where('inventory_status', $filters['inventory_status']);
         }
 
         $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
@@ -124,11 +124,13 @@ class CheckoutService
                 'check_out_date' => $checkout->check_out_date,
                 'inventory_details' => $checkout->inventory_details,
                 'deduction_amount' => $checkout->deduction_amount,
-                'status' => $checkout->status,
-                'deposit_refunded' => $checkout->deposit_refunded,
+                'final_refunded_amount' => $checkout->final_refunded_amount,
+                'inventory_status' => $checkout->inventory_status,
+                'user_confirmation_status' => $checkout->user_confirmation_status,
+                'user_rejection_reason' => $checkout->user_rejection_reason,
                 'has_left' => $checkout->has_left,
-                'note' => $checkout->note,
                 'images' => $checkout->images,
+                'note' => $checkout->note,
                 'room_name' => $checkout->contract->room->name,
                 'motel_name' => $checkout->contract->room->motel->name,
                 'room_image' => $checkout->contract->room->main_image->image_url,
@@ -138,17 +140,72 @@ class CheckoutService
         return $checkouts->values();
     }
 
-    public function rejectCheckout($id)
+    public function cancelCheckout($id)
     {
         $checkout = Checkout::findOrFail($id);
 
         // Cập nhật trạng thái của Checkout thành 'Huỷ bỏ'
-        $checkout->update(['status' => 'Huỷ bỏ']);
+        $checkout->update(['inventory_status' => 'Huỷ bỏ']);
 
         // Cập nhật trạng thái của RefundRequest liên kết (nếu có) thành 'Huỷ bỏ'
         if ($checkout->refund_request) {
-            $checkout->refund_request->update(['status' => 'Huỷ bỏ']);
+            $checkout->refund_request->update(['inventory_status' => 'Huỷ bỏ']);
         }
+
+        // Gửi thông báo qua job queue
+        SendCheckoutNotification::dispatch(
+            $checkout,
+            'canceled',
+            'Yêu cầu trả phòng #' . $checkout->id . ' đã bị hủy',
+            "Người dùng {$checkout->contract->user->name} đã hủy yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$checkout->contract->id}."
+        );
+
+        return $checkout;
+    }
+
+    public function confirmCheckout($id, string $status, ?string $userRejectionReason = null)
+    {
+        $checkout = Checkout::findOrFail($id);
+
+        // Cập nhật trạng thái xác nhận của người dùng
+        $checkout->update([
+            'user_confirmation_status' => $status,
+            'user_rejection_reason' => $userRejectionReason,
+        ]);
+
+        // Gửi thông báo qua job queue
+        $action = $status === 'Đồng ý' ? 'confirm' : 'reject';
+        $title = $action === 'confirm'
+            ? "Kết quả kiểm kê trả phòng #{$checkout->id} đã được người dùng đồng ý"
+            : "Kết quả kiểm kê #{$checkout->id} bị người dùng từ chối";
+        $body = $action === 'confirm'
+            ? "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract->id}) đã được người dùng {$checkout->contract->user->name} xác nhận đồng ý."
+            : "Kết quả kiểm kê trả phòng #{$checkout->id} (Hợp đồng: #{$checkout->contract_id}) bị người dùng {$checkout->contract->user->name} từ chối. Lý do: " . ($userRejectionReason ?? 'Không cung cấp') . ".";
+
+        SendCheckoutNotification::dispatch($checkout, $action, $title, $body);
+
+        return $checkout;
+    }
+
+    public function confirmLeftRoom($id)
+    {
+        $checkout = Checkout::findOrFail($id);
+
+        // Kiểm tra xem người dùng đã đồng ý với kiểm kê chưa
+        if ($checkout->user_confirmation_status !== 'Đồng ý') {
+            throw new \Exception('Không thể xác nhận rời phòng khi chưa đồng ý với kết quả kiểm kê.');
+        }
+
+        // Cập nhật trạng thái rời phòng
+        $checkout->update(['has_left' => true]);
+
+        // Gửi thông báo qua job queue
+        SendCheckoutNotification::dispatch(
+            $checkout,
+            'left-room',
+            "Người dùng đã xác nhận rời phòng #{$checkout->id}",
+            "Người dùng {$checkout->contract->user->name} đã xác nhận rời phòng #{$checkout->id} cho hợp đồng #{$checkout->contract->id}."
+        );
 
         return $checkout;
     }
@@ -162,3 +219,4 @@ class CheckoutService
         };
     }
 }
+?>

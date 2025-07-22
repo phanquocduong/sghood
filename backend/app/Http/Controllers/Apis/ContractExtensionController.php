@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Services\Apis\ContractExtensionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ContractExtensionController extends Controller
@@ -18,7 +17,7 @@ class ContractExtensionController extends Controller
     public function extend(int $id, Request $request): JsonResponse
     {
         try {
-            $months = $request->input('months', 6); // Lấy giá trị months từ request, mặc định là 6 nếu không có
+            $months = $request->input('months', 6);
             $result = $this->contractExtensionService->extendContract($id, $months);
 
             if (isset($result['error'])) {
@@ -30,12 +29,7 @@ class ContractExtensionController extends Controller
 
             return response()->json(['message' => 'Yêu cầu gia hạn hợp đồng đã được gửi', 'extension_id' => $result['extension_id']], 200);
         } catch (\Throwable $e) {
-            Log::error('Lỗi gia hạn hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-
+            Log::error('Lỗi gia hạn hợp đồng:' . $e->getMessage());
             return response()->json(['error' => 'Đã có lỗi xảy ra khi gia hạn hợp đồng'], 500);
         }
     }
@@ -49,16 +43,14 @@ class ContractExtensionController extends Controller
                 'data' => $bookings
             ], 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi lấy danh sách đặt phòng. Vui lòng thử lại.'
-            ], 500);
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi lấy danh sách đặt phòng. Vui lòng thử lại.'], 500);
         }
     }
 
-    public function reject(int $id): JsonResponse
+    public function cancel(int $id): JsonResponse
     {
         try {
-            $result = $this->contractExtensionService->rejectContractExtension($id);
+            $result = $this->contractExtensionService->cancelContractExtension($id);
 
             if (isset($result['error'])) {
                 return response()->json([
@@ -69,12 +61,7 @@ class ContractExtensionController extends Controller
 
             return response()->json(['message' => 'Hủy gia hạn thành công'], 200);
         } catch (\Throwable $e) {
-            Log::error('Lỗi hủy gia hạn', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-
+            Log::error('Lỗi hủy gia hạn:' . $e->getMessage());
             return response()->json(['error' => 'Đã xảy ra lỗi khi hủy gia hạn'], 500);
         }
     }

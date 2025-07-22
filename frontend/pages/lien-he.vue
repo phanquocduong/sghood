@@ -3,8 +3,8 @@
     <div class="contact-map margin-bottom-60">
         <!-- Google Maps -->
         <iframe
-            v-if="config?.gg_map"
-            :src="config.gg_map"
+            v-if="config?.google_map_url"
+            :src="config.google_map_url"
             width="100%"
             height="450"
             style="border: 0"
@@ -22,9 +22,9 @@
                 <div class="office-address">
                     <h3>Văn phòng chúng tôi</h3>
                     <ul>
-                        <li v-if="config?.dia_chi">{{ config.dia_chi }}</li>
+                        <li v-if="config?.office_address">{{ config.office_address }}</li>
                         <li></li>
-                        <li v-if="config?.sdt">Điện thoại {{ config.sdt }}</li>
+                        <li v-if="config?.contact_phone">Điện thoại: {{ config.contact_phone }}</li>
                     </ul>
                 </div>
             </div>
@@ -38,22 +38,22 @@
                 <h4 class="headline margin-bottom-30">Tìm Chúng Tôi Tại Đây</h4>
                 <div class="sidebar-textbox">
                     <p>
-                        {{ config.nav_lien_he }}
+                        {{ config.sghood_short_desc }}
                     </p>
                     <ul class="contact-details">
                         <li>
-                            <i class="im im-icon-Phone-2"></i> <strong>Phone:</strong> <span>{{ config.sdt }}</span>
+                            <i class="im im-icon-Phone-2"></i> <strong>Số điện thoại:</strong> <span>{{ config.contact_phone }}</span>
                         </li>
                         <li>
-                            <i class="im im-icon-Globe"></i> <strong>Web:</strong>
+                            <i class="im im-icon-Globe"></i> <strong>Địa chỉ website:</strong>
                             <span
-                                ><a :href="config.dia_chi_web">{{ config.dia_chi_web }}</a></span
+                                ><a :href="config.website_address">{{ config.website_address }}</a></span
                             >
                         </li>
                         <li>
-                            <i class="im im-icon-Envelope"></i> <strong>Email:</strong>
+                            <i class="im im-icon-Envelope"></i> <strong>Email liên hệ:</strong>
                             <span
-                                ><a :href="config.email">{{ config.email }}</a></span
+                                ><a :href="config.contact_email">{{ config.contact_email }}</a></span
                             >
                         </li>
                     </ul>
@@ -137,20 +137,20 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '~/stores/auth';
+import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useBehaviorStore } from '~/stores/behavior';
-import { useRoute } from 'vue-router'
 // api config
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
 console.log('Config:', config.value);
 const behavior = useBehaviorStore();
-const route = useRoute()
+const route = useRoute();
 
 onMounted(() => {
-  behavior.addVisitedPage(route.path)
-  behavior.logAction(route.path, 'lien-he')
-})
+    behavior.addVisitedPage(route.path);
+    behavior.logAction(route.path, 'lien-he');
+});
 // api lien he
 const toast = useToast();
 const { $api } = useNuxtApp();

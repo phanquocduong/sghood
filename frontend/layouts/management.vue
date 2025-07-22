@@ -9,10 +9,10 @@
                         <!-- Logo -->
                         <div id="logo">
                             <NuxtLink to="/"
-                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
+                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
                             /></NuxtLink>
                             <NuxtLink to="/" class="dashboard-logo"
-                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
+                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
                             /></NuxtLink>
                         </div>
 
@@ -28,6 +28,7 @@
                 </div>
             </div>
         </header>
+
         <!-- Dashboard -->
         <div id="dashboard">
             <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i>Thanh điều hướng</a>
@@ -38,7 +39,13 @@
                 <NuxtPage />
                 <!-- Copyrights -->
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
+                    <div class="copyrights">{{ config.copyright_title }}</div>
+                </div>
+            </div>
+            <div>
+                <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
+                <div>
+                    <ChatBox v-if="user" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage"></ChatBox>
                 </div>
             </div>
         </div>
@@ -46,19 +53,34 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '~/stores/auth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { ref, watch, nextTick, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
-import { useRoute } from 'vue-router';
-import { ref, watch, nextTick } from 'vue';
-// Lấy store và router
-const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
+import { useAuthStore } from '~/stores/auth';
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
+const isChatOpen = ref(false);
+const unreadMessages = ref(0);
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+const toast = useToast();
+const router = useRouter();
+
+const toggleChat = () => {
+    isChatOpen.value = !isChatOpen.value;
+    if (isChatOpen.value) {
+        unreadMessages.value = 0;
+    }
+};
+
+const onUnreadMessage = () => {
+    if (!isChatOpen.value) {
+        unreadMessages.value++;
+    }
+};
+
 watch(
     () => route.fullPath,
     async () => {
@@ -71,23 +93,20 @@ watch(
     { immediate: true }
 );
 
-// Kiểm tra trạng thái đăng nhập
 const checkAuth = async () => {
-    // Nếu chưa có thông tin user, thử lấy từ server
     if (!authStore.user) {
         await authStore.fetchUser();
     }
 
-    // Nếu vẫn không có user (chưa đăng nhập), chuyển hướng đến trang đăng nhập
     if (!authStore.user) {
         toast.error('Vui lòng đăng nhập!');
-        router.push('/'); // Thay '/login' bằng đường dẫn đến trang đăng nhập của bạn
+        router.push('/');
     }
 };
 
-// Gọi hàm kiểm tra ngay khi component được mount
 onMounted(() => {
     checkAuth();
+    console.log('user ở manager:', user.value);
 });
 </script>
 

@@ -158,7 +158,7 @@ const removeNotification = index => {
 
 
 .right-side {
-    display: flex;
+    display: contents;
     flex-direction: column;
     align-items: flex-end;
     gap: 4px;

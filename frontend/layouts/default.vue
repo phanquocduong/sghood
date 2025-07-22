@@ -8,7 +8,7 @@
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/"><img v-if="config?.logo_doc" :src="baseUrl + config.logo_doc" /></NuxtLink>
+                            <NuxtLink to="/"><img v-if="config?.main_logo" :src="baseUrl + config.main_logo" /></NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -53,13 +53,7 @@
         <div>
             <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
             <div>
-                <ChatBox
-                    v-if="user"
-                    :key="`chat-${isChatOpen}`"
-                    :isOpen="isChatOpen"
-                    @close="isChatOpen = false"
-                    @unread="onUnreadMessage"
-                ></ChatBox>
+                <ChatBox v-if="user" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage"></ChatBox>
             </div>
         </div>
     </div>
@@ -71,6 +65,7 @@ import { ref, watch, nextTick } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import ChatIcon from '~/components/partials/ChatIcon.vue';
 import ChatBox from '~/components/partials/ChatBox.vue';
+
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');

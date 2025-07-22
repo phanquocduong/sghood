@@ -8,9 +8,8 @@
             v-for="item in items"
             :key="item.id"
             :item="item"
-            :config="config"
             :today="today"
-            @reject-item="handleRejectItem"
+            @cancel-contract="handleCancelContract"
             @extend-contract="handleExtendContract"
             @return-contract="handleReturnContract"
             @download-pdf="downloadPdf"
@@ -27,7 +26,6 @@ import { useToast } from 'vue-toastification';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
-const config = useRuntimeConfig();
 
 const props = defineProps({
     items: {
@@ -40,11 +38,11 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract']);
+const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract']);
 const today = computed(() => new Date().toISOString().split('T')[0]);
 
-const handleRejectItem = id => {
-    emit('rejectItem', id);
+const handleCancelContract = id => {
+    emit('cancelContract', id);
 };
 
 const handleExtendContract = (id, months) => {

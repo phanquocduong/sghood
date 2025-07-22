@@ -19,12 +19,27 @@ class CommentService
                 'children.user',
                 'user'
             ])
+            ->with([
+                'children.user',
+                'user'
+            ])
             ->latest()
             ->get();
     }
 
-    public function createComment($blogId, $userId, array $data)
+   public function createComment($blogId, $userId, array $data)
     {
+        $lastComment = CommentBlog::where('user_id', $userId)
+            ->where('blog_id', $blogId)
+            ->latest()
+            ->first();
+
+        if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < 30) {
+            throw ValidationException::withMessages([
+                'spam' => 'Bạn đang bình luận quá nhanh. Vui lòng chờ 30 giây.'
+            ]);
+        }
+
         $lastComment = CommentBlog::where('user_id', $userId)
             ->where('blog_id', $blogId)
             ->latest()

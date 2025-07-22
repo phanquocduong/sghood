@@ -43,19 +43,23 @@ defineProps({
 }
 .unread-badge-number {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: -2px;
+  right: -2px;
   background-color: #ff3b30;
   color: white;
   font-size: 10px;
   font-weight: bold;
-  padding: 2px 4px;
-  border-radius: 12px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 4px;
+  border-radius: 9999px;
   box-shadow: 0 0 0 1px white;
   animation: pulse 1.2s infinite;
-
-
+  white-space: nowrap;
 }
+
 @keyframes pulse {
   0% { transform: scale(1); opacity: 1 }
   50% { transform: scale(1.3); opacity: 0.7 }

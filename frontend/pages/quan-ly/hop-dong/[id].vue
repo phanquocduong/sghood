@@ -1,6 +1,7 @@
 <template>
     <Loading :is-loading="loading" />
-    <div v-if="!loading" class="contract-page">
+
+    <div class="contract-page">
         <Titlebar :title="`Hợp đồng #${contract?.id} (${contract?.status})`" />
 
         <div class="row">
@@ -32,14 +33,7 @@
             />
         </div>
 
-        <OTPModal
-            :show="showOTPModal"
-            :phone-number="phoneNumber"
-            :loading="saveLoading"
-            v-model:otp-code="otpCode"
-            @close="showOTPModal = false"
-            @confirm="confirmOTPAndSign"
-        />
+        <OTPModal :phone-number="phoneNumber" :loading="saveLoading" v-model:otp-code="otpCode" @confirm="confirmOTPAndSign" />
     </div>
 
     <div class="row">
@@ -116,21 +110,20 @@ const isFormComplete = computed(() =>
 );
 
 // Composable
-const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, showOTPModal, otpCode } =
-    useContract({
-        contract,
-        signatureData,
-        identityDocument,
-        identityImages,
-        contractContainer,
-        loading,
-        extractLoading,
-        saveLoading,
-        toast,
-        router,
-        route,
-        dropzoneInstance
-    });
+const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, otpCode } = useContract({
+    contract,
+    signatureData,
+    identityDocument,
+    identityImages,
+    contractContainer,
+    loading,
+    extractLoading,
+    saveLoading,
+    toast,
+    router,
+    route,
+    dropzoneInstance
+});
 
 onMounted(async () => {
     await fetchContract();

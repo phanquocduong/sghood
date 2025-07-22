@@ -17,13 +17,11 @@ class RefundRequest extends Model
         'bank_info',
         'qr_code_path',
         'status',
+        'admin_note'
     ];
 
     protected $casts = [
-        'bank_info'        => 'array',
-        'deposit_amount'   => 'integer',
-        'deduction_amount' => 'integer',
-        'final_amount'     => 'integer',
+        'bank_info' => 'array',
     ];
 
 

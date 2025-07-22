@@ -7074,7 +7074,7 @@ h3 .listing-price i {
     background-color: #c0c52a;
 }
 .rating-bars-rating.high .rating-bars-rating-inner {
-    background-color: #64bc36;
+    background-color: #4caf50;
 }
 
 .rating-bars-item {
@@ -13740,7 +13740,7 @@ section.fullwidth .listing-item-container.list-layout,
 }
 
 .numerical-rating.high {
-    background-color: #64bc36;
+    background-color: #4caf50;
 }
 .numerical-rating.mid {
     background-color: #c0c52a;
@@ -14416,7 +14416,7 @@ a.dashboard-responsive-nav-trigger {
 }
 .dashboard-nav ul li span.nav-tag.messages,
 .dashboard-nav ul li span.nav-tag.green {
-    background-color: #64bc36;
+    background-color: #4caf50;
 }
 .dashboard-nav ul li span.nav-tag.yellow {
     background-color: #b9be1c;
@@ -14572,7 +14572,7 @@ a.dashboard-responsive-nav-trigger {
 /* Colors */
 .dashboard-stat.color-1 {
     background: linear-gradient(to left, rgba(255, 255, 255, 0) 25%, rgba(255, 255, 255, 0.2));
-    background-color: #64bc36;
+    background-color: #4caf50;
 }
 
 .dashboard-stat.color-2 {
@@ -14737,7 +14737,7 @@ a.dashboard-responsive-nav-trigger {
 }
 
 .message-by h5 i {
-    background-color: #64bc36;
+    background-color: #4caf50;
     border-radius: 50px;
     line-height: 20px;
     font-size: 12px;
@@ -15099,7 +15099,7 @@ a.close-list-item {
 }
 
 .paid {
-    color: #64bc36;
+    color: #4caf50;
 }
 .unpaid {
     color: #ee3535;
@@ -15141,7 +15141,7 @@ a.close-list-item {
 
 /* Booking Buttons */
 .buttons-to-right a.button.approve:hover {
-    background-color: #64bc36;
+    background-color: #4caf50;
 }
 .buttons-to-right a.button.reject:hover {
     background-color: #e42929;
@@ -15302,7 +15302,7 @@ a.close-list-item {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: rgba(22, 22, 22, 0.2);
+    background-color: rgba(0, 0, 0, 0.15); /* Giảm độ đậm overlay */
     border-radius: 4px;
     z-index: 11;
 }
@@ -15322,6 +15322,7 @@ a.close-list-item {
 .bookings .list-box-listing-img a:before {
     display: none;
 }
+
 .bookings .list-box-listing-img {
     max-width: 70px;
     max-height: 70px;
@@ -15346,7 +15347,8 @@ a.close-list-item {
     display: inline-block;
     font-weight: 600;
     margin: 0;
-    color: #666;
+    color: #444444; /* Tăng độ tương phản từ #666 */
+    margin-right: 5px;
 }
 
 .inner-booking-list ul {
@@ -15359,6 +15361,7 @@ a.close-list-item {
     display: inline-block;
     padding: 0;
     margin: 0 0 4px 0;
+    color: #333333; /* Thêm màu text đậm hơn */
 }
 
 .inner-booking-list ul li:after {
@@ -15368,7 +15371,7 @@ a.close-list-item {
     margin: 0 10px;
     height: 12px;
     top: 1px;
-    background-color: #ddd;
+    background-color: #cccccc; /* Đậm hơn từ #ddd */
     width: 1px;
 }
 
@@ -15381,20 +15384,23 @@ a.close-list-item {
     line-height: 22px;
     font-weight: 500;
     font-size: 14px;
-    background-color: #eee !important;
-    color: #777;
+    background-color: #f5f5f5 !important; /* Sáng hơn từ #eee */
+    color: #555555; /* Đậm hơn từ #777 */
     border-radius: 50px;
     display: inline-block;
+    border: 1px solid #e0e0e0; /* Thêm border để tăng độ tương phản */
 }
 
 .pending-booking .inner-booking-list ul li.highlighted {
-    background-color: #e9f7fe !important;
-    color: #3184ae;
+    background-color: #e6f3ff !important; /* Sáng và rõ hơn */
+    color: #1a5490; /* Đậm hơn từ #3184ae */
+    border-color: #b3d9ff;
 }
 
 .approved-booking .inner-booking-list ul li.highlighted {
-    background-color: #ebf6e0 !important;
-    color: #5f9025;
+    background-color: #f0f8e8 !important; /* Sáng và rõ hơn */
+    color: #3d6b1a; /* Đậm hơn từ #5f9025 */
+    border-color: #d4edaa;
 }
 
 .bookings .inner h3 span.booking-status {
@@ -15402,26 +15408,29 @@ a.close-list-item {
     line-height: 20px;
     font-weight: 600;
     font-size: 12px;
-    color: #fff;
+    color: #ffffff;
     font-style: normal;
     padding: 2px 8px;
     margin-left: 3px;
     position: relative;
     top: -2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Thêm text shadow để text rõ hơn */
 }
 
 .approved-booking .bookings .inner h3 span.booking-status {
-    background-color: #64bc36;
+    background-color: #4caf50; /* Xanh lá đậm hơn từ #4CAF50 */
 }
+
 .pending-booking .bookings .inner h3 span.booking-status {
-    background-color: #61b2db;
+    background-color: #2196f3; /* Xanh dương đậm hơn từ #61b2db */
 }
+
 .canceled-booking .bookings .inner h3 span.booking-status {
-    background-color: #ee3535;
+    background-color: #e42929; /* Đỏ đậm hơn từ #ee3535 */
 }
 
 .bookings .inner h3 span.booking-status.unpaid {
-    background-color: #ee3535;
+    background-color: #e42929; /* Đỏ đậm hơn */
 }
 
 /* Content */
@@ -15444,12 +15453,14 @@ a.close-list-item {
     font-weight: 500;
     margin: 0;
     line-height: 30px;
+    color: #222222; /* Thêm màu text đậm */
 }
 
 .list-box-listing-content .inner span {
     font-size: 15px;
     font-weight: 300;
     display: inline-block;
+    color: #555555; /* Thêm màu text đậm hơn mặc định */
 }
 
 .list-box-listing-content .inner .numerical-rating,
@@ -19073,6 +19084,8 @@ button.mfp-close {
 }
 
 #small-dialog .mfp-close,
+#edit-schedule-dialog .mfp-close,
+#otp-dialog .mfp-close,
 #sign-in-dialog,
 .mfp-close,
 .mfp-close:hover {
@@ -19081,7 +19094,9 @@ button.mfp-close {
 
 /* Popup close button*/
 #sign-in-dialog .mfp-close,
-#small-dialog .mfp-close {
+#small-dialog .mfp-close,
+#otp-dialog .mfp-close,
+#edit-schedule-dialog .mfp-close {
     color: #666;
     background-color: #e4e4e4;
     border-radius: 50%;
@@ -19092,6 +19107,8 @@ button.mfp-close {
 }
 
 #sign-in-dialog .mfp-close:hover,
+#otp-dialog .mfp-close:hover,
+#edit-schedule-dialog .mfp-close:hover,
 #small-dialog .mfp-close:hover {
     color: #fff;
     transform: rotate(0);
@@ -19100,6 +19117,10 @@ button.mfp-close {
 
 #sign-in-dialog .mfp-close::after,
 #sign-in-dialog .mfp-close::before,
+#edit-schedule-dialog .mfp-close::after,
+#edit-schedule-dialog .mfp-close::before,
+#otp-dialog .mfp-close::after,
+#otp-dialog .mfp-close::before,
 #small-dialog .mfp-close::after,
 #small-dialog .mfp-close::before {
     top: 4px;
@@ -19236,6 +19257,8 @@ button.mfp-close {
 
 /* Popup */
 #sign-in-dialog,
+#edit-schedule-dialog,
+#otp-dialog,
 #small-dialog {
     background: #fff;
     padding: 40px;
@@ -19253,6 +19276,8 @@ button.mfp-close {
 }
 
 #sign-in-dialog span.line,
+#edit-schedule-dialog span.line,
+#otp-dialog span.line,
 #small-dialog span.line {
     padding-top: 0;
 }
@@ -21648,6 +21673,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog,
+    #edit-schedule-dialog,
+    #otp-dialog,
     #small-dialog {
         background: #fff;
         padding: 30px;
@@ -21655,6 +21682,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog .mfp-close,
+    #edit-schedule-dialog .mfp-close,
+    #otp-dialog .mfp-close,
     #small-dialog .mfp-close {
         top: 24px;
         right: 30px;
@@ -21743,6 +21772,8 @@ h4 span.headline-detail {
     }
 
     #sign-in-dialog,
+    #edit-schedule-dialog,
+    #otp-dialog,
     #small-dialog {
         max-width: 75vw;
     }

@@ -1,26 +1,15 @@
+<!-- ContractItem.vue -->
 <template>
     <li :class="getItemClass(item.status)">
         <div class="list-box-listing bookings">
             <div class="list-box-listing-img">
-                <img :src="config.public.baseUrl + item.room_image" alt="Room image" />
+                <img :src="useRuntimeConfig().public.baseUrl + item.room_image" alt="Room image" />
             </div>
             <div class="list-box-listing-content">
                 <div class="inner">
                     <h3>
                         Hợp đồng #{{ item.id }} [{{ item.room_name }} - {{ item.motel_name }}]
                         <span :class="getStatusClass(item.status)">{{ item.status }}</span>
-                        <span
-                            v-if="item.latest_extension_status && item.latest_extension_status !== 'Huỷ bỏ'"
-                            :class="getExtensionStatusClass(item.latest_extension_status)"
-                        >
-                            {{ formatExtensionStatus(item.latest_extension_status) }}
-                        </span>
-                        <span
-                            v-if="item.latest_checkout_status && item.latest_checkout_status !== 'Huỷ bỏ'"
-                            :class="getCheckoutStatusClass(item.latest_checkout_status)"
-                        >
-                            {{ formatCheckoutStatus(item.latest_checkout_status) }}
-                        </span>
                     </h3>
                     <div class="inner-booking-list">
                         <h5>Ngày bắt đầu:</h5>
@@ -56,7 +45,7 @@
             </div>
         </div>
         <div class="buttons-to-right">
-            <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openConfirmRejectPopup(item.id)" class="button gray reject">
+            <a v-if="item.status === 'Chờ xác nhận'" href="#" @click.prevent="openConfirmCancelPopup(item.id)" class="button gray reject">
                 <i class="sl sl-icon-close"></i> Hủy bỏ
             </a>
             <a v-if="item.status === 'Hoạt động'" href="#" class="button gray approve" @click.prevent="emit('downloadPdf', item.id)">
@@ -102,34 +91,24 @@
             </a>
         </div>
 
+        <!-- Include modals but hidden by default for Magnific Popup -->
+        <ExtendModal :contract="selectedContract" :otpLoading="otpLoading" @close="closeExtendModal" @confirm="confirmExtendContract" />
         <ReturnModal
-            v-if="showReturnModal"
             :contract="selectedContract"
             :banks="banks"
             :today="today"
+            :otpLoading="otpLoading"
             @close="closeReturnModal"
             @request-otp="requestOTPForReturn"
         />
-
-        <ExtendModal v-if="showExtendModal" :contract="selectedContract" @close="closeExtendModal" @confirm="confirmExtendContract" />
-
-        <OTPModal
-            :show="showOTPModal"
-            :phone-number="otpPhoneNumber"
-            :loading="otpLoading"
-            v-model:otp-code="otpCode"
-            @close="closeOTPModal"
-            @confirm="confirmOTP"
-        />
+        <OTPModal :phone-number="otpPhoneNumber" :loading="otpLoading" v-model:otp-code="otpCode" @confirm="confirmOTP" />
     </li>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed } from 'vue';
 import { useToast } from 'vue-toastification';
 import Swal from 'sweetalert2';
-import TomSelect from 'tom-select';
-import 'tom-select/dist/css/tom-select.css';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 import { useContractUtils } from '~/composables/useContractUtils';
 import { useFormatPrice } from '~/composables/useFormatPrice';
@@ -137,26 +116,14 @@ import { useFormatDate } from '~/composables/useFormatDate';
 
 const { $api } = useNuxtApp();
 const toast = useToast();
+const config = useState('configs');
 const { formatPrice } = useFormatPrice();
 const { formatDate, formatDateTime } = useFormatDate();
 const { sendOTP, verifyOTP } = useFirebaseAuth();
-const {
-    getItemClass,
-    getStatusClass,
-    getExtensionStatusClass,
-    getCheckoutStatusClass,
-    formatExtensionStatus,
-    formatCheckoutStatus,
-    getActText,
-    isNearExpiration
-} = useContractUtils();
+const { getItemClass, getStatusClass, getActText, isNearExpiration } = useContractUtils();
 
 const props = defineProps({
     item: {
-        type: Object,
-        required: true
-    },
-    config: {
         type: Object,
         required: true
     },
@@ -166,16 +133,14 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectItem', 'extendContract', 'returnContract', 'downloadPdf']);
+const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract', 'downloadPdf']);
 
-const showReturnModal = ref(false);
-const showExtendModal = ref(false);
-const showOTPModal = ref(false);
 const selectedContract = ref({});
 const otpPhoneNumber = ref('');
 const otpCode = ref('');
 const otpLoading = ref(false);
 const currentAction = ref(null);
+const banks = ref(config.value.supported_banks);
 const returnForm = ref({
     check_out_date: '',
     bank_name: '',
@@ -185,7 +150,6 @@ const returnForm = ref({
 const extendForm = ref({
     months: 6
 });
-let tomSelectInstance = null;
 
 const validateReturnForm = () => {
     const form = returnForm.value;
@@ -194,13 +158,7 @@ const validateReturnForm = () => {
 
 const isExtendFormValid = computed(() => extendForm.value.months >= 1);
 
-const calculatedNewEndDate = computed(() => {
-    if (!selectedContract.value.end_date || !extendForm.value.months) return '';
-    const currentEndDate = new Date(selectedContract.value.end_date);
-    return new Date(currentEndDate.setMonth(currentEndDate.getMonth() + extendForm.value.months));
-});
-
-const openConfirmRejectPopup = async id => {
+const openConfirmCancelPopup = async id => {
     const result = await Swal.fire({
         title: 'Xác nhận hủy hợp đồng',
         text: 'Bạn có chắc chắn muốn hủy hợp đồng này?',
@@ -213,14 +171,35 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectItem', id);
+        emit('cancelContract', id);
     }
 };
 
 const openConfirmExtendPopup = contract => {
     selectedContract.value = contract;
     extendForm.value.months = 6;
-    showExtendModal.value = true;
+    if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+        console.error('Magnific Popup không được tải');
+        toast.error('Lỗi khi mở form gia hạn.');
+        return;
+    }
+    window.jQuery.magnificPopup.open({
+        items: { src: '#small-dialog', type: 'inline' },
+        fixedContentPos: false,
+        fixedBgPos: true,
+        overflowY: 'auto',
+        closeBtnInside: true,
+        preloader: false,
+        midClick: true,
+        removalDelay: 300,
+        mainClass: 'my-mfp-zoom-in',
+        closeOnBgClick: false,
+        callbacks: {
+            open: () => {
+                window.jQuery(durationSelect.value).trigger('chosen:updated');
+            }
+        }
+    });
 };
 
 const confirmExtendContract = async months => {
@@ -228,7 +207,7 @@ const confirmExtendContract = async months => {
         toast.error('Vui lòng chọn thời gian gia hạn hợp lệ.');
         return;
     }
-    showExtendModal.value = false;
+    extendForm.value.months = months;
     try {
         const response = await $api(`/contracts/${selectedContract.value.id}`, { method: 'GET' });
         otpPhoneNumber.value = response.data.user_phone || '';
@@ -237,8 +216,6 @@ const confirmExtendContract = async months => {
             return;
         }
         currentAction.value = 'extend';
-        extendForm.value.months = months; // Đồng bộ months từ modal
-        showOTPModal.value = true;
         await requestOTP();
     } catch (error) {
         toast.error('Lỗi khi lấy thông tin hợp đồng.');
@@ -247,9 +224,11 @@ const confirmExtendContract = async months => {
 };
 
 const closeExtendModal = () => {
-    showExtendModal.value = false;
     selectedContract.value = {};
     extendForm.value.months = 6;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
 };
 
 const openReturnModal = async contract => {
@@ -267,7 +246,63 @@ const openReturnModal = async contract => {
             account_number: '',
             account_holder: ''
         };
-        showReturnModal.value = true;
+        if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
+            console.error('Magnific Popup không được tải');
+            toast.error('Lỗi khi mở form trả phòng.');
+            return;
+        }
+        window.jQuery.magnificPopup.open({
+            items: { src: '#edit-schedule-dialog', type: 'inline' },
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            preloader: false,
+            midClick: true,
+            removalDelay: 300,
+            mainClass: 'my-mfp-zoom-in',
+            closeOnBgClick: false,
+            callbacks: {
+                open: () => {
+                    const selectElement = document.getElementById('bank_name');
+                    if (selectElement && !selectElement.tomselect) {
+                        new TomSelect(selectElement, {
+                            plugins: ['dropdown_input'],
+                            valueField: 'value',
+                            labelField: 'label',
+                            searchField: ['label'],
+                            options: banks.value,
+                            render: {
+                                option: (data, escape) => `
+                                    <span style="display: flex; align-items: center;">
+                                        <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;" 
+                                             src="${escape(data.logo || '')}" 
+                                             alt="${escape(data.label)} logo" 
+                                             onerror="this.style.display='none'"/>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                            ${escape(data.label)}
+                                        </span>
+                                    </span>`,
+                                item: (data, escape) => `
+                                    <span style="display: flex; align-items: center;">
+                                        <img style="max-width: 79px; margin-right: 8px; border-radius: 4px;" 
+                                             src="${escape(data.logo || '')}" 
+                                             alt="${escape(data.label)} logo" 
+                                             onerror="this.style.display='none'"/>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 87px);">
+                                            ${escape(data.label)}
+                                        </span>
+                                    </span>`,
+                                no_results: () => '<div class="no-results">Không tìm thấy ngân hàng</div>'
+                            },
+                            onChange: value => {
+                                returnForm.value.bank_name = value;
+                            }
+                        });
+                    }
+                }
+            }
+        });
     } catch (error) {
         toast.error('Lỗi khi lấy thông tin hợp đồng.');
         console.error(error);
@@ -275,8 +310,6 @@ const openReturnModal = async contract => {
 };
 
 const closeReturnModal = () => {
-    showReturnModal.value = false;
-    showOTPModal.value = false;
     selectedContract.value = {};
     returnForm.value = {
         check_out_date: '',
@@ -286,18 +319,19 @@ const closeReturnModal = () => {
     };
     otpCode.value = '';
     otpPhoneNumber.value = '';
-    if (tomSelectInstance) {
-        tomSelectInstance.destroy();
-        tomSelectInstance = null;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
     }
 };
 
 const closeOTPModal = () => {
-    showOTPModal.value = false;
     selectedContract.value = {};
     otpCode.value = '';
     otpPhoneNumber.value = '';
     currentAction.value = null;
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close();
+    }
 };
 
 const requestOTP = async () => {
@@ -306,16 +340,38 @@ const requestOTP = async () => {
         return;
     }
     try {
-        await nextTick();
+        otpLoading.value = true;
         const success = await sendOTP(otpPhoneNumber.value);
         if (!success) {
-            showOTPModal.value = false;
             toast.error('Lỗi khi gửi OTP. Vui lòng thử lại.');
+            otpLoading.value = false;
+            return;
         }
+        window.jQuery.magnificPopup.open({
+            items: { src: '#otp-dialog', type: 'inline' },
+            fixedContentPos: false,
+            fixedBgPos: true,
+            overflowY: 'auto',
+            closeBtnInside: true,
+            preloader: false,
+            midClick: true,
+            removalDelay: 300,
+            mainClass: 'my-mfp-zoom-in',
+            closeOnBgClick: false,
+            callbacks: {
+                open: () => {
+                    const otpInput = document.getElementById('otp-input');
+                    if (otpInput) {
+                        otpInput.focus();
+                    }
+                }
+            }
+        });
     } catch (error) {
         console.error('Lỗi khi gửi OTP:', error);
         toast.error('Lỗi khi gửi OTP. Vui lòng thử lại.');
-        showOTPModal.value = false;
+    } finally {
+        otpLoading.value = false;
     }
 };
 
@@ -329,9 +385,8 @@ const confirmOTP = async () => {
             return;
         }
         if (currentAction.value === 'return') {
-            console.log(selectedContract.value.id);
-            console.log(returnForm.value);
             if (validateReturnForm()) {
+                console.log(returnForm.value);
                 emit('returnContract', selectedContract.value.id, returnForm.value);
                 closeReturnModal();
             } else {
@@ -349,8 +404,7 @@ const confirmOTP = async () => {
                 return;
             }
         }
-        showOTPModal.value = false;
-        currentAction.value = null;
+        closeOTPModal();
     } catch (error) {
         console.error('Lỗi khi xác minh OTP:', error);
         toast.error('Lỗi khi xác minh OTP. Vui lòng thử lại.');
@@ -360,204 +414,14 @@ const confirmOTP = async () => {
 };
 
 const requestOTPForReturn = async formData => {
-    returnForm.value = { ...formData }; // Đồng bộ formData từ modal
+    returnForm.value = { ...formData };
     if (!validateReturnForm()) {
         toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng và tài khoản ngân hàng.');
         return;
     }
-    showReturnModal.value = false;
     currentAction.value = 'return';
-    showOTPModal.value = true;
     await requestOTP();
 };
-
-watch(showReturnModal, async newValue => {
-    if (newValue) {
-        await nextTick();
-        const selectElement = document.getElementById('bank_name');
-        if (selectElement && !selectElement.tomselect) {
-            tomSelectInstance = new TomSelect(selectElement, {
-                plugins: ['dropdown_input'],
-                valueField: 'value',
-                labelField: 'label',
-                searchField: ['label'],
-                options: banks.value,
-                render: {
-                    option: (data, escape) => `
-                        <span style="display: flex; align-items: center;">
-                            <img style="max-width: 40px; margin-right: 12px; border-radius: 4px;" 
-                                 src="${escape(data.logo || '')}" 
-                                 alt="${escape(data.label)} logo" 
-                                 onerror="this.style.display='none'"/>
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 52px);">
-                                ${escape(data.label)}
-                            </span>
-                        </span>`,
-                    item: (data, escape) => `
-                        <span style="display: flex; align-items: center;">
-                            <img style="max-width: 40px; margin-right: 12px; border-radius: 4px;" 
-                                 src="${escape(data.logo || '')}" 
-                                 alt="${escape(data.label)} logo" 
-                                 onerror="this.style.display='none'"/>
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 52px);">
-                                ${escape(data.label)}
-                            </span>
-                        </span>`,
-                    no_results: () => '<div class="no-results">Không tìm thấy kết quả</div>'
-                }
-            });
-        }
-    }
-});
-
-const banks = ref([
-    { value: 'ACB', label: 'ACB - Ngân hàng TMCP Á Châu', logo: 'https://qr.sepay.vn/assets/img/banklogo/ACB.png' },
-    { value: 'VPBank', label: 'VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng', logo: 'https://qr.sepay.vn/assets/img/banklogo/VPB.png' },
-    { value: 'TPBank', label: 'TPBank - Ngân hàng TMCP Tiên Phong', logo: 'https://qr.sepay.vn/assets/img/banklogo/TPB.png' },
-    { value: 'MSB', label: 'MSB - Ngân hàng TMCP Hàng Hải', logo: 'https://qr.sepay.vn/assets/img/banklogo/MSB.png' },
-    { value: 'NamABank', label: 'NamABank - Ngân hàng TMCP Nam Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/NAB.png' },
-    {
-        value: 'LienVietPostBank',
-        label: 'LienVietPostBank - Ngân hàng TMCP Bưu Điện Liên Việt',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/LPB.png'
-    },
-    {
-        value: 'VietCapitalBank',
-        label: 'VietCapitalBank - Ngân hàng TMCP Bản Việt',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VCCB.png'
-    },
-    {
-        value: 'BIDV',
-        label: 'BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/BIDV.png'
-    },
-    { value: 'Sacombank', label: 'Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín', logo: 'https://qr.sepay.vn/assets/img/banklogo/STB.png' },
-    { value: 'VIB', label: 'VIB - Ngân hàng TMCP Quốc tế Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/VIB.png' },
-    {
-        value: 'HDBank',
-        label: 'HDBank - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/HDB.png'
-    },
-    { value: 'SeABank', label: 'SeABank - Ngân hàng TMCP Đông Nam Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/SEAB.png' },
-    {
-        value: 'GPBank',
-        label: 'GPBank - Ngân hàng Thương mại TNHH MTV Dầu Khí Toàn Cầu',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/GPB.png'
-    },
-    {
-        value: 'PVcomBank',
-        label: 'PVcomBank - Ngân hàng TMCP Đại Chúng Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/PVCB.png'
-    },
-    { value: 'NCB', label: 'NCB - Ngân hàng TMCP Quốc Dân', logo: 'https://qr.sepay.vn/assets/img/banklogo/NCB.png' },
-    {
-        value: 'ShinhanBank',
-        label: 'ShinhanBank - Ngân hàng TNHH MTV Shinhan Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SHBVN.png'
-    },
-    { value: 'SCB', label: 'SCB - Ngân hàng TMCP Sài Gòn', logo: 'https://qr.sepay.vn/assets/img/banklogo/SCB.png' },
-    { value: 'PGBank', label: 'PGBank - Ngân hàng TMCP Xăng dầu Petrolimex', logo: 'https://qr.sepay.vn/assets/img/banklogo/PGB.png' },
-    {
-        value: 'Agribank',
-        label: 'Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VBA.png'
-    },
-    {
-        value: 'Techcombank',
-        label: 'Techcombank - Ngân hàng TMCP Kỹ thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/TCB.png'
-    },
-    {
-        value: 'SaigonBank',
-        label: 'SaigonBank - Ngân hàng TMCP Sài Gòn Công Thương',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SGICB.png'
-    },
-    { value: 'DongABank', label: 'DongABank - Ngân hàng TMCP Đông Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/DOB.png' },
-    { value: 'BacABank', label: 'BacABank - Ngân hàng TMCP Bắc Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/BAB.png' },
-    {
-        value: 'StandardChartered',
-        label: 'StandardChartered - Ngân hàng TNHH MTV Standard Chartered Bank Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/SCVN.png'
-    },
-    {
-        value: 'Oceanbank',
-        label: 'Oceanbank - Ngân hàng Thương mại TNHH MTV Đại Dương',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/Oceanbank.png'
-    },
-    { value: 'VRB', label: 'VRB - Ngân hàng Liên doanh Việt - Nga', logo: 'https://qr.sepay.vn/assets/img/banklogo/VRB.png' },
-    { value: 'ABBANK', label: 'ABBANK - Ngân hàng TMCP An Bình', logo: 'https://qr.sepay.vn/assets/img/banklogo/ABB.png' },
-    { value: 'VietABank', label: 'VietABank - Ngân hàng TMCP Việt Á', logo: 'https://qr.sepay.vn/assets/img/banklogo/VAB.png' },
-    {
-        value: 'Eximbank',
-        label: 'Eximbank - Ngân hàng TMCP Xuất Nhập khẩu Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/EIB.png'
-    },
-    {
-        value: 'VietBank',
-        label: 'VietBank - Ngân hàng TMCP Việt Nam Thương Tín',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VIETBANK.png'
-    },
-    { value: 'IndovinaBank', label: 'IndovinaBank - Ngân hàng TNHH Indovina', logo: 'https://qr.sepay.vn/assets/img/banklogo/IVB.png' },
-    { value: 'BaoVietBank', label: 'BaoVietBank - Ngân hàng TMCP Bảo Việt', logo: 'https://qr.sepay.vn/assets/img/banklogo/BVB.png' },
-    {
-        value: 'PublicBank',
-        label: 'PublicBank - Ngân hàng TNHH MTV Public Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/PBVN.png'
-    },
-    { value: 'SHB', label: 'SHB - Ngân hàng TMCP Sài Gòn - Hà Nội', logo: 'https://qr.sepay.vn/assets/img/banklogo/SHB.png' },
-    {
-        value: 'CBBank',
-        label: 'CBBank - Ngân hàng Thương mại TNHH MTV Xây dựng Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/CBB.png'
-    },
-    { value: 'OCB', label: 'OCB - Ngân hàng TMCP Phương Đông', logo: 'https://qr.sepay.vn/assets/img/banklogo/OCB.png' },
-    { value: 'KienLongBank', label: 'KienLongBank - Ngân hàng TMCP Kiên Long', logo: 'https://qr.sepay.vn/assets/img/banklogo/KLB.png' },
-    { value: 'CIMB', label: 'CIMB - Ngân hàng TNHH MTV CIMB Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/CIMB.png' },
-    { value: 'HSBC', label: 'HSBC - Ngân hàng TNHH MTV HSBC (Việt Nam)', logo: 'https://qr.sepay.vn/assets/img/banklogo/HSBC.png' },
-    {
-        value: 'DBSBank',
-        label: 'DBSBank - DBS Bank Ltd - Chi nhánh Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/DBS.png'
-    },
-    {
-        value: 'Nonghyup',
-        label: 'Nonghyup - Ngân hàng Nonghyup - Chi nhánh Hà Nội',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/NHB HN.png'
-    },
-    {
-        value: 'HongLeong',
-        label: 'HongLeong - Ngân hàng TNHH MTV Hong Leong Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/HLBVN.png'
-    },
-    { value: 'Woori', label: 'Woori - Ngân hàng TNHH MTV Woori Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/WVN.png' },
-    {
-        value: 'UnitedOverseas',
-        label: 'UnitedOverseas - Ngân hàng United Overseas - Chi nhánh TP. Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/UOB.png'
-    },
-    {
-        value: 'KookminHN',
-        label: 'KookminHN - Ngân hàng Kookmin - Chi nhánh Hà Nội',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/KBHN.png'
-    },
-    {
-        value: 'KookminHCM',
-        label: 'KookminHCM - Ngân hàng Kookmin - Chi nhánh Thành phố Hồ Chí Minh',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/KBHCM.png'
-    },
-    { value: 'COOPBANK', label: 'COOPBANK - Ngân hàng Hợp tác xã Việt Nam', logo: 'https://qr.sepay.vn/assets/img/banklogo/COOPBANK.png' },
-    {
-        value: 'VietinBank',
-        label: 'VietinBank - Ngân hàng TMCP Công thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/ICB.png'
-    },
-    { value: 'MBBank', label: 'MBBank - Ngân hàng TMCP Quân đội', logo: 'https://qr.sepay.vn/assets/img/banklogo/MB.png' },
-    {
-        value: 'Vietcombank',
-        label: 'Vietcombank - Ngân hàng TMCP Ngoại Thương Việt Nam',
-        logo: 'https://qr.sepay.vn/assets/img/banklogo/VCB.png'
-    }
-]);
 </script>
 
 <style scoped></style>

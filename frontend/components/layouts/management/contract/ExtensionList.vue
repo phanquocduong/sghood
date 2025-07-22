@@ -78,4 +78,8 @@ const openExtensionDetailPopup = async extension => {
 .contract-document {
     padding: 8px 16px;
 }
+
+.inner-booking-list h5 {
+    font-size: 14px !important;
+}
 </style>

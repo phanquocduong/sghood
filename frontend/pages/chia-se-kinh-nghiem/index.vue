@@ -4,11 +4,11 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-          <h2>Blog</h2><span>Latest News</span>
+          <h2>Bài viết</h2><span>Tin mới</span>
           <nav id="breadcrumbs">
             <ul>
-              <li><NuxtLink to="/">Home</NuxtLink></li>
-              <li>Blog</li>
+              <li><a href="/">Trang chủ</a></li>
+              <li>Bài viết</li>
             </ul>
           </nav>
         </div>
@@ -22,41 +22,72 @@
       <div class="row">
         <!-- Blog Posts -->
         <div class="col-lg-9 col-md-8 padding-right-30">
-
           <div v-if="loading" class="text-center p-5">
             <p>Đang tải bài viết...</p>
           </div>
 
-          <div v-else>
-            <div v-for="post in blogPosts" :key="post.id" class="blog-post">
-              <NuxtLink :to="post.url" class="post-img">
-                <img :src="post.thumbnail" :alt="post.title" />
-              </NuxtLink>
+        <div v-else>
+  <div class="row">
+    <div v-for="post in blogPosts" :key="post.id" class="col-md-6 col-sm-12 mb-4">
+      <div class="blog-post">
+        <NuxtLink :to="post.url" class="post-img">
+          <img :src="post.thumbnail" :alt="post.title" />
+        </NuxtLink>
 
-              <div class="post-content">
-                <h3>
-                  <NuxtLink :to="post.url">{{ post.title }}</NuxtLink>
-                </h3>
+        <div class="post-content">
+          <h3>
+            <NuxtLink :to="post.url">{{ post.title }}</NuxtLink>
+          </h3>
 
-                <ul class="post-meta">
-                  <li>{{ post.date }}</li>
-                  <li><a href="#">Chia sẻ kinh nghiệm</a></li>
-                </ul>
+          <ul class="post-meta">
+            <li>{{ post.created_at }}</li>
+            <li><a href="#">Chia sẻ kinh nghiệm</a></li>
+          </ul>
 
-                <p v-html="post.excerpt"></p>
-                <NuxtLink :to="post.url" class="read-more">
-                  Xem thêm <i class="fa fa-angle-right"></i>
-                </NuxtLink>
-              </div>
-            </div>
+          <div class="post-excerpt">
+            <p v-html="post.excerpt"></p>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container margin-bottom-40" v-if="totalPages > 1">
+    <nav class="pagination">
+      <ul>
+        <li v-if="currentPage > 1">
+          <a href="#" @click.prevent="goToPage(currentPage - 1)">
+            <i class="sl sl-icon-arrow-left"></i>
+          </a>
+        </li>
+
+        <li v-for="page in totalPages" :key="page">
+          <a
+            href="#"
+            :class="{ 'current-page': page === currentPage }"
+            @click.prevent="goToPage(page)"
+          >
+            {{ page }}
+          </a>
+        </li>
+
+        <li v-if="currentPage < totalPages">
+          <a href="#" @click.prevent="goToPage(currentPage + 1)">
+            <i class="sl sl-icon-arrow-right"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
 
         </div>
 
         <!-- Sidebar -->
         <div class="col-lg-3 col-md-4">
           <div class="sidebar right">
-
             <!-- Popular Posts -->
             <div class="widget margin-top-40">
               <h3>Bài viết phổ biến</h3>
@@ -65,12 +96,13 @@
                   <div class="widget-content">
                     <div class="widget-thumb">
                       <NuxtLink :to="post.url">
-                        <img :src="post.image" :alt="post.title" />
+                        <img :src="post.thumbnail" :alt="post.title" />
+                         <span class="hover-icon"><i class="fa fa fa-search-plus"></i></span>
                       </NuxtLink>
                     </div>
                     <div class="widget-text">
                       <h5><NuxtLink :to="post.url">{{ post.title }}</NuxtLink></h5>
-                      <span>{{ post.date }}</span>
+                      <span>{{ post.created_at }}</span>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -87,7 +119,6 @@
                 </li>
               </ul>
             </div>
-
           </div>
         </div>
       </div>
@@ -101,41 +132,39 @@ import { onMounted, ref } from 'vue'
 const loading = ref(false)
 const {$api} = useNuxtApp()
 const blogPosts = ref([])
+const popularPosts=ref([])
+const currentPage = ref(1)
+const totalPages = ref(1)
 const baseUrl = useRuntimeConfig().public.baseUrl;
-const popularPosts = [
-  {
-    id: 101,
-    title: "Hotels for All Budgets",
-    date: "October 26, 2016",
-    image: "images/blog-widget-03.jpg",
-    url: "/pages-blog-post"
-  },
-  {
-    id: 102,
-    title: "The 50 Greatest Street Arts In London",
-    date: "November 9, 2016",
-    image: "images/blog-widget-02.jpg",
-    url: "/pages-blog-post"
-  },
-  {
-    id: 103,
-    title: "The Best Coffee Shops In Sydney Neighborhoods",
-    date: "November 12, 2016",
-    image: "images/blog-widget-01.jpg",
-    url: "/pages-blog-post"
+const goToPage = (page) =>{
+  if(page !== currentPage.value) {
+    currentPage.value =page;
+    fetchBlogs(page);
   }
-]
+}
+function formatDate(dateStr = '') {
+  if (!dateStr) return 'Không rõ ngày';
 
-const socialLinks = [
-  { id: 1, name: "facebook", icon: "icon-facebook", url: "#" },
-  { id: 2, name: "twitter", icon: "icon-twitter", url: "#" },
-  { id: 3, name: "gplus", icon: "icon-gplus", url: "#" },
-  { id: 4, name: "linkedin", icon: "icon-linkedin", url: "#" }
-]
-const fetchBlogs = async()=>{
-  loading.value = true
+  // Xử lý dạng dd-MM-yyyy
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+    const [day, month, year] = dateStr.split('-');
+    dateStr = `${year}-${month}-${day}`; // Đổi sang yyyy-MM-dd
+  }
+
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+const FetchPopularPosts = async ()=>{ 
+
   try{
-    const res = await $api(`/blogs`,{
+    const res = await $api(`/blogs/popular`,{
       method:'GET',
       headers:{
         'Content-Type': 'application/json',
@@ -143,7 +172,7 @@ const fetchBlogs = async()=>{
       
     })
     console.log(res)
-    blogPosts.value = res.data.map( g => ({
+    popularPosts.value = res.map( g => ({
       id : g.id,
       title :g.title,
      thumbnail: g.thumbnail?.startsWith('/storage')
@@ -151,7 +180,42 @@ const fetchBlogs = async()=>{
     : g.thumbnail,
       excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
       url: `/chia-se-kinh-nghiem/${g.slug}`,
+       
     }))
+  }catch(e){
+    console.log('sai o dau do', e)
+  }
+}
+const socialLinks = [
+  { id: 1, name: "facebook", icon: "icon-facebook", url: "#" },
+  { id: 2, name: "twitter", icon: "icon-twitter", url: "#" },
+  { id: 3, name: "gplus", icon: "icon-gplus", url: "#" },
+  { id: 4, name: "linkedin", icon: "icon-linkedin", url: "#" }
+]
+const fetchBlogs = async(page=1)=>{
+  loading.value = true
+  try{
+    const res = await $api(`/blogs?page=${page}`,{
+      method:'GET',
+      headers:{
+        'Content-Type': 'application/json',
+      },
+      
+    })
+    console.log('fetch blogs page',res)
+    blogPosts.value = res.data.map( g => ({
+      id : g.id,
+      title :g.title, 
+     thumbnail: g.thumbnail?.startsWith('/storage')
+    ? baseUrl + g.thumbnail
+    : g.thumbnail,
+      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
+      url: `/chia-se-kinh-nghiem/${g.slug}`,
+      created_at: formatDate(g.created_at) 
+    }))
+
+    currentPage.value = res.current_page || 1
+    totalPages.value = res.last_page || 1
   }catch(e){
     console.log('sai o dau do', e)
   }finally{
@@ -159,7 +223,8 @@ const fetchBlogs = async()=>{
   }
 }
 onMounted(()=>{
-  fetchBlogs()
+  fetchBlogs(1)
+  FetchPopularPosts()
 })
 function stripHtml(html = '') {
   return html.replace(/<[^>]*>/g, '')
@@ -167,5 +232,96 @@ function stripHtml(html = '') {
 </script>
 
 <style scoped>
-/* Tùy chỉnh thêm nếu muốn */
+.blog-post {
+  position: relative;
+  height: 450px; /* Chiều cao tổng thể của bài viết */
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.post-img img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.post-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Giới hạn excerpt */
+.post-excerpt {
+  max-height: 80px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.post-excerpt::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+  pointer-events: none;
+}
+.post-excerpt p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* hoặc 2 hoặc 4 tuỳ bạn */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+@media (max-width: 767px) {
+  .blog-post {
+    height: auto;
+    overflow: visible;
+  }
+
+  .post-excerpt {
+    max-height: none;
+    margin-bottom: 0;
+  }
+
+  .post-excerpt::after {
+    display: none;
+  }
+
+   .read-more-wrapper {
+    position: relative;
+    bottom: auto;
+    text-align: left;
+    margin-top: 10px;
+  }
+
+  .read-more {
+    background-color: #ff6600;
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 4px;
+  }
+}
+.hover-icon i {
+  font-size: 30px;
+  color: #fff;
+}
+.hover-icon small {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
 </style>
