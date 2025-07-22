@@ -22,7 +22,7 @@ class CommentBlog extends Model
     // Quan hệ đến bài viết
     public function blog()
     {
-        return $this->belongsTo(Blog::class);
+        return $this->belongsTo(Blog::class, 'blog_id');
     }
 
     // Quan hệ đến user
