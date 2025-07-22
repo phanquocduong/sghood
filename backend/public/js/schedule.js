@@ -8,7 +8,7 @@
                     const scheduleId = e.target.dataset.scheduleId;
                     currentForm = document.getElementById(`status-form-${scheduleId}`);
 
-                    if (newStatus === 'Huỷ bỏ') {
+                    if (newStatus === 'Huỷ bỏ' || newStatus === 'Từ chối') {
                         const modal = new bootstrap.Modal(document.getElementById('cancelReasonModal'));
                         modal.show();
                     } else {
