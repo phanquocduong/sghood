@@ -28,11 +28,11 @@ class RefundController extends Controller
         return view('refunds.index', compact('refunds', 'querySearch', 'status', 'sort'));
     }
 
-    public function confirm($id)
+    public function confirm(Request $request, $id)
     {
         try {
             // Xác nhận yêu cầu hoàn tiền
-            $refund = $this->refundService->confirmRefund($id);
+            $refund = $this->refundService->confirmRefund($id, $request);
 
             return redirect()->route('refunds.index')->with('success', 'Yêu cầu hoàn tiền đã được xác nhận thành công.');
         } catch (\Exception $e) {

@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Services\ContractExtensionsService;
+use App\Services\ContractExtensionService;
 use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +22,7 @@ class DashboardController extends Controller
     protected $contractService;
     protected $contractExtensionsService;
 
-    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionsService $contractExtensionsService)
+    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionService $contractExtensionsService)
     {
         $this->noteService = $noteService;
         $this->repairRequestService = $repairRequestService;

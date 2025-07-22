@@ -43,10 +43,11 @@ class RefundService
      * Xác nhận yêu cầu hoàn tiền và cập nhật qr_code_path, tạo transaction
      *
      * @param int $id
+     * @param Request $request
      * @return RefundRequest
      * @throws \Exception
      */
-    public function confirmRefund($id)
+    public function confirmRefund($id, Request $request)
     {
         $refund = RefundRequest::with(['checkout.contract.room'])->findOrFail($id);
 
@@ -65,8 +66,8 @@ class RefundService
         // Lưu thay đổi trước khi tạo transaction
         $refund->save();
 
-        // Tạo transaction
-        $this->createTransaction($refund);
+        // Tạo transaction với mã tham chiếu và số tiền từ request
+        $this->createTransaction($refund, $request->input('reference_code'), $request->input('transfer_amount'));
 
         return $refund;
     }
@@ -97,13 +98,15 @@ class RefundService
      * Tạo bản ghi transaction cho yêu cầu hoàn tiền
      *
      * @param RefundRequest $refund
+     * @param string $referenceCode
+     * @param float $transferAmount
      * @return void
      */
-    protected function createTransaction(RefundRequest $refund)
+    protected function createTransaction(RefundRequest $refund, $referenceCode, $transferAmount)
     {
         Transaction::create([
-            'reference_code' => '',
-            'transfer_amount' => $refund->checkout->final_refunded_amount ?? 0,
+            'reference_code' => $referenceCode,
+            'transfer_amount' => $transferAmount,
             'content' => 'Hoàn tiền cho phòng ' . ($refund->checkout->contract->room->name ?? 'N/A'),
             'transfer_type' => 'out',
             'refund_request_id' => $refund->id,
