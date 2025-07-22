@@ -29,6 +29,11 @@
                                 readonly="readonly"
                             />
                         </div>
+                        <small class="text-muted">
+                            Vui lòng chọn ngày từ ngày mai đến tối đa 30 ngày sau ngày kết thúc hợp đồng ({{
+                                formatDate(contract.end_date)
+                            }}).
+                        </small>
                     </div>
                 </div>
                 <div class="form-row">
@@ -82,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, onUnmounted } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
@@ -134,49 +139,74 @@ const initDatePicker = () => {
         console.error('jQuery, Moment hoặc Daterangepicker không được tải');
         return;
     }
-    const tomorrow = window.moment().add(1, 'days');
-    window
-        .jQuery('#date-picker')
-        .daterangepicker({
-            opens: 'left',
-            singleDatePicker: true,
-            minDate: tomorrow,
-            locale: {
-                format: 'DD/MM/YYYY',
-                applyLabel: 'Xác nhận',
-                cancelLabel: 'Hủy',
-                daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
-                monthNames: [
-                    'Tháng 1',
-                    'Tháng 2',
-                    'Tháng 3',
-                    'Tháng 4',
-                    'Tháng 5',
-                    'Tháng 6',
-                    'Tháng 7',
-                    'Tháng 8',
-                    'Tháng 9',
-                    'Tháng 10',
-                    'Tháng 11',
-                    'Tháng 12'
-                ]
-            }
-        })
-        .on('apply.daterangepicker', (ev, picker) => {
-            returnForm.value.check_out_date = picker.startDate.format('DD/MM/YYYY');
-        })
-        .on('cancel.daterangepicker', () => {
-            returnForm.value.check_out_date = '';
-        })
-        .on('showCalendar.daterangepicker', () => {
-            window.jQuery('.daterangepicker').addClass('calendar-animated');
-        })
-        .on('show.daterangepicker', () => {
-            window.jQuery('.daterangepicker').removeClass('calendar-hidden').addClass('calendar-visible');
-        })
-        .on('hide.daterangepicker', () => {
-            window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
+
+    const initialize = () => {
+        const tomorrow = window.moment().add(1, 'days');
+        const maxDate = window.moment(props.contract.end_date, 'YYYY-MM-DD').clone().add(30, 'days');
+        window
+            .jQuery('#date-picker')
+            .daterangepicker({
+                opens: 'left',
+                singleDatePicker: true,
+                minDate: tomorrow,
+                maxDate: maxDate,
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    applyLabel: 'Xác nhận',
+                    cancelLabel: 'Hủy',
+                    daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                    monthNames: [
+                        'Tháng 1',
+                        'Tháng 2',
+                        'Tháng 3',
+                        'Tháng 4',
+                        'Tháng 5',
+                        'Tháng 6',
+                        'Tháng 7',
+                        'Tháng 8',
+                        'Tháng 9',
+                        'Tháng 10',
+                        'Tháng 11',
+                        'Tháng 12'
+                    ]
+                }
+            })
+            .on('apply.daterangepicker', (ev, picker) => {
+                returnForm.value.check_out_date = picker.startDate.format('DD/MM/YYYY');
+            })
+            .on('cancel.daterangepicker', () => {
+                returnForm.value.check_out_date = '';
+            })
+            .on('showCalendar.daterangepicker', () => {
+                window.jQuery('.daterangepicker').addClass('calendar-animated');
+            })
+            .on('show.daterangepicker', () => {
+                window.jQuery('.daterangepicker').removeClass('calendar-hidden').addClass('calendar-visible');
+            })
+            .on('hide.daterangepicker', () => {
+                window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
+            });
+    };
+
+    // Khởi tạo ngay nếu props.contract có sẵn
+    if (props.contract && props.contract.end_date) {
+        nextTick(() => {
+            initialize();
         });
+    }
+
+    // Theo dõi props.contract để khởi tạo khi dữ liệu có sẵn
+    watch(
+        () => props.contract,
+        newContract => {
+            if (newContract && newContract.end_date) {
+                nextTick(() => {
+                    initialize();
+                });
+            }
+        },
+        { immediate: false }
+    );
 };
 
 const initTomSelect = () => {

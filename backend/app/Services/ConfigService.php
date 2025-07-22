@@ -23,18 +23,6 @@ class ConfigService
     }
 
     /**
-     * Lấy danh sách cấu hình đã xóa có phân trang với tùy chọn tìm kiếm.
-     */
-    public function getTrashedConfigs(?string $search = null, int $perPage = 10)
-    {
-        return Config::onlyTrashed()
-            ->when($search, function ($query, $search) {
-                return $query->where('config_key', 'like', "%{$search}%")
-                    ->orWhere('config_value', 'like', "%{$search}%");
-            })->paginate($perPage);
-    }
-
-    /**
      * Lấy cấu hình theo ID.
      */
     public function getConfigById(int $id): Config
@@ -146,60 +134,6 @@ class ConfigService
         $path = str_replace('/storage/', '', $imagePath);
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
-        }
-    }
-
-    /**
-     * Xóa mềm cấu hình.
-     */
-    public function deleteConfig(int $id): array
-    {
-        try {
-            $config = Config::findOrFail($id);
-            $config->delete();
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            Log::error('Lỗi khi xóa cấu hình: ' . $e->getMessage(), ['id' => $id]);
-            return ['error' => 'Đã xảy ra lỗi khi xóa cấu hình.', 'status' => 500];
-        }
-    }
-
-    /**
-     * Khôi phục cấu hình đã xóa mềm.
-     */
-    public function restoreConfig(int $id): array
-    {
-        try {
-            DB::beginTransaction();
-            $config = Config::onlyTrashed()->findOrFail($id);
-            $config->restore();
-            DB::commit();
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Lỗi khi khôi phục cấu hình: ' . $e->getMessage(), ['id' => $id]);
-            return ['error' => 'Đã xảy ra lỗi khi khôi phục cấu hình.', 'status' => 500];
-        }
-    }
-
-    /**
-     * Xóa vĩnh viễn cấu hình đã xóa mềm.
-     */
-    public function forceDeleteConfig(int $id): array
-    {
-        try {
-            DB::beginTransaction();
-            $config = Config::onlyTrashed()->findOrFail($id);
-            if ($config->config_type === 'IMAGE' && $config->config_value) {
-                $this->deleteImage($config->config_value);
-            }
-            $config->forceDelete();
-            DB::commit();
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Lỗi khi xóa vĩnh viễn cấu hình: ' . $e->getMessage(), ['id' => $id]);
-            return ['error' => 'Đã xảy ra lỗi khi xóa vĩnh viễn cấu hình.', 'status' => 500];
         }
     }
 }

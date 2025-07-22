@@ -2,6 +2,7 @@
 
 namespace App\Services\Apis;
 
+use App\Jobs\Apis\SendContractExtensionNotification;
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Carbon\Carbon;
@@ -30,7 +31,8 @@ class ContractExtensionService
     public function extendContract(int $id, int $months): array
     {
         try {
-            $contract = Contract::where('id', $id)
+            $contract = Contract::query()
+                ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->where('status', 'Hoạt động')
                 ->first();
@@ -73,20 +75,20 @@ class ContractExtensionService
                 'status' => 'Chờ duyệt',
             ]);
 
-            // Gửi thông báo với ngữ cảnh "Gia hạn"
-            $this->notificationService->notifyContractForAdmins($contract, 'Gia hạn');
+            // Gửi thông báo qua job queue
+            SendContractExtensionNotification::dispatch(
+                $extension,
+                'pending',
+                'Yêu cầu gia hạn hợp đồng #' . $extension->id,
+                "Người dùng {$contract->user->name} đã yêu cầu gia hạn hợp đồng #{$contract->id} cho nhà trọ {$contract->room->motel->name} đến ngày {$newEndDate->format('d/m/Y')}."
+            );
 
             return [
                 'data' => $contract,
                 'extension_id' => $extension->id,
-                'status' => 200,
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi gia hạn hợp đồng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi gia hạn hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
@@ -94,8 +96,8 @@ class ContractExtensionService
     public function getExtensions(array $filters)
     {
         $query = ContractExtension::query()
-            ->with('contract') // Tải quan hệ contract
-            ->whereHas('contract', fn($q) => $q->where('user_id', Auth::id())); // Lọc theo user_id của contract
+            ->with('contract')
+            ->whereHas('contract', fn($q) => $q->where('user_id', Auth::id()));
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -127,7 +129,7 @@ class ContractExtensionService
         };
     }
 
-    public function rejectContractExtension(int $id): array
+    public function cancelContractExtension(int $id): array
     {
         try {
             $contractExtension = ContractExtension::findOrFail($id);
@@ -149,16 +151,20 @@ class ContractExtensionService
 
             $contractExtension->update(['status' => 'Huỷ bỏ']);
 
+            // Gửi thông báo qua job queue
+            SendContractExtensionNotification::dispatch(
+                $contractExtension,
+                'canceled',
+                'Gia hạn hợp đồng #' . $contractExtension->id . ' đã bị hủy',
+                "Người dùng {$contractExtension->contract->user->name} đã hủy yêu cầu gia hạn hợp đồng #{$contractExtension->contract_id} cho nhà trọ {$contractExtension->contract->room->motel->name}."
+            );
+
             return [
                 'data' => $contractExtension,
                 'status' => 200,
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi hủy gia hạn', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi hủy gia hạn:' . $e->getMessage());
             throw $e;
         }
     }

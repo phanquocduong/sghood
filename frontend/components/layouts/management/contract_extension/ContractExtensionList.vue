@@ -46,7 +46,7 @@
                 <a
                     v-if="extension.status === 'Chờ duyệt'"
                     href="#"
-                    @click.prevent="openConfirmRejectPopup(extension.id)"
+                    @click.prevent="openConfirmCancelPopup(extension.id)"
                     class="button gray reject"
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
@@ -84,7 +84,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['rejectExtension']);
+const emit = defineEmits(['cancelExtension']);
 
 const getItemClass = status => {
     switch (status) {
@@ -112,7 +112,7 @@ const getStatusClass = status => {
     return statusClass;
 };
 
-const openConfirmRejectPopup = async id => {
+const openConfirmCancelPopup = async id => {
     const result = await Swal.fire({
         title: `Xác nhận hủy bỏ gia hạn`,
         text: `Bạn có chắc chắn muốn hủy bỏ gia hạn hợp đồng?`,
@@ -129,7 +129,7 @@ const openConfirmRejectPopup = async id => {
     });
 
     if (result.isConfirmed) {
-        emit('rejectExtension', id);
+        emit('cancelExtension', id);
     }
 };
 
