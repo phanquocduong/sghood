@@ -324,7 +324,7 @@ function stripHtml(html = '') {
 
 .post-img img {
   width: 100%;
-  height: 200px;
+  height: 250px;
   object-fit: cover;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -347,14 +347,7 @@ function stripHtml(html = '') {
 }
 
 .post-excerpt::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 40px;
-  width: 100%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
-  pointer-events: none;
+ 
 }
 .post-excerpt p {
   display: -webkit-box;
@@ -402,5 +395,10 @@ function stripHtml(html = '') {
   font-size: 12px;
   margin-top: 5px;
 }
-
+.post-content h3{
+    display: -webkit-box;
+  -webkit-line-clamp: 1; /* hoặc 2 hoặc 4 tuỳ bạn */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>
