@@ -12,7 +12,7 @@ class AuthService
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
 
-            if ($user->role !== 'Quản trị viên') {
+            if ($user->role !== 'Quản trị viên' || $user->role !== 'Super admin') {
                 Auth::logout();
                 return ['success' => false, 'message' => 'Tài khoản không có quyền admin'];
             }

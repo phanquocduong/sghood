@@ -86,7 +86,7 @@
                     <i class="im im-icon-Check"></i> Xem kiểm kê
                 </a>
                 <a v-if="item.refund_status === 'Chờ xử lý'" href="#" @click.prevent="emitOpenBankInfoPopup(item)" class="button gray">
-                    <i class="im im-icon-Bank"></i> Kiểm tra thông tin chuyển khoản
+                    <i class="im im-icon-Bank"></i> Thông tin chuyển khoản
                 </a>
                 <a
                     v-if="item.inventory_status === 'Chờ kiểm kê'"
