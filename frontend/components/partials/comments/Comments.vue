@@ -9,7 +9,7 @@
       <template v-for="comment in comments" :key="comment.id" >
         <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh=" fetchComments" />
       </template> 
-      <div id="add-review" class="add-review-box" v-if="authStore.length === 0" >
+      <div id="add-review" class="add-review-box" v-if="authStore.user " >
  
          <!-- Add Review -->
          <h3 class="listing-desc-headline margin-bottom-35">Add Review</h3>
@@ -37,7 +37,7 @@
  
            </fieldset>
  
-           <button class="button" @click.prevent="AddReplay(blog_id)" type="submit"
+           <button class="button" @click.prevent="AddReplay(blog_id.value)" type="submit"
                            id="submit"
                            value="Gửi tin nhắn"
                            :disabled="loading"
@@ -102,7 +102,7 @@ const AddReplay = async (blog_id) => {
       body: JSON.stringify({
         content: ReplayContent.value,
         user_id: authStore.user?.id,
-        
+
       })
     })
     console.log('Reply response:', res)
