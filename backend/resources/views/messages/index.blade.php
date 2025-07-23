@@ -64,6 +64,7 @@
 </div>
 @endsection
 @section('scripts')
+<script src="{{ asset('js/chat.js') }}"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script>
