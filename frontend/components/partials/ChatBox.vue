@@ -242,7 +242,7 @@ const initChat = async () => {
   isLoading.value = true
 
   try {
-    // 1) Gọi API start-chat để backend gán admin
+    // 🚩 Gọi API để gán admin
     const res = await $api('/messages/start-chat', {
       method: 'POST',
       headers: {
@@ -254,43 +254,18 @@ const initChat = async () => {
       }
     })
 
-    if (!res?.status || !res?.admin_id) {
+    if (!res?.admin_id) {
       console.warn('Không lấy được admin từ phản hồi start-chat')
       return
     }
 
     AdminId.value = res.admin_id
 
-    // 2) Lấy lịch sử chat từ API (SQL)
-     const history = await $api(`/messages/history/${AdminId.value}`, {
-    //   headers: {
-    //     Authorization: `Bearer ${token.value}`
-    //   }
-     })
+    // 🚩 Clear tin nhắn cũ (nếu có)
+    messages.value = []
 
-    const incoming = history.data.map(msg => ({
-      id: msg.id || `${msg.created_at}_${msg.sender_id}`, // fallback nếu không có id
-      from: msg.sender_id === currentUserId.value ? 'user' : 'admin',
-      text: msg.message,
-      createdAt: msg.createdAt?.seconds ? msg.createdAt.seconds * 1000 : Date.now(),
-      type: msg.type || 'text',
-      content : msg.content || '',
-      
-    }))
-
-    messages.value = [...incoming]
-
-
-if (incoming.length > 0) {
-  const lastMessage = incoming[incoming.length - 1].createdAt
-  lastRealtime.value = new Date(lastMessage).getTime()
-  localStorage.setItem('lastRealtime', lastRealtime.value)
-}
-
-    scrollToBottom()
-
-    // 3) Lắng nghe realtime từ Firestore
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
+
     const msgQuery = query(
       collection($firebaseDb, 'messages'),
       where('chatId', '==', chatId),
@@ -298,48 +273,37 @@ if (incoming.length > 0) {
     )
 
     unsubscribe = onSnapshot(msgQuery, snapshot => {
-      const changes = snapshot.docChanges().filter(change => change.type === 'added')
-
-      const newMessages = changes.map(change => {
-  const d = change.doc.data()
-  return {
-    id: change.doc.id,
-    from: d.sender_id === currentUserId.value ? 'user' : 'admin',
-    text: d.text,
-    type: d.type || 'text',
-    content: d.content || '',
-    createdAt: d.createdAt?.toMillis?.() || Date.now()
-
-  }
-})
-
-
-      if (newMessages.length > 0) {
-        const isDuplicate = (msg, list) => list.some(m => m.id === msg.id)
-        const newUniqueMessages = newMessages.filter(m => !isDuplicate(m, messages.value))
-
-        messages.value = [...messages.value, ...newUniqueMessages]
-        scrollToBottom()
-        const hasAdmin = newUniqueMessages.some(m => {
-              const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000)
-        return m.from === 'admin' && createdAt > Math.floor(lastRealtime.value / 1000)
+      const allMessages = snapshot.docs.map(doc => {
+        const d = doc.data()
+        return {
+          id: doc.id,
+          from: d.sender_id === currentUserId.value ? 'user' : 'admin',
+          text: d.text,
+          type: d.type || 'text',
+          content: d.content || '',
+          createdAt: d.createdAt?.toMillis?.() || Date.now()
+        }
       })
 
-        if(hasAdmin){
+      messages.value = allMessages
+      scrollToBottom()
+
+      // Thông báo mới nếu admin vừa trả lời
+      const lastMsg = allMessages.at(-1)
+      if (
+        lastMsg?.from === 'admin' &&
+        lastMsg.createdAt > lastRealtime.value
+      ) {
         lastRealtime.value = Date.now()
         localStorage.setItem('lastRealtime', lastRealtime.value.toString())
-        console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value))
 
-          emit ('unread')
-          const audio = notiSound.value
-          if(audio){
-            audio.currentTime = 0
-            audio.play().catch(err=>{
-            console.warn('khong the phat am thanh',err)
+        emit('unread')
+        if (notiSound.value) {
+          notiSound.value.currentTime = 0
+          notiSound.value.play().catch(err => {
+            console.warn('Không thể phát âm thanh:', err)
           })
-          }
         }
-        
       }
     })
   } catch (error) {
@@ -348,55 +312,38 @@ if (incoming.length > 0) {
     isLoading.value = false
   }
 }
-const sendMessage = async (payload = null) => {
 
+const sendMessage = async (payload = null) => {
   const type = payload?.type || 'text'
-  const Rawtext = payload?.content || newMessage.value
-  const text = String(Rawtext).trim()
-  if (!text || !AdminId.value) return
+  const content = String(payload?.content || newMessage.value).trim()
+  if (!content || !AdminId.value) return
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
 
     scrollToBottom()
-    newMessage.value =''
-    
+    newMessage.value = ''
 
-    // Gửi tin nhắn lên Firestore (realtime)
- await addDoc(collection($firebaseDb, 'messages'), {
-  text: type === 'image' ? '' : text,
-  content: type === 'image' ? Rawtext : '',
-  type,
-  sender_id: currentUserId.value,
-  receiver_id: AdminId.value,
-  createdAt: serverTimestamp(),
-  is_read: false,
-  chatId
+    // Gửi tin nhắn lên Firestore
+    await addDoc(collection($firebaseDb, 'messages'), {
+      text: type === 'text' ? content : '',
+      content: type === 'image' ? content : '',
+      type,
+      sender_id: currentUserId.value,
+      receiver_id: AdminId.value,
+      createdAt: serverTimestamp(),
+      is_read: false,
+      chatId
+    })
 
-})
-
-
-    // Optionally: gọi API gửi nữa nếu backend cần lưu
-
-    /*  await $api('/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
-      },
-      body: {
-        receiver_id: AdminId.value,
-        message: text
-      }
-    })  */
-
-    if(type ==='text') behavior.clearChat()
+    if (type === 'text') behavior.clearChat()
 
     scrollToBottom()
   } catch (err) {
     console.error('sendMessage error:', err)
   }
 }
+
 
 onMounted(() => {
   const storeRealtime = localStorage.getItem('lastRealtime')
