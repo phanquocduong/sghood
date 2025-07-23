@@ -83,7 +83,7 @@
 
         <div class="details">
             <h3>Thông tin lịch xem phòng:</h3>
-            <p><strong>Phòng:</strong> {{ $schedule->room->name }}</p>
+            <p><strong>Phòng:</strong> {{ $schedule->motel->name }}</p>
             <p><strong>Địa chỉ:</strong> {{ $schedule->room->motel->address ?? 'Không có thông tin' }}</p>
             <p><strong>Thời gian:</strong> {{ \Carbon\Carbon::parse($schedule->scheduled_at)->format('H:i - d/m/Y') }}
             </p>
@@ -91,6 +91,7 @@
                 @php
                     $oldStatusClass = match ($oldStatus) {
                         'Đã xác nhận' => 'status-confirmed',
+                        'Từ chối' => 'status-canceled',
                         'Huỷ bỏ' => 'status-canceled',
                         'Hoàn thành' => 'status-completed',
                         default => 'status-pending'
@@ -102,6 +103,7 @@
                 @php
                     $newStatusClass = match ($newStatus) {
                         'Đã xác nhận' => 'status-confirmed',
+                        'Từ chối' => 'status-canceled',
                         'Huỷ bỏ' => 'status-canceled',
                         'Hoàn thành' => 'status-completed',
                         default => 'status-pending'

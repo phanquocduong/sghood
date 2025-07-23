@@ -62,10 +62,7 @@ class ScheduleService
     public function updateScheduleStatus(int $id, string $newStatus, ?string $cancelReason = null): array
     {
         try {
-            $schedule = Schedule::with(['motel', 'user'])->find($id);
-            if (!$schedule) {
-                return ['error' => 'Lịch xem phòng không tồn tại'];
-            }
+            $schedule = Schedule::with(['motel', 'user'])->findOrFail($id);
 
             // Lưu trạng thái cũ trước khi cập nhật
             $oldStatus = $schedule->status;
@@ -76,7 +73,7 @@ class ScheduleService
                 $schedule->rejection_reason = $cancelReason;
             } elseif ($newStatus === 'Từ chối' && $cancelReason) {
                 $schedule->rejection_reason = $cancelReason;
-            } elseif ($newStatus !== 'Huỷ bỏ') {
+            } elseif ($newStatus !== 'Huỷ bỏ' && $newStatus !== 'Từ chối') {
                 $schedule->rejection_reason = null;
             }
             $schedule->save();
