@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Checkout;
 use App\Mail\CheckoutStatusUpdated;
+use App\Mail\CheckoutRefund;
 use App\Models\Transaction;
 use App\Models\Notification;
 use App\Models\Invoice;
@@ -365,7 +366,7 @@ class CheckoutService
                     try {
                         $email = $user->email;
                         if ($email) {
-                            Mail::to($email)->send(new CheckoutStatusUpdated(
+                            Mail::to($email)->send(new CheckoutRefund(
                                 $checkout,
                                 $user->name,
                                 $room->name,
