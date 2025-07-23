@@ -1,0 +1,33 @@
+[33mb33240c7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mLaam[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{0}: merge main: Fast-forward
+[33m0e2192b8[m[33m ([m[1;31morigin/Laam[m[33m)[m HEAD@{1}: checkout: moving from main to Laam
+[33mb33240c7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mLaam[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{2}: pull origin main: Fast-forward
+[33meae19765[m HEAD@{3}: checkout: moving from Laam to main
+[33m0e2192b8[m[33m ([m[1;31morigin/Laam[m[33m)[m HEAD@{4}: commit: refactor chekcout-refund
+[33m14d926db[m HEAD@{5}: commit (merge): merge main 2207
+[33m8c1ef901[m HEAD@{6}: checkout: moving from main to Laam
+[33meae19765[m HEAD@{7}: pull origin main: Fast-forward
+[33m171ae1ce[m HEAD@{8}: checkout: moving from Laam to main
+[33m8c1ef901[m HEAD@{9}: commit: refactor
+[33m171ae1ce[m HEAD@{10}: merge main: Fast-forward
+[33me32c7797[m HEAD@{11}: checkout: moving from main to Laam
+[33m171ae1ce[m HEAD@{12}: pull origin main: Fast-forward
+[33m2e6149bd[m HEAD@{13}: checkout: moving from Laam to main
+[33me32c7797[m HEAD@{14}: commit: update refund_request
+[33m49aeef88[m HEAD@{15}: commit: checkout done reject user
+[33m1882f292[m HEAD@{16}: commit: done checkout main and noti done
+[33m20d94720[m HEAD@{17}: commit: done chekout thieu mail
+[33m4ca18fa8[m HEAD@{18}: commit (merge): chane status
+[33mf76f6e15[m HEAD@{19}: checkout: moving from main to Laam
+[33m2e6149bd[m HEAD@{20}: pull origin main: Fast-forward
+[33mb0895a15[m HEAD@{21}: checkout: moving from Laam to main
+[33mf76f6e15[m HEAD@{22}: commit: done 100% checkout
+[33m6fb168db[m HEAD@{23}: commit: done checkout 80%
+[33m5fd12453[m HEAD@{24}: commit: tesst
+[33m4858fecb[m HEAD@{25}: commit: update checkout
+[33m4deaf9e9[m HEAD@{26}: commit (merge): merge main 1507
+[33me3ce7b7b[m HEAD@{27}: checkout: moving from main to Laam
+[33mb0895a15[m HEAD@{28}: pull origin main: Fast-forward
+[33m0008b503[m HEAD@{29}: checkout: moving from Laam to main
+[33me3ce7b7b[m HEAD@{30}: commit: update mini size
+[33mc9398ab9[m HEAD@{31}: commit: update detail contracts
+[33m7f4917bd[m HEAD@{32}: commit (merge): merge main
