@@ -131,7 +131,7 @@ fetchHeaderData('messages');
 setInterval(() => {
     fetchHeaderData('notifications');
     fetchHeaderData('messages');
-}, 3000);
+}, 30000);
 </script>
 
 
