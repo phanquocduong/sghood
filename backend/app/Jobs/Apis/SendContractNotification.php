@@ -35,7 +35,7 @@ class SendContractNotification implements ShouldQueue
     public function handle()
     {
         try {
-            $admins = User::where('role', 'Quản trị viên')->get();
+            $admins = User::where('role', 'Quản trị viên')->orWhere('role', 'Super admin')->get();
             if ($admins->isEmpty()) {
                 Log::warning('Không tìm thấy admin với role Quản trị viên');
                 return;

@@ -142,12 +142,12 @@ class BookingService
 
             // Thông tin bên A (chủ nhà) - có thể lấy từ config hoặc database
             'landlord' => [
-                'name' => 'Phan Quốc Dương',
-                'year_of_birth' => '2005',
-                'identity_number' => '083205001354',
-                'date_of_issue' => '11/04/2021',
-                'place_of_issue' => 'Cục Trưởng Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội',
-                'permanent_address' => '132/2, Khu Phố 2, Phường 4, Thành phố Bến Tre, Bến Tre'
+                'name' => 'Nguyễn Hoàng Minh',
+                'year_of_birth' => '1985',
+                'identity_number' => '079108004672',
+                'date_of_issue' => '25/09/2018',
+                'place_of_issue' => 'Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội',
+                'permanent_address' => '45/7, Khu Phố 3, Phường Tân Phú, Quận 7, Thành phố Hồ Chí Minh'
             ],
 
             // Thông tin bên B (người thuê)

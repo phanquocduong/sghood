@@ -22,10 +22,10 @@
                             class="input-text"
                             id="phone"
                             v-model="phone"
-                            required
                             pattern="^(\+84|0)(3|5|7|8|9)\d{8}$"
                             :disabled="otpSent"
                             placeholder="+84xxxxxxxxx"
+                            required
                             autocomplete="tel"
                         />
                         <span v-if="phoneError" class="error-text">{{ phoneError }}</span>
