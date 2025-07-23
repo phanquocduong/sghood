@@ -15,7 +15,7 @@ class EnsureIsAdmin
         }
 
         $user = Auth::user();
-        if ($user->role !== 'Quản trị viên') {
+        if ($user->role == 'Người đăng ký' || $user->role == 'Người thuê') {
             return redirect()->route('login')->with('error', 'Tài khoản không có quyền admin');
         }
 
