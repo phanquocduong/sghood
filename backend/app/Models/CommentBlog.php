@@ -28,7 +28,7 @@ class CommentBlog extends Model
     // Quan hệ đến user
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Quan hệ cha
@@ -42,4 +42,5 @@ class CommentBlog extends Model
     {
         return $this->hasMany(self::class, 'parent_id');
     }
+
 }

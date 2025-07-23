@@ -45,8 +45,8 @@ class ScheduleController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Chờ xác nhận,Đã xác nhận,Huỷ bỏ,Hoàn thành',
-            'cancel_reason' => 'required_if:status,Huỷ bỏ|string|max:500|nullable',
+            'status' => 'required|in:Chờ xác nhận,Đã xác nhận,Từ chối,Huỷ bỏ,Hoàn thành',
+            'cancel_reason' => 'required_if:status,Huỷ bỏ,Từ chối|string|max:500|nullable',
         ]);
 
         $result = $this->scheduleService->updateScheduleStatus(

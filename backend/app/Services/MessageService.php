@@ -164,4 +164,40 @@ class MessageService
             'latest' => $latest,
         ];
     }
+
+    public static function getAllMessages()
+    {
+        $firestore = (new Factory)->createFirestore();
+        $db = $firestore->database();
+
+        $messagesRef = $db->collection('messages');
+
+        // 🔷 chỉ lấy những message có is_read == false
+        $query = $messagesRef
+            ->where('is_read', '=', false)
+            ->orderBy('createdAt', 'desc')   // 👈 Thêm sort
+            ->limit(3);                      // 👈 Giới hạn 3
+
+
+        $documents = $query->documents();
+
+        $messages = collect();
+
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $data = $doc->data();
+                $data['id'] = $doc->id();
+                // Lấy tên user nếu cần
+                $user = User::find($data['sender_id']);
+                $data['sender_name'] = $user?->name ?? 'Unknown';
+
+                $messages[] = (object) $data;
+            }
+        }
+
+        return [
+            'data' => $messages,
+            'error' => null,
+        ];
+    }
 }

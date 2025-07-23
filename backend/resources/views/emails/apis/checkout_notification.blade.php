@@ -491,22 +491,28 @@
             <div class="message">
                 @if ($type == 'pending')
                     <span class="status-badge status-pending">Chờ xử lý</span><br>
-                    Một yêu cầu trả phòng mới vừa được tạo và đang chờ sự xử lý từ bạn. Vui lòng kiểm tra và xử lý trong thời gian sớm nhất.
+                    Một yêu cầu trả phòng mới vừa được tạo và đang chờ sự xử lý từ bạn.
                 @elseif ($type == 'confirm')
                     <span class="status-badge status-confirm">Đã đồng ý</span><br>
-                    Kết quả kiểm kê trả phòng vừa được người dùng xác nhận đồng ý trong hệ thống.
+                    Kết quả kiểm kê trả phòng vừa được người dùng xác nhận đồng ý.
                 @elseif ($type == 'reject')
                     <span class="status-badge status-reject">Đã từ chối</span><br>
-                    Kết quả kiểm kê trả phòng vừa bị người dùng từ chối trong hệ thống.
+                    Kết quả kiểm kê trả phòng vừa bị người dùng từ chối.
                 @elseif ($type == 'canceled')
                     <span class="status-badge status-canceled">Đã hủy</span><br>
-                    Một yêu cầu trả phòng vừa bị người dùng hủy trong hệ thống.
+                    Một yêu cầu trả phòng vừa bị người dùng hủy.
                 @elseif ($type == 'left-room')
                     <span class="status-badge status-left-room">Đã rời phòng</span><br>
-                    Người dùng vừa xác nhận đã rời phòng trong hệ thống.
+                    Người dùng vừa xác nhận đã rời phòng.
+                @elseif ($type == 'update-bank')
+                    <span class="status-badge status-pending">Cập nhật ngân hàng</span><br>
+                    Thông tin chuyển khoản của yêu cầu trả phòng vừa được cập nhật.
+                @elseif ($type == 'refund')
+                    <span class="status-badge status-confirm">Đã hoàn tiền</span><br>
+                    Yêu cầu hoàn tiền vừa được xác nhận.
                 @else
                     <span class="status-badge status-pending">Thông báo</span><br>
-                    Có một thông báo quan trọng liên quan đến yêu cầu trả phòng cần sự chú ý của bạn.
+                    Có một thông báo quan trọng liên quan đến yêu cầu trả phòng.
                 @endif
             </div>
 
@@ -625,6 +631,41 @@
                 <div class="detail-row">
                     <div class="detail-label">Ghi chú:</div>
                     <div class="detail-value">"{{ $checkout->note }}"</div>
+                </div>
+                @endif
+
+                @if ($checkout->bank_info)
+                <div class="detail-row">
+                    <div class="detail-label">Thông tin ngân hàng:</div>
+                    <div class="detail-value">
+                        {{ $checkout->bank_info['bank_name'] ?? '' }}<br>
+                        Số tài khoản: {{ $checkout->bank_info['account_number'] ?? '' }}<br>
+                        Chủ tài khoản: {{ $checkout->bank_info['account_holder'] ?? '' }}
+                    </div>
+                </div>
+                @endif
+
+                @if ($checkout->refund_status)
+                <div class="detail-row">
+                    <div class="detail-label">Trạng thái hoàn tiền:</div>
+                    <div class="detail-value">
+                        @if($checkout->refund_status == 'Chờ xử lý')
+                            <span style="color: #92400e;">Chờ xử lý</span>
+                        @elseif($checkout->refund_status == 'Đã xử lý')
+                            <span style="color: #059669;">Đã xử lý</span>
+                        @elseif($checkout->refund_status == 'Huỷ bỏ')
+                            <span style="color: #dc2626;">Huỷ bỏ</span>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+                @if ($checkout->receipt_path)
+                <div class="detail-row">
+                    <div class="detail-label">Biên lai hoàn tiền:</div>
+                    <div class="detail-value">
+                        <a href="{{ url('/storage/' . $checkout->receipt_path) }}" target="_blank">Xem biên lai</a>
+                    </div>
                 </div>
                 @endif
 

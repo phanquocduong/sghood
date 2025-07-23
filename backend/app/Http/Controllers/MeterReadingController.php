@@ -40,7 +40,7 @@ class MeterReadingController extends Controller
 
         return view('meter_readings.index', $data);
     }
-     public function store(MeterReadingRequest $request)
+    public function store(MeterReadingRequest $request)
     {
         try {
             DB::beginTransaction();
@@ -78,7 +78,12 @@ class MeterReadingController extends Controller
                 $message .= ' Đã tạo ' . count($createdInvoices) . ' hóa đơn: ' . implode(', ', $createdInvoices) . '.';
             }
 
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $message]);
+            }
+
             return redirect()->route('meter_readings.index')->with('success', $message);
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating meter readings', [
@@ -86,8 +91,8 @@ class MeterReadingController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Lưu dữ liệu vào session để sử dụng trong modal
-            session()->flash('motel_data', [
+            // Gửi dữ liệu về để dùng lại trong modal
+            $motelData = [
                 'motel_name' => $request->input('motel_name', 'Unknown'),
                 'month' => $month,
                 'year' => $year,
@@ -97,8 +102,17 @@ class MeterReadingController extends Controller
                         'name' => Room::find($reading['room_id'])->name ?? 'Unknown',
                     ];
                 })->toArray(),
-                'readings' => $readings,
-            ]);
+            ];
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                    'motel_data' => $motelData,
+                ], 500);
+            }
+
+            session()->flash('motel_data', $motelData);
 
             return redirect()->route('meter_readings.index')
                 ->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage())
@@ -106,6 +120,7 @@ class MeterReadingController extends Controller
                 ->with('open_update_modal', true);
         }
     }
+
 
 
 

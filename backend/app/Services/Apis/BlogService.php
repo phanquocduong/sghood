@@ -18,6 +18,12 @@ class BlogService
                     ->orWhere('content', 'like', "%{$search}%");
             });
         }
+
+        // Lọc theo danh mục
+        if (!empty($params['category'])) {
+            $query->where('category', $params['category']);
+        }
+
         $perPage = $params['per_page'] ?? 6;
 
 
@@ -26,7 +32,7 @@ class BlogService
 
     public function getBlogBySlug($slug)
     {
-        return Blog::select('id', 'title', 'slug', 'content', 'created_at')
+        return Blog::select('thumbnail', 'id', 'title', 'slug', 'content', 'created_at')
             ->where('slug', $slug)
             ->first();
     }

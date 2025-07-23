@@ -39,7 +39,7 @@ export const useNotificationStore = defineStore('notification', () => {
                 title: item.title,
                 content: item.content,
                 unread: item.status === 'Chưa đọc',
-                time: new Date(item.created_at).toLocaleString()
+                time: item.created_at
             }));
         } catch (err) {
             console.log(err);

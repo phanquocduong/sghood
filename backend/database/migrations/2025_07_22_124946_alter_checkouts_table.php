@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('has_left')->default(false);
             $table->json('images')->nullable();
             $table->string('note')->nullable();
-            $table->json('bank_info');
+            $table->json('bank_info')->nullable();
             $table->string('qr_code_path')->nullable();
             $table->enum('refund_status', ['Chờ xử lý', 'Đã xử lý', 'Huỷ bỏ'])->default('Chờ xử lý');
             $table->string('receipt_path')->nullable();

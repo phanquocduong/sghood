@@ -54,21 +54,9 @@ function bindSendMessageForm() {
         e.preventDefault();
 
         const messageInput = document.getElementById('messageInput');
-        const imageInput = document.getElementById('imageInput');
         const message = messageInput.value.trim();
-        const imageFile = imageInput.files[0];
 
-        if (!message && !imageFile) return;
-
-        let imageUrl = null;
-
-        // Upload ảnh lên Firebase Storage nếu có
-        if (imageFile) {
-            const storageRef = firebase.storage().ref(`images/${Date.now()}_${imageFile.name}`);
-            await storageRef.put(imageFile);
-            imageUrl = await storageRef.getDownloadURL();
-            console.log('Image uploaded to Storage with URL:', imageUrl);
-        }
+        if (!message) return;
 
         // Gửi dữ liệu lên Firestore
         const db = firebase.firestore();
@@ -76,9 +64,9 @@ function bindSendMessageForm() {
             chatId: chatKey,
             sender_id: currentUserId,
             receiver_id: chatUserId,
-            text: message || '', // Văn bản có thể rỗng nếu chỉ gửi hình
-            content: imageUrl || message, // Sử dụng content cho imageUrl hoặc text
-            type: imageUrl ? 'image' : 'text',
+            text: message,
+            content: message, // không có ảnh thì content = text
+            type: 'text',
             is_read: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -87,8 +75,8 @@ function bindSendMessageForm() {
 
         // Reset form
         messageInput.value = '';
-        imageInput.value = '';
     });
+
 }
 
 function listenToFirestore() {

@@ -1,7 +1,6 @@
 <template>
     <h4>Quản lý yêu cầu trả phòng</h4>
 
-    <!-- Hiển thị loading spinner -->
     <Loading :is-loading="isLoading" />
 
     <ul v-if="!isLoading">
@@ -27,6 +26,17 @@
                                 <li>{{ item.user_rejection_reason }}</li>
                             </ul>
                         </div>
+                        <div
+                            v-if="item.inventory_status === 'Đã kiểm kê' && item.user_confirmation_status === 'Đồng ý'"
+                            class="inner-booking-list"
+                        >
+                            <h5>Trạng thái hoàn tiền:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted" :class="item.refund_status === 'Chờ xử lý' ? 'pending' : ''">
+                                    {{ item.refund_status }}
+                                </li>
+                            </ul>
+                        </div>
                         <div class="inner-booking-list">
                             <h5>Ngày dự kiến rời phòng:</h5>
                             <ul class="booking-list">
@@ -37,6 +47,12 @@
                             <h5>Trạng thái rời phòng:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ item.has_left ? 'Đã rời' : 'Chưa rời' }}</li>
+                            </ul>
+                        </div>
+                        <div v-if="item.contract.deposit_amount" class="inner-booking-list">
+                            <h5>Tiền cọc hợp đồng:</h5>
+                            <ul class="booking-list">
+                                <li class="highlighted">{{ formatPrice(item.contract.deposit_amount) }}</li>
                             </ul>
                         </div>
                         <div v-if="item.deduction_amount" class="inner-booking-list">
@@ -69,6 +85,9 @@
                 >
                     <i class="im im-icon-Check"></i> Xem kiểm kê
                 </a>
+                <a v-if="item.refund_status === 'Chờ xử lý'" href="#" @click.prevent="emitOpenBankInfoPopup(item)" class="button gray">
+                    <i class="im im-icon-Bank"></i> Thông tin chuyển khoản
+                </a>
                 <a
                     v-if="item.inventory_status === 'Chờ kiểm kê'"
                     href="#"
@@ -96,17 +115,11 @@ const { formatPrice } = useFormatPrice();
 const config = useRuntimeConfig();
 
 const props = defineProps({
-    items: {
-        type: Array,
-        required: true
-    },
-    isLoading: {
-        type: Boolean,
-        required: true
-    }
+    items: { type: Array, required: true },
+    isLoading: { type: Boolean, required: true }
 });
 
-const emit = defineEmits(['cancelCheckout', 'openInventoryPopup']);
+const emit = defineEmits(['cancelCheckout', 'openInventoryPopup', 'openBankInfoPopup']);
 
 const getItemClass = status => {
     switch (status) {
@@ -192,6 +205,10 @@ const openConfirmCancelPopup = async id => {
 const emitOpenInventoryPopup = item => {
     emit('openInventoryPopup', item);
 };
+
+const emitOpenBankInfoPopup = item => {
+    emit('openBankInfoPopup', item);
+};
 </script>
 
 <style scoped>
@@ -207,5 +224,11 @@ const emitOpenInventoryPopup = item => {
 
 .booking-status.canceled.user-confirmation-status {
     background-color: #e42929 !important;
+}
+
+.approved-booking .inner-booking-list ul li.highlighted.pending {
+    background-color: #e6f3ff !important;
+    color: #1a5490 !important;
+    border-color: #b3d9ff !important;
 }
 </style>

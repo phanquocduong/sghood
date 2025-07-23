@@ -3,6 +3,13 @@
 @section('title', 'Danh sách chỉ số điện nước')
 
 @section('content')
+    <style>
+        .modal-lg-custom {
+            max-width: 90%;
+            width: 1200px;
+        }
+    </style>
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i>
@@ -102,24 +109,17 @@
                 @endphp
 
                 @if ($isFiltering || $shouldDisplayTable)
-                    <div class="table-responsive" style="display: block;" id="displayIndex">
-                        <table class="table table-hover table-bordered align-middle">
-                            <thead class="table-success">
-                                <tr>
-                                    <th class="text-center" style="width: 5%;">STT</th>
-                                    <th class="text-center" style="width: 15%;">Phòng</th>
-                                    <th class="text-center" style="width: 12%;">Tháng/Năm</th>
-                                    <th class="text-center" style="width: 15%;">Điện (kWh)</th>
-                                    <th class="text-center" style="width: 15%;">Nước (m³)</th>
-                                    <th class="text-center" style="width: 15%;">Ngày ghi</th>
-                                    <th class="text-center" style="width: 18%;">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($rooms as $motelId => $groupedRooms)
-                                    <tr class="table-primary">
-                                        <th colspan="6">🏠 {{ $groupedRooms->first()->motel->name ?? 'Không xác định' }}</th>
-                                        <th class="text-center">
+                    <div class="accordion" id="motelAccordion" style="display: block;" id="displayIndex">
+                        @forelse ($rooms as $motelId => $groupedRooms)
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="motelHeading{{ $motelId }}">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#motelCollapse{{ $motelId }}" aria-expanded="true" aria-controls="motelCollapse{{ $motelId }}">
+                                        🏠 {{ $groupedRooms->first()->motel->name ?? 'Không xác định' }}
+                                    </button>
+                                </h2>
+                                <div id="motelCollapse{{ $motelId }}" class="accordion-collapse collapse show" aria-labelledby="motelHeading{{ $motelId }}" data-bs-parent="#motelAccordion">
+                                    <div class="accordion-body">
+                                        <div class="d-flex justify-content-end mb-3">
                                             @php
                                                 $motelData = [
                                                     'motel_id' => $motelId,
@@ -139,46 +139,61 @@
                                             <button class="btn btn-warning btn-sm" data-motel-button='@json($motelData)'>
                                                 <i class="fas fa-edit"></i> Cập nhật tất cả
                                             </button>
-                                        </th>
-                                    </tr>
-                                    @foreach ($groupedRooms as $index => $room)
-                                        @php
-                                            $electricity = $room->electricity_kwh ?? 0;
-                                            $water = $room->water_m3 ?? 0;
-                                        @endphp
-                                        <tr>
-                                            <td class="text-center">{{ $index + 1 }}</td>
-                                            <td class="text-center">{{ $room->name }}</td>
-                                            <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
-                                            <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
-                                            <td class="text-center">{{ number_format($water, 2) }} m³</td>
-                                            <td class="text-center">{{ now()->format('d/m/Y') }}</td>
-                                            <td class="text-center">
-                                                @php
-                                                    $roomData = [
-                                                        'motel_id' => $motelId,
-                                                        'motel_name' => $groupedRooms->first()->motel->name,
-                                                        'id' => $room->id,
-                                                        'name' => $room->name,
-                                                        'electricity_kwh' => $electricity,
-                                                        'water_m3' => $water,
-                                                        'month' => $displayMonth,
-                                                        'year' => $displayYear,
-                                                    ];
-                                                @endphp
-                                                <button class="btn btn-warning btn-sm edit-room" data-room='@json($roomData)'>
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center text-muted">Không có dữ liệu</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-bordered align-middle">
+                                                <thead class="table-success">
+                                                    <tr>
+                                                        <th class="text-center" style="width: 5%;">STT</th>
+                                                        <th class="text-center" style="width: 15%;">Phòng</th>
+                                                        <th class="text-center" style="width: 12%;">Tháng/Năm</th>
+                                                        <th class="text-center" style="width: 15%;">Điện (kWh)</th>
+                                                        <th class="text-center" style="width: 15%;">Nước (m³)</th>
+                                                        <th class="text-center" style="width: 15%;">Ngày ghi</th>
+                                                        <th class="text-center" style="width: 18%;">Thao tác</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($groupedRooms as $index => $room)
+                                                        @php
+                                                            $electricity = $room->electricity_kwh ?? 0;
+                                                            $water = $room->water_m3 ?? 0;
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-center">{{ $index + 1 }}</td>
+                                                            <td class="text-center">{{ $room->name }}</td>
+                                                            <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
+                                                            <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
+                                                            <td class="text-center">{{ number_format($water, 2) }} m³</td>
+                                                            <td class="text-center">{{ now()->format('d/m/Y') }}</td>
+                                                            <td class="text-center">
+                                                                @php
+                                                                    $roomData = [
+                                                                        'motel_id' => $motelId,
+                                                                        'motel_name' => $groupedRooms->first()->motel->name,
+                                                                        'id' => $room->id,
+                                                                        'name' => $room->name,
+                                                                        'electricity_kwh' => $electricity,
+                                                                        'water_m3' => $water,
+                                                                        'month' => $displayMonth,
+                                                                        'year' => $displayYear,
+                                                                    ];
+                                                                @endphp
+                                                                <button class="btn btn-warning btn-sm edit-room" data-room='@json($roomData)'>
+                                                                    <i class="fas fa-plus"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center text-muted">Không có dữ liệu</div>
+                        @endforelse
                     </div>
                 @else
                     <div class="alert alert-info text-center" style="display: block;" id="displayIndex">
@@ -205,7 +220,7 @@
 
     <!-- Update Meter Reading Modal -->
     <div class="modal fade" id="updateMeterModal" tabindex="-1" aria-labelledby="updateMeterModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg-custom">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title" id="updateMeterModalLabel">
@@ -225,7 +240,32 @@
                         <input type="hidden" name="year" id="modal_year">
                         <input type="hidden" name="motel_id" id="modal_motel_id">
                         <input type="hidden" name="motel_name" id="modal_motel_name">
-                        <div id="room_inputs_container"></div>
+                        <div id="bulk_error_message" class="alert alert-danger d-none" role="alert"></div>
+                        <div class="mb-3 row g-2">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-warning text-dark"><i class="fas fa-bolt"></i></span>
+                                    <input type="number" step="0.01" min="0" id="bulk_electricity" class="form-control"
+                                        placeholder="Áp dụng điện cho tất cả"
+                                        aria-label="Áp dụng chỉ số điện cho tất cả phòng">
+                                    <button class="btn btn-outline-warning btn-sm" type="button"
+                                        onclick="applyBulkValue('electricity')"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-info text-white"><i class="fas fa-tint"></i></span>
+                                    <input type="number" step="0.01" min="0" id="bulk_water" class="form-control"
+                                        placeholder="Áp dụng nước cho tất cả"
+                                        aria-label="Áp dụng chỉ số nước cho tất cả phòng">
+                                    <button class="btn btn-outline-info btn-sm" type="button"
+                                        onclick="applyBulkValue('water')"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="room_inputs_container" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                            <!-- Rooms will be dynamically inserted here -->
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -259,8 +299,52 @@
             const modalYearInput = document.getElementById("modal_year");
             const modalMotelIdInput = document.getElementById("modal_motel_id");
             const modalMotelNameInput = document.getElementById("modal_motel_name");
+            const bulkErrorMessage = document.getElementById("bulk_error_message");
 
             let currentModalData = null;
+
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            function applyBulkValue(type) {
+                console.log(`Applying bulk value for ${type}`);
+                const input = document.getElementById(`bulk_${type}`);
+                const value = input.value.trim();
+                const errorMessage = bulkErrorMessage;
+
+                if (value === '' || isNaN(value) || parseFloat(value) < 0) {
+                    errorMessage.textContent = `Vui lòng nhập một giá trị hợp lệ cho ${type === 'electricity' ? 'điện' : 'nước'}.`;
+                    errorMessage.classList.remove('d-none');
+                    setTimeout(() => errorMessage.classList.add('d-none'), 3000);
+                    return;
+                }
+
+                const selector = `input[name*="[${type === 'electricity' ? 'electricity_kwh' : 'water_m3'}]"]`;
+                const inputs = document.querySelectorAll(selector);
+                console.log(`Found ${inputs.length} inputs for ${type}`);
+
+                if (inputs.length === 0) {
+                    errorMessage.textContent = `Không tìm thấy trường nhập liệu cho ${type === 'electricity' ? 'điện' : 'nước'}.`;
+                    errorMessage.classList.remove('d-none');
+                    setTimeout(() => errorMessage.classList.add('d-none'), 3000);
+                    return;
+                }
+
+                inputs.forEach(input => {
+                    input.value = parseFloat(value).toFixed(2);
+                });
+                console.log(`Applied value ${value} to ${inputs.length} inputs`);
+                errorMessage.classList.add('d-none');
+            }
 
             function renderModal(data, isSingleRoom = false) {
                 console.log('Rendering modal with data:', data);
@@ -275,6 +359,7 @@
                 modalMotelIdInput.value = data.motel_id || '';
                 modalMotelNameInput.value = data.motel_name || '';
                 roomInputsContainer.innerHTML = "";
+                bulkErrorMessage.classList.add('d-none');
 
                 const rooms = isSingleRoom ? [{
                     id: data.id,
@@ -283,45 +368,61 @@
                     water_m3: data.water_m3
                 }] : data.rooms;
 
-                rooms.forEach((room, index) => {
-                    const electricityError = window.readingErrors?.[`readings.${index}.electricity_kwh`]?.[0] || "";
-                    const waterError = window.readingErrors?.[`readings.${index}.water_m3`]?.[0] || "";
-                    const oldElectricity = window.oldInput[index]?.electricity_kwh ?? room.electricity_kwh ?? "";
-                    const oldWater = window.oldInput[index]?.water_m3 ?? room.water_m3 ?? "";
+                const roomsPerGroup = 10;
+                const roomGroups = [];
+                for (let i = 0; i < rooms.length; i += roomsPerGroup) {
+                    roomGroups.push(rooms.slice(i, i + roomsPerGroup));
+                }
 
-                    console.log(`Room ${index}:`, { id: room.id, electricityError, waterError, oldElectricity, oldWater });
+                roomGroups.forEach((group, groupIndex) => {
+                    const groupHtml = `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading${groupIndex}">
+                                <button class="accordion-button ${groupIndex === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${groupIndex}" aria-expanded="${groupIndex === 0}" aria-controls="collapse${groupIndex}">
+                                    Phòng ${group[0].name} - ${group[group.length - 1].name}
+                                </button>
+                            </h2>
+                            <div id="collapse${groupIndex}" class="accordion-collapse collapse ${groupIndex === 0 ? 'show' : ''}" aria-labelledby="heading${groupIndex}">
+                                <div class="accordion-body">
+                                    ${group.map((room, index) => {
+                                        const globalIndex = groupIndex * roomsPerGroup + index;
+                                        const electricityError = window.readingErrors?.[`readings.${globalIndex}.electricity_kwh`]?.[0] || "";
+                                        const waterError = window.readingErrors?.[`readings.${globalIndex}.water_m3`]?.[0] || "";
+                                        const oldElectricity = window.oldInput[globalIndex]?.electricity_kwh ?? room.electricity_kwh ?? "";
+                                        const oldWater = window.oldInput[globalIndex]?.water_m3 ?? room.water_m3 ?? "";
 
-                    const roomHtml = `
-                            <div class="mb-2 mt-3 fw-bold text-primary">${room.name}</div>
-                            <input type="hidden" name="readings[${index}][room_id]" value="${room.id}">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Chỉ số điện (kWh)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-warning text-dark">
-                                                <i class="fas fa-bolt"></i>
-                                            </span>
-                                            <input type="number" step="0.01" min="0" name="readings[${index}][electricity_kwh]" class="form-control" placeholder="0.00" value="${oldElectricity}" required>
-                                        </div>
-                                        ${electricityError ? `<div class="text-danger small mt-1">${electricityError}</div>` : ""}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Chỉ số nước (m³)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-info text-white">
-                                                <i class="fas fa-tint"></i>
-                                            </span>
-                                            <input type="number" step="0.01" min="0" name="readings[${index}][water_m3]" class="form-control" placeholder="0.00" value="${oldWater}" required>
-                                        </div>
-                                        ${waterError ? `<div class="text-danger small mt-1">${waterError}</div>` : ""}
-                                    </div>
+                                        return `
+                                            <div class="mb-2">
+                                                <div class="fw-bold text-primary">${room.name}</div>
+                                                <input type="hidden" name="readings[${globalIndex}][room_id]" value="${room.id}">
+                                                <div class="row g-2">
+                                                    <div class="col-md-6">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text bg-warning text-dark">
+                                                                <i class="fas fa-bolt"></i>
+                                                            </span>
+                                                            <input type="number" step="0.01" min="0" name="readings[${globalIndex}][electricity_kwh]" class="form-control" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}">
+                                                        </div>
+                                                        ${electricityError ? `<div class="text-danger small mt-1">${electricityError}</div>` : ""}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text bg-info text-white">
+                                                                <i class="fas fa-tint"></i>
+                                                            </span>
+                                                            <input type="number" step="0.01" min="0" name="readings[${globalIndex}][water_m3]" class="form-control" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                        </div>
+                                                        ${waterError ? `<div class="text-danger small mt-1">${waterError}</div>` : ""}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
                                 </div>
                             </div>
-                        `;
-                    roomInputsContainer.insertAdjacentHTML("beforeend", roomHtml);
+                        </div>
+                    `;
+                    roomInputsContainer.insertAdjacentHTML("beforeend", groupHtml);
                 });
 
                 updateModal.show();
@@ -355,6 +456,7 @@
                 modalYearInput.value = "";
                 modalMotelIdInput.value = "";
                 modalMotelNameInput.value = "";
+                bulkErrorMessage.classList.add('d-none');
             });
 
             if (Object.keys(window.readingErrors).length > 0 && window.motelData && window.oldInput.length > 0) {
@@ -367,6 +469,50 @@
                     rooms: window.motelData.rooms || []
                 });
             }
+
+            document.getElementById("updateMeterForm").addEventListener("submit", debounce(function (e) {
+                e.preventDefault();
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang lưu...';
+
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            window.readingErrors = data.errors || {};
+                            window.oldInput = Array.from(formData.entries())
+                                .filter(([key]) => key.startsWith('readings'))
+                                .reduce((acc, [key, value]) => {
+                                    const match = key.match(/readings\[(\d+)\]\[(\w+)\]/);
+                                    if (match) {
+                                        const index = parseInt(match[1]);
+                                        const field = match[2];
+                                        acc[index] = acc[index] || {};
+                                        acc[index][field] = value;
+                                    }
+                                    return acc;
+                                }, []);
+                            window.motelData = currentModalData;
+                            renderModal(currentModalData, currentModalData.rooms.length === 1);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting form:', error);
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="fas fa-save me-1"></i>Cập nhật chỉ số';
+                    });
+            }, 500));
 
             filterForm.addEventListener("submit", function (e) {
                 e.preventDefault();
