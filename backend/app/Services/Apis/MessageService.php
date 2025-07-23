@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\FirebaseException;
+use Kreait\Firebase\Firestore;
 
 class MessageService
 {
@@ -108,29 +109,36 @@ class MessageService
     {
         $authId = Auth::id();
 
-        return Message::where(function ($query) use ($authId, $userId) {
-            $query->where('sender_id', $authId)->where('receiver_id', $userId);
-        })->orWhere(function ($query) use ($authId, $userId) {
-            $query->where('sender_id', $userId)->where('receiver_id', $authId);
-        })->orderBy('created_at', 'asc')->get();
-    }
+        $firestore = app(Firestore::class);
+        $collection = $firestore->database()->collection('messages');
 
-    public function getUsersChattedWithAdmin()
-    {
-        $adminId = Auth::id();
-        $userIds = Message::where('sender_id', $adminId)
-            ->orWhere('receiver_id', $adminId)
-            ->pluck('sender_id')
-            ->merge(
-                Message::where('sender_id', $adminId)
-                    ->orWhere('receiver_id', $adminId)
-                    ->pluck('receiver_id')
-            )
-            ->unique()
-            ->filter(fn($id) => $id != $adminId)
-            ->values();
+        $query1 = $collection->where('sender_id', '=', $authId)
+            ->where('receiver_id', '=', $userId);
 
-        return User::whereIn('id', $userIds)->get();
+        $query2 = $collection->where('sender_id', '=', $userId)
+            ->where('receiver_id', '=', $authId);
+
+        // Firestore không hỗ trợ `orWhere` trực tiếp.
+        // Nên phải chạy 2 query rồi merge kết quả.
+        $docs1 = $query1->documents();
+        $docs2 = $query2->documents();
+
+        $allMessages = [];
+
+        foreach ($docs1 as $doc) {
+            $allMessages[] = $doc->data();
+        }
+
+        foreach ($docs2 as $doc) {
+            $allMessages[] = $doc->data();
+        }
+
+        // Sắp xếp theo created_at
+        usort($allMessages, function ($a, $b) {
+            return strtotime($a['created_at']) <=> strtotime($b['created_at']);
+        });
+
+        return $allMessages;
     }
 
     public function startChatAdmin(?int $adminId, int $userId)

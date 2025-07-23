@@ -59,15 +59,6 @@ class MessageController extends Controller
         ]);
     }
 
-    public function getAdminConversations()
-    {
-        $users = $this->messageService->getUsersChattedWithAdmin();
-
-        return response()->json([
-            'status' => true,
-            'data' => $users
-        ]);
-    }
     public function startChat(StartChatRequest $request)
     {
         $userId = Auth::id(); // người dùng hiện tại

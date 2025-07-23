@@ -221,8 +221,8 @@ const FetchPopularPosts = async ()=>{
     : g.thumbnail,
       excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
       url: `/chia-se-kinh-nghiem/${g.slug}`,
-       
     }))
+   
   }catch(e){
     console.log('sai o dau do', e)
   }
@@ -254,7 +254,7 @@ const fetchBlogs = async(page=1)=>{
       url: `/chia-se-kinh-nghiem/${g.slug}`,
       created_at: formatDate(g.created_at) 
     }))
-
+     console.log('index blog', res)
     currentPage.value = res.current_page || 1
     totalPages.value = res.last_page || 1
   }catch(e){

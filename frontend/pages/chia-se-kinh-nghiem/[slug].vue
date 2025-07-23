@@ -75,7 +75,7 @@
         <a :href="item.url" class="blog-compact-item-container">
           <div class="blog-compact-item">
             <img :src="item.thumbnail" alt="">
-            <span class="blog-item-tag">Liên quan</span>
+            <span class="blog-item-tag">{{ item.category }}</span>
             <div class="blog-compact-item-content">
               <h3>{{ item.title }}</h3>
             </div>
@@ -246,15 +246,17 @@ const fetchRelatedPosts = async(id)=>{
         'Content-Type': 'application/json',
       },
     })
-    console.log(res)
+    console.log('relatedres',res)
     relatedPosts.value = res.slice(0,2).map( g => ({
       id: g.id,
+      category:g.category,
       title: g.title,
       thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
       excerpt: g.excerpt || (typeof g.content === 'string' ? g.content.slice(0, 100) + '...' : ''),
       url: `/chia-se-kinh-nghiem/${g.slug}`,
       date: g.created_at
     }))
+    
   }catch(e){
     console.log('sai o dau do', e)
   }

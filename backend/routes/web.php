@@ -173,7 +173,7 @@ Route::middleware('admin')->group(function () {
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
     // Route notification for navbar
-    Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
+    Route::get('/notifications/header-data', [NotificationController::class, 'headerData'])
         ->name('notifications.header');
 
     // Message routes group

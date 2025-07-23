@@ -123,25 +123,25 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @media screen and (max-width: 1024px) {
-  .user-menu .dropdown {
-    left: 50% !important;            /* Đặt gốc ở giữa */
-    transform: translateX(-45%) !important;  /* Căn giữa */
-    right: auto !important;          /* Gỡ right nếu có */
-    top: 48px;
-    width: 280px;
-  }
+    .user-menu .dropdown {
+        left: 50% !important; /* Đặt gốc ở giữa */
+        transform: translateX(-45%) !important; /* Căn giữa */
+        right: auto !important; /* Gỡ right nếu có */
+        top: 48px;
+        width: 280px;
+    }
 }
 @media screen and (max-width: 640px) {
-.notification-icon {
-    margin-right: 20px;
-  }
- .user-menu .dropdown {
-    left: 50% !important;            /* Đặt gốc ở giữa */
-    transform: translateX(-50%) !important;  /* Căn giữa */
-    right: auto !important;          /* Gỡ right nếu có */
-    top: 48px;
-    width: 280px;
-  }
+    .notification-icon {
+        margin-right: 20px;
+    }
+    .user-menu .dropdown {
+        left: 50% !important; /* Đặt gốc ở giữa */
+        transform: translateX(-50%) !important; /* Căn giữa */
+        right: auto !important; /* Gỡ right nếu có */
+        top: 48px;
+        width: 280px;
+    }
 }
 .auth-container {
     margin-left: auto;
@@ -154,7 +154,6 @@ onBeforeUnmount(() => {
 }
 .header-widget {
     display: flex;
-    
 }
 
 /* Icon thông báo */

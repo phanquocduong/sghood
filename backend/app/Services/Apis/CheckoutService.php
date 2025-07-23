@@ -131,8 +131,7 @@ class CheckoutService
         $checkout = Checkout::findOrFail($id);
 
         $checkout->update([
-            'inventory_status' => 'Huỷ bỏ',
-            'refund_status' => 'Huỷ bỏ'
+            'canceled_at' => now(),
         ]);
 
         SendCheckoutNotification::dispatch(
