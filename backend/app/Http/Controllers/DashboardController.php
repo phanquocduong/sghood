@@ -70,7 +70,7 @@ class DashboardController extends Controller
         if (!$authId) {
             return redirect()->route('login')->with('error', 'Bạn cần đăng nhập để xem tin nhắn.');
         }
-        $messages = MessageService::getAllMessages();
+        $messages = MessageService::getUnreadMessagesDashboard();
         if (isset($messages['error'])) {
             return redirect()->route('dashboard')->with('error', $messages['error']);
         }

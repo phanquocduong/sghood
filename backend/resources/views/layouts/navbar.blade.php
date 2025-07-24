@@ -10,27 +10,36 @@
         <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                 <i class="fa fa-message me-lg-2 position-relative">
-                    <span id="messages-badge"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ $unreadMessageCount }}
-                    </span>
+                    @if ($unreadMessageCount > 0)
+                        <span id="messages-badge"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ $unreadMessageCount }}
+                        </span>
+                    @endif
                 </i>
                 <span class="d-none d-lg-inline-flex">Messages</span>
             </a>
+
             <div id="messages-dropdown"
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                {{-- @foreach ($latestMessages as $message)
+                @forelse ($latestMessages as $message)
                     <a href="{{ route('messages.index') }}"
-                        class="dropdown-item {{ !empty($message['is_read']) && $message['is_read'] == false ? 'fw-bold' : '' }}">
-                        <h6 class="mb-0">{{ $message['message'] }}</h6>
+                        class="dropdown-item {{ $message['is_read'] === false ? 'fw-bold' : '' }}">
+                        <h6 class="mb-0">
+                            {{ $message['text'] ?? '[Không có nội dung]' }}
+                        </h6>
                         <small class="text-muted">
-                            {{ \Carbon\Carbon::parse($message['created_at'])->diffForHumans() }}
+                            {{ \Carbon\Carbon::parse($message['createdAt'])->diffForHumans() }}
                         </small>
                     </a>
                     <hr class="dropdown-divider">
-                @endforeach --}}
-                <a href="{{ route('messages.index') }}" class="dropdown-item text-center fw-bold text-primary">Xem tất cả tin nhắn</a>
+                @empty
+                    <div class="dropdown-item text-muted">Không có tin nhắn mới</div>
+                @endforelse
+
+                <a href="{{ route('messages.index') }}" class="dropdown-item text-center fw-bold text-primary">
+                    Xem tất cả tin nhắn
+                </a>
             </div>
         </div>
 
@@ -83,58 +92,57 @@
 
 
 <script>
-function fetchHeaderData(type) {
-    const route = type === 'messages'
-        ? '{{ route('messages.header') }}'
-        : '{{ route('notifications.header') }}';
+    function fetchHeaderData(type) {
+        const route = type === 'messages' ?
+            '{{ route('messages.header') }}' :
+            '{{ route('notifications.header') }}';
 
-    fetch(route)
-        .then(res => res.json())
-        .then(data => {
-            const countBadge = document.querySelector(`#${type}-badge`);
-            const dropdown = document.getElementById(`${type}-dropdown`);
+        fetch(route)
+            .then(res => res.json())
+            .then(data => {
+                const countBadge = document.querySelector(`#${type}-badge`);
+                const dropdown = document.getElementById(`${type}-dropdown`);
 
-            if (data.unread_count > 0) {
-                countBadge.textContent = data.unread_count;
-                countBadge.style.display = 'inline-block';
-            } else {
-                countBadge.style.display = 'none';
-            }
+                if (data.unread_count > 0) {
+                    countBadge.textContent = data.unread_count;
+                    countBadge.style.display = 'inline-block';
+                } else {
+                    countBadge.style.display = 'none';
+                }
 
-            dropdown.innerHTML = '';
+                dropdown.innerHTML = '';
 
-            if (data.latest.length > 0) {
-                data.latest.forEach((item, i) => {
-                    dropdown.innerHTML += `
+                if (data.latest.length > 0) {
+                    data.latest.forEach((item, i) => {
+                        dropdown.innerHTML += `
                         <a href="${item.url}" class="dropdown-item ${item.is_read === false || item.status === 'Chưa đọc' ? 'fw-bold' : ''}">
                             <h6 class="mb-0">${item.title || item.message}</h6>
                             <small class="text-muted">${item.created_at}</small>
                         </a>
                         ${i < data.latest.length - 1 ? '<hr class="dropdown-divider">' : ''}
                     `;
-                });
-            } else {
-                dropdown.innerHTML +=
-                    `<div class="dropdown-item text-muted text-center">Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}</div>`;
-            }
+                    });
+                } else {
+                    dropdown.innerHTML +=
+                        `<div class="dropdown-item text-muted text-center">Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}</div>`;
+                }
 
-            dropdown.innerHTML += `
+                dropdown.innerHTML += `
                 <a href="${data.latest[0]?.url || '#'}" class="dropdown-item text-center fw-bold text-primary">
                     Xem tất cả ${type === 'messages' ? 'tin nhắn' : 'thông báo'}
                 </a>`;
-        });
-}
+            });
+    }
 
-// Gọi cả 2
-fetchHeaderData('notifications');
-fetchHeaderData('messages');
-
-setInterval(() => {
+    // Gọi cả 2
     fetchHeaderData('notifications');
     fetchHeaderData('messages');
-}, 10000);
+
+    setInterval(() => {
+        fetchHeaderData('notifications');
+        fetchHeaderData('messages');
+    }, 10000);
 </script>
 
 
 <!-- Navbar End -->
-
