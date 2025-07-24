@@ -5,13 +5,9 @@ namespace App\Services;
 use App\Models\MeterReading;
 use App\Models\Room;
 use App\Models\Invoice;
-use App\Mail\InvoiceCreated;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\Notification;
-use App\Models\User;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+use App\Jobs\SendInvoiceCreatedNotification;
+use Carbon\Carbon;
 
 class MeterReadingService
 {
@@ -50,12 +46,79 @@ class MeterReadingService
         return $rooms;
     }
 
-
-
     public function createMeterReading(array $data)
     {
         $meterReading = MeterReading::create($data);
         return $meterReading;
+    }
+
+    // Tính tiền phòng cho tháng đầu tiên của hợp đồng
+    private function calculateFirstMonthRoomFee($contract, $room, $meterReading)
+    {
+        try {
+            $contractStartDate = Carbon::parse($contract->start_date);
+            $invoiceCreatedDate = now(); // Ngày tạo hóa đơn (hiện tại)
+            $invoiceMonth = $meterReading->month-1;
+            $invoiceYear = $meterReading->year;
+
+            // Kiểm tra xem đã có hóa đơn nào cho hợp đồng này chưa
+            $hasExistingInvoices = Invoice::where('contract_id', $contract->id)
+                ->where(function($query) use ($invoiceMonth, $invoiceYear) {
+                    // Kiểm tra các hóa đơn trước hóa đơn hiện tại
+                    $query->where('year', '<', $invoiceYear)
+                        ->orWhere(function($q) use ($invoiceMonth, $invoiceYear) {
+                            $q->where('year', $invoiceYear)
+                            ->where('month', '<', $invoiceMonth);
+                        });
+                })
+                ->exists();
+
+            $roomPrice = $room->price ?? 0;
+
+            if ($hasExistingInvoices) {
+                // Đã có hóa đơn trước đó, không phải tháng đầu tiên
+                Log::info('Not first month of contract, using full room price', [
+                    'contract_start_date' => $contractStartDate->toDateString(),
+                    'invoice_created_date' => $invoiceCreatedDate->toDateString(),
+                    'invoice_month' => $invoiceMonth,
+                    'invoice_year' => $invoiceYear,
+                    'room_price' => $roomPrice,
+                    'has_existing_invoices' => $hasExistingInvoices
+                ]);
+                return $roomPrice;
+            }
+
+            // Đây là hóa đơn đầu tiên - tính theo số ngày từ start_date đến ngày tạo hóa đơn
+            $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1; // +1 để bao gồm ngày bắt đầu
+
+            // Tính tỷ lệ dựa trên 30 ngày (1 tháng chuẩn)
+            $percentage = min(1.0, $daysDifference / 30.0); // Đảm bảo không vượt quá 100%
+            $firstMonthFee = $roomPrice * $percentage;
+
+            Log::info('Calculating first month room fee based on actual days', [
+                'contract_start_date' => $contractStartDate->toDateString(),
+                'invoice_created_date' => $invoiceCreatedDate->toDateString(),
+                'days_difference' => $daysDifference,
+                'percentage' => $percentage,
+                'full_room_price' => $roomPrice,
+                'first_month_fee' => $firstMonthFee,
+                'invoice_month' => $invoiceMonth,
+                'invoice_year' => $invoiceYear,
+                'has_existing_invoices' => $hasExistingInvoices
+            ]);
+
+            return round($firstMonthFee, 0);
+
+        } catch (\Exception $e) {
+            Log::error('Error calculating first month room fee: ' . $e->getMessage(), [
+                'contract_id' => $contract->id ?? null,
+                'room_id' => $room->id ?? null,
+                'meter_reading_month' => $meterReading->month ?? null,
+                'meter_reading_year' => $meterReading->year ?? null
+            ]);
+
+            return $room->price ?? 0;
+        }
     }
 
     public function createInvoice($meterReadingId)
@@ -84,6 +147,7 @@ class MeterReadingService
             $existingInvoice = Invoice::where('contract_id', $contractId)
                 ->where('month', $meterReading->month)
                 ->where('year', $meterReading->year)
+                ->where('type', 'Hàng tháng')
                 ->first();
 
             if ($existingInvoice) {
@@ -104,7 +168,9 @@ class MeterReadingService
             $junkFee = $motel->junk_fee ?? 0; // Phí rác từ motel
             $internetFee = $motel->internet_fee ?? 0; // Phí internet từ motel
             $serviceFee = $motel->service_fee ?? 0; // Phí dịch vụ từ motel
-            $roomFee = $room->price ?? 0; // Tiền phòng từ room
+
+            // Tính tiền phòng với logic tháng đầu tiên
+            $roomFee = $this->calculateFirstMonthRoomFee($contract, $room, $meterReading);
 
             // Tính tổng số tiền (bao gồm tiền phòng)
             $totalAmount = $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee + $roomFee;
@@ -112,6 +178,7 @@ class MeterReadingService
             Log::info('Creating invoice with details', [
                 'meter_reading_id' => $meterReadingId,
                 'contract_id' => $contractId,
+                'contract_start_date' => $contract->start_date,
                 'room_id' => $room->id,
                 'motel_id' => $motel->id,
                 'electricity_kwh' => $meterReading->electricity_kwh,
@@ -121,6 +188,8 @@ class MeterReadingService
                 'electricity_fee' => $electricityFee,
                 'water_fee' => $waterFee,
                 'room_fee' => $roomFee,
+                'room_original_price' => $room->price,
+                'is_first_month' => Carbon::parse($contract->start_date)->month == $meterReading->month && Carbon::parse($contract->start_date)->year == $meterReading->year,
                 'total_amount' => $totalAmount
             ]);
 
@@ -149,71 +218,17 @@ class MeterReadingService
                 'invoice_id' => $invoice->id,
                 'invoice_code' => $invoice->code,
                 'meter_reading_id' => $meterReadingId,
-                'total_amount' => $totalAmount
+                'total_amount' => $totalAmount,
+                'room_fee_calculated' => $roomFee
             ]);
 
-            // Gửi email thông báo tạo hóa đơn
-            try {
-                $user = $contract->user;
-                $email = $user->email ?? null;
-                if ($email) {
-                    Mail::to($email)->send(new InvoiceCreated($invoice, $room, $meterReading, $contract));
-                    Log::info('Invoice email sent successfully', ['email' => $email, 'invoice_code' => $invoice->code]);
-                } else {
-                    Log::warning('No email found for contract user', ['contract_id' => $contractId]);
-                }
-            } catch (\Exception $emailError) {
-                Log::error('Error sending invoice email', [
-                    'error' => $emailError->getMessage(),
-                    'invoice_id' => $invoice->id
-                ]);
-            }
+            // Dispatch job để gửi email và thông báo
+            SendInvoiceCreatedNotification::dispatch($invoice, $room, $meterReading, $contract);
 
-            //Gửi thông báo đến người dùng
-            try {
-                $user = $contract->user;
-                if ($user) {
-                    $notificationdata = [
-                        'user_id' => $user->id,
-                        'title' => 'Hóa đơn của bạn đã được tạo',
-                        'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
-                        'status' => 'Chưa đọc'
-                    ];
-                    $notification = Notification::create($notificationdata);
-                    Log::info('Notification created for invoice', [
-                        'contract_id' => $contract->id,
-                        'notification_id' => $notification->id,
-                        'invoice_id' => $invoice->id
-                    ]);
-
-                    // gửi FCM token
-                    if ($user->fcm_token) {
-                        $messaging = app('firebase.messaging');
-
-                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                            ->withNotification(FirebaseNotification::create(
-                                $notificationdata['title'],
-                                $notificationdata['content']
-                            ));
-
-                        try {
-                            $messaging->send($fcmMessage);
-                            Log::info('FCM sent to user', ['user_id' => $user->id, 'invoice_id' => $invoice->id]);
-                        } catch (\Exception $e) {
-                            Log::error('FCM send error', ['error' => $e->getMessage(), 'user_id' => $user->id]);
-                        }
-                    } else {
-                        Log::info('No FCM token found for user', ['user_id' => $user->id]);
-                    }
-                } else {
-                    Log::warning('No user found for contract', ['contract_id' => $contractId]);
-                }
-            } catch (\Exception $notificationError) {
-                Log::error('Error creating notification', [
-                    'error' => $notificationError->getMessage(),
-                    'invoice_id' => $invoice->id
-                ]);
-            }
+            Log::info('Invoice notification job dispatched', [
+                'invoice_id' => $invoice->id,
+                'job' => 'SendInvoiceCreatedNotification'
+            ]);
 
             return $invoice;
 

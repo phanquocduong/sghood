@@ -148,13 +148,6 @@
                                             @elseif ($checkout->user_confirmation_status === 'Đồng ý')
                                                 @if ($checkout->refund_status === 'Đã xử lý')
                                                         <span class="fst-italic">Đã hoàn thành</span>
-                                                @else
-                                                    <button type="button" class="btn btn-success btn-sm shadow-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#confirmCheckoutModal{{ $checkout->id }}"
-                                                        title="Xác nhận hoàn tiền">
-                                                        <i class="fas fa-check me-1"></i>Xác nhận
-                                                    </button>
                                                 @endif
                                             @else
                                                 <span class="badge bg-warning text-white py-2 px-3">
@@ -200,6 +193,11 @@
                                                         <p><strong>Số tiền hoàn lại:</strong>
                                                             {{ $checkout->final_refunded_amount ? number_format($checkout->final_refunded_amount, 0, ',', '.') : 'N/A' }} VNĐ
                                                         </p>
+                                                        @if ($checkout->refund_status === 'Chờ xử lý' && $checkout->user_confirmation_status === 'Đồng ý')
+                                                            <p>
+                                                                <span class="fst-italic text-danger"><i class="fas fa-info-circle me-2"></i>Vui lòng xác nhận và nhập mã tham chiếu!</span>
+                                                            </p>
+                                                        @endif
                                                     </div>
 
                                                     <!-- Right Column - Rejection Reason or QR Code -->
@@ -210,21 +208,24 @@
                                                                 <p class="mb-0">{{ $checkout->user_rejection_reason }}</p>
                                                             </div>
                                                         @elseif ($checkout->inventory_status === 'Đã kiểm kê' && $checkout->user_confirmation_status === 'Đồng ý')
-                                                            @php
-                                                                $bankInfo = is_array($checkout->bank_info) && !empty($checkout->bank_info)
-                                                                    ? $checkout->bank_info[0]
-                                                                    : ['account_number' => '31214717', 'bank_name' => 'ACB', 'account_holder' => 'PHAN QUOC DUONG'];
-                                                            @endphp
                                                             <div class="qr-code-section text-center">
                                                                 <h6><i class="fas fa-qrcode me-2"></i>Thông tin hoàn tiền</h6>
-                                                                <img src="https://qr.sepay.vn/img?acc={{ $bankInfo['account_number'] }}&bank={{ $bankInfo['bank_name'] }}&amount={{ $checkout->final_refunded_amount ?? 0 }}&des=Hoan tien phong {{ urlencode($checkout->contract->room->name ?? '') }}&template=compact"
+                                                                <img src="https://qr.sepay.vn/img?acc={{ $checkout->bank_info['account_number'] }}&bank={{ $checkout->bank_info['bank_name'] }}&amount={{ $checkout->final_refunded_amount ?? 0 }}&des=Hoan tien phong {{ urlencode($checkout->contract->room->name ?? '') }}&template=compact"
                                                                     alt="QR Code" class="img-fluid mb-3 qr-code-img" style="max-width: 160px">
                                                                 <div class="bank-info text-start">
-                                                                    <p><strong>Ngân hàng:</strong> {{ $bankInfo['bank_name'] }}</p>
-                                                                    <p><strong>Chủ tài khoản:</strong> {{ $bankInfo['account_holder'] }}</p>
-                                                                    <p><strong>Số tài khoản:</strong> {{ $bankInfo['account_number'] }}</p>
+                                                                    <p><strong>Ngân hàng:</strong> {{ $checkout->bank_info['bank_name'] }}</p>
+                                                                    <p><strong>Chủ tài khoản:</strong> {{ $checkout->bank_info['account_holder'] }}</p>
+                                                                    <p><strong>Số tài khoản:</strong> {{ $checkout->bank_info['account_number'] }}</p>
                                                                 </div>
                                                             </div>
+                                                            @if ($checkout->refund_status === 'Chờ xử lý' && $checkout->user_confirmation_status === 'Đồng ý')
+                                                                <button type="button" class="btn btn-success btn-sm shadow-sm"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#confirmCheckoutModal{{ $checkout->id }}"
+                                                                    title="Xác nhận hoàn tiền">
+                                                                    <i class="fas fa-check me-1"></i>Xác nhận hoàn tiền
+                                                                </button>
+                                                            @endif
                                                         @else
                                                             <div class="text-center text-muted">
                                                                 <i class="fas fa-info-circle fa-2x mb-2"></i>
@@ -281,6 +282,7 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
+
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                             </div>
                                         </div>

@@ -81,7 +81,7 @@ class InvoiceController extends Controller
 
                     // Chi tiết chi phí
                     'fees' => [
-                        'room_fee' => number_format($invoice->contract->room->price ?? 0, 0, ',', '.'),
+                        'room_fee' => number_format($invoice->room_fee ?? $invoice->contract->room->price, 0, ',', '.'),
                         'electricity_fee' => number_format($invoice->electricity_fee ?? 0, 0, ',', '.'),
                         'water_fee' => number_format($invoice->water_fee ?? 0, 0, ',', '.'),
                         'parking_fee' => number_format($invoice->parking_fee ?? 0, 0, ',', '.'),
