@@ -98,14 +98,27 @@
                 <!-- Meter Readings Table -->
                 @php
                     $today = now();
-                    $day = $today->day;
                     $month = $today->month;
                     $year = $today->year;
-                    $startDate = now()->copy()->day(1);
-                    $endDate = now()->copy()->addMonthNoOverflow()->day(5);
+
+                    // Khoảng thời gian đặc biệt: từ ngày 28 tháng hiện tại đến ngày 5 tháng tiếp theo
+                    $startDate = $today->copy()->day(28);
+                    $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+
                     $shouldDisplayTable = $today->between($startDate, $endDate);
-                    $displayMonth = $shouldDisplayTable ? $today->copy()->addMonthNoOverflow()->month : $month;
-                    $displayYear = $shouldDisplayTable ? $today->copy()->addMonthNoOverflow()->year : $year;
+
+                    if ($shouldDisplayTable) {
+                        $nextMonth = $today->copy()->addMonthNoOverflow();
+
+                        // Nếu đang trong tháng ban đầu (28-31) -> hiển thị tháng tiếp theo
+                        // Nếu đang trong 5 ngày đầu tháng tiếp theo -> hiển thị chính tháng đó
+                        $displayMonth = $nextMonth->month;
+                        $displayYear = $nextMonth->year;
+                    } else {
+                        // Ngoài khoảng đặc biệt -> hiển thị tháng hiện tại
+                        $displayMonth = $month;
+                        $displayYear = $year;
+                    }
                 @endphp
 
                 @if ($isFiltering || $shouldDisplayTable)
@@ -344,15 +357,15 @@
                     const expanded = hasError || groupIndex === 0;
 
                     const groupHtml = `
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading${groupIndex}">
-                        <button class="accordion-button ${!expanded ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${groupIndex}" aria-expanded="${expanded}" aria-controls="collapse${groupIndex}">
-                            Phòng ${group[0].name} - ${group[group.length - 1].name}
-                        </button>
-                    </h2>
-                    <div id="collapse${groupIndex}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${groupIndex}">
-                        <div class="accordion-body">
-                             ${group.map((room, index) => {
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading${groupIndex}">
+                            <button class="accordion-button ${!expanded ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${groupIndex}" aria-expanded="${expanded}" aria-controls="collapse${groupIndex}">
+                                Phòng ${group[0].name} - ${group[group.length - 1].name}
+                            </button>
+                        </h2>
+                        <div id="collapse${groupIndex}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${groupIndex}">
+                            <div class="accordion-body">
+                                 ${group.map((room, index) => {
                         const globalIndex = groupIndex * roomsPerGroup + index;
                         const electricityError = window.readingErrors?.[`readings.${globalIndex}.electricity_kwh`]?.[0] || "";
                         const waterError = window.readingErrors?.[`readings.${globalIndex}.water_m3`]?.[0] || "";
@@ -360,36 +373,36 @@
                         const oldWater = window.oldInput[globalIndex]?.water_m3 ?? room.water_m3 ?? "";
 
                         return `
-                                                    <div class="mb-2">
-                                                        <div class="fw-bold text-primary">${room.name}</div>
-                                                        <input type="hidden" name="readings[${globalIndex}][room_id]" value="${room.id}">
-                                                        <div class="row g-2">
-                                                            <div class="col-md-6">
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-warning text-dark">
-                                                                        <i class="fas fa-bolt"></i>
-                                                                    </span>
-                                                                    <input type="number" step="0.01" min="0" max="2000" name="readings[${globalIndex}][electricity_kwh]" class="form-control" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}" >
+                                                        <div class="mb-2">
+                                                            <div class="fw-bold text-primary">${room.name}</div>
+                                                            <input type="hidden" name="readings[${globalIndex}][room_id]" value="${room.id}">
+                                                            <div class="row g-2">
+                                                                <div class="col-md-6">
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-warning text-dark">
+                                                                            <i class="fas fa-bolt"></i>
+                                                                        </span>
+                                                                        <input type="number" step="0.01" min="0" max="2000" name="readings[${globalIndex}][electricity_kwh]" class="form-control" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}" >
+                                                                    </div>
+                                                                    ${electricityError ? `<div class="text-danger small mt-1">${electricityError}</div>` : ""}
                                                                 </div>
-                                                                ${electricityError ? `<div class="text-danger small mt-1">${electricityError}</div>` : ""}
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text bg-info text-white">
-                                                                        <i class="fas fa-tint"></i>
-                                                                    </span>
-                                                                    <input type="number" step="0.01" min="0" max="200" name="readings[${globalIndex}][water_m3]" class="form-control" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                                <div class="col-md-6">
+                                                                    <div class="input-group input-group-sm">
+                                                                        <span class="input-group-text bg-info text-white">
+                                                                            <i class="fas fa-tint"></i>
+                                                                        </span>
+                                                                        <input type="number" step="0.01" min="0" max="200" name="readings[${globalIndex}][water_m3]" class="form-control" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                                    </div>
+                                                                    ${waterError ? `<div class="text-danger small mt-1">${waterError}</div>` : ""}
                                                                 </div>
-                                                                ${waterError ? `<div class="text-danger small mt-1">${waterError}</div>` : ""}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                `;
+                                                    `;
                     }).join('')}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
                     roomInputsContainer.insertAdjacentHTML("beforeend", groupHtml);
                 });
 

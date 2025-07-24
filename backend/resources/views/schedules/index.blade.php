@@ -33,7 +33,6 @@
                             <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
                             <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
                             <option value="Từ chối" {{ request('status') == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                            <option value="Huỷ bỏ" {{ request('status') == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                             <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
                         </select>
                     </div>
@@ -80,7 +79,6 @@
                                         @php
                                             $badgeClass = match ($schedule->status) {
                                                 'Đã xác nhận' => 'warning',
-                                                'Huỷ bỏ' => 'danger',
                                                 'Hoàn thành' => 'success',
                                                 'Từ chối' => 'dark',
                                                 default => 'secondary'
@@ -89,9 +87,6 @@
                                         <span class="badge bg-{{ $badgeClass }}">
                                             {{ $schedule->status }}
                                         </span> <br>
-                                        @if($schedule->status == 'Huỷ bỏ' && $schedule->rejection_reason)
-                                            Lí do: <strong>{{ $schedule->rejection_reason }}</strong>
-                                        @endif
                                         @if($schedule->status == 'Từ chối' && $schedule->rejection_reason)
                                             Lí do: <strong>{{ $schedule->rejection_reason }}</strong>
                                         @endif
@@ -100,19 +95,17 @@
                                         <form action="{{ route('schedules.updateStatus', $schedule->id) }}" method="POST" class="status-form" id="status-form-{{ $schedule->id }}">
                                             @csrf
                                             @method('PATCH')
-                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành' || $schedule->status == 'Huỷ bỏ')
+                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
                                             <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}" disabled>
                                                 @switch($schedule->status)
                                                     @case('Chờ xác nhận')
                                                         <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
                                                         <option value="Đã xác nhận">Đã xác nhận</option>
                                                         <option value="Từ chối">Từ chối</option>
-                                                        <option value="Huỷ bỏ">Huỷ bỏ</option>
                                                     @break
                                                     @case('Đã xác nhận')
                                                         <option value="Đã xác nhận" selected>Đã xác nhận</option>
                                                         <option value="Hoàn thành">Hoàn thành</option>
-                                                        <option value="Huỷ bỏ">Huỷ bỏ</option>
                                                     @break
                                                     @case('Từ chối')
                                                         <option value="Từ chối" selected>Từ chối</option>
@@ -120,14 +113,10 @@
                                                     @case('Hoàn thành')
                                                         <option value="Hoàn thành" selected>Hoàn thành</option>
                                                     @break
-                                                    @case('Huỷ bỏ')
-                                                        <option value="Huỷ bỏ" selected>Huỷ bỏ</option>
-                                                    @break
                                                     @default
                                                         <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
                                                         <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
                                                         <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                                                        <option value="Huỷ bỏ" {{ $schedule->status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                                                         <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
                                                 @endswitch
                                             </select>
@@ -138,12 +127,10 @@
                                                         <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
                                                         <option value="Đã xác nhận">Đã xác nhận</option>
                                                         <option value="Từ chối">Từ chối</option>
-                                                        <option value="Huỷ bỏ">Huỷ bỏ</option>
                                                     @break
                                                     @case('Đã xác nhận')
                                                         <option value="Đã xác nhận" selected>Đã xác nhận</option>
                                                         <option value="Hoàn thành">Hoàn thành</option>
-                                                        <option value="Huỷ bỏ">Huỷ bỏ</option>
                                                     @break
                                                     @case('Từ chối')
                                                         <option value="Từ chối" selected>Từ chối</option>
@@ -151,14 +138,10 @@
                                                     @case('Hoàn thành')
                                                         <option value="Hoàn thành" selected>Hoàn thành</option>
                                                     @break
-                                                    @case('Huỷ bỏ')
-                                                        <option value="Huỷ bỏ" selected>Huỷ bỏ</option>
-                                                    @break
                                                     @default
                                                         <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
                                                         <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
                                                         <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                                                        <option value="Huỷ bỏ" {{ $schedule->status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                                                         <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
                                                 @endswitch
                                             </select>

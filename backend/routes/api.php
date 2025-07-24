@@ -22,6 +22,7 @@ use App\Http\Controllers\Apis\CheckoutController;
 use App\Http\Controllers\Apis\ContractExtensionController;
 use App\Http\Controllers\Apis\RefundRequestController;
 use App\Http\Controllers\Apis\CommentController;
+use App\Http\Controllers\Apis\IdentityDocumentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -56,22 +57,31 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/cancel', 'cancel');
     });
 
-    Route::get('/contracts', [ContractController::class, 'index']);
-    Route::get('/contracts/{id}', [ContractController::class, 'show']);
-    Route::post('/contracts/{id}/reject', [ContractController::class, 'reject']);
-    Route::post('/extract-identity-images', [ContractController::class, 'extractIdentityImages']);
-    Route::patch('/contracts/{id}', [ContractController::class, 'update']);
-    Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
-    Route::get('/contracts/{id}/download-pdf', [ContractController::class, 'downloadPdf']);
+    Route::post('/extract-identity-images', [IdentityDocumentController::class, 'extractIdentityImages']);
+
+    Route::prefix('contracts')->controller(ContractController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/{id}/cancel', 'cancel');
+        Route::patch('/{id}', 'update');
+        Route::post('/{id}/sign', 'sign');
+        Route::get('/{id}/download-pdf', 'downloadPdf');
+    });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);
-    Route::get('/contract-extensions', [ContractExtensionController::class, 'index']);
-    Route::post('/contract-extensions/{id}/reject', [ContractExtensionController::class, 'reject']);
+    Route::prefix('contract-extensions')->controller(ContractExtensionController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/{id}/cancel', 'cancel');
+    });
 
     Route::post('/contracts/{id}/return', [CheckoutController::class, 'requestReturn']);
-    Route::get('/checkouts', [CheckoutController::class, 'index']);
-    Route::post('/checkouts/{id}/reject', [CheckoutController::class, 'reject']);
-    Route::post('/checkouts/{id}/confirm', [CheckoutController::class, 'confirm']);
+    Route::prefix('checkouts')->controller(CheckoutController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/{id}/cancel', 'cancel');
+        Route::post('/{id}/confirm', 'confirm');
+        Route::post('/{id}/left-room', 'leftRoom');
+        Route::post('/{id}/update-bank', 'updateBank');
+    });
 
     Route::get('/refund-requests', [RefundRequestController::class, 'index']);
     Route::patch('/refund-requests/{id}', [RefundRequestController::class, 'update']);
@@ -115,7 +125,8 @@ Route::get('/blogs/popular', [BlogController::class, 'popular']);
 Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
 // Comment blogs route
 Route::get('/blogs/{slug}/comments', [CommentController::class, 'getCommentsByBlog']);
-Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'sendComment']);
+Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'SendComment']);
+Route::post('/blogs/{blog}/replay-comment', [CommentController::class, 'ReplayComment']);
 Route::put('/comments/{id}', [CommentController::class, 'editComment']);
 Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
 Route::post('/comments/{comment}/reaction', [CommentController::class, 'react']);

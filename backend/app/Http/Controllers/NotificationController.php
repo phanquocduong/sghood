@@ -48,9 +48,10 @@ class NotificationController extends Controller
 
     public function headerData()
     {
-        $user = auth()->user();
         $unreadCount = Notification::where('status', 'Chưa đọc')
-            ->where('user_id', $user->id)
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'Quản trị viên');
+            })
             ->count();
         $latest = Notification::where('user_id', auth()->id())
             ->select('id', 'title', 'status', 'created_at') // chỉ lấy trường cần

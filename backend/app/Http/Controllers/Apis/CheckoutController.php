@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Apis\ReturnRequest;
 use App\Services\Apis\CheckoutService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -19,15 +20,10 @@ class CheckoutController extends Controller
         $this->checkoutService = $checkoutService;
     }
 
-    public function requestReturn(int $id, Request $request): JsonResponse
+    public function requestReturn(ReturnRequest $request, int $id): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'bank_name' => 'required|string|max:255',
-                'account_number' => 'required|string|max:50',
-                'account_holder' => 'required|string|max:255',
-                'check_out_date' => 'required|date_format:d/m/Y|after_or_equal:today',
-            ]);
+            $validated = $request->validated();
 
             $bankInfo = [
                 'bank_name' => $validated['bank_name'],
@@ -47,15 +43,11 @@ class CheckoutController extends Controller
             }
 
             return response()->json([
-                'message' => 'Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.',
+                'message' => 'Yêu cầu trả phòng đã được gửi.',
                 'data' => $result['data'],
             ], 200);
         } catch (\Throwable $e) {
-            Log::error('Lỗi yêu cầu trả phòng', [
-                'contract_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Lỗi yêu cầu trả phòng: ' . $e->getMessage());
             return response()->json(['error' => 'Đã xảy ra lỗi khi gửi yêu cầu trả phòng.'], 500);
         }
     }
@@ -63,22 +55,21 @@ class CheckoutController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['sort', 'status']);
-            $checkouts = $this->checkoutService->getCheckouts($filters);
+            $checkouts = $this->checkoutService->getCheckouts();
             return response()->json([
                 'data' => $checkouts
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi lấy danh sách yêu cầu trả phòng. Vui lòng thử lại.'
+                'error' => 'Đã có lỗi xảy ra khi lấy danh sách yêu cầu trả phòng.'
             ], 500);
         }
     }
 
-    public function reject($id)
+    public function cancel($id)
     {
         try {
-            $checkout = $this->checkoutService->rejectCheckout($id);
+            $checkout = $this->checkoutService->cancelCheckout($id);
             return response()->json([
                 'message' => 'Hủy yêu cầu trả phòng thành công',
                 'data' => $checkout
@@ -88,14 +79,8 @@ class CheckoutController extends Controller
                 'error' => 'Không tìm thấy yêu cầu trả phòng.'
             ], 404);
         } catch (\Exception $e) {
-            Log::error('Lỗi huỷ bỏ trả phòng', [
-                'checkout_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-            return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi hủy yêu cầu trả phòng. Vui lòng thử lại.'
-            ], 500);
+            Log::error('Lỗi huỷ bỏ trả phòng: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã có lỗi xảy ra khi hủy yêu cầu trả phòng.'], 500);
         }
     }
 
@@ -124,8 +109,65 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage(),
             ]);
             return response()->json([
-                'error' => 'Đã có lỗi xảy ra khi xác nhận kiểm kê. Vui lòng thử lại.'
+                'error' => 'Đã có lỗi xảy ra khi xác nhận kiểm kê.'
             ], 500);
+        }
+    }
+
+    public function leftRoom(int $id): JsonResponse
+    {
+        try {
+            $checkout = $this->checkoutService->confirmLeftRoom($id);
+            return response()->json([
+                'message' => 'Xác nhận đã rời phòng thành công',
+                'data' => $checkout
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Không tìm thấy yêu cầu trả phòng.'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Lỗi xác nhận rời phòng:', [
+                'checkout_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'error' => 'Đã có lỗi xảy ra khi xác nhận rời phòng.'
+            ], 500);
+        }
+    }
+
+    public function updateBank(int $id, Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'bank_info' => 'required|array',
+                'bank_info.bank_name' => 'required|string|max:255',
+                'bank_info.account_number' => 'required|string|max:50',
+                'bank_info.account_holder' => 'required|string|max:255',
+            ]);
+
+            $result = $this->checkoutService->updateBankInfo($id, $validated['bank_info']);
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json([
+                'message' => 'Cập nhật thông tin chuyển khoản thành công',
+                'data' => $result['data'],
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+                'checkout_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi chỉnh sửa thông tin chuyển khoản.'], 500);
         }
     }
 }

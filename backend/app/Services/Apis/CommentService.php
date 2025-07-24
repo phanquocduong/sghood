@@ -27,14 +27,34 @@ class CommentService
             ->get();
     }
 
-   public function createComment($blogId, $userId, array $data)
+   public function sendComment($blogId, $userId, array $data)
     {
         $lastComment = CommentBlog::where('user_id', $userId)
             ->where('blog_id', $blogId)
             ->latest()
             ->first();
 
-        if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < 30) {
+        if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < 3) {
+            throw ValidationException::withMessages([
+                'spam' => 'Bạn đang bình luận quá nhanh. Vui lòng chờ 30 giây.'
+            ]);
+        }
+
+        return CommentBlog::create([
+            'blog_id' => $blogId,
+            'user_id' => $userId,
+            'content' => $data['content'],
+        ]);
+    }
+
+    public function replayComment($blogId, $userId, array $data)
+    {
+        $lastComment = CommentBlog::where('user_id', $userId)
+            ->where('blog_id', $blogId)
+            ->latest()
+            ->first();
+
+        if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < 3) {
             throw ValidationException::withMessages([
                 'spam' => 'Bạn đang bình luận quá nhanh. Vui lòng chờ 30 giây.'
             ]);

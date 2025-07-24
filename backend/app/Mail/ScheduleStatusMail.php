@@ -38,7 +38,6 @@ class ScheduleStatusMail extends Mailable
     public function build()
     {
         $subject = "Cập nhật trạng thái lịch xem phòng - " . $this->schedule->motel->name;
-        
         return $this->subject($subject)
                     ->view('emails.schedule-status-updated');
     }

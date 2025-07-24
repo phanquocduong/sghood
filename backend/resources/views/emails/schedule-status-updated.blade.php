@@ -123,6 +123,13 @@
             @endif
             <p>🔄 Đừng lo lắng! Bạn có thể đặt lịch mới bất cứ lúc nào hoặc liên hệ trực tiếp với chúng tôi để được hỗ trợ
                 tốt nhất.</p>
+        @elseif($newStatus == 'Từ chối')
+            <p>😔 Rất tiếc, lịch xem phòng của bạn đã phải bị từ chối.</p>
+            @if($schedule->cancellation_reason)
+                <p><strong>Lý do:</strong> {{ $schedule->cancellation_reason }}</p>
+            @endif
+            <p>🔄 Đừng lo lắng! Bạn có thể đặt lịch mới bất cứ lúc nào hoặc liên hệ trực tiếp với chúng tôi để được hỗ trợ
+                tốt nhất.</p>
         @elseif($newStatus == 'Hoàn thành')
             <p>🙏 Cảm ơn bạn đã dành thời gian đến xem phòng hôm nay!</p>
             <p>😊 Chúng tôi hy vọng bạn có trải nghiệm tuyệt vời và tìm được căn phòng ưng ý. Nếu cần hỗ trợ thêm, đừng ngần

@@ -21,6 +21,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CKEditorController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContractExtensionController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\RefundController;
@@ -171,7 +172,7 @@ Route::middleware('admin')->group(function () {
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
     // Route notification for navbar
-    Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
+    Route::get('/notifications/header-data', [NotificationController::class, 'headerData'])
         ->name('notifications.header');
 
     // Message routes group
@@ -196,6 +197,8 @@ Route::middleware('admin')->group(function () {
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
         Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
         Route::patch('/{id}/update-cate', [BlogController::class, 'updateCategory'])->name('updateCategory');
+        Route::get('/{id}/comments', [CommentController::class, 'index'])->name('comment');
+        Route::post('/{id}/comments', [CommentController::class, 'reply'])->name('comment.reply');
     });
     Route::prefix('CKEditors')->name('ckeditors.')->group(function () {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');
@@ -218,12 +221,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
         Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
         Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
-    });
-
-    // Refund routes
-    Route::prefix('refunds')->name('refunds.')->group(function () {
-        Route::get('/', [RefundController::class, 'index'])->name('index');
-        Route::match(['put', 'patch'], '/{id}', [RefundController::class, 'confirm'])->name('confirm');
+        Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
     });
 });
 

@@ -108,6 +108,17 @@ class MotelService
         }
     }
 
+    public function findById($id)
+    {
+        return Motel::find($id);
+    }
+
+    public function findByName($name)
+    {
+        return Motel::where('name', $name)->first();
+    }
+
+
     /**
      * Tạo nhà trọ mới
      *
@@ -181,7 +192,7 @@ class MotelService
 
             // Xử lý ảnh mới
             $failedUploads = [];
-            $newMainImageIndex = isset($data['new_main_image_index']) ? (int)$data['new_main_image_index'] : null;
+            $newMainImageIndex = isset($data['new_main_image_index']) ? (int) $data['new_main_image_index'] : null;
             if (!empty($imageFiles)) {
                 $failedUploads = $this->processMotelImages($motel->id, $imageFiles, $newMainImageIndex ?? 0);
             }
@@ -200,8 +211,8 @@ class MotelService
                 Log::info('Processing new main image', ['new_main_image_index' => $data['new_main_image_index']]);
                 // Xóa cờ is_main của ảnh hiện có
                 MotelImage::where('motel_id', $motel->id)
-                         ->where('created_at', '<', now()->subSeconds(5))
-                         ->update(['is_main' => 0]);
+                    ->where('created_at', '<', now()->subSeconds(5))
+                    ->update(['is_main' => 0]);
                 // processMotelImages đã đặt is_main cho ảnh mới
             } else {
                 // Không có ảnh chính cụ thể được chọn, đảm bảo có ít nhất một ảnh chính

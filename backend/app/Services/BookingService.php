@@ -3,15 +3,11 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\Booking;
-use App\Mail\BookingRejected;
-use App\Mail\BookingAccepted;
-use App\Models\Notification;
+use App\Jobs\SendBookingAcceptedNotification;
+use App\Jobs\SendBookingRejectedNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class BookingService
 {
@@ -306,7 +302,7 @@ class BookingService
                         <p class="mb-2"><strong>2. TRÁCH NHIỆM MỖI BÊN</strong></p>
 
                         <div class="mb-3">
-                            <p class="mb-2"><strong>a) Bên A:</strong></p>
+                            <p class="mb-2 page-break"><strong>a) Bên A:</strong></p>
                             <div class="ms-3">
                                 <p class="mb-1">- Trong thời gian hợp đồng chủ nhà sẽ không tăng giá tiền nhà.</p>
                                 <p class="mb-1">- Kịp thời sửa chữa hư hỏng trong quá trình sử dụng.</p>
@@ -549,7 +545,7 @@ class BookingService
     }
 
 
-    public function updateBookingStatus($id, $status, $cancellation_reason = null)
+    public function updateBookingStatus($id, $status, $rejection_reason = null)
     {
         try {
             $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
@@ -559,12 +555,12 @@ class BookingService
                 'booking_id' => $id,
                 'old_status' => $oldStatus,
                 'new_status' => $status,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
 
             $updateData = ['status' => $status];
-            if ($cancellation_reason) {
-                $updateData['cancellation_reason'] = $cancellation_reason;
+            if ($rejection_reason) {
+                $updateData['rejection_reason'] = $rejection_reason;
             }
 
             $booking->update($updateData);
@@ -589,71 +585,19 @@ class BookingService
                     'status' => 'Chờ xác nhận',
                 ];
 
-                // Tạo thông báo cho người dùng
-                $notificationData = [
-                    'user_id' => $booking->user_id,
-                    'title' => 'Đặt phòng đã được chấp nhận',
-                    'content' => 'Đặt phòng của bạn tại ' . $booking->room->motel->name . ' đã được chấp nhận. Vui lòng kiểm tra hợp đồng.',
-                    'status' => 'Chưa đọc',
-                ];
-
                 try {
                     $contract = Contract::create($contractData);
                     Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
-                    // Tạo thông báo cho người dùng
-                    $notification = Notification::create($notificationData);
 
-                    // gửi FCM
-                    $user = $booking->user;
+                    // Dispatch job để gửi thông báo chấp nhận
+                    $contractUrl = url('/contract/preview/' . $booking->id);
+                    SendBookingAcceptedNotification::dispatch($booking, $contractUrl);
 
-                    if ($user && $user->fcm_token) {
-                        Log::info('⏳ Chuẩn bị gửi FCM', ['user_id' => $user->id, 'token' => $user->fcm_token]);
-
-                        $messaging = app('firebase.messaging');
-
-                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                            ->withNotification(FirebaseNotification::create(
-                                $notificationData['title'],
-                                $notificationData['content']
-                            ));
-
-                        try {
-                            $messaging->send($fcmMessage);
-                            Log::info('✅ FCM sent to user', ['user_id' => $user->id]);
-                        } catch (\Exception $e) {
-                            Log::error('❌ FCM send error', [
-                                'user_id' => $user->id,
-                                'error' => $e->getMessage()
-                            ]);
-                        }
-                    } else {
-                        Log::warning('⚠️ Không tìm thấy user hoặc user chưa có fcm_token', [
-                            'user_id' => $notificationData['user_id'],
-                            'user_found' => !!$user,
-                            'fcm_token' => $user->fcm_token ?? null
-                        ]);
-                    }
-
-                    Log::info('Notification created successfully', ['notification_id' => $notification->id, 'booking_id' => $id]);
-
-
-                    // Gửi email thông báo chấp nhận với link hợp đồng
-                    if ($booking->user && $booking->user->email) {
-                        try {
-                            $contractUrl = url('/contract/preview/' . $booking->id);
-                            Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
-                            Log::info('Acceptance email sent successfully', [
-                                'booking_id' => $id,
-                                'user_email' => $booking->user->email,
-                                'contract_url' => $contractUrl
-                            ]);
-                        } catch (\Exception $mailException) {
-                            Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
-                                'booking_id' => $id,
-                                'user_email' => $booking->user->email
-                            ]);
-                        }
-                    }
+                    Log::info('Booking acceptance notification job dispatched', [
+                        'booking_id' => $id,
+                        'user_id' => $booking->user_id,
+                        'contract_url' => $contractUrl
+                    ]);
 
                 } catch (\Throwable $e) {
                     Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
@@ -661,20 +605,15 @@ class BookingService
                 }
             }
 
-            // Gửi email từ chối (giữ nguyên logic cũ)
+            // Gửi thông báo từ chối bằng Job
             if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
-                try {
-                    Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
-                    Log::info('Rejection email sent successfully', [
-                        'booking_id' => $id,
-                        'user_email' => $booking->user->email
-                    ]);
-                } catch (\Exception $mailException) {
-                    Log::error('Failed to send rejection email: ' . $mailException->getMessage(), [
-                        'booking_id' => $id,
-                        'user_email' => $booking->user->email
-                    ]);
-                }
+                SendBookingRejectedNotification::dispatch($booking, $rejection_reason ?? '');
+
+                Log::info('Booking rejection notification job dispatched', [
+                    'booking_id' => $id,
+                    'user_email' => $booking->user->email,
+                    'rejection_reason' => $rejection_reason ?? ''
+                ]);
             }
 
             return ['data' => $booking];
@@ -690,19 +629,19 @@ class BookingService
         }
     }
 
-    public function updateBookingCancellation($id, $cancellation_reason)
+    public function updateBookingCancellation($id, $rejection_reason)
     {
         try {
             $booking = Booking::findOrFail($id);
 
             // Log before update
-            Log::info('Updating booking cancellation_reason', [
+            Log::info('Updating booking rejection_reason', [
                 'booking_id' => $id,
-                'old_cancellation_reason' => $booking->cancellation_reason,
-                'new_cancellation_reason' => $cancellation_reason
+                'old_rejection_reason' => $booking->rejection_reason,
+                'new_rejection_reason' => $rejection_reason
             ]);
 
-            $booking->update(['cancellation_reason' => $cancellation_reason]);
+            $booking->update(['rejection_reason' => $rejection_reason]);
 
             // Reload to get fresh data
             $booking->refresh();
@@ -714,30 +653,30 @@ class BookingService
         } catch (\Throwable $e) {
             Log::error('Error updating booking Cancellation: ' . $e->getMessage(), [
                 'booking_id' => $id,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật lý do', 'status' => 500];
         }
     }
 
-    public function updateBookingStatusAndCancellation_reason($id, $status, $cancellation_reason)
+    public function updateBookingStatusAndCancellation_reason($id, $status, $rejection_reason)
     {
         try {
-            return DB::transaction(function () use ($id, $status, $cancellation_reason) {
+            return DB::transaction(function () use ($id, $status, $rejection_reason) {
                 $booking = Booking::with(['user', 'room.motel'])->findOrFail($id);
                 $oldStatus = $booking->status;
 
-                Log::info('Updating booking status and cancellation_reason', [
+                Log::info('Updating booking status and rejection_reason', [
                     'booking_id' => $id,
                     'old_status' => $oldStatus,
                     'new_status' => $status,
-                    'old_cancellation_reason' => $booking->cancellation_reason,
-                    'new_cancellation_reason' => $cancellation_reason
+                    'old_rejection_reason' => $booking->rejection_reason,
+                    'new_rejection_reason' => $rejection_reason
                 ]);
 
                 $updateData = ['status' => $status];
-                if ($cancellation_reason) {
-                    $updateData['cancellation_reason'] = $cancellation_reason;
+                if ($rejection_reason) {
+                    $updateData['rejection_reason'] = $rejection_reason;
                 }
 
                 $booking->update($updateData);
@@ -765,43 +704,30 @@ class BookingService
                         $contract = Contract::create($contractData);
                         Log::info('Contract created successfully', ['contract_id' => $contract->id, 'booking_id' => $id]);
 
-                        // Gửi email thông báo chấp nhận với link hợp đồng
-                        if ($booking->user && $booking->user->email) {
-                            try {
-                                $contractUrl = url('/contract/preview/' . $booking->id);
-                                Mail::to($booking->user->email)->send(new BookingAccepted($booking, $contractUrl));
-                                Log::info('Acceptance email sent successfully', [
-                                    'booking_id' => $id,
-                                    'user_email' => $booking->user->email,
-                                    'contract_url' => $contractUrl
-                                ]);
-                            } catch (\Exception $mailException) {
-                                Log::error('Failed to send acceptance email: ' . $mailException->getMessage(), [
-                                    'booking_id' => $id,
-                                    'user_email' => $booking->user->email
-                                ]);
-                            }
-                        }
+                        // Dispatch job để gửi thông báo chấp nhận
+                        $contractUrl = url('/contract/preview/' . $booking->id);
+                        SendBookingAcceptedNotification::dispatch($booking, $contractUrl);
+
+                        Log::info('Booking acceptance notification job dispatched', [
+                            'booking_id' => $id,
+                            'user_id' => $booking->user_id,
+                            'contract_url' => $contractUrl
+                        ]);
 
                     } catch (\Throwable $e) {
                         Log::error('Failed to create contract: ' . $e->getMessage(), ['booking_id' => $id, 'contract_data' => $contractData]);
                     }
                 }
 
-                // Gửi email từ chối
+                // Gửi thông báo từ chối bằng Job
                 if ($status === 'Từ chối' && $oldStatus !== 'Từ chối' && $booking->user && $booking->user->email) {
-                    try {
-                        Mail::to($booking->user->email)->send(new BookingRejected($booking, $cancellation_reason ?? ''));
-                        Log::info('Rejection email sent successfully', [
-                            'booking_id' => $id,
-                            'user_email' => $booking->user->email
-                        ]);
-                    } catch (\Exception $mailException) {
-                        Log::error('Failed to send rejection email: ' . $mailException->getMessage(), [
-                            'booking_id' => $id,
-                            'user_email' => $booking->user->email
-                        ]);
-                    }
+                    SendBookingRejectedNotification::dispatch($booking, $rejection_reason ?? '');
+
+                    Log::info('Booking rejection notification job dispatched', [
+                        'booking_id' => $id,
+                        'user_email' => $booking->user->email,
+                        'rejection_reason' => $rejection_reason ?? ''
+                    ]);
                 }
 
                 return ['data' => $booking];
@@ -810,10 +736,10 @@ class BookingService
             Log::error('Booking not found: ' . $e->getMessage(), ['booking_id' => $id]);
             return ['error' => 'Không tìm thấy đặt phòng', 'status' => 404];
         } catch (\Throwable $e) {
-            Log::error('Error updating booking status and cancellation_reason: ' . $e->getMessage(), [
+            Log::error('Error updating booking status and rejection_reason: ' . $e->getMessage(), [
                 'booking_id' => $id,
                 'status' => $status,
-                'cancellation_reason' => $cancellation_reason
+                'rejection_reason' => $rejection_reason
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật thông tin đặt phòng', 'status' => 500];
         }

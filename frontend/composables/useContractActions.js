@@ -18,10 +18,10 @@ export function useContractActions({ isLoading, contracts }) {
         }
     };
 
-    const rejectItem = async id => {
+    const cancelContract = async id => {
         isLoading.value = true;
         try {
-            await $api(`/contracts/${id}/reject`, {
+            await $api(`/contracts/${id}/cancel`, {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
@@ -77,7 +77,7 @@ export function useContractActions({ isLoading, contracts }) {
 
     return {
         fetchContracts,
-        rejectItem,
+        cancelContract,
         extendContract,
         returnContract
     };

@@ -4,10 +4,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-5 col-sm-6">
-                    <img v-if="config?.logo_ngang" :src="baseUrl + config.logo_ngang" alt="Logo" class="logo-footer" />
+                    <img v-if="config?.secondary_logo" :src="baseUrl + config.secondary_logo" alt="Logo" class="logo-footer" />
                     <br /><br />
-                    <p v-if="config?.mo_ta_footer">
-                        {{ config.mo_ta_footer }}
+                    <p v-if="config?.sghood_short_desc">
+                        {{ config.sghood_short_desc }}
                     </p>
                 </div>
 
@@ -28,12 +28,12 @@
                 <div class="col-md-3 col-sm-12">
                     <h4>Liên hệ với chúng tôi</h4>
                     <div class="text-widget">
-                        <span>QTSC 9 Building, Đ. Tô Ký, Tân Chánh Hiệp, Quận 12, Hồ Chí Minh</span> <br />
-                        <span v-if="config?.sdt"
-                            >Điện thoại: <span>{{ config.sdt }}</span></span
+                        <span>{{ config.office_address }}</span> <br />
+                        <span v-if="config?.contact_phone"
+                            >Điện thoại: <span>{{ config.contact_phone }}</span></span
                         ><br />
-                        <span v-if="config?.email"
-                            >Email: <a :href="'mailto:' + config.email">{{ config.email }}</a></span
+                        <span v-if="config?.contact_email"
+                            >Email: <a :href="'mailto:' + config.contact_email">{{ config.contact_email }}</a></span
                         ><br />
                     </div>
 
@@ -56,7 +56,7 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
+                    <div class="copyrights">{{ config.copyright_title }}</div>
                 </div>
             </div>
         </div>

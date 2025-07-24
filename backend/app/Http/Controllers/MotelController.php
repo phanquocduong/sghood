@@ -103,6 +103,15 @@ class MotelController extends Controller
             $data = $request->validated();
             $imageFiles = $request->hasFile('images') ? $request->file('images') : [];
 
+            // Lấy motel hiện tại
+            $currentMotel = $this->motelService->findById($id);
+            if (!$currentMotel) {
+                return redirect()->back()->withInput()->with('error', 'Không tìm thấy nhà trọ.');
+            }
+
+            // Kiểm tra thay đổi name
+          
+
             // Xử lý is_main từ radio buttons hoặc new_main_image_index từ JS
             $isMain = $request->input('is_main', null);
             $newMainImageIndex = $request->input('new_main_image_index', null);
@@ -111,7 +120,7 @@ class MotelController extends Controller
                 $data['is_main'] = $isMain;
             }
             if ($newMainImageIndex !== null) {
-                $data['new_main_image_index'] = (int)$newMainImageIndex;
+                $data['new_main_image_index'] = (int) $newMainImageIndex;
             }
 
             Log::info('Cập nhật nhà trọ ID: ' . $id, [
@@ -139,6 +148,7 @@ class MotelController extends Controller
             return redirect()->back()->withInput()->with('error', 'Đã xảy ra lỗi không mong muốn: ' . $e->getMessage());
         }
     }
+
 
     public function destroy(int $id): RedirectResponse
     {

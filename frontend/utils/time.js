@@ -1,11 +1,13 @@
-// npm install dayjs
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import 'dayjs/locale/vi'
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
+import 'dayjs/locale/vi';
 
-dayjs.extend(relativeTime)
-dayjs.locale('vi')
+dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.locale('vi');
 
 export function formatTimeAgo(time) {
-  return dayjs(time).fromNow()
+    const parsedTime = dayjs(time);
+    return parsedTime.fromNow();
 }

@@ -17,7 +17,8 @@ class BlogService
 {
     public function getAllBlogs($querySearch = null, $status = null, $sortOption = 'created_at_desc', $perPage = 10)
     {
-        $query = Blog::with('author');
+        $query = Blog::with('author', 'comments')
+            ->withCount('comments'); // Đếm số lượng bình luận
 
         if ($querySearch) {
             $query->where(function ($q) use ($querySearch) {

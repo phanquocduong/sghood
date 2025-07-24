@@ -23,7 +23,8 @@
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
                 style="background: linear-gradient(90deg, #007bff, #00c6ff);">
                 <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-check-circle me-2"></i>Quản lý Checkout
+                    <i class="fas fa-check-circle me-2"></i>Quản lý Trả phòng
+                    <span class="badge bg-light text-primary ms-2">{{ $checkouts->total() }} Y/c trả phòng</span>
                 </h5>
             </div>
 
@@ -79,7 +80,7 @@
                                 <th scope="col" style="width: 5%;" class="text-center">STT</th>
                                 <th scope="col" style="width: 15%;">Tên phòng</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Ngày checkout</th>
-                                <th scope="col" style="width: 15%;" class="text-center">Rời đi</th>
+                                <th scope="col" style="width: 15%;" class="text-center">Hoàn tiền</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 20%;" class="text-center">Trạng thái người dùng</th>
                                 <th scope="col" style="width: 20%;" class="text-center">Thao tác</th>
@@ -98,10 +99,10 @@
                                     </td>
                                     <td class="text-center">
                                         <span
-                                            class="badge bg-{{ $checkout->has_left == 0 ? 'warning' : 'success' }} py-2 px-3">
-                                            <i class="{{ $checkout->has_left == 0 ? 'fas fa-clock' : 'fas fa-check-circle' }} me-1"
+                                            class="badge bg-{{ $checkout->refund_status == 'Đã xử lý' ? 'success' : ($checkout->refund_status == 'Hủy bỏ' ? 'danger' : 'warning') }} py-2 px-3">
+                                            <i class="{{ $checkout->refund_status == 'Đã xử lý' ? 'fas fa-check-circle' : ($checkout->refund_status == 'Hủy bỏ' ? 'fas fa-times-circle' : 'fas fa-clock') }} me-1"
                                                 style="font-size: 8px;"></i>
-                                            {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}
+                                            {{ $checkout->refund_status ?? 'Chờ xử lý' }}
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -122,6 +123,7 @@
                                         @if ($checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason))
                                             <div class="mt-1">
                                                 <small class="text-danger">
+                                                    {{ $checkout->user_rejection_reason }}
                                                 </small>
                                             </div>
                                         @endif
@@ -143,8 +145,21 @@
                                                     onclick="changeToReInventory({{ $checkout->id }})">
                                                     <i class="fas fa-redo me-1"></i>Kiểm kê lại
                                                 </button>
+                                            @elseif ($checkout->user_confirmation_status === 'Đồng ý')
+                                                @if ($checkout->refund_status === 'Đã xử lý')
+                                                        <span class="fst-italic">Đã hoàn thành</span>
+                                                @else
+                                                    <button type="button" class="btn btn-success btn-sm shadow-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#confirmCheckoutModal{{ $checkout->id }}"
+                                                        title="Xác nhận hoàn tiền">
+                                                        <i class="fas fa-check me-1"></i>Xác nhận
+                                                    </button>
+                                                @endif
                                             @else
-                                                <span class="text-muted small">Đã hoàn thành</span>
+                                                <span class="badge bg-warning text-white py-2 px-3">
+                                                    <i class="fas fa-hourglass-half me-1"></i>Chờ xác nhận người dùng
+                                                </span>
                                             @endif
                                         @endif
                                     </td>
@@ -156,56 +171,64 @@
                                     <div class="modal-dialog modal-dialog-centered modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header bg-info text-white">
-                                                <h5 class="modal-title" id="checkoutModalLabel{{ $checkout->id }}">Chi
-                                                    tiết Checkout</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
+                                                <h5 class="modal-title" id="checkoutModalLabel{{ $checkout->id }}">Chi tiết Checkout</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="row">
                                                     <!-- Left Column - Basic Info -->
                                                     <div class="col-md-6">
-                                                        <p><strong>Tên phòng:</strong>
-                                                            {{ $checkout->contract->room->name }}</p>
+                                                        <p><strong>Tên phòng:</strong> {{ $checkout->contract->room->name }}</p>
                                                         <p><strong>Ngày checkout:</strong>
                                                             {{ $checkout->check_out_date ? \Carbon\Carbon::parse($checkout->check_out_date)->format('d/m/Y') : 'N/A' }}
                                                         </p>
                                                         <p><strong>Rời đi:</strong>
                                                             {{ $checkout->has_left == 0 ? 'Chưa rời đi' : 'Đã rời đi' }}
                                                         </p>
-                                                        <p><strong>Trạng thái:</strong>
-                                                            {{ $checkout->inventory_status ?? 'N/A' }}
-                                                        </p>
+                                                        <p><strong>Trạng thái:</strong> {{ $checkout->inventory_status ?? 'N/A' }}</p>
                                                         <p><strong>Trạng thái người dùng:</strong>
-                                                            <span
-                                                                class="badge bg-{{ $checkout->user_confirmation_status == 'Đồng ý' ? 'success' : ($checkout->user_confirmation_status == 'Từ chối' ? 'danger' : 'warning') }}">
+                                                            <span class="badge bg-{{ $checkout->user_confirmation_status == 'Đồng ý' ? 'success' : ($checkout->user_confirmation_status == 'Từ chối' ? 'danger' : 'warning') }}">
                                                                 {{ $checkout->user_confirmation_status ?? 'Chờ xác nhận' }}
                                                             </span>
                                                         </p>
                                                         <p><strong>Số tiền khấu trừ:</strong>
-                                                            {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }}
-                                                            VNĐ</p>
+                                                            {{ $checkout->deduction_amount ? number_format($checkout->deduction_amount, 0, ',', '.') : 'N/A' }} VNĐ
+                                                        </p>
                                                         <p><strong>Tiền cọc:</strong>
-                                                            {{ $checkout->contract->deposit_amount ? number_format($checkout->contract->deposit_amount, 0, ',', '.') : 'N/A' }}
-                                                            VNĐ</p>
+                                                            {{ $checkout->contract->deposit_amount ? number_format($checkout->contract->deposit_amount, 0, ',', '.') : 'N/A' }} VNĐ
+                                                        </p>
                                                         <p><strong>Số tiền hoàn lại:</strong>
-                                                            {{ $checkout->final_refunded_amount ? number_format($checkout->final_refunded_amount, 0, ',', '.') : 'N/A' }}
-                                                            VNĐ</p>
+                                                            {{ $checkout->final_refunded_amount ? number_format($checkout->final_refunded_amount, 0, ',', '.') : 'N/A' }} VNĐ
+                                                        </p>
                                                     </div>
 
-                                                    <!-- Right Column - Rejection Reason or Additional Info -->
+                                                    <!-- Right Column - Rejection Reason or QR Code -->
                                                     <div class="col-md-6">
                                                         @if ($checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason))
                                                             <div class="alert alert-danger">
-                                                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Lý do
-                                                                    từ chối:</h6>
-                                                                <p class="mb-0">{{ $checkout->user_rejection_reason }}
-                                                                </p>
+                                                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Lý do từ chối:</h6>
+                                                                <p class="mb-0">{{ $checkout->user_rejection_reason }}</p>
+                                                            </div>
+                                                        @elseif ($checkout->inventory_status === 'Đã kiểm kê' && $checkout->user_confirmation_status === 'Đồng ý')
+                                                            @php
+                                                                $bankInfo = is_array($checkout->bank_info) && !empty($checkout->bank_info)
+                                                                    ? $checkout->bank_info[0]
+                                                                    : ['account_number' => '31214717', 'bank_name' => 'ACB', 'account_holder' => 'PHAN QUOC DUONG'];
+                                                            @endphp
+                                                            <div class="qr-code-section text-center">
+                                                                <h6><i class="fas fa-qrcode me-2"></i>Thông tin hoàn tiền</h6>
+                                                                <img src="https://qr.sepay.vn/img?acc={{ $bankInfo['account_number'] }}&bank={{ $bankInfo['bank_name'] }}&amount={{ $checkout->final_refunded_amount ?? 0 }}&des=Hoan tien phong {{ urlencode($checkout->contract->room->name ?? '') }}&template=compact"
+                                                                    alt="QR Code" class="img-fluid mb-3 qr-code-img" style="max-width: 160px">
+                                                                <div class="bank-info text-start">
+                                                                    <p><strong>Ngân hàng:</strong> {{ $bankInfo['bank_name'] }}</p>
+                                                                    <p><strong>Chủ tài khoản:</strong> {{ $bankInfo['account_holder'] }}</p>
+                                                                    <p><strong>Số tài khoản:</strong> {{ $bankInfo['account_number'] }}</p>
+                                                                </div>
                                                             </div>
                                                         @else
-                                                            <div class="text-muted">
-                                                                <i class="fas fa-info-circle me-2"></i>
-                                                                <small>Không có lý do từ chối</small>
+                                                            <div class="text-center text-muted">
+                                                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                                                <p>Thông tin hoàn tiền sẽ hiển thị khi đã kiểm kê và được người dùng đồng ý</p>
                                                             </div>
                                                         @endif
                                                     </div>
@@ -221,17 +244,14 @@
                                                                 @foreach ($checkout->inventory_details as $item)
                                                                     <div class="border-bottom mb-2 pb-2">
                                                                         <p class="mb-1">
-                                                                            <strong>Tên:</strong>
-                                                                            {{ $item['item_name'] ?? 'N/A' }}
+                                                                            <strong>Tên:</strong> {{ $item['item_name'] ?? 'N/A' }}
                                                                         </p>
                                                                         <p class="mb-1">
-                                                                            <strong>Tình trạng:</strong>
-                                                                            {{ $item['item_condition'] ?? 'N/A' }}
+                                                                            <strong>Tình trạng:</strong> {{ $item['item_condition'] ?? 'N/A' }}
                                                                         </p>
                                                                         <p class="mb-1">
                                                                             <strong>Chi phí:</strong>
-                                                                            {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : '0' }}
-                                                                            VNĐ
+                                                                            {{ $item['item_cost'] ? number_format($item['item_cost'], 0, ',', '.') : '0' }} VNĐ
                                                                         </p>
                                                                     </div>
                                                                 @endforeach
@@ -261,8 +281,7 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Đóng</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                             </div>
                                         </div>
                                     </div>
@@ -325,13 +344,8 @@
                                                             id="inventory_status{{ $checkout->id }}" name="status"
                                                             required>
                                                             @if ($checkout->inventory_status == 'Chờ kiểm kê')
-                                                                {{-- <option value="Chờ kiểm kê" selected>Chờ kiểm kê</option> --}}
                                                                 <option value="Đã kiểm kê">Đã kiểm kê</option>
                                                             @else
-                                                                {{-- <option value="Kiểm kê lại"
-                                                                    {{ $checkout->inventory_status == 'Kiểm kê lại' ? 'selected' : '' }}>
-                                                                    Kiểm kê lại
-                                                                </option> --}}
                                                                 <option value="Đã kiểm kê"
                                                                     {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
                                                                     Đã kiểm kê
@@ -454,6 +468,38 @@
                                                 <button type="button" class="btn btn-secondary"
                                                     data-bs-dismiss="modal">Đóng</button>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal for Confirm Refund -->
+                                <div class="modal fade" id="confirmCheckoutModal{{ $checkout->id }}" tabindex="-1"
+                                    aria-labelledby="confirmCheckoutModalLabel{{ $checkout->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="confirmCheckoutModalLabel{{ $checkout->id }}">Xác nhận hoàn tiền</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ route('checkouts.confirm', $checkout->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <div class="modal-body">
+                                                    <p>Bạn có chắc chắn muốn xác nhận đã xử lý yêu cầu hoàn tiền này?
+                                                        <span class="fst-italic">Vui lòng truy cập: <a class="text-danger" href="https://my.sepay.vn/transactions">Vào đây</a> để lấy mã tham chiếu!</span>
+                                                    </p>
+                                                    <div class="mb-3">
+                                                        <label for="reference_code{{ $checkout->id }}" class="form-label">Mã tham chiếu</label>
+                                                        <input type="text" class="form-control" id="reference_code{{ $checkout->id }}"
+                                                            name="reference_code" required placeholder="Nhập mã tham chiếu">
+                                                        <input type="hidden" name="transfer_amount" value="{{ $checkout->final_refunded_amount ?? 0 }}">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-success">Xác nhận</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>

@@ -9,10 +9,10 @@
                         <!-- Logo -->
                         <div id="logo">
                             <NuxtLink to="/"
-                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
+                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
                             /></NuxtLink>
                             <NuxtLink to="/" class="dashboard-logo"
-                                ><img v-if="config && config.logo_ngang" :src="baseUrl + config.logo_ngang" alt="SGHood Logo"
+                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
                             /></NuxtLink>
                         </div>
 
@@ -28,7 +28,7 @@
                 </div>
             </div>
         </header>
-        
+
         <!-- Dashboard -->
         <div id="dashboard">
             <a href="#" class="dashboard-responsive-nav-trigger"><i class="fa fa-reorder"></i>Thanh điều hướng</a>
@@ -39,23 +39,17 @@
                 <NuxtPage />
                 <!-- Copyrights -->
                 <div class="col-md-12">
-                    <div class="copyrights">© 2025 SGHood - Website đang trong giai đoạn thử nghiệm.</div>
+                    <div class="copyrights">{{ config.copyright_title }}</div>
                 </div>
             </div>
             <div>
                 <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
                 <div>
-                    <ChatBox
-                        v-if="user"
-                        
-                        :isOpen="isChatOpen"
-                        @close="isChatOpen = false"
-                        @unread="onUnreadMessage"
-                    ></ChatBox>
+                    <ChatBox v-if="user" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage"></ChatBox>
                 </div>
             </div>
         </div>
-      </div>
+    </div>
 </template>
 
 <script setup>
@@ -75,47 +69,45 @@ const toast = useToast();
 const router = useRouter();
 
 const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value;
-  if (isChatOpen.value) {
-    unreadMessages.value = 0;
-  }
+    isChatOpen.value = !isChatOpen.value;
+    if (isChatOpen.value) {
+        unreadMessages.value = 0;
+    }
 };
 
 const onUnreadMessage = () => {
-  if (!isChatOpen.value) {
-    unreadMessages.value++;
-  }
+    if (!isChatOpen.value) {
+        unreadMessages.value++;
+    }
 };
 
 watch(
-  () => route.fullPath,
-  async () => {
-    isLoading.value = true;
-    await nextTick();
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 500);
-  },
-  { immediate: true }
+    () => route.fullPath,
+    async () => {
+        isLoading.value = true;
+        await nextTick();
+        setTimeout(() => {
+            isLoading.value = false;
+        }, 500);
+    },
+    { immediate: true }
 );
 
 const checkAuth = async () => {
-  if (!authStore.user) {
-    await authStore.fetchUser();
-  }
+    if (!authStore.user) {
+        await authStore.fetchUser();
+    }
 
-  if (!authStore.user) {
-    toast.error('Vui lòng đăng nhập!');
-    router.push('/');
-  }
+    if (!authStore.user) {
+        toast.error('Vui lòng đăng nhập!');
+        router.push('/');
+    }
 };
 
 onMounted(() => {
-  checkAuth();
-    console.log("user ở manager:", user.value);
-
+    checkAuth();
+    console.log('user ở manager:', user.value);
 });
-
 </script>
 
 <style scoped>

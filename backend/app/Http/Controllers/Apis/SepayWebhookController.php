@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Apis\SendContractNotification;
 use App\Services\Apis\ContractService;
 use App\Services\Apis\InvoiceService;
-use App\Services\Apis\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,8 +14,7 @@ class SepayWebhookController extends Controller
 {
     public function __construct(
         private readonly ContractService $contractService,
-        private readonly InvoiceService $invoiceService,
-        private readonly NotificationService $notificationService
+        private readonly InvoiceService $invoiceService
     ) {}
 
     public function handleWebhook(Request $request): JsonResponse
@@ -32,9 +31,14 @@ class SepayWebhookController extends Controller
 
             $invoice = $this->invoiceService->processWebhook($data);
 
-            // Thông báo admin
+            // Thông báo admin khi xử lý hóa đơn đặt cọc
             if ($invoice->type === 'Đặt cọc') {
-                $this->notificationService->notifyContractForAdmins($invoice->contract, 'Chờ thanh toán tiền cọc');
+                SendContractNotification::dispatch(
+                    $invoice->contract,
+                    'deposit_paid',
+                    "Hợp đồng #{$invoice->contract->id} đã thanh toán tiền cọc",
+                    "Hợp đồng #{$invoice->contract->id} từ người dùng {$invoice->contract->user->name} đã thanh toán tiền cọc và đã được kích hoạt."
+                );
             }
 
             return response()->json(['success' => true], 200);
