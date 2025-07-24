@@ -13,6 +13,7 @@ class Invoice extends Model
         'type',
         'month',
         'year',
+        'room_fee',
         'electricity_fee',
         'water_fee',
         'parking_fee',
