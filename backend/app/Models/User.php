@@ -42,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Note::class);
     }
+
     public function sentMessages()
     {
         return $this->hasMany(Message::class, 'sender_id');
@@ -52,5 +53,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
-
+    // Thêm mối quan hệ với Schedule
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'user_id');
+    }
 }

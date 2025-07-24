@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth as FirebaseAuth;
+use Faker\Factory as FakerFactory;
+use Faker\Generator as FakerGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
             $firebase = (new Factory)
                 ->withServiceAccount(storage_path(env('FIREBASE_CREDENTIALS')));
             return $firebase->createAuth();
+        });
+
+        $this->app->singleton(FakerGenerator::class, function () {
+            return FakerFactory::create('vi_VN');
         });
     }
 
