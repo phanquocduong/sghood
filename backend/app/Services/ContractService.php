@@ -1,19 +1,16 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Contract;
-use App\Models\Notification;
 use App\Models\User;
+use App\Jobs\SendContractRevisionNotification;
+use App\Jobs\SendContractSignNotification;
+use App\Jobs\SendContractConfirmNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\ContractRevisionNotification;
-use App\Mail\ContractSignNotification;
-use App\Mail\ContractConfirmNotification;
 use Illuminate\Support\Facades\DB;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class ContractService
 {
@@ -43,7 +40,7 @@ class ContractService
             // Apply sort by created_at
             $sortDirection = in_array($sort, ['asc', 'desc']) ? $sort : 'desc';
             $contracts = $query->orderBy('created_at', $sortDirection)->paginate(15);
-            \Log::info('SQL Query', \DB::getQueryLog());
+            Log::info('SQL Query', DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
@@ -90,7 +87,8 @@ class ContractService
         }
     }
 
-    public function signedContracts(): array{
+    public function signedContracts(): array
+    {
         // hợp đồng được kí hôm nay
         try {
             $today = Carbon::today();
@@ -161,115 +159,34 @@ class ContractService
                 }
             }
 
-            // Gửi email thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa"
+            // Gửi thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa" bằng Job
             if ($status === 'Chờ chỉnh sửa' && $oldStatus !== 'Chờ chỉnh sửa') {
-                $this->sendContractRevisionEmail($contract);
-                // Tạo thông báo cho người dùng
-                $notificationdata = [
-                    'user_id' => $contract->user_id,
-                    'title' => 'Hợp đồng cần chỉnh sửa',
-                    'content' => 'Hợp đồng của bạn cần chỉnh sửa. Vui lòng kiểm tra email để biết chi tiết.',
-                    'status' => 'Chưa đọc'
-                ];
-                $notification = Notification::create($notificationdata);
-                Log::info('Notification created for contract revision', [
+                SendContractRevisionNotification::dispatch($contract);
+
+                Log::info('Contract revision notification job dispatched', [
                     'contract_id' => $contract->id,
-                    'notification_id' => $notification->id
+                    'user_id' => $contract->user_id,
                 ]);
-
-                // gửi FCM token
-                $user = User::find($notificationdata['user_id']);
-
-                if ($user && $user->fcm_token) {
-                    $messaging = app('firebase.messaging');
-
-                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                        ->withNotification(FirebaseNotification::create(
-                            $notificationdata['title'],
-                            $notificationdata['content']
-                        ));
-
-                    try {
-                        $messaging->send($fcmMessage);
-                        Log::info('FCM sent to user', ['user_id' => $user->id]);
-                    } catch (\Exception $e) {
-                        Log::error('FCM send error', ['error' => $e->getMessage()]);
-                    }
-                }
             }
 
-            // Gửi email thông báo khi trạng thái chuyển thành "Chờ ký"
+            // Gửi thông báo khi trạng thái chuyển thành "Chờ ký" bằng Job
             if ($status === 'Chờ ký' && $oldStatus !== 'Chờ ký') {
-                $this->sendContractSignEmail($contract);
-                // Tạo thông báo cho người dùng
-                $notificationdata = [
-                    'user_id' => $contract->user_id,
-                    'title' => 'Hợp đồng cần ký',
-                    'content' => 'Hợp đồng của bạn cần ký. Vui lòng kiểm tra email để biết chi tiết.',
-                    'status' => 'Chưa đọc'
-                ];
-                $notification = Notification::create($notificationdata);
-                Log::info('Notification created for contract sign', [
+                SendContractSignNotification::dispatch($contract);
+
+                Log::info('Contract sign notification job dispatched', [
                     'contract_id' => $contract->id,
-                    'notification_id' => $notification->id
+                    'user_id' => $contract->user_id,
                 ]);
-
-                // gửi FCM token
-                $user = User::find($notificationdata['user_id']);
-
-                if ($user && $user->fcm_token) {
-                    $messaging = app('firebase.messaging');
-
-                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                        ->withNotification(FirebaseNotification::create(
-                            $notificationdata['title'],
-                            $notificationdata['content']
-                        ));
-
-                    try {
-                        $messaging->send($fcmMessage);
-                        Log::info('FCM sent to user', ['user_id' => $user->id]);
-                    } catch (\Exception $e) {
-                        Log::error('FCM send error', ['error' => $e->getMessage()]);
-                    }
-                }
             }
 
-            // Gửi email thông báo khi trạng thái chuyển thành "Hoạt động"
+            // Gửi thông báo khi trạng thái chuyển thành "Hoạt động" bằng Job
             if ($status === 'Hoạt động' && $oldStatus !== 'Hoạt động') {
-                $this->sendContractConfirmEmail($contract);
-                // Tạo thông báo cho người dùng
-                $notificationdata = [
-                    'user_id' => $contract->user_id,
-                    'title' => 'Hợp đồng đã được xác nhận',
-                    'content' => 'Hợp đồng của bạn đã được xác nhận và đang hoạt động.',
-                    'status' => 'Chưa đọc'
-                ];
-                $notification = Notification::create($notificationdata);
-                Log::info('Notification created for contract confirmation', [
+                SendContractConfirmNotification::dispatch($contract);
+
+                Log::info('Contract confirmation notification job dispatched', [
                     'contract_id' => $contract->id,
-                    'notification_id' => $notification->id
+                    'user_id' => $contract->user_id,
                 ]);
-
-                // gửi FCM token
-                $user = User::find($notificationdata['user_id']);
-
-                if ($user && $user->fcm_token) {
-                    $messaging = app('firebase.messaging');
-
-                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                        ->withNotification(FirebaseNotification::create(
-                            $notificationdata['title'],
-                            $notificationdata['content']
-                        ));
-
-                    try {
-                        $messaging->send($fcmMessage);
-                        Log::info('FCM sent to user', ['user_id' => $user->id]);
-                    } catch (\Exception $e) {
-                        Log::error('FCM send error', ['error' => $e->getMessage()]);
-                    }
-                }
             }
 
             return ['data' => $contract];
@@ -279,93 +196,6 @@ class ContractService
                 'status' => $status
             ]);
             return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái hợp đồng', 'status' => 500];
-        }
-    }
-
-    // Gửi email thông báo khi hợp đồng cần chỉnh sửa
-    private function sendContractRevisionEmail(Contract $contract): void
-    {
-        try {
-            if (!$contract->user || !$contract->user->email) {
-                Log::warning('Không thể gửi email sửa đổi - không tìm thấy người dùng hoặc email', [
-                    'contract_id' => $contract->id
-                ]);
-                return;
-            }
-
-            // Sử dụng Mailable class mới
-            Mail::to($contract->user->email, $contract->user->name)
-                ->send(new ContractRevisionNotification($contract));
-
-            Log::info('Email sửa đổi hợp đồng đã được gửi thành công', [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('Lỗi khi gửi email sửa đổi hợp đồng: ' . $e->getMessage(), [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email ?? 'N/A',
-                'trace' => $e->getTraceAsString()
-            ]);
-        }
-    }
-
-    // Gửi email thông báo khi hợp đồng cần ký
-    private function sendContractSignEmail(Contract $contract): void
-    {
-        try {
-            if (!$contract->user || !$contract->user->email) {
-                Log::warning('Không thể gửi email đăng nhập - không tìm thấy người dùng hoặc email', [
-                    'contract_id' => $contract->id
-                ]);
-                return;
-            }
-
-            // Sử dụng Mailable class mới
-            Mail::to($contract->user->email, $contract->user->name)
-                ->send(new ContractSignNotification($contract));
-
-            Log::info('Email ký hợp đồng đã được gửi thành công', [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('Lỗi khi gửi email ký hợp đồng: ' . $e->getMessage(), [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email ?? 'N/A',
-                'trace' => $e->getTraceAsString()
-            ]);
-        }
-    }
-
-    // Gửi email thông báo khi hợp đồng đã được xác nhận
-    private function sendContractConfirmEmail(Contract $contract): void
-    {
-        try {
-            if (!$contract->user || !$contract->user->email) {
-                Log::warning('Không thể gửi email xác nhận - không tìm thấy người dùng hoặc email', [
-                    'contract_id' => $contract->id
-                ]);
-                return;
-            }
-
-            // Sử dụng Mailable class mới
-            Mail::to($contract->user->email, $contract->user->name)
-                ->send(new ContractConfirmNotification($contract));
-
-            Log::info('Email xác nhận hợp đồng đã được gửi thành công', [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('Lỗi khi gửi email xác nhận hợp đồng: ' . $e->getMessage(), [
-                'contract_id' => $contract->id,
-                'user_email' => $contract->user->email ?? 'N/A',
-                'trace' => $e->getTraceAsString()
-            ]);
         }
     }
 
@@ -402,7 +232,6 @@ class ContractService
                     'relative_path' => $contract->file
                 ]
             ];
-
         } catch (\Throwable $e) {
             Log::error('Error downloading contract PDF: ' . $e->getMessage(), [
                 'contract_id' => $id,
@@ -442,7 +271,6 @@ class ContractService
                     'mime_type' => 'image/webp'
                 ]
             ];
-
         } catch (\Throwable $e) {
             Log::error('Error retrieving identity document: ' . $e->getMessage(), [
                 'contract_id' => $contractId,
@@ -450,5 +278,41 @@ class ContractService
             ]);
             return ['error' => 'Đã xảy ra lỗi khi lấy hình ảnh căn cước công dân', 'status' => 500];
         }
+    }
+
+    public function getTenantsByContractStatus()
+    {
+        $allTenants = Contract::with(['user', 'room'])
+            ->whereIn('status', ['Hoạt động', 'Kết thúc'])
+            ->get();
+
+        $today = Carbon::today();
+        $currentTenants = [];
+        $expiringTenants = [];
+        $expiredTenants = [];
+
+        foreach ($allTenants as $tenant) {
+            $endDate = Carbon::parse($tenant->end_date);
+
+            if ($tenant->status === 'Kết thúc' || $endDate->lt($today)) {
+                $expiredTenants[] = $tenant;
+                continue;
+            }
+
+            // Tính đúng số ngày còn lại (có dấu)
+            $daysLeft = $today->diffInDays($endDate, false); // <-- thêm false để phân biệt âm/dương
+
+            if ($daysLeft > 7) {
+                $currentTenants[] = $tenant;
+            } elseif ($daysLeft >= 0 && $daysLeft <= 7) {
+                $expiringTenants[] = $tenant;
+            }
+        }
+
+        return [
+            'current' => $currentTenants,
+            'expiring' => $expiringTenants,
+            'expired' => $expiredTenants,
+        ];
     }
 }

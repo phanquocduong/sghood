@@ -20,7 +20,7 @@
             <div id="messages-dropdown"
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                 {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                @foreach ($latestMessages as $message)
+                {{-- @foreach ($latestMessages as $message)
                     <a href="{{ route('messages.index') }}"
                         class="dropdown-item {{ !empty($message['is_read']) && $message['is_read'] == false ? 'fw-bold' : '' }}">
                         <h6 class="mb-0">{{ $message['message'] }}</h6>
@@ -29,7 +29,7 @@
                         </small>
                     </a>
                     <hr class="dropdown-divider">
-                @endforeach
+                @endforeach --}}
                 <a href="{{ route('messages.index') }}" class="dropdown-item text-center fw-bold text-primary">Xem tất cả tin nhắn</a>
             </div>
         </div>
@@ -49,7 +49,7 @@
                 <div id="notifications-dropdown"
                     class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                     {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                    @foreach ($latestNotifications as $notification)
+                    {{-- @foreach ($latestNotifications as $notification)
                         <a href="{{ route('notifications.index') }}"
                             class="dropdown-item {{ $notification->status == 'Chưa đọc' ? 'fw-bold' : '' }}">
                             <h6 class="mb-0">{{ $notification->title }}</h6>
@@ -57,7 +57,7 @@
                                 class="text-muted">{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
                         </a>
                         <hr class="dropdown-divider">
-                    @endforeach
+                    @endforeach --}}
                     <a href="{{ route('notifications.index') }}"
                         class="dropdown-item text-center fw-bold text-primary">Xem
                         tất cả thông báo</a>
@@ -79,6 +79,7 @@
             </div>
         </div>
 </nav>
+
 
 
 <script>
@@ -136,3 +137,4 @@ setInterval(() => {
 
 
 <!-- Navbar End -->
+

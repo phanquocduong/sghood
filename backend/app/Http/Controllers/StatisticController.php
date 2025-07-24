@@ -7,16 +7,19 @@ use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
 use App\Models\Contract;
 use App\Services\RoomService;
+use App\Services\ContractService;
 
 class StatisticController extends Controller
 {
     protected $roomService;
     protected $transactionService;
+    protected $contractService;
 
-    public function __construct(RoomService $roomService, TransactionService $transactionService)
+    public function __construct(RoomService $roomService, TransactionService $transactionService, ContractService $contractService)
     {
         $this->roomService = $roomService;
         $this->transactionService = $transactionService;
+        $this->contractService = $contractService;
     }
 
     public function index(): View|RedirectResponse
@@ -44,8 +47,24 @@ class StatisticController extends Controller
             Carbon::now()->endOfMonth()
         ])->distinct()->count('user_id');
 
+        // Thống kê số lượng phòng trống motel
+        $availableRoomsCount = $this->transactionService->getAvailableRoomsCount();
+        $availableRoomsByMotel = $this->roomService->getAvailableRoomsPerMotel();
 
-        return view('statistics.index', compact( 'countUsersToday', 'countUsersThisMonth', 'roomsCount', 'roomsRentedCount', 'transactions'));
+        $tenants = $this->contractService->getTenantsByContractStatus();
+
+        return view('statistics.index', [
+        'countUsersToday' => $countUsersToday,
+        'countUsersThisMonth' => $countUsersThisMonth,
+        'roomsCount' => $roomsCount,
+        'roomsRentedCount' => $roomsRentedCount,
+        'transactions' => $transactions,
+        'availableRoomsCount' => $availableRoomsCount,
+        'availableRoomsByMotel' => $availableRoomsByMotel,
+        'currentTenants' => $tenants['current'],
+        'expiringTenants' => $tenants['expiring'],
+        'expiredTenants' => $tenants['expired'],
+    ]);
     }
 
 }
