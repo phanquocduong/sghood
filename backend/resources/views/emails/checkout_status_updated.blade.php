@@ -203,7 +203,7 @@
             </div>
 
             <p class="message">
-                Vui lòng truy cập trang quản lý kiểm kê để xem chi tiết và xác nhận thông tin. Nhấp vào nút bên dưới để tiếp tục:
+                Vui lòng truy cập trang quản lý kiểm kê để xem chi tiết và xác nhận thông tin trước 7 ngày! Nhấp vào nút bên dưới để tiếp tục:
             </p>
 
             <div class="cta-section">

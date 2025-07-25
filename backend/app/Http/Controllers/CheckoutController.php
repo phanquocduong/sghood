@@ -72,4 +72,19 @@ class CheckoutController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    public function forceConfirmUser($id)
+    {
+        try {
+            $checkout = $this->checkoutService->forceConfirmUserStatus($id);
+            return redirect()->route('checkouts.index')->with('success', 'Xác nhận đồng ý thay người dùng thành công.');
+        } catch (\Exception $e) {
+            Log::error('Error in forceConfirmUser method', [
+                'checkout_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
 }

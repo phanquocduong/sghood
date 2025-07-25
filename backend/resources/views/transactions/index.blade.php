@@ -126,7 +126,7 @@
                     <form action="{{ route('transactions.index') }}" method="GET" class="row g-3">
                         <div class="col-md-3">
                             <input type="text" class="form-control shadow-sm" name="search"
-                                placeholder="Tìm kiếm mã giao dịch..." value="{{ $filters['search'] ?? '' }}">
+                                placeholder="Tìm kiếm mã giao dịch hoặc mã tham chiếu..." value="{{ $filters['search'] ?? '' }}">
                         </div>
                         <div class="col-md-2">
                             <select class="form-select shadow-sm" name="month">

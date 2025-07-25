@@ -147,12 +147,28 @@
                                                 </button>
                                             @elseif ($checkout->user_confirmation_status === 'Đồng ý')
                                                 @if ($checkout->refund_status === 'Đã xử lý')
-                                                        <span class="fst-italic">Đã hoàn thành</span>
+                                                    <span class="fst-italic">Đã hoàn thành</span>
                                                 @endif
                                             @else
-                                                <span class="badge bg-warning text-white py-2 px-3">
-                                                    <i class="fas fa-hourglass-half me-1"></i>Chờ xác nhận người dùng
-                                                </span>
+                                                @php
+                                                    $updatedAt = \Carbon\Carbon::parse($checkout->updated_at);
+                                                    $daysDiff = $updatedAt->diffInDays(now());
+                                                @endphp
+                                                @if ($checkout->user_confirmation_status === 'Chưa xác nhận' && $daysDiff > 7)
+                                                    <form action="{{ route('checkouts.forceConfirmUser', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
+                                                        onsubmit="return confirm('Bạn có chắc chắn muốn xác nhận đồng ý thay cho người dùng?')">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit" class="btn btn-success btn-sm shadow-sm"
+                                                            title="Xác nhận đồng ý thay người dùng">
+                                                            <i class="fas fa-user-check me-1"></i>Xác nhận
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <span class="badge bg-warning text-white py-2 px-2">
+                                                        <i class="fas fa-hourglass-half me-1"></i>Chờ xác nhận
+                                                    </span>
+                                                @endif
                                             @endif
                                         @endif
                                     </td>
@@ -293,7 +309,7 @@
                                                             <div class="row">
                                                                 @foreach ($checkout->images as $image)
                                                                     <div class="col-6 mb-2">
-                                                                        <img src="{{ asset('storage/' . $image) }}"
+                                                                        <img src="{{ asset($image) }}"
                                                                             class="img-fluid rounded"
                                                                             style="max-height: 100px; object-fit: cover;"
                                                                             alt="Checkout Image">
@@ -430,7 +446,7 @@
                                                                             @foreach ($checkout->images as $index => $image)
                                                                                 <div class="col-4 mb-2">
                                                                                     <div class="position-relative">
-                                                                                        <img src="{{ asset('storage/' . $image) }}"
+                                                                                        <img src="{{ asset($image) }}"
                                                                                             class="img-fluid rounded"
                                                                                             style="max-height: 80px; object-fit: cover;"
                                                                                             alt="Existing Image">

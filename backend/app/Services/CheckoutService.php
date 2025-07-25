@@ -7,9 +7,11 @@ use App\Models\Transaction;
 use App\Models\Invoice;
 use App\Jobs\SendCheckoutStatusUpdatedNotification;
 use App\Jobs\SendCheckoutRefundNotification;
+use App\Jobs\SendCheckoutAutoConfirmedNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class CheckoutService
 {
@@ -209,16 +211,33 @@ class CheckoutService
         if (isset($data['images']) && is_array($data['images'])) {
             foreach ($data['images'] as $image) {
                 if ($image instanceof \Illuminate\Http\UploadedFile && $image->isValid()) {
-                    $extension = $image->getClientOriginalExtension();
-                    $fileName = 'checkout-' . time() . '-' . uniqid() . '.' . $extension;
-                    $path = $image->storeAs('checkout_images', $fileName, 'public');
-                    $finalImages[] = $path;
-                    Log::info('Uploaded new image: ' . $path, ['checkout_id' => $checkout->id]);
+                    $uploadedPath = $this->uploadCheckoutImage($image);
+                    if ($uploadedPath !== false) {
+                        $finalImages[] = $uploadedPath;
+                        Log::info('Uploaded new image: ' . $uploadedPath, ['checkout_id' => $checkout->id]);
+                    }
                 }
             }
         }
 
         return $finalImages;
+    }
+
+    private function uploadCheckoutImage(\Illuminate\Http\UploadedFile $imageFile): string|false
+    {
+        try {
+            $manager = new \Intervention\Image\ImageManager(new Driver());
+            $filename = 'images/checkout_images/checkout-' . time() . '-' . uniqid() . '.webp';
+
+            $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
+
+            Storage::disk('public')->put($filename, $image);
+
+            return '/storage/' . $filename;
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return false;
+        }
     }
 
     public function reInventoryCheckout($id)
@@ -326,6 +345,56 @@ class CheckoutService
             });
         } catch (\Exception $e) {
             Log::error('Error in confirmCheckout method', [
+                'checkout_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function forceConfirmUserStatus($id)
+    {
+        try {
+            $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
+
+            if ($checkout->inventory_status !== 'Đã kiểm kê' || $checkout->user_confirmation_status !== 'Chưa xác nhận') {
+                throw new \Exception('Yêu cầu không hợp lệ để xác nhận thay người dùng.');
+            }
+
+            $updated = $checkout->update([
+                'user_confirmation_status' => 'Đồng ý',
+                'updated_at' => now(),
+            ]);
+
+            if ($updated) {
+                Log::info('User confirmation status forced to "Đồng ý"', ['checkout_id' => $id]);
+
+                // Gửi thông báo xác nhận tự động
+                $user = $checkout->contract->user;
+                $room = $checkout->contract->room;
+
+                if ($user && $room) {
+                    SendCheckoutAutoConfirmedNotification::dispatch($checkout, $user, $room);
+
+                    Log::info('Checkout auto-confirmation notification job dispatched', [
+                        'checkout_id' => $checkout->id,
+                        'user_id' => $user->id,
+                    ]);
+                } else {
+                    Log::warning('User or room not found for auto-confirmation notification', [
+                        'checkout_id' => $checkout->id,
+                        'user_id' => $user ? $user->id : null,
+                        'room_id' => $room ? $room->id : null,
+                    ]);
+                }
+            } else {
+                Log::error('Failed to force confirm user status', ['checkout_id' => $id]);
+            }
+
+            return $checkout->fresh();
+        } catch (\Exception $e) {
+            Log::error('Error in forceConfirmUserStatus method', [
                 'checkout_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
