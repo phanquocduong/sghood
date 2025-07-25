@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\Message;
 use App\Models\User;
+use Google\Cloud\Core\Timestamp;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
+use Kreait\Firebase\Firestore;
 
 class MessageService
 {
@@ -136,36 +139,44 @@ class MessageService
         }
     }
 
-    public function getLatestUnreadForHeader()
+    public function getLatestUnreadForHeader(): array
     {
-        $firestore = (new Factory)->createFirestore();
+        $adminId = Auth::id(); // ID admin hiện tại
+
+        $firestore = app(Firestore::class);
         $db = $firestore->database();
 
         $messagesRef = $db->collection('messages');
 
-        $unreadQuery = $messagesRef->where('is_read', '=', false);
-        $unreadDocs = $unreadQuery->documents();
-        $unreadCount = $unreadDocs->size();
+        // Lọc: gửi đến admin, chưa đọc, từ user
+        $query = $messagesRef
+            ->where('receiver_id', '=', $adminId)
+            ->where('is_read', '=', false)
+            ->where('sender_role', '=', 'user') // 👈 cần lưu role khi gửi vào Firestore
+            ->orderBy('createdAt', 'DESC')
+            ->limit(3);
 
-        $latestQuery = $messagesRef->orderBy('created_at', 'DESC')->limit(3);
-        $latestDocs = $latestQuery->documents();
+        $docs = $query->documents();
 
         $latest = [];
-        foreach ($latestDocs as $doc) {
-            if ($doc->exists()) {
-                $data = $doc->data();
-                $data['url'] = route('messages.index');
-                $latest[] = $data;
-            }
+        foreach ($docs as $doc) {
+            $data = $doc->data();
+            $latest[] = [
+                'message'     => $data['text'] ?? '[Không có nội dung]',
+                'created_at'  => \Carbon\Carbon::parse($data['createdAt'])->diffForHumans(),
+                'is_read'     => $data['is_read'] ?? false,
+                'url'         => route('messages.index'), // 👈 hoặc link tới tin nhắn cụ thể
+            ];
         }
 
         return [
-            'unread_count' => $unreadCount,
+            'unread_count' => $docs->size(),
             'latest' => $latest,
         ];
     }
 
-    public static function getAllMessages()
+
+    public static function getUnreadMessagesDashboard()
     {
         $firestore = (new Factory)->createFirestore();
         $db = $firestore->database();
@@ -187,13 +198,22 @@ class MessageService
             if ($doc->exists()) {
                 $data = $doc->data();
                 $data['id'] = $doc->id();
-                // Lấy tên user nếu cần
-                $user = User::find($data['sender_id']);
+
+                // Gán sender_name
+                $user = User::find($data['sender_id'] ?? null);
                 $data['sender_name'] = $user?->name ?? 'Unknown';
+
+                // Gán message nếu thiếu
+                $data['message'] = $data['text'] ?? '(Không có nội dung)';
+
+                // ✅ Chuyển trường createdAt từ Firestore thành created_at (chuẩn Laravel)
+                $data['created_at'] = $data['createdAt'] ?? now();
 
                 $messages[] = (object) $data;
             }
         }
+
+
 
         return [
             'data' => $messages,

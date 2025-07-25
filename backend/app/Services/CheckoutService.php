@@ -3,16 +3,13 @@
 namespace App\Services;
 
 use App\Models\Checkout;
-use App\Mail\CheckoutStatusUpdated;
 use App\Models\Transaction;
-use App\Models\Notification;
 use App\Models\Invoice;
+use App\Jobs\SendCheckoutStatusUpdatedNotification;
+use App\Jobs\SendCheckoutRefundNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class CheckoutService
 {
@@ -131,76 +128,18 @@ class CheckoutService
                                 'room_id' => $room ? $room->id : null,
                             ]);
                         } else {
-                            // Gửi email
-                            try {
-                                $email = $user->email;
-                                if ($email) {
-                                    Mail::to($email)->send(new CheckoutStatusUpdated(
-                                        $checkout,
-                                        $user->name,
-                                        $room->name,
-                                        $data['check_out_date']
-                                    ));
-                                    Log::info('Checkout status email sent successfully', [
-                                        'email' => $email,
-                                        'checkout_id' => $checkout->id,
-                                        'final_refunded_amount' => $finalRefundedAmount,
-                                    ]);
-                                } else {
-                                    Log::warning('No email found for user', [
-                                        'user_id' => $user->id,
-                                        'checkout_id' => $checkout->id,
-                                    ]);
-                                }
-                            } catch (\Exception $emailError) {
-                                Log::error('Error sending checkout status email', [
-                                    'error' => $emailError->getMessage(),
-                                    'checkout_id' => $checkout->id,
-                                ]);
-                            }
+                            // Dispatch job để gửi thông báo
+                            SendCheckoutStatusUpdatedNotification::dispatch(
+                                $checkout,
+                                $user,
+                                $room,
+                                $data['check_out_date']
+                            );
 
-                            // Tạo thông báo
-                            try {
-                                $notificationData = [
-                                    'user_id' => $user->id,
-                                    'title' => 'Trạng thái kiểm kê đã được cập nhật',
-                                    'content' => 'Quá trình kiểm kê cho phòng ' . $room->name . ' đã hoàn tất. Số tiền hoàn trả: ' . number_format($finalRefundedAmount, 0, ',', '.') . ' VNĐ. Vui lòng xem chi tiết.',
-                                    'status' => 'Chưa đọc',
-                                ];
-                                $notification = Notification::create($notificationData);
-                                Log::info('Notification created for checkout', [
-                                    'notification_id' => $notification->id,
-                                    'checkout_id' => $checkout->id,
-                                    'user_id' => $user->id,
-                                ]);
-
-                                // Gửi thông báo đẩy FCM
-                                if ($user->fcm_token) {
-                                    $messaging = app('firebase.messaging');
-                                    $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                                        ->withNotification(FirebaseNotification::create(
-                                            $notificationData['title'],
-                                            $notificationData['content']
-                                        ))
-                                        ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
-
-                                    $messaging->send($fcmMessage);
-                                    Log::info('FCM sent to user', [
-                                        'user_id' => $user->id,
-                                        'checkout_id' => $checkout->id,
-                                    ]);
-                                } else {
-                                    Log::info('No FCM token found for user', [
-                                        'user_id' => $user->id,
-                                        'checkout_id' => $checkout->id,
-                                    ]);
-                                }
-                            } catch (\Exception $notificationError) {
-                                Log::error('Error creating notification', [
-                                    'error' => $notificationError->getMessage(),
-                                    'checkout_id' => $checkout->id,
-                                ]);
-                            }
+                            Log::info('Checkout notification job dispatched', [
+                                'checkout_id' => $checkout->id,
+                                'user_id' => $user->id,
+                            ]);
                         }
                     }
                 } else {
@@ -356,71 +295,24 @@ class CheckoutService
                     'updated_at' => now(),
                 ]);
 
-                // Gửi thông báo
+                // Gửi thông báo bằng Job
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 
                 if ($user && $room) {
-                    // Gửi email
-                    try {
-                        $email = $user->email;
-                        if ($email) {
-                            Mail::to($email)->send(new CheckoutStatusUpdated(
-                                $checkout,
-                                $user->name,
-                                $room->name,
-                                $checkout->check_out_date
-                            ));
-                            Log::info('Checkout confirmation email sent successfully', [
-                                'email' => $email,
-                                'checkout_id' => $checkout->id,
-                                'final_refunded_amount' => $checkout->final_refunded_amount,
-                            ]);
-                        }
-                    } catch (\Exception $emailError) {
-                        Log::error('Error sending checkout confirmation email', [
-                            'error' => $emailError->getMessage(),
-                            'checkout_id' => $checkout->id,
-                        ]);
-                    }
+                    SendCheckoutRefundNotification::dispatch(
+                        $checkout,
+                        $user,
+                        $room,
+                        $checkout->check_out_date,
+                        $request->input('reference_code')
+                    );
 
-                    // Tạo thông báo trong cơ sở dữ liệu
-                    try {
-                        $notificationData = [
-                            'user_id' => $user->id,
-                            'title' => 'Xác nhận hoàn tiền thành công',
-                            'content' => 'Hoàn tiền cho phòng ' . $room->name . ' đã được xử lý. Số tiền: ' . number_format($checkout->final_refunded_amount, 0, ',', '.') . ' VNĐ. Mã tham chiếu: ' . $request->input('reference_code'),
-                            'status' => 'Chưa đọc',
-                        ];
-                        $notification = Notification::create($notificationData);
-                        Log::info('Notification created for checkout confirmation', [
-                            'notification_id' => $notification->id,
-                            'checkout_id' => $checkout->id,
-                            'user_id' => $user->id,
-                        ]);
-
-                        // Gửi thông báo đẩy FCM
-                        if ($user->fcm_token) {
-                            $messaging = app('firebase.messaging');
-                            $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                                ->withNotification(FirebaseNotification::create(
-                                    $notificationData['title'],
-                                    $notificationData['content']
-                                ))
-                                ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
-
-                            $messaging->send($fcmMessage);
-                            Log::info('FCM sent to user for confirmation', [
-                                'user_id' => $user->id,
-                                'checkout_id' => $checkout->id,
-                            ]);
-                        }
-                    } catch (\Exception $notificationError) {
-                        Log::error('Error creating notification for confirmation', [
-                            'error' => $notificationError->getMessage(),
-                            'checkout_id' => $checkout->id,
-                        ]);
-                    }
+                    Log::info('Checkout refund notification job dispatched', [
+                        'checkout_id' => $checkout->id,
+                        'user_id' => $user->id,
+                        'reference_code' => $request->input('reference_code'),
+                    ]);
                 }
 
                 Log::info('Checkout confirmed successfully', [

@@ -127,6 +127,7 @@ Route::middleware('admin')->group(function () {
         Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
         Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
         Route::post('/by-ids', [UserController::class, 'getByIds'])->name('byIds');
+        Route::get('/{id}', [UserController::class, 'show'])->name('show');
     });
 
     // Booking Routes Group
@@ -172,7 +173,7 @@ Route::middleware('admin')->group(function () {
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 
     // Route notification for navbar
-    Route::get('/notifications/header-data', [App\Http\Controllers\NotificationController::class, 'headerData'])
+    Route::get('/notifications/header-data', [NotificationController::class, 'headerData'])
         ->name('notifications.header');
 
     // Message routes group

@@ -5,13 +5,8 @@ namespace App\Services;
 use App\Models\MeterReading;
 use App\Models\Room;
 use App\Models\Invoice;
-use App\Mail\InvoiceCreated;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\Notification;
-use App\Models\User;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
+use App\Jobs\SendInvoiceCreatedNotification;
 
 class MeterReadingService
 {
@@ -152,68 +147,13 @@ class MeterReadingService
                 'total_amount' => $totalAmount
             ]);
 
-            // Gửi email thông báo tạo hóa đơn
-            try {
-                $user = $contract->user;
-                $email = $user->email ?? null;
-                if ($email) {
-                    Mail::to($email)->send(new InvoiceCreated($invoice, $room, $meterReading, $contract));
-                    Log::info('Invoice email sent successfully', ['email' => $email, 'invoice_code' => $invoice->code]);
-                } else {
-                    Log::warning('No email found for contract user', ['contract_id' => $contractId]);
-                }
-            } catch (\Exception $emailError) {
-                Log::error('Error sending invoice email', [
-                    'error' => $emailError->getMessage(),
-                    'invoice_id' => $invoice->id
-                ]);
-            }
+            // Dispatch job để gửi email và thông báo
+            SendInvoiceCreatedNotification::dispatch($invoice, $room, $meterReading, $contract);
 
-            //Gửi thông báo đến người dùng
-            try {
-                $user = $contract->user;
-                if ($user) {
-                    $notificationdata = [
-                        'user_id' => $user->id,
-                        'title' => 'Hóa đơn của bạn đã được tạo',
-                        'content' => 'Hóa đơn của bạn đã được tạo! Vui lòng xem chi tiết và thanh toán.',
-                        'status' => 'Chưa đọc'
-                    ];
-                    $notification = Notification::create($notificationdata);
-                    Log::info('Notification created for invoice', [
-                        'contract_id' => $contract->id,
-                        'notification_id' => $notification->id,
-                        'invoice_id' => $invoice->id
-                    ]);
-
-                    // gửi FCM token
-                    if ($user->fcm_token) {
-                        $messaging = app('firebase.messaging');
-
-                        $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                            ->withNotification(FirebaseNotification::create(
-                                $notificationdata['title'],
-                                $notificationdata['content']
-                            ));
-
-                        try {
-                            $messaging->send($fcmMessage);
-                            Log::info('FCM sent to user', ['user_id' => $user->id, 'invoice_id' => $invoice->id]);
-                        } catch (\Exception $e) {
-                            Log::error('FCM send error', ['error' => $e->getMessage(), 'user_id' => $user->id]);
-                        }
-                    } else {
-                        Log::info('No FCM token found for user', ['user_id' => $user->id]);
-                    }
-                } else {
-                    Log::warning('No user found for contract', ['contract_id' => $contractId]);
-                }
-            } catch (\Exception $notificationError) {
-                Log::error('Error creating notification', [
-                    'error' => $notificationError->getMessage(),
-                    'invoice_id' => $invoice->id
-                ]);
-            }
+            Log::info('Invoice notification job dispatched', [
+                'invoice_id' => $invoice->id,
+                'job' => 'SendInvoiceCreatedNotification'
+            ]);
 
             return $invoice;
 

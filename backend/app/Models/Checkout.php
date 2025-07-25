@@ -22,9 +22,9 @@ class Checkout extends Model
         'images',
         'note',
         'bank_info',
-        'qr_code_path',
         'refund_status',
         'receipt_path',
+        'canceled_at',
     ];
 
     protected $casts = [
@@ -33,6 +33,7 @@ class Checkout extends Model
         'bank_info' => 'array',
         'check_out_date' => 'date',
         'has_left' => 'boolean',
+        'canceled_at' => 'datetime',
     ];
 
     public function contract()

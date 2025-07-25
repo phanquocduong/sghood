@@ -147,6 +147,9 @@
     </div>
 @endsection
 @section('scripts')
+    <script src="{{ asset('ckfinder/ckfinder.js') }}"></script>
+    <script src="{{ asset('js/blog.js') }}"></script>
+
     <script>
         function confirmCategoryChange(selectElement) {
             const confirmed = confirm("Bạn có chắc chắn muốn thay đổi thể loại của bài viết này?");

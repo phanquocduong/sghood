@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
@@ -49,27 +50,27 @@ class NotificationController extends Controller
     public function headerData()
     {
         $unreadCount = Notification::where('status', 'Chưa đọc')
-        ->whereHas('user', function ($query) {
-            $query->where('role', 'Quản trị viên');
-        })
-        ->count();
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'Quản trị viên');
+            })
+            ->count();
+
         $latest = Notification::latest()
-        ->whereHas('user', function ($query) {
-            $query->where('role', 'Quản trị viên');
-        })
-        ->take(3)->get();
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'Quản trị viên');
+            })
+            ->take(3)->get();
 
         return response()->json([
             'unread_count' => $unreadCount,
             'latest' => $latest->map(function ($n) {
                 return [
                     'title' => $n->title,
-                    'created_at' => $n->created_at->diffForHumans(),
+                    'created_at' => Carbon::parse($n->created_at)->diffForHumans(),
                     'url' => route('notifications.index'),
                     'status' => $n->status,
                 ];
             }),
         ]);
     }
-
 }

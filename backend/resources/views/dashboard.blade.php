@@ -335,7 +335,7 @@
                         </div>
                         <div class="card-body p-0 fw-bold">
                             <ul class="list-group list-group-flush">
-                                @forelse ($messages as $message)
+                                @forelse ($messages as $mess)
                                     <li class="list-group-item border-0 py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
@@ -347,15 +347,14 @@
                                             </div>
                                             <div>
                                                 <div class="fw-semibold text-dark" style="font-size: 14px;">
-                                                    {{ $message->sender_name }}
+                                                    {{ $mess->sender_name }}
                                                 </div>
                                                 <div class="text-dark" style="font-size: 13px;">
-                                                    {{ $message->message ?? '[Không có nội dung]' }}
+                                                    {{ $mess->message ?? '(Không có nội dung)'}}
                                                 </div>
-
                                                 <small class="text-muted">
                                                     <span class="text-primary">
-                                                        {{ \Carbon\Carbon::parse($message->created_at ?? now())->diffForHumans() }}
+                                                        {{ \Carbon\Carbon::parse($mess->created_at ?? now())->diffForHumans() }}
                                                     </span>
                                                 </small>
                                             </div>
