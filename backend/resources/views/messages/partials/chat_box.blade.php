@@ -32,7 +32,7 @@
 @else
     <div style="padding: 20px;">Chọn một người dùng để bắt đầu trò chuyện.</div>
 @endif
-
+<script src="{{ asset('js/chat.js') }}"></script>
 <script>
     // Khởi tạo Firebase
     const firebaseConfig = {

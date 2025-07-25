@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Contract;
@@ -39,7 +40,7 @@ class ContractService
             // Apply sort by created_at
             $sortDirection = in_array($sort, ['asc', 'desc']) ? $sort : 'desc';
             $contracts = $query->orderBy('created_at', $sortDirection)->paginate(15);
-            \Log::info('SQL Query', \DB::getQueryLog());
+            Log::info('SQL Query', DB::getQueryLog());
             return ['data' => $contracts];
         } catch (\Throwable $e) {
             Log::error('Error getting contracts: ' . $e->getMessage(), [
@@ -86,7 +87,8 @@ class ContractService
         }
     }
 
-    public function signedContracts(): array{
+    public function signedContracts(): array
+    {
         // hợp đồng được kí hôm nay
         try {
             $today = Carbon::today();
@@ -230,7 +232,6 @@ class ContractService
                     'relative_path' => $contract->file
                 ]
             ];
-
         } catch (\Throwable $e) {
             Log::error('Error downloading contract PDF: ' . $e->getMessage(), [
                 'contract_id' => $id,
@@ -270,7 +271,6 @@ class ContractService
                     'mime_type' => 'image/webp'
                 ]
             ];
-
         } catch (\Throwable $e) {
             Log::error('Error retrieving identity document: ' . $e->getMessage(), [
                 'contract_id' => $contractId,
@@ -278,5 +278,41 @@ class ContractService
             ]);
             return ['error' => 'Đã xảy ra lỗi khi lấy hình ảnh căn cước công dân', 'status' => 500];
         }
+    }
+
+    public function getTenantsByContractStatus()
+    {
+        $allTenants = Contract::with(['user', 'room'])
+            ->whereIn('status', ['Hoạt động', 'Kết thúc'])
+            ->get();
+
+        $today = Carbon::today();
+        $currentTenants = [];
+        $expiringTenants = [];
+        $expiredTenants = [];
+
+        foreach ($allTenants as $tenant) {
+            $endDate = Carbon::parse($tenant->end_date);
+
+            if ($tenant->status === 'Kết thúc' || $endDate->lt($today)) {
+                $expiredTenants[] = $tenant;
+                continue;
+            }
+
+            // Tính đúng số ngày còn lại (có dấu)
+            $daysLeft = $today->diffInDays($endDate, false); // <-- thêm false để phân biệt âm/dương
+
+            if ($daysLeft > 7) {
+                $currentTenants[] = $tenant;
+            } elseif ($daysLeft >= 0 && $daysLeft <= 7) {
+                $expiringTenants[] = $tenant;
+            }
+        }
+
+        return [
+            'current' => $currentTenants,
+            'expiring' => $expiringTenants,
+            'expired' => $expiredTenants,
+        ];
     }
 }

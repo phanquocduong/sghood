@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Notification;
 use Illuminate\Container\Attributes\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -69,25 +70,33 @@ class AppServiceProvider extends ServiceProvider
 
                 $messagesRef = $db->collection('messages');
 
-                // Đếm chưa đọc (is_read = false)
-                $unreadQuery = $messagesRef->where('is_read', '=', false);
+                $adminId = Auth::id(); // 👈 ID của admin
+
+                // 🔸 Đếm số tin nhắn chưa đọc gửi tới admin
+                $unreadQuery = $messagesRef
+                    ->where('is_read', '=', false)
+                    ->where('receiver_id', '=', $adminId);
                 $unreadDocs = $unreadQuery->documents();
                 $unreadMessageCount = $unreadDocs->size();
 
-                // Lấy 3 message mới nhất
-                $latestQuery = $messagesRef->orderBy('created_at', 'DESC')->limit(3);
+                // 🔸 Lấy 3 tin nhắn mới nhất gửi tới admin
+                $latestQuery = $messagesRef
+                    ->where('receiver_id', '=', $adminId)
+                    ->orderBy('createdAt', 'DESC') // đúng tên trường
+                    ->limit(3);
                 $latestDocs = $latestQuery->documents();
 
                 foreach ($latestDocs as $doc) {
                     if ($doc->exists()) {
                         $data = $doc->data();
-                        $data['id'] = $doc->id(); // lưu ID
+                        $data['id'] = $doc->id(); // thêm ID Firestore
                         $latestMessages[] = $data;
                     }
                 }
             } catch (\Throwable $e) {
                 Log::error('Error fetching messages from Firestore: ' . $e->getMessage());
             }
+
 
             $view->with([
                 'unreadCount' => $unreadCount,

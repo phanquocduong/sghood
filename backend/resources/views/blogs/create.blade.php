@@ -101,26 +101,28 @@
     <link rel="stylesheet" href="{{ asset('css/create-blog.css') }}">
 @endsection
 @section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('thumbnail');
-    const preview = document.getElementById('preview-thumbnail');
+    <script src="{{ asset('ckfinder/ckfinder.js') }}"></script>
+    <script src="{{ asset('js/blog.js') }}"></script>
 
-    input.addEventListener('change', () => {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.src = '';
-            preview.style.display = 'none';
-        }
-    });
-});
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('thumbnail');
+            const preview = document.getElementById('preview-thumbnail');
+
+            input.addEventListener('change', () => {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.src = '';
+                    preview.style.display = 'none';
+                }
+            });
+        });
+    </script>
 @endsection
-

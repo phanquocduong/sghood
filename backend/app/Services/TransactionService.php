@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Motel;
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {
@@ -16,10 +18,10 @@ class TransactionService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('refund_request_id', 'like', '%' . $filters['search'] . '%')
-                  ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
-                      $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
-                  });
+                    ->orWhere('refund_request_id', 'like', '%' . $filters['search'] . '%')
+                    ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
+                        $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
+                    });
             });
         }
 
@@ -39,7 +41,7 @@ class TransactionService
         }
 
         return $query->orderBy('created_at', 'desc')
-                    ->paginate($perPage);
+            ->paginate($perPage);
     }
 
     // Lấy chi tiết giao dịch theo ID
@@ -57,9 +59,9 @@ class TransactionService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
-                  ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
-                      $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
-                  });
+                    ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
+                        $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
+                    });
             });
         }
 
@@ -131,4 +133,19 @@ class TransactionService
             'out' => 'Tiền ra (OUT)',
         ];
     }
+    // Lấy số lượng phòng trống mỗi motel
+    public function getAvailableRoomsCount(): array
+    {
+        $motels = Motel::withCount(['rooms' => function ($query) {
+            $query->where('status', 'Trống');
+        }])->get();
+
+        $availableRoomsCount = [];
+        foreach ($motels as $motel) {
+            $availableRoomsCount[$motel->id] = $motel->rooms_count;
+        }
+
+        return $availableRoomsCount;
+    }
+  
 }
