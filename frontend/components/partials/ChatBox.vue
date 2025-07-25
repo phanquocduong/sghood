@@ -82,13 +82,13 @@
 </div>
 
           <button @click="sendMessage()">Gửi</button>
-  <button
+  <!-- <button
   class="suggestion-item"
   style="background-color: #ffe0e0; color: #b71c1c"
   @click="resetHint"
 >
   🧹 Reset hint
-</button>
+</button> -->
 
 
         </div>
@@ -107,10 +107,12 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
 import { uploadImageToFirebase } from '~/utils/uploadImage'
+import { useToast } from 'vue-toastification'
 const { $firebaseStorage } = useNuxtApp()
 const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
+const toast = useToast()
 const currentUserId = ref(authStore.user?.id || null)
 const token = ref(authStore.token || '')
 const behavior = useBehaviorStore();
@@ -126,14 +128,16 @@ const isLoading = ref(false);
 const rawAction = ref([])
 const lastRealtime = ref((Date.now()))
 const fileInput = ref(null)
+const MAX_SIZE_MB = 2
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
 const props = defineProps({
   isOpen:Boolean
 })
-const resetHint = () => {
+/* const resetHint = () => {
   localStorage.removeItem(local_hint_key.value)
   initActions() // cập nhật lại danh sách rawAction
   console.log('Hint đã được reset.')
-}
+} */
 
 const selectFile = () => {
   if (fileInput.value) {
@@ -145,18 +149,37 @@ const handleFileUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
-  try{
+  console.log('File size (bytes):', file.size)
 
+  if (!file || file.size === undefined) {
+    toast.error('File không hợp lệ')
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    toast.error('Chỉ được gửi ảnh')
+    return
+  }
+
+  if (file.size > MAX_SIZE_BYTES) {
+    toast.error(`Chỉ gửi được ảnh dưới ${MAX_SIZE_MB}MB`)
+    return
+  }
+
+  try {
     const imageUrl = await uploadImageToFirebase(file, $firebaseStorage)
     console.log('Uploading image:', file)
-console.log('Upload to:', $firebaseStorage)
+    console.log('Upload to:', $firebaseStorage)
+
     await sendMessage({
-      content:imageUrl,
-      type:'image'
+      content: imageUrl,
+      type: 'image'
     })
-    console.log('image uploaded:', imageUrl)
-  }catch(err){
-    console.error('Upload image error:',err)
+
+    console.log('Image uploaded:', imageUrl)
+  } catch (err) {
+    console.error('Upload image error:', err)
+    toast.error('Gửi ảnh thất bại')
   }
 }
 watch(()=>props.isOpen,(open)=>{
@@ -242,7 +265,7 @@ const initChat = async () => {
   isLoading.value = true
 
   try {
-    // 🚩 Gọi API để gán admin
+    // 1) Gọi API start-chat để backend gán admin
     const res = await $api('/messages/start-chat', {
       method: 'POST',
       headers: {
@@ -254,18 +277,16 @@ const initChat = async () => {
       }
     })
 
-    if (!res?.admin_id) {
+    if (!res?.status || !res?.admin_id) {
       console.warn('Không lấy được admin từ phản hồi start-chat')
       return
     }
 
     AdminId.value = res.admin_id
+    scrollToBottom()
 
-    // 🚩 Clear tin nhắn cũ (nếu có)
-    messages.value = []
-
+    // 3) Lắng nghe realtime từ Firestore
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
-
     const msgQuery = query(
       collection($firebaseDb, 'messages'),
       where('chatId', '==', chatId),
@@ -273,37 +294,48 @@ const initChat = async () => {
     )
 
     unsubscribe = onSnapshot(msgQuery, snapshot => {
-      const allMessages = snapshot.docs.map(doc => {
-        const d = doc.data()
-        return {
-          id: doc.id,
-          from: d.sender_id === currentUserId.value ? 'user' : 'admin',
-          text: d.text,
-          type: d.type || 'text',
-          content: d.content || '',
-          createdAt: d.createdAt?.toMillis?.() || Date.now()
-        }
+      const changes = snapshot.docChanges().filter(change => change.type === 'added')
+
+      const newMessages = changes.map(change => {
+  const d = change.doc.data()
+  return {
+    id: change.doc.id,
+    from: d.sender_id === currentUserId.value ? 'user' : 'admin',
+    text: d.text,
+    type: d.type || 'text',
+    content: d.content || '',
+    createdAt: d.createdAt?.toMillis?.() || Date.now()
+
+  }
+})
+
+
+      if (newMessages.length > 0) {
+        const isDuplicate = (msg, list) => list.some(m => m.id === msg.id)
+        const newUniqueMessages = newMessages.filter(m => !isDuplicate(m, messages.value))
+
+        messages.value = [...messages.value, ...newUniqueMessages]
+        scrollToBottom()
+        const hasAdmin = newUniqueMessages.some(m => {
+              const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000)
+        return m.from === 'admin' && createdAt > Math.floor(lastRealtime.value / 1000)
       })
 
-      messages.value = allMessages
-      scrollToBottom()
-
-      // Thông báo mới nếu admin vừa trả lời
-      const lastMsg = allMessages.at(-1)
-      if (
-        lastMsg?.from === 'admin' &&
-        lastMsg.createdAt > lastRealtime.value
-      ) {
+        if(hasAdmin){
         lastRealtime.value = Date.now()
         localStorage.setItem('lastRealtime', lastRealtime.value.toString())
+        console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value))
 
-        emit('unread')
-        if (notiSound.value) {
-          notiSound.value.currentTime = 0
-          notiSound.value.play().catch(err => {
-            console.warn('Không thể phát âm thanh:', err)
+          emit ('unread')
+          const audio = notiSound.value
+          if(audio){
+            audio.currentTime = 0
+            audio.play().catch(err=>{
+            console.warn('khong the phat am thanh',err)
           })
+          }
         }
+        
       }
     })
   } catch (error) {
@@ -312,38 +344,55 @@ const initChat = async () => {
     isLoading.value = false
   }
 }
-
 const sendMessage = async (payload = null) => {
+
   const type = payload?.type || 'text'
-  const content = String(payload?.content || newMessage.value).trim()
-  if (!content || !AdminId.value) return
+  const Rawtext = payload?.content || newMessage.value
+  const text = String(Rawtext).trim()
+  if (!text || !AdminId.value) return
 
   try {
     const chatId = [currentUserId.value, AdminId.value].sort().join('_')
 
     scrollToBottom()
-    newMessage.value = ''
+    newMessage.value =''
+    
 
-    // Gửi tin nhắn lên Firestore
-    await addDoc(collection($firebaseDb, 'messages'), {
-      text: type === 'text' ? content : '',
-      content: type === 'image' ? content : '',
-      type,
-      sender_id: currentUserId.value,
-      receiver_id: AdminId.value,
-      createdAt: serverTimestamp(),
-      is_read: false,
-      chatId
-    })
+    // Gửi tin nhắn lên Firestore (realtime)
+ await addDoc(collection($firebaseDb, 'messages'), {
+  text: type === 'image' ? '' : text,
+  content: type === 'image' ? Rawtext : '',
+  type,
+  sender_id: currentUserId.value,
+  receiver_id: AdminId.value,
+  createdAt: serverTimestamp(),
+  is_read: false,
+  chatId
 
-    if (type === 'text') behavior.clearChat()
+})
+
+
+    // Optionally: gọi API gửi nữa nếu backend cần lưu
+
+    /*  await $api('/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
+      },
+      body: {
+        receiver_id: AdminId.value,
+        message: text
+      }
+    })  */
+
+    if(type ==='text') behavior.clearChat()
 
     scrollToBottom()
   } catch (err) {
     console.error('sendMessage error:', err)
   }
 }
-
 
 onMounted(() => {
   const storeRealtime = localStorage.getItem('lastRealtime')

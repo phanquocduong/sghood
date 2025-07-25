@@ -5,7 +5,7 @@
       <div class="container">
         <div class="row">
           <div class="col-md-12">
-            <h2>Bài viết</h2><span>Tin mới</span>
+            <h2>Bài viết</h2><span>Góc chia sẻ</span>
             <nav id="breadcrumbs">
               <ul>
                 <li><a href="/">Trang chủ</a></li>
