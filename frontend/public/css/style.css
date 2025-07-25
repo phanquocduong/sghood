@@ -4449,7 +4449,7 @@ input[type='range']:focus + .rangeslider .rangeslider__handle {
     line-height: 34px;
     border: 1px solid #fff;
     background-color: #fff;
-    width: 100%;
+    width: fit-content;
     display: inline-block;
     padding: 0 14px 0 16px;
     box-shadow: none;
@@ -4459,6 +4459,8 @@ input[type='range']:focus + .rangeslider .rangeslider__handle {
     border-radius: 50px;
     transition: all 0.3s;
     display: inline-block;
+    margin-left: -18px;
+    float: right;
 }
 
 .sort-by .chosen-container-active .chosen-choices,
@@ -14058,7 +14060,7 @@ span.like-icon {
     background-color: #f8f8f8;
     position: relative;
     padding: 70px 0;
-    margin-bottom: 65px;
+    margin-bottom: 20px;
 }
 
 #titlebar.gradient {
@@ -15058,7 +15060,7 @@ a.close-list-item {
 
 .dashboard-list-box .sort-by .chosen-container-single .chosen-single {
     background-color: transparent;
-    padding: 0 4px;
+    padding: 0 20px;
 }
 .dashboard-list-box .chosen-container .chosen-results li {
     border: none;

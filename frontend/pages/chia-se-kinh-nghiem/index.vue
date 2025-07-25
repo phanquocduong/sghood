@@ -1,27 +1,27 @@
 <template>
-  <!-- Titlebar -->
-  <div id="titlebar" class="gradient">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <h2>Bài viết</h2><span>Tin mới</span>
-          <nav id="breadcrumbs">
-            <ul>
-              <li><a href="/">Trang chủ</a></li>
-              <li>Bài viết</li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Content -->
-  <div class="container">
-    <div class="blog-page">
-      <div class="row">
-        <!-- Blog Posts -->
-        <div class="col-lg-9 col-md-8 padding-right-30">
+  <Loading :is-loading="loading" />
+ <!-- Content -->
+ <div class="container" style="margin-top: 50px;">
+   <div class="blog-page">
+     <div class="row">
+       <!-- Blog Posts -->
+       <div class="col-lg-9 col-md-8 padding-right-30">
+          <div class="row margin-bottom-25" style="display: flex; align-items: flex-end">
+                          <div class="col-md-6 col-xs-12">
+                              <h2>Danh sách bài viết</h2>
+                              <span>Gốc chia sẻ</span>
+                          </div>
+                          <div class="col-md-6 col-xs-12">
+                              <SortByBlogs
+                               :categories="categories"
+                            :selected-category="selectedCategory"
+                            @update:selectedCategory="(val) => {
+                              selectedCategory = val
+                              handleFilter() // lọc lại blog
+                              }"
+                              />
+                          </div>
+                      </div>
           <div v-if="loading" class="text-center p-5">
             <p>Đang tải bài viết...</p>
           </div>
@@ -55,7 +55,7 @@
 </div>
 
 <!-- ✅ Thêm phần này để hiển thị blog mặc định nếu không có search -->
-<div v-else class="row">
+<div v-else class="row" >
   <div v-for="post in blogPosts" :key="post.id" class="col-md-6 col-sm-12 mb-4">
     <div class="blog-post">
       <NuxtLink :to="post.url" class="post-img">
@@ -104,7 +104,7 @@
 
         <!-- Sidebar -->
         <div class="col-lg-3 col-md-4">
-          <div class="sidebar right">
+          <div class="sidebar right" style="margin-top: 60px" >
             <!-- Tìm kiếm -->
             <div class="widget">
               <h3 class="margin-top-0">Tìm kiếm</h3>
@@ -162,6 +162,9 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import SortByBlogs from '~/components/partials/SortBy-Blogs.vue'
+
+const categories = ref([])  
 const loading = ref(false)
 const searchKeyword = ref('')
 const {$api} = useNuxtApp()
@@ -233,36 +236,42 @@ const socialLinks = [
   { id: 3, name: "gplus", icon: "icon-gplus", url: "#" },
   { id: 4, name: "linkedin", icon: "icon-linkedin", url: "#" }
 ]
-const fetchBlogs = async(page=1)=>{
+const fetchBlogs = async(page = 1, selectedCategory = '') => {
   loading.value = true
-  try{
-    const res = await $api(`/blogs?page=${page}`,{
-      method:'GET',
-      headers:{
+  try {
+    const url = selectedCategory?`/blogs?category=${encodeURIComponent(selectedCategory)}&page=${page}` : `/blogs?page=${page}`
+    const res = await $api(url, {
+      method: 'GET',
+      headers: {
         'Content-Type': 'application/json',
       },
-      
     })
-    console.log('fetch blogs page',res)
-    blogPosts.value = res.data.map( g => ({
-      id : g.id,
-      title :g.title, 
-     thumbnail: g.thumbnail?.startsWith('/storage')
-    ? baseUrl + g.thumbnail
-    : g.thumbnail,
-      excerpt:g.excerpt || stripHtml(g.content).slice(0 , 100) + '...',
+
+    const mapped = res.data.map(g => ({
+      id: g.id,
+      title: g.title,
+      category: g.category?.toString() || '',
+      thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
+      excerpt: g.excerpt || stripHtml(g.content).slice(0, 100) + '...',
       url: `/chia-se-kinh-nghiem/${g.slug}`,
-      created_at: formatDate(g.created_at) 
+      created_at: formatDate(g.created_at),
     }))
-     console.log('index blog', res)
+
+    blogPosts.value = mapped
+    allBlogs.value = [...mapped]
+
+    const allCate = mapped.map(b => b.category).filter(Boolean)
+    categories.value = [...new Set(allCate)]
+
     currentPage.value = res.current_page || 1
     totalPages.value = res.last_page || 1
-  }catch(e){
+  } catch (e) {
     console.log('sai o dau do', e)
-  }finally{
+  } finally {
     loading.value = false
   }
 }
+
 const searchBlogs = async(keyWord , page = 1 , perPage=5) =>{
   try{
     const res = await $api(`/blogs?search=${encodeURIComponent(keyWord)}&page=${page}&per_page=${perPage}`,{
@@ -308,9 +317,23 @@ onMounted( async()=>{
 function stripHtml(html = '') {
   return html.replace(/<[^>]*>/g, '')
 }
+const handleFilter = () => {
+  if (!selectedCategory.value) {
+    blogPosts.value = allBlogs.value
+  } else {
+    blogPosts.value = allBlogs.value.filter(
+      blog => blog.category === selectedCategory.value
+    )
+  }
+}
+const selectedCategory = ref('')
+const allBlogs = ref([])
 </script>
 
 <style scoped>
+.titlebar {
+ margin-bottom: 10px;
+}
 .blog-post {
   position: relative;
   height: 450px; /* Chiều cao tổng thể của bài viết */

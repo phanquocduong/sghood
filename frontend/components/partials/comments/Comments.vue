@@ -2,7 +2,7 @@
   
   <section class="comments">
     <h4 class="headline margin-bottom-35">
-      Comments <span class="comments-amount">({{ comments.length }})</span>
+      Bình luận <span class="comments-amount">({{ comments.length }})</span>
     </h4>
     <p v-if="comments.length === 0" class="text-gray-400">Chưa có bình luận nào. Nếu muốn bình luận hãy đăng nhập nhé!</p>
     <ul>
@@ -12,15 +12,15 @@
       <div id="add-review" class="add-review-box" v-if="authStore.user">
 
          <!-- Add Review -->
-         <h3 class="listing-desc-headline margin-bottom-35">Add Review</h3>
-   
+         <h3 class="listing-desc-headline margin-bottom-35">Thêm bình luận</h3>
+
          <!-- Review Comment -->
          <form id="add-comment" class="add-comment">
            <fieldset>
  
              <div class="row">
                <div class="col-md-6">
-                 <label >Name:</label>
+                 <label >Họ và tên:</label>
                  <input type="text" v-model="name"/>
                </div>
                  
@@ -31,7 +31,7 @@
              </div>
  
              <div>
-               <label>Comment:</label>
+               <label>Bình luận:</label>
                <textarea cols="40" rows="3" v-model="ReplayContent"></textarea>
              </div>
  

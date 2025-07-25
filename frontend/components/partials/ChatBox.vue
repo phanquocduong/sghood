@@ -82,13 +82,13 @@
 </div>
 
           <button @click="sendMessage()">Gửi</button>
-  <button
+  <!-- <button
   class="suggestion-item"
   style="background-color: #ffe0e0; color: #b71c1c"
   @click="resetHint"
 >
   🧹 Reset hint
-</button>
+</button> -->
 
 
         </div>
@@ -107,10 +107,12 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior'
 import { questionMap } from '~/utils/questionMap'
 import { uploadImageToFirebase } from '~/utils/uploadImage'
+import { useToast } from 'vue-toastification'
 const { $firebaseStorage } = useNuxtApp()
 const emit = defineEmits(['close', 'unread'])
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
+const toast = useToast()
 const currentUserId = ref(authStore.user?.id || null)
 const token = ref(authStore.token || '')
 const behavior = useBehaviorStore();
@@ -126,14 +128,16 @@ const isLoading = ref(false);
 const rawAction = ref([])
 const lastRealtime = ref((Date.now()))
 const fileInput = ref(null)
+const MAX_SIZE_MB = 2
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
 const props = defineProps({
   isOpen:Boolean
 })
-const resetHint = () => {
+/* const resetHint = () => {
   localStorage.removeItem(local_hint_key.value)
   initActions() // cập nhật lại danh sách rawAction
   console.log('Hint đã được reset.')
-}
+} */
 
 const selectFile = () => {
   if (fileInput.value) {
@@ -145,18 +149,37 @@ const handleFileUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
-  try{
+  console.log('File size (bytes):', file.size)
 
+  if (!file || file.size === undefined) {
+    toast.error('File không hợp lệ')
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    toast.error('Chỉ được gửi ảnh')
+    return
+  }
+
+  if (file.size > MAX_SIZE_BYTES) {
+    toast.error(`Chỉ gửi được ảnh dưới ${MAX_SIZE_MB}MB`)
+    return
+  }
+
+  try {
     const imageUrl = await uploadImageToFirebase(file, $firebaseStorage)
     console.log('Uploading image:', file)
-console.log('Upload to:', $firebaseStorage)
+    console.log('Upload to:', $firebaseStorage)
+
     await sendMessage({
-      content:imageUrl,
-      type:'image'
+      content: imageUrl,
+      type: 'image'
     })
-    console.log('image uploaded:', imageUrl)
-  }catch(err){
-    console.error('Upload image error:',err)
+
+    console.log('Image uploaded:', imageUrl)
+  } catch (err) {
+    console.error('Upload image error:', err)
+    toast.error('Gửi ảnh thất bại')
   }
 }
 watch(()=>props.isOpen,(open)=>{
