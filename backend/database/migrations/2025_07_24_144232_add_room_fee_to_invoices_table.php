@@ -9,7 +9,7 @@ class AddRoomFeeToInvoicesTable extends Migration
     public function up()
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->decimal('room_fee', 10, 2)->after('year')->nullable();
+            $table->integer('room_fee')->after('year')->nullable();
         });
     }
 

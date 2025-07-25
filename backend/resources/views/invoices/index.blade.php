@@ -214,11 +214,9 @@
                 </div>
 
                 <!-- Pagination -->
-                @if($invoices->hasPages())
-                    <div class="mt-4">
-                        {{ $invoices->appends(request()->query())->links() }}
-                    </div>
-                @endif
+                <div class="mt-4">
+                    {{ $invoices->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
             </div>
         </div>
     </div>

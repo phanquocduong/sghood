@@ -223,11 +223,9 @@
                 </div>
 
                 <!-- Pagination -->
-                @if(isset($transactions) && $transactions->hasPages())
-                    <div class="mt-4">
-                        {{ $transactions->appends(request()->query())->links() }}
-                    </div>
-                @endif
+                <div class="mt-4">
+                    {{ $transactions->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
             </div>
         </div>
     </div>
