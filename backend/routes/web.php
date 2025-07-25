@@ -207,12 +207,13 @@ Route::middleware('admin')->group(function () {
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
-        Route::put('/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
+        Route::match(['put', 'patch'],'/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
+        Route::patch('/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 
     Route::prefix('checkouts')->name('checkouts.')->group(function () {

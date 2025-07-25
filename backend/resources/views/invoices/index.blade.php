@@ -3,18 +3,7 @@
 @section('title', 'Danh sách hóa đơn')
 
 @section('content')
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+
 
     <div class="container-fluid py-5 px-4">
         <!-- Filter Info -->
@@ -95,6 +84,18 @@
                 </div>
             </div>
         </div>
+        @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
                 style="background: linear-gradient(90deg, #28a745, #20c997); border-top-left-radius: 15px; border-top-right-radius: 15px;">
@@ -187,7 +188,27 @@
                                                 default => 'secondary'
                                             };
                                         @endphp
-                                        <span class="badge bg-{{ $statusClass }}">{{ $invoice->status }}</span>
+
+                                        @if($invoice->status === 'Chưa trả')
+                                            <!-- Form để cập nhật trạng thái -->
+                                            <form action="{{ route('invoices.updateStatus', $invoice->id) }}" method="POST"
+                                                style="display: inline-block;"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang Đã trả?')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="Đã trả">
+                                                <input type="hidden" name="reference_code" value="CASH_{{ $invoice->id }}_{{ now()->format('YmdHis') }}">
+                                                <button type="submit" class="btn btn-warning btn-sm" title="Cập nhật thành Đã trả">
+                                                    <i class="fas fa-clock me-1"></i>{{ $invoice->status }}
+                                                </button>
+                                            </form>
+                                        @else
+                                            <!-- Hiển thị badge thông thường -->
+                                            <span class="badge bg-{{ $statusClass }} py-2 px-3">
+                                                <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : ($invoice->status === 'Đã hoàn tiền' ? 'undo' : 'clock') }} me-1"></i>
+                                                {{ $invoice->status }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
                                     <td class="text-center">{{ $invoice->created_at->format('d/m/Y') }}</td>

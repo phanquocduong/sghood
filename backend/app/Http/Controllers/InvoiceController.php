@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceController extends Controller
 {
@@ -110,42 +111,33 @@ class InvoiceController extends Controller
     }
 
     // Cập nhật trạng thái hóa đơn
-    public function updateStatus(Request $request, int $id): JsonResponse
+    public function updateStatus(Request $request, int $id)
     {
         try {
+            // Validate input
             $request->validate([
-                'status' => 'required|in:Đã trả,Chưa trả,Đã hoàn tiền'
+                'status' => 'required|in:Đã trả'
             ]);
 
-            $invoice = $this->invoiceService->getInvoiceById($id);
+            // Gọi service để cập nhật trạng thái
+            $this->invoiceService->updateInvoiceStatus($id, $request->status, $request);
 
-            if (!$invoice) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Không tìm thấy hóa đơn'
-                ], 404);
-            }
+            return redirect()->route('invoices.index')
+                ->with('success', "Cập nhật trạng thái hóa đơn sang 'Đã trả' thành công");
 
-            // Cập nhật trạng thái
-            $invoice->status = $request->status;
-            $invoice->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật trạng thái thành công',
-                'data' => [
-                    'id' => $invoice->id,
-                    'status' => $invoice->status
-                ]
-            ]);
-
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Dữ liệu đầu vào không hợp lệ');
         } catch (\Exception $e) {
-            \Log::error('Lỗi khi cập nhật trạng thái hóa đơn: ' . $e->getMessage());
+            Log::error('Error updating invoice status: ' . $e->getMessage(), [
+                'invoice_id' => $id,
+                'user_id' => auth()->user()->id
+            ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Có lỗi xảy ra khi cập nhật trạng thái'
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Có lỗi xảy ra khi cập nhật trạng thái: ' . $e->getMessage());
         }
     }
 

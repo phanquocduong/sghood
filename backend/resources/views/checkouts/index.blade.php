@@ -193,7 +193,7 @@
                                                         <p><strong>Số tiền hoàn lại:</strong>
                                                             {{ $checkout->final_refunded_amount ? number_format($checkout->final_refunded_amount, 0, ',', '.') : 'N/A' }} VNĐ
                                                         </p>
-                                                        @if ($checkout->refund_status === 'Chờ xử lý' && $checkout->user_confirmation_status === 'Đồng ý')
+                                                        @if ($checkout->refund_status === 'Chờ xử lý' && $checkout->user_confirmation_status === 'Đồng ý' && isset($checkout->bank_info))
                                                             <p>
                                                                 <span class="fst-italic text-danger"><i class="fas fa-info-circle me-2"></i>Vui lòng xác nhận và nhập mã tham chiếu!</span>
                                                             </p>
@@ -210,21 +210,46 @@
                                                         @elseif ($checkout->inventory_status === 'Đã kiểm kê' && $checkout->user_confirmation_status === 'Đồng ý')
                                                             <div class="qr-code-section text-center">
                                                                 <h6><i class="fas fa-qrcode me-2"></i>Thông tin hoàn tiền</h6>
-                                                                <img src="https://qr.sepay.vn/img?acc={{ $checkout->bank_info['account_number'] }}&bank={{ $checkout->bank_info['bank_name'] }}&amount={{ $checkout->final_refunded_amount ?? 0 }}&des=Hoan tien phong {{ urlencode($checkout->contract->room->name ?? '') }}&template=compact"
-                                                                    alt="QR Code" class="img-fluid mb-3 qr-code-img" style="max-width: 160px">
-                                                                <div class="bank-info text-start">
-                                                                    <p><strong>Ngân hàng:</strong> {{ $checkout->bank_info['bank_name'] }}</p>
-                                                                    <p><strong>Chủ tài khoản:</strong> {{ $checkout->bank_info['account_holder'] }}</p>
-                                                                    <p><strong>Số tài khoản:</strong> {{ $checkout->bank_info['account_number'] }}</p>
-                                                                </div>
+                                                                @if ($checkout->bank_info)
+                                                                    <img src="https://qr.sepay.vn/img?acc={{ $checkout->bank_info['account_number'] }}&bank={{ $checkout->bank_info['bank_name'] }}&amount={{ $checkout->final_refunded_amount ?? 0 }}&des=Hoan tien phong {{ urlencode($checkout->contract->room->name ?? '') }}&template=compact"
+                                                                        alt="QR Code" class="img-fluid mb-3 qr-code-img" style="max-width: 160px">
+                                                                    <div class="bank-info text-start">
+                                                                        <p><strong>Ngân hàng:</strong> {{ $checkout->bank_info['bank_name'] }}</p>
+                                                                        <p><strong>Chủ tài khoản:</strong> {{ $checkout->bank_info['account_holder'] }}</p>
+                                                                        <p><strong>Số tài khoản:</strong> {{ $checkout->bank_info['account_number'] }}</p>
+                                                                    </div>
+                                                                @else
+                                                                    <div class="alert alert-info">
+                                                                        <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                                                                        <p class="mb-0"><strong>Người dùng nhận tiền mặt</strong></p>
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                             @if ($checkout->refund_status === 'Chờ xử lý' && $checkout->user_confirmation_status === 'Đồng ý')
-                                                                <button type="button" class="btn btn-success btn-sm shadow-sm"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#confirmCheckoutModal{{ $checkout->id }}"
-                                                                    title="Xác nhận hoàn tiền">
-                                                                    <i class="fas fa-check me-1"></i>Xác nhận hoàn tiền
-                                                                </button>
+                                                                @if ($checkout->bank_info)
+                                                                    <!-- Có bank_info - cần nhập mã tham chiếu -->
+                                                                    <button type="button" class="btn btn-success btn-sm shadow-sm"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#confirmCheckoutModal{{ $checkout->id }}"
+                                                                        title="Xác nhận hoàn tiền">
+                                                                        <i class="fas fa-check me-1"></i>Xác nhận hoàn tiền
+                                                                    </button>
+                                                                @else
+                                                                    <!-- Không có bank_info - tiền mặt, xác nhận trực tiếp -->
+                                                                    <form action="{{ route('checkouts.confirm', $checkout->id) }}" method="POST"
+                                                                        style="display: inline-block;"
+                                                                        onsubmit="return confirm('Bạn có chắc chắn đã hoàn tiền mặt cho khách hàng?')">
+                                                                        @csrf
+                                                                        @method('PATCH')
+                                                                        <input type="hidden" name="transfer_amount" value="{{ $checkout->final_refunded_amount ?? 0 }}">
+                                                                        <input type="hidden" name="reference_code" value="CASH_{{ $checkout->id }}_{{ now()->format('YmdHis') }}">
+                                                                        <input type="hidden" name="payment_method" value="cash">
+                                                                        <button type="submit" class="btn btn-success btn-sm shadow-sm"
+                                                                                title="Xác nhận đã hoàn tiền mặt">
+                                                                            <i class="fas fa-hand-holding-usd me-1"></i>Xác nhận hoàn tiền mặt
+                                                                        </button>
+                                                                    </form>
+                                                                @endif
                                                             @endif
                                                         @else
                                                             <div class="text-center text-muted">
