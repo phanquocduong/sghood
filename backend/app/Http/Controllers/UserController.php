@@ -50,7 +50,7 @@ class UserController extends Controller
     public function show(string $id)
     {
         $user = User::findOrFail($id);
-        return view('users.detailUser', compact('user'));
+        return view('users.partials.modal-info', compact('user'));
     }
 
     /**

@@ -127,7 +127,7 @@ Route::middleware('admin')->group(function () {
         Route::patch('/{id}/update-role', [UserController::class, 'updateRole'])->name('updateRole');
         Route::patch('/{id}/update-status', [UserController::class, 'updateStatus'])->name('updateStatus');
         Route::post('/by-ids', [UserController::class, 'getByIds'])->name('byIds');
-        Route::get('/{id}', [UserController::class, 'show'])->name('show');
+        Route::get('/{id}', [UserController::class, 'show'])->name('modal');
     });
 
     // Booking Routes Group

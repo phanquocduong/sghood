@@ -1,54 +1,44 @@
 <template>
-    <section class="comments">
-        <h4 class="headline margin-bottom-35">
-            Comments <span class="comments-amount">({{ comments.length }})</span>
-        </h4>
-        <p v-if="comments.length === 0" class="text-gray-400">Chưa có bình luận nào. Nếu muốn bình luận hãy đăng nhập nhé!</p>
-        <ul>
-            <template v-for="comment in comments" :key="comment.id">
-                <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh="fetchComments" />
-            </template>
-            <div id="add-review" class="add-review-box" v-if="authStore.user">
-                <!-- Add Review -->
-                <h3 class="listing-desc-headline margin-bottom-35">Add Review</h3>
+  <section class="comments">
+    <h4 class="headline margin-bottom-35">
+      Bình luận <span class="comments-amount">({{ comments.length }})</span>
+    </h4>
+    <p v-if="comments.length === 0" class="text-gray-400">Chưa có bình luận nào. Nếu muốn bình luận hãy đăng nhập nhé!</p>
+    <ul>
+      <template v-for="comment in comments" :key="comment.id" >
+        <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh=" fetchComments" />
+      </template> 
+      <div id="add-review" class="add-review-box" v-if="authStore.user ">
 
-                <!-- Review Comment -->
-                <form id="add-comment" class="add-comment">
-                    <fieldset>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label>Name:</label>
-                                <input type="text" v-model="name" />
-                            </div>
+         <!-- Add Review -->
+         <h3 class="listing-desc-headline margin-bottom-35"> Bình luận</h3>
 
-                            <div class="col-md-6">
-                                <label>Email:</label>
-                                <input type="text" v-model="email" />
-                            </div>
-                        </div>
+         <!-- Review Comment -->
+         <form id="add-comment" class="add-comment">
+           <fieldset>
+             <div>
+               <label>Bình luận:</label>
+               <textarea cols="40" rows="3" v-model="ReplayContent"></textarea>
+             </div>
+ 
+           </fieldset>
+ 
+           <button class="button" @click.prevent="AddReplay(blog_id)" type="submit"
+                           id="submit"
+                           value="Gửi tin nhắn"
+                           :disabled="loading"
+                           style="margin-bottom: 10px; margin-top: -10px"
+                       >
+                           <span v-if="loading" class="spinner">
+                           </span>
+                           {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
+                          </button>
+         </form>
+ 
+       </div>
+    </ul>
+  </section>
 
-                        <div>
-                            <label>Comment:</label>
-                            <textarea cols="40" rows="3" v-model="ReplayContent"></textarea>
-                        </div>
-                    </fieldset>
-
-                    <button
-                        class="button"
-                        @click.prevent="AddReplay(blog_id)"
-                        type="submit"
-                        id="submit"
-                        value="Gửi tin nhắn"
-                        :disabled="loading"
-                        style="margin-bottom: 10px; margin-top: -10px"
-                    >
-                        <span v-if="loading" class="spinner"> </span>
-                        {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
-                    </button>
-                </form>
-            </div>
-        </ul>
-    </section>
 </template>
 
 <script setup>
@@ -131,20 +121,24 @@ const getBlogId = async slug => {
 };
 
 // 👀 Theo dõi slug thay đổi
-watch(
-    slug,
-    s => {
-        if (s) fetchComments();
-    },
-    { immediate: true }
-);
 onMounted(async () => {
-    await getBlogId(slug.value);
+    console.log('onMounted chạy');
+     await getBlogId(slug.value);
+        await fetchComments();
     if (authStore.user) {
         name.value = authStore.user.name || '';
         email.value = authStore.user.email || '';
     }
 });
+watch(
+    slug,
+   async s => {
+        if (!s) return;
+        await getBlogId(s);
+        await fetchComments();
+    },
+    { immediate: true }
+);
 </script>
 
 <style scoped>

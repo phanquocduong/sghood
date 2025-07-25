@@ -6,7 +6,7 @@
                 class="comment-avatar"
                 style="padding: 0 0 0 0"
                 :src="
-                    comment.user_id === authStore.user?.id
+                    authStore.user?.avatar
                         ? baseUrl + authStore.user.avatar
                         : comment.user?.avatar
                         ? baseUrl + comment.user.avatar
@@ -18,7 +18,7 @@
         <div class="comment-content">
             <div class="arrow-comment"></div>
             <div class="comment-by">
-                <template v-if="comment.user_id === authStore.user?.id">
+                <template v-if="comment.user && authStore.user && comment.user_id === authStore.user.id">
                     {{ authStore.user.name }} <span class="badge">Bạn</span>
                 </template>
                 <template v-else>
