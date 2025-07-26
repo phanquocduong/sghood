@@ -141,18 +141,16 @@ class MessageService
 
     public function getLatestUnreadForHeader(): array
     {
-        $adminId = Auth::id(); // ID admin hiện tại
+        $adminId = Auth::id();
 
         $firestore = (new Factory)->createFirestore();
         $db = $firestore->database();
-
         $messagesRef = $db->collection('messages');
 
-        // Lọc: gửi đến admin, chưa đọc, từ user
+        // Lấy danh sách 3 tin nhắn mới nhất chưa đọc
         $query = $messagesRef
             ->where('receiver_id', '=', $adminId)
             ->where('is_read', '=', false)
-            ->where('sender_role', '=', 'user') // 👈 cần lưu role khi gửi vào Firestore
             ->orderBy('createdAt', 'DESC')
             ->limit(3);
 
@@ -163,17 +161,25 @@ class MessageService
             $data = $doc->data();
             $latest[] = [
                 'message'     => $data['text'] ?? '[Không có nội dung]',
-                'created_at'  => \Carbon\Carbon::parse($data['createdAt'])->diffForHumans(),
+                'created_at'  => isset($data['createdAt']) ? \Carbon\Carbon::parse($data['createdAt'])->diffForHumans() : 'Không xác định',
                 'is_read'     => $data['is_read'] ?? false,
-                'url'         => route('messages.index'), // 👈 hoặc link tới tin nhắn cụ thể
+                'url'         => route('messages.index'),
             ];
         }
 
+        // Đếm tổng số tin chưa đọc thật sự (nếu cần)
+        $unreadCount = $messagesRef
+            ->where('receiver_id', '=', $adminId)
+            ->where('is_read', '=', false)
+            ->documents()
+            ->size();
+
         return [
-            'unread_count' => $docs->size(),
+            'unread_count' => $unreadCount,
             'latest' => $latest,
         ];
     }
+
 
 
     public static function getUnreadMessagesDashboard()
