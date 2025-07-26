@@ -81,7 +81,7 @@
 </nav>
 
 
-<!-- <script>
+<script>
 function fetchHeaderData(type) {
     const route = type === 'messages'
         ? '{{ route('messages.header') }}'
@@ -131,8 +131,8 @@ fetchHeaderData('messages');
 setInterval(() => {
     fetchHeaderData('notifications');
     fetchHeaderData('messages');
-}, 30000);
-</script> -->
+}, 10000);
+</script>
 
 
 <!-- Navbar End -->

@@ -2,52 +2,26 @@
 
 namespace App\Mail;
 
+use App\Models\Contract;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class ContractExpiryNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
+    public $contract;
+
+    public function __construct(Contract $contract)
     {
-        //
+        $this->contract = $contract;
     }
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'Contract Expiry Notification',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            markdown: 'emails.contract.expiry',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this->view('emails.contract-expiry')
+                    ->subject("🏠 Thông báo: Hợp đồng #{$this->contract->id} sắp hết hạn")
+                    ->with(['contract' => $this->contract]);
     }
 }
