@@ -152,9 +152,7 @@ class MessageService
         $query = $messagesRef
             ->where('receiver_id', '=', $adminId)
             ->where('is_read', '=', false)
-            ->where('sender_role', '=', 'user') // 👈 cần lưu role khi gửi vào Firestore
-            ->orderBy('createdAt', 'DESC')
-            ->limit(3);
+            ->orderBy('createdAt', 'DESC');
 
         $docs = $query->documents();
 

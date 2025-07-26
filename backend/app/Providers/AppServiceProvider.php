@@ -3,8 +3,6 @@
 namespace App\Providers;
 
 use App\Models\Notification;
-// use Illuminate\Support\Facades\Notification;
-use App\Notifications\FcmChannel;
 use Illuminate\Container\Attributes\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,8 +10,6 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth as FirebaseAuth;
-use Faker\Factory as FakerFactory;
-use Faker\Generator as FakerGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,10 +23,6 @@ class AppServiceProvider extends ServiceProvider
                 ->withServiceAccount(storage_path(env('FIREBASE_CREDENTIALS')));
             return $firebase->createAuth();
         });
-
-        $this->app->singleton(FakerGenerator::class, function () {
-            return FakerFactory::create('vi_VN');
-        });
     }
 
     /**
@@ -38,9 +30,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-       \Illuminate\Support\Facades\Notification::extend('fcm', fn() => new FcmChannel());
-
-
         // Lấy đường dẫn tương đối từ .env
         $googleCredentialsPath = config('services.firebase.credentials');
 

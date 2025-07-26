@@ -1,5 +1,5 @@
 <!-- Navbar Start -->
-<nav class="navbar navbar-expand bg-light navbar-light sticky-top px-3 py-0">
+<nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
     <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
         <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
     </a>
@@ -22,8 +22,7 @@
 
             <div id="messages-dropdown"
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                @foreach ($latestMessages as $message)
+                @forelse ($latestMessages as $message)
                     <a href="{{ route('messages.index') }}"
                         class="dropdown-item {{ $message['is_read'] === false ? 'fw-bold' : '' }}">
                         <h6 class="mb-0">
@@ -34,8 +33,13 @@
                         </small>
                     </a>
                     <hr class="dropdown-divider">
-                @endforeach
-                <a href="{{ route('messages.index') }}" class="dropdown-item text-center fw-bold text-primary">Xem tất cả tin nhắn</a>
+                @empty
+                    <div class="dropdown-item text-muted">Không có tin nhắn mới</div>
+                @endforelse
+
+                <a href="{{ route('messages.index') }}" class="dropdown-item text-center fw-bold text-primary">
+                    Xem tất cả tin nhắn
+                </a>
             </div>
         </div>
 
@@ -54,7 +58,7 @@
                 <div id="notifications-dropdown"
                     class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                     {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                    @foreach ($latestNotifications as $notification)
+                    {{-- @foreach ($latestNotifications as $notification)
                         <a href="{{ route('notifications.index') }}"
                             class="dropdown-item {{ $notification->status == 'Chưa đọc' ? 'fw-bold' : '' }}">
                             <h6 class="mb-0">{{ $notification->title }}</h6>
@@ -62,7 +66,7 @@
                                 class="text-muted">{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
                         </a>
                         <hr class="dropdown-divider">
-                    @endforeach
+                    @endforeach --}}
                     <a href="{{ route('notifications.index') }}"
                         class="dropdown-item text-center fw-bold text-primary">Xem
                         tất cả thông báo</a>
@@ -86,58 +90,59 @@
 </nav>
 
 
-<!-- <script>
-function fetchHeaderData(type) {
-    const route = type === 'messages'
-        ? '{{ route('messages.header') }}'
-        : '{{ route('notifications.header') }}';
 
-    fetch(route)
-        .then(res => res.json())
-        .then(data => {
-            const countBadge = document.querySelector(`#${type}-badge`);
-            const dropdown = document.getElementById(`${type}-dropdown`);
+<script>
+    function fetchHeaderData(type) {
+        const route = type === 'messages' ?
+            '{{ route('messages.header') }}' :
+            '{{ route('notifications.header') }}';
 
-            if (data.unread_count > 0) {
-                countBadge.textContent = data.unread_count;
-                countBadge.style.display = 'inline-block';
-            } else {
-                countBadge.style.display = 'none';
-            }
+        fetch(route)
+            .then(res => res.json())
+            .then(data => {
+                const countBadge = document.querySelector(`#${type}-badge`);
+                const dropdown = document.getElementById(`${type}-dropdown`);
 
-            dropdown.innerHTML = '';
+                if (data.unread_count > 0) {
+                    countBadge.textContent = data.unread_count;
+                    countBadge.style.display = 'inline-block';
+                } else {
+                    countBadge.style.display = 'none';
+                }
 
-            if (data.latest.length > 0) {
-                data.latest.forEach((item, i) => {
-                    dropdown.innerHTML += `
+                dropdown.innerHTML = '';
+
+                if (data.latest.length > 0) {
+                    data.latest.forEach((item, i) => {
+                        dropdown.innerHTML += `
                         <a href="${item.url}" class="dropdown-item ${item.is_read === false || item.status === 'Chưa đọc' ? 'fw-bold' : ''}">
                             <h6 class="mb-0">${item.title || item.message}</h6>
                             <small class="text-muted">${item.created_at}</small>
                         </a>
                         ${i < data.latest.length - 1 ? '<hr class="dropdown-divider">' : ''}
                     `;
-                });
-            } else {
-                dropdown.innerHTML +=
-                    `<div class="dropdown-item text-muted text-center">Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}</div>`;
-            }
+                    });
+                } else {
+                    dropdown.innerHTML +=
+                        `<div class="dropdown-item text-muted text-center">Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}</div>`;
+                }
 
-            dropdown.innerHTML += `
+                dropdown.innerHTML += `
                 <a href="${data.latest[0]?.url || '#'}" class="dropdown-item text-center fw-bold text-primary">
                     Xem tất cả ${type === 'messages' ? 'tin nhắn' : 'thông báo'}
                 </a>`;
-        });
-}
+            });
+    }
 
-// Gọi cả 2
-fetchHeaderData('notifications');
-fetchHeaderData('messages');
-
-setInterval(() => {
+    // Gọi cả 2
     fetchHeaderData('notifications');
     fetchHeaderData('messages');
-}, 30000);
-</script> -->
+
+    setInterval(() => {
+        fetchHeaderData('notifications');
+        fetchHeaderData('messages');
+    }, 10000);
+</script>
 
 
 <!-- Navbar End -->
