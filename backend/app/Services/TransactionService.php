@@ -18,16 +18,9 @@ class TransactionService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
-<<<<<<< HEAD
-                    ->orWhere('refund_request_id', 'like', '%' . $filters['search'] . '%')
-                    ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
-                        $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
-                    });
-=======
                   ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
                       $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
                   });
->>>>>>> Laam
             });
         }
 
@@ -64,18 +57,11 @@ class TransactionService
         // Áp dụng filters giống như trong getAllTransactions
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-<<<<<<< HEAD
-                $q->where('content', 'like', '%' . $filters['search'] . '%')
-                    ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
-                        $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
-                    });
-=======
                 $q->where('reference_code', 'like', '%' . $filters['search'] . '%')
                   ->orWhere('content', 'like', '%' . $filters['search'] . '%')
                   ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
                       $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
                   });
->>>>>>> Laam
             });
         }
 
@@ -161,5 +147,5 @@ class TransactionService
 
         return $availableRoomsCount;
     }
-  
+
 }
