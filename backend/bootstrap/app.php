@@ -24,7 +24,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// ⚠️ DI chuyển singleton vào sau khi tạo $app
 $app->singleton(
     Illuminate\Contracts\Console\Kernel::class,
     App\Console\Kernel::class

@@ -2,10 +2,10 @@
 namespace App\Services;
 
 use App\Mail\ScheduleStatusMail;
+use App\Jobs\SendScheduleStatusUpdatedNotification;
 use App\Models\Schedule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-
 class ScheduleService
 {
     public function getSchedules(string $querySearch = '', string $status = '', int $perPage = 10, string $sortBy = ''): array
@@ -62,32 +62,30 @@ class ScheduleService
     public function updateScheduleStatus(int $id, string $newStatus, ?string $cancelReason = null): array
     {
         try {
-            $schedule = Schedule::with(['motel', 'user'])->find($id);
-            if (!$schedule) {
-                return ['error' => 'Lịch xem phòng không tồn tại'];
-            }
+            $schedule = Schedule::with(['motel', 'user'])->findOrFail($id);
 
             // Lưu trạng thái cũ trước khi cập nhật
             $oldStatus = $schedule->status;
 
             // Cập nhật trạng thái mới và lý do hủy (nếu có)
             $schedule->status = $newStatus;
-            if ($newStatus === 'Huỷ bỏ' && $cancelReason) {
+            if (in_array($newStatus, ['Huỷ bỏ', 'Từ chối']) && $cancelReason) {
                 $schedule->rejection_reason = $cancelReason;
-            } elseif ($newStatus === 'Từ chối' && $cancelReason) {
-                $schedule->rejection_reason = $cancelReason;
-            } elseif ($newStatus !== 'Huỷ bỏ') {
+            } else {
                 $schedule->rejection_reason = null;
             }
             $schedule->save();
 
-            // Gửi email thông báo
-            $this->sendStatusUpdateEmail($schedule, $oldStatus, $newStatus);
+            // Đẩy job gửi email + FCM notification
+            dispatch(new SendScheduleStatusUpdatedNotification($schedule, $oldStatus, $newStatus));
 
             return ['data' => $schedule];
         } catch (\Exception $e) {
             Log::error('Lỗi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage());
-            return ['error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage(), 'status' => 500];
+            return [
+                'error' => 'Đã xảy ra lỗi khi cập nhật trạng thái lịch xem phòng: ' . $e->getMessage(),
+                'status' => 500
+            ];
         }
     }
 

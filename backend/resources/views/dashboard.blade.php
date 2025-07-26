@@ -13,7 +13,7 @@
         <!-- Main Content Grid -->
         <div class="row g-4">
             <!-- Left Column -->
-            <div class="col-lg-8">
+            <div class="col-lg-6">
                 <!-- Notes Section -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -169,11 +169,14 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
+                <!-- Middle Column -->
+                <div class="col-lg-3">
                     <!-- Contract Management Section -->
                     <div class="row g-4">
                         <!-- Newly Signed Contracts -->
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-0 py-3">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -186,34 +189,6 @@
                                 </div>
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
-                                        <!-- <li class="list-group-item border-0 py-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="flex-shrink-0 me-3">
-                                                                                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                                     style="width: 32px; height: 32px;">
-                                                                                    <i class="fas fa-file-contract text-success text-white" style="font-size: 12px;"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div>
-                                                                                <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Nguyễn Văn A</div>
-                                                                                <small class="text-muted">P101 - Ký: 01/07/2025</small>
-                                                                            </div>
-                                                                        </div>
-                                                                    </li>
-                                                                    <li class="list-group-item border-0 py-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="flex-shrink-0 me-3">
-                                                                                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                                     style="width: 32px; height: 32px;">
-                                                                                    <i class="fas fa-file-contract text-success text-white" style="font-size: 12px;"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div>
-                                                                                <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Trần Thị B</div>
-                                                                                <small class="text-muted">P202 - Ký: 02/07/2025</small>
-                                                                            </div>
-                                                                        </div>
-                                                                    </li> -->
                                         @forelse($justSignedContracts as $contract)
                                             <li class="list-group-item border-0 py-2">
                                                 <div class="d-flex align-items-center">
@@ -245,7 +220,7 @@
                             </div>
                         </div>
                         <!-- Contracts Nearing Expiration -->
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-0 py-3">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -258,34 +233,6 @@
                                 </div>
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
-                                        <!-- <li class="list-group-item border-0 py-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="flex-shrink-0 me-3">
-                                                                                <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                                     style="width: 32px; height: 32px;">
-                                                                                    <i class="fas fa-file-contract text-warning text-white" style="font-size: 12px;"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div>
-                                                                                <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Lê Văn C</div>
-                                                                                <small class="text-muted">P305 - Hết hạn: 15/07/2025</small>
-                                                                            </div>
-                                                                        </div>
-                                                                    </li>
-                                                                    <li class="list-group-item border-0 py-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="flex-shrink-0 me-3">
-                                                                                <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                                     style="width: 32px; height: 32px;">
-                                                                                    <i class="fas fa-file-contract text-warning text-white" style="font-size: 12px;"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div>
-                                                                                <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Phạm Văn D</div>
-                                                                                <small class="text-muted">P401 - Hết hạn: 20/07/2025</small>
-                                                                            </div>
-                                                                        </div>
-                                                                    </li> -->
                                         @forelse($contracts as $contract)
                                             <li class="list-group-item border-0 py-2">
                                                 <div class="d-flex align-items-center">
@@ -316,11 +263,56 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!--  -->
+                         <div class="col-md-12">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-sign-out-alt text-danger me-2"></i>
+                                            Yêu cầu trả phòng
+                                        </h6>
+                                        <a href="{{ route('checkouts.index') }}" class="text-decoration-none small text-dark">Xem tất cả</a>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        @forelse($checkouts as $checkout)
+                                            <li class="list-group-item border-0 py-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-shrink-0 me-3">
+                                                        <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                            style="width: 32px; height: 32px;">
+                                                            <i class="fas fa-user text-warning text-white"
+                                                                style="font-size: 12px;"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
+                                                            <a href="{{ route('checkouts.index') }}">{{ $checkout->contract->user->name ?? 'Không xác định' }}</a></div>
+                                                        <small class="text-muted">
+                                                            {{ $checkout->contract->room->name ?? 'Không xác định' }} -
+                                                            Thời gian: <span
+                                                                class="text-primary">{{ is_object($checkout) && $checkout->created_at instanceof \Carbon\Carbon ? $checkout->created_at->format('d/m/Y') : 'Không xác định' }}</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @empty
+                                            <li class="list-group-item border-0 text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào sắp hết hạn.
+                                            </li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Right Column -->
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <!-- Expired Contracts -->
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-header bg-white border-0 py-3">
@@ -366,9 +358,7 @@
                                     </li>
                                 @endforelse
                             </ul>
-
                         </div>
-
                     </div>
 
                     <!-- Check-in Section -->
@@ -381,34 +371,6 @@
                         </div>
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
-                                <!-- <li class="list-group-item border-0 py-2">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="flex-shrink-0 me-3">
-                                                                        <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                             style="width: 32px; height: 32px;">
-                                                                            <i class="fas fa-calendar-plus text-success text-white" style="font-size: 12px;"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Nguyễn Văn A</div>
-                                                                        <small class="text-muted">25/12/2024 - P101</small>
-                                                                    </div>
-                                                                </div>
-                                                            </li>
-                                                            <li class="list-group-item border-0 py-2">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="flex-shrink-0 me-3">
-                                                                        <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                             style="width: 32px; height: 32px;">
-                                                                            <i class="fas fa-calendar-plus text-success text-white" style="font-size: 12px;"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Trần Thị B</div>
-                                                                        <small class="text-muted">26/12/2024 - P202</small>
-                                                                    </div>
-                                                                </div>
-                                                            </li> -->
                                 @forelse($schedules as $schedule)
                                     <li class="list-group-item border-0 py-2">
                                         <div class="d-flex align-items-center">
@@ -453,34 +415,6 @@
                         </div>
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
-                                <!-- <li class="list-group-item border-0 py-2">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="flex-shrink-0 me-3">
-                                                                        <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                             style="width: 32px; height: 32px;">
-                                                                            <i class="fas fa-file-contract text-info text-white" style="font-size: 12px;"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Nguyễn Thị G</div>
-                                                                        <small class="text-muted">P102 - Gia hạn: 05/07/2025</small>
-                                                                    </div>
-                                                                </div>
-                                                            </li>
-                                                            <li class="list-group-item border-0 py-2">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="flex-shrink-0 me-3">
-                                                                        <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                                                             style="width: 32px; height: 32px;">
-                                                                            <i class="fas fa-file-contract text-info text-white" style="font-size: 12px;"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">Trần Văn H</div>
-                                                                        <small class="text-muted">P303 - Gia hạn: 06/07/2025</small>
-                                                                    </div>
-                                                                </div>
-                                                            </li> -->
                                 @forelse($contractExtensions as $extension)
                                     <li class="list-group-item border-0 py-2">
                                         <div class="d-flex align-items-center">

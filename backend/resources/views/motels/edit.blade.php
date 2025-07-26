@@ -16,12 +16,13 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+@if (isset($errors) && is_object($errors) && $errors->any())
+    <div class="alert alert-danger">
+        <strong>Đã có lỗi xảy ra. Vui lòng kiểm tra lại các trường thông tin!</strong>
     </div>
 @endif
+
+
 
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">

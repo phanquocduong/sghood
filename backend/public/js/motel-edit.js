@@ -397,6 +397,8 @@ function showNotification(message, type = 'info') {
 
 // Handle form submit
 document.getElementById('motelForm').addEventListener('submit', function (e) {
+    const formData = new FormData(this);
+    console.log('Form data:', Array.from(formData.entries()));
     console.log('Form submitting...', {
         selectedMainImageType,
         selectedMainImageId,
