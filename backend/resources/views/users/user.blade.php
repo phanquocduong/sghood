@@ -243,15 +243,21 @@
 
 <!-- User Info Modal -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="userModalLabel">Thông tin người dùng</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-            </div>
-            <div class="modal-body" id="userModalBody">
-                <div class="text-center text-muted">Đang tải dữ liệu...</div>
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Thông tin người dùng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="userModalBody">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        Đang tải dữ liệu...
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
