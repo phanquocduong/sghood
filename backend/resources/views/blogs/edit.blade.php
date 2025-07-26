@@ -70,12 +70,13 @@
                     <div class="mb-3">
                         <label for="status" class="form-label">Trạng thái</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="draft" {{ $blog->status === 'draft' ? 'selected' : '' }}>Nháp</option>
-                            <option value="published" {{ $blog->status === 'published' ? 'selected' : '' }}>Đã xuất bản
+                            <option value="Nháp" {{ $blog->status === 'Nháp' ? 'selected' : '' }}>Nháp</option>
+                            <option value="Đã xuất bản" {{ $blog->status === 'Đã xuất bản' ? 'selected' : '' }}>Đã xuất bản
                             </option>
                         </select>
 
                     </div>
+
                     <div class="d-flex justify-content-end mt-4 gap-2">
                         <a href="{{ route('blogs.index') }}" class="btn btn-secondary shadow-sm"
                             style="transition: all 0.3s;">Hủy</a>
