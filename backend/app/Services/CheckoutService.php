@@ -39,15 +39,6 @@ class CheckoutService
         return $query->paginate($perPage);
     }
 
-    public function getCheckoutsByStatus()
-    {
-        return Checkout::with(['contract.room', 'contract.user'])
-            ->where('inventory_status', 'Chờ kiểm kê')
-            ->orderBy('created_at', 'desc')
-            ->take(3)
-            ->get();
-    }
-
     public function getCheckoutById($id)
     {
         return Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
@@ -236,7 +227,7 @@ class CheckoutService
     {
         try {
             $manager = new \Intervention\Image\ImageManager(new Driver());
-            $filename = 'images/checkout_images/checkout-' . time() . '-' . uniqid() . '.webp';
+            $filename = 'images/checkouts/checkout-' . time() . '-' . uniqid() . '.webp';
 
             $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
 
