@@ -5,6 +5,11 @@ namespace App\Services;
 use App\Models\Invoice;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Transaction;
+use App\Jobs\SendInvoiceStatusUpdatedNotification;
 
 class InvoiceService
 {
@@ -144,5 +149,55 @@ class InvoiceService
             'unpaid_amount' => $unpaidInvoices->sum('total_amount'),
             'refunded_amount' => $refundedInvoices->sum('total_amount')
         ];
+    }
+    public function updateInvoiceStatus(int $id, string $newStatus, Request $request): void
+    {
+        // Lấy hóa đơn
+        $invoice = $this->getInvoiceById($id);
+
+        if (!$invoice) {
+            throw new \Exception('Không tìm thấy hóa đơn', 404);
+        }
+
+        // Kiểm tra trạng thái hiện tại
+        if ($invoice->status === 'Đã trả') {
+            throw new \Exception('Hóa đơn đã ở trạng thái Đã trả', 400);
+        }
+
+        // Lưu trạng thái cũ trước khi cập nhật
+        $oldStatus = $invoice->status;
+
+        // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
+        DB::transaction(function () use ($invoice, $newStatus, $request, $oldStatus) {
+            // Cập nhật trạng thái
+            $invoice->status = $newStatus;
+            $invoice->save();
+
+            // Tạo giao dịch nếu trạng thái là "Đã trả"
+            if ($newStatus === 'Đã trả') {
+                Transaction::create([
+                    'invoice_id' => $invoice->id,
+                    'reference_code' => $request->input('reference_code', 'INV-' . $invoice->code . '-' . now()->format('YmdHis')),
+                    'transfer_amount' => $invoice->total_amount,
+                    'content' => 'Thanh toán hóa đơn ' . ($invoice->code ?? 'N/A') . ' cho phòng ' . ($invoice->contract->room->name ?? 'N/A'),
+                    'transfer_type' => 'in',
+                    'transaction_date' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Dispatch job để gửi email và notification
+            SendInvoiceStatusUpdatedNotification::dispatch($invoice, $oldStatus, $newStatus);
+
+            // Ghi log hành động
+            Log::info('Invoice status updated and notification job dispatched', [
+                'invoice_id' => $invoice->id,
+                'old_status' => $oldStatus ?? 'null',
+                'new_status' => $newStatus,
+                'reference_code' => $request->input('reference_code', 'INV-' . $invoice->code . '-' . now()->format('YmdHis')),
+                'notification_job_dispatched' => true
+            ]);
+        });
     }
 }

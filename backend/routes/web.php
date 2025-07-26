@@ -208,12 +208,13 @@ Route::middleware('admin')->group(function () {
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
-        Route::put('/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
+        Route::match(['put', 'patch'],'/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
+        Route::patch('/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 
     Route::prefix('checkouts')->name('checkouts.')->group(function () {
@@ -221,8 +222,9 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}', [CheckoutController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [CheckoutController::class, 'edit'])->name('edit');
         Route::match(['put', 'patch'], '/{id}', [CheckoutController::class, 'update'])->name('update');
-        Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('checkouts.reInventory');
+        Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('reInventory');
         Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
+        Route::patch('/{id}/force-confirm-user', [CheckoutController::class, 'forceConfirmUser'])->name('forceConfirmUser');
     });
 });
 

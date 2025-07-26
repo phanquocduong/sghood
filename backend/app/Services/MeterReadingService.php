@@ -53,12 +53,12 @@ class MeterReadingService
     }
 
     // Tính tiền phòng cho tháng đầu tiên của hợp đồng
-    private function calculateFirstMonthRoomFee($contract, $room, $meterReading)
+    private function calculateFirstMonthFees($contract, $room, $meterReading, $motel)
     {
         try {
             $contractStartDate = Carbon::parse($contract->start_date);
             $invoiceCreatedDate = now(); // Ngày tạo hóa đơn (hiện tại)
-            $invoiceMonth = $meterReading->month-1;
+            $invoiceMonth = $meterReading->month;
             $invoiceYear = $meterReading->year;
 
             // Kiểm tra xem đã có hóa đơn nào cho hợp đồng này chưa
@@ -73,51 +73,92 @@ class MeterReadingService
                 })
                 ->exists();
 
+            // Lấy giá gốc các dịch vụ
             $roomPrice = $room->price ?? 0;
+            $parkingFee = $motel->parking_fee ?? 0;
+            $junkFee = $motel->junk_fee ?? 0;
+            $internetFee = $motel->internet_fee ?? 0;
+            $serviceFee = $motel->service_fee ?? 0;
 
             if ($hasExistingInvoices) {
-                // Đã có hóa đơn trước đó, không phải tháng đầu tiên
-                Log::info('Not first month of contract, using full room price', [
+                // Đã có hóa đơn trước đó, không phải tháng đầu tiên - trả về giá đầy đủ
+                Log::info('Not first month of contract, using full service fees', [
                     'contract_start_date' => $contractStartDate->toDateString(),
                     'invoice_created_date' => $invoiceCreatedDate->toDateString(),
                     'invoice_month' => $invoiceMonth,
                     'invoice_year' => $invoiceYear,
-                    'room_price' => $roomPrice,
                     'has_existing_invoices' => $hasExistingInvoices
                 ]);
-                return $roomPrice;
+
+                return [
+                    'room_fee' => $roomPrice,
+                    'parking_fee' => $parkingFee,
+                    'junk_fee' => $junkFee,
+                    'internet_fee' => $internetFee,
+                    'service_fee' => $serviceFee
+                ];
             }
 
-            // Đây là hóa đơn đầu tiên - tính theo số ngày từ start_date đến ngày tạo hóa đơn
+            // Đây là hóa đơn đầu tiên - tính theo tỷ lệ số ngày từ start_date đến ngày tạo hóa đơn
             $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1; // +1 để bao gồm ngày bắt đầu
 
             // Tính tỷ lệ dựa trên 30 ngày (1 tháng chuẩn)
             $percentage = min(1.0, $daysDifference / 30.0); // Đảm bảo không vượt quá 100%
-            $firstMonthFee = $roomPrice * $percentage;
 
-            Log::info('Calculating first month room fee based on actual days', [
+            // Áp dụng tỷ lệ cho tất cả các phí
+            $calculatedRoomFee = $roomPrice * $percentage;
+            $calculatedParkingFee = $parkingFee * $percentage;
+            $calculatedJunkFee = $junkFee * $percentage;
+            $calculatedInternetFee = $internetFee * $percentage;
+            $calculatedServiceFee = $serviceFee * $percentage;
+
+            Log::info('Calculating first month fees with proportional rates', [
                 'contract_start_date' => $contractStartDate->toDateString(),
                 'invoice_created_date' => $invoiceCreatedDate->toDateString(),
                 'days_difference' => $daysDifference,
                 'percentage' => $percentage,
-                'full_room_price' => $roomPrice,
-                'first_month_fee' => $firstMonthFee,
+                'original_fees' => [
+                    'room_price' => $roomPrice,
+                    'parking_fee' => $parkingFee,
+                    'junk_fee' => $junkFee,
+                    'internet_fee' => $internetFee,
+                    'service_fee' => $serviceFee
+                ],
+                'calculated_fees' => [
+                    'room_fee' => $calculatedRoomFee,
+                    'parking_fee' => $calculatedParkingFee,
+                    'junk_fee' => $calculatedJunkFee,
+                    'internet_fee' => $calculatedInternetFee,
+                    'service_fee' => $calculatedServiceFee
+                ],
                 'invoice_month' => $invoiceMonth,
-                'invoice_year' => $invoiceYear,
-                'has_existing_invoices' => $hasExistingInvoices
+                'invoice_year' => $invoiceYear
             ]);
 
-            return round($firstMonthFee, 0);
+            return [
+                'room_fee' => round($calculatedRoomFee, 0),
+                'parking_fee' => round($calculatedParkingFee, 0),
+                'junk_fee' => round($calculatedJunkFee, 0),
+                'internet_fee' => round($calculatedInternetFee, 0),
+                'service_fee' => round($calculatedServiceFee, 0)
+            ];
 
         } catch (\Exception $e) {
-            Log::error('Error calculating first month room fee: ' . $e->getMessage(), [
+            Log::error('Error calculating first month fees: ' . $e->getMessage(), [
                 'contract_id' => $contract->id ?? null,
                 'room_id' => $room->id ?? null,
                 'meter_reading_month' => $meterReading->month ?? null,
                 'meter_reading_year' => $meterReading->year ?? null
             ]);
 
-            return $room->price ?? 0;
+            // Trả về giá đầy đủ nếu có lỗi
+            return [
+                'room_fee' => $room->price ?? 0,
+                'parking_fee' => $motel->parking_fee ?? 0,
+                'junk_fee' => $motel->junk_fee ?? 0,
+                'internet_fee' => $motel->internet_fee ?? 0,
+                'service_fee' => $motel->service_fee ?? 0
+            ];
         }
     }
 
@@ -162,34 +203,33 @@ class MeterReadingService
             $electricityRate = $motel->electricity_fee ?? 0;
             $waterRate = $motel->water_fee ?? 0;
 
+            // Tính phí điện và nước (không chia tỷ lệ)
             $electricityFee = ($meterReading->electricity_kwh ?? 0) * $electricityRate;
             $waterFee = ($meterReading->water_m3 ?? 0) * $waterRate;
-            $parkingFee = $motel->parking_fee ?? 0; // Phí giữ xe từ motel
-            $junkFee = $motel->junk_fee ?? 0; // Phí rác từ motel
-            $internetFee = $motel->internet_fee ?? 0; // Phí internet từ motel
-            $serviceFee = $motel->service_fee ?? 0; // Phí dịch vụ từ motel
 
-            // Tính tiền phòng với logic tháng đầu tiên
-            $roomFee = $this->calculateFirstMonthRoomFee($contract, $room, $meterReading);
+            // Tính các phí dịch vụ với logic tháng đầu tiên
+            $calculatedFees = $this->calculateFirstMonthFees($contract, $room, $meterReading, $motel);
 
-            // Tính tổng số tiền (bao gồm tiền phòng)
+            $roomFee = $calculatedFees['room_fee'];
+            $parkingFee = $calculatedFees['parking_fee'];
+            $junkFee = $calculatedFees['junk_fee'];
+            $internetFee = $calculatedFees['internet_fee'];
+            $serviceFee = $calculatedFees['service_fee'];
+
+            // Tính tổng số tiền
             $totalAmount = $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee + $roomFee;
 
-            Log::info('Creating invoice with details', [
+            Log::info('Creating invoice with proportional fees', [
                 'meter_reading_id' => $meterReadingId,
                 'contract_id' => $contractId,
                 'contract_start_date' => $contract->start_date,
-                'room_id' => $room->id,
-                'motel_id' => $motel->id,
-                'electricity_kwh' => $meterReading->electricity_kwh,
-                'water_m3' => $meterReading->water_m3,
-                'electricity_rate' => $electricityRate,
-                'water_rate' => $waterRate,
                 'electricity_fee' => $electricityFee,
                 'water_fee' => $waterFee,
                 'room_fee' => $roomFee,
-                'room_original_price' => $room->price,
-                'is_first_month' => Carbon::parse($contract->start_date)->month == $meterReading->month && Carbon::parse($contract->start_date)->year == $meterReading->year,
+                'parking_fee' => $parkingFee,
+                'junk_fee' => $junkFee,
+                'internet_fee' => $internetFee,
+                'service_fee' => $serviceFee,
                 'total_amount' => $totalAmount
             ]);
 
@@ -219,7 +259,7 @@ class MeterReadingService
                 'invoice_code' => $invoice->code,
                 'meter_reading_id' => $meterReadingId,
                 'total_amount' => $totalAmount,
-                'room_fee_calculated' => $roomFee
+                'calculated_fees' => $calculatedFees
             ]);
 
             // Dispatch job để gửi email và thông báo
