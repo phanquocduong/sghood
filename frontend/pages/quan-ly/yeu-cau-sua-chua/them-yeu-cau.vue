@@ -33,36 +33,37 @@
                 </div>
 
                 <!-- Submit -->
-                 <button
-                            type="submit"
-                            class="submit button"
-                            id="submit"
-                            value="Gửi tin nhắn"
-                            :disabled="isLoading"
-                            style="margin-bottom: 10px; margin-top: -10px"
-                        >
-                            <span v-if="isLoading" class="spinner"></span>
-                            {{ isLoading ? ' Đang gửi...' : 'Gửi đi' }}
-                        </button>
+                <button
+                    type="submit"
+                    class="submit button"
+                    id="submit"
+                    value="Gửi tin nhắn"
+                    :disabled="isLoading"
+                    style="margin-bottom: 10px; margin-top: -10px"
+                >
+                    <span v-if="isLoading" class="spinner"></span>
+                    {{ isLoading ? ' Đang gửi...' : 'Gửi đi' }}
+                </button>
             </form>
         </div>
     </div>
 </template>
 
 <script setup>
-definePageMeta({ layout: 'management' });
-
 import { ref, watch, nextTick, onMounted } from 'vue';
 import Dropzone from 'dropzone';
 import 'dropzone/dist/dropzone.css';
-import { useRouter  } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-const router = useRouter()
 Dropzone.autoDiscover = false;
-const {$api} = useNuxtApp()
+
+definePageMeta({ layout: 'management' });
+
+const router = useRouter();
+const { $api } = useNuxtApp();
 const loading = ref(true);
-const isLoading = ref (false)
-const toast = useToast()
+const isLoading = ref(false);
+const toast = useToast();
 const form = ref({
     title: '',
     description: '',
@@ -104,39 +105,37 @@ const initDropzone = () => {
         }
     });
 };
-const submitForm = async ()=>{
-    if(form.value.images.length === 0 ){
-      toast('Vui lòng chọn ít nhất 1 hình')
-      return
+
+const submitForm = async () => {
+    if (form.value.images.length === 0) {
+        toast.error('Vui lòng chọn ít nhất 1 hình');
+        return;
     }
     const formData = new FormData();
-    formData.append('title',form.value.title);
-    formData.append('description',form.value.description);
-    formData.append('status',form.value.status);
-     
+    formData.append('title', form.value.title);
+    formData.append('description', form.value.description);
+    formData.append('status', form.value.status);
 
-    form.value.images.forEach((file )=>{
-        formData.append(`images[]`,file)
+    form.value.images.forEach(file => {
+        formData.append(`images[]`, file);
     });
     isLoading.value = true;
-        try{
-        const res = await $api(`/repair-requests`,{
-        method:'POST',
-        body:formData,
-        headers:{
-            'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
-            'Accept': 'application/json'
-        }
-    })
-       dropzoneInstance.removeAllFiles();
-       router.push('/quan-ly/yeu-cau-sua-chua')
+    try {
+        await $api('/repair-requests', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            }
+        });
+        dropzoneInstance.removeAllFiles();
+        router.push('/quan-ly/yeu-cau-sua-chua');
     } catch (e) {
-    console.log('Lỗi gửi form:', e?.response?._data || e);
-  } finally {
-    isLoading.value = false;
-  }
-    
-}
+        console.log('Lỗi gửi form:', e?.response?._data || e);
+    } finally {
+        isLoading.value = false;
+    }
+};
 onMounted(() => {
     setTimeout(() => {
         loading.value = false;
@@ -149,8 +148,6 @@ watch(loading, async val => {
         initDropzone();
     }
 });
-
-
 </script>
 
 <style scoped>

@@ -9,7 +9,10 @@
                 <strong v-if="item.type === 'Hàng tháng'">Tiền phòng trọ tháng {{ item.month }}/{{ item.year }}</strong>
                 <strong v-else>Đặt cọc hợp đồng</strong>
                 <ul>
-                    <li :class="getStatusClass(item.status)">{{ item.status }}</li>
+                    <li :class="getStatusClass(item.status)">
+                        {{ item.status
+                        }}<em style="color: #ee3535" v-if="item.refunded_at"> / Đã hoàn tiền lúc {{ formatDateTime(item.refunded_at) }}</em>
+                    </li>
                     <li>Mã: {{ item.code }}</li>
                     <li>Tổng tiền: {{ formatPrice(item.total_amount) }}</li>
                     <li>Ngày tạo: {{ formatDate(item.created_at) }}</li>
@@ -30,7 +33,7 @@ import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { formatPrice } = useFormatPrice();
-const { formatDate } = useFormatDate();
+const { formatDate, formatDateTime } = useFormatDate();
 
 const props = defineProps({
     items: {

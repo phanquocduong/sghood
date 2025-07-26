@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class RepairRequest extends Model
 {
     protected $table = 'repair_requests';
+
     protected $fillable = [
         'contract_id',
         'title',
         'description',
         'images',
         'status',
-        'cancellation_reason',
         'note',
         'repaired_at',
     ];

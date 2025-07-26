@@ -33,7 +33,7 @@
             </div>
             <!-- Message -->
             <div class="col-lg-12">
-                <textarea cols="10" rows="2" placeholder="Lời nhắn (tùy chọn)" v-model="formData.message"></textarea>
+                <textarea cols="10" rows="2" placeholder="Thêm lời nhắn (không bắt buộc)..." v-model="formData.message"></textarea>
             </div>
         </div>
         <button
@@ -157,14 +157,13 @@ const submitForm = async () => {
 onMounted(() => {
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
-            // Tính ngày mai
             const tomorrow = window.moment().add(2, 'days');
-            window
-                .jQuery('#date-picker')
+            const $datePicker = window.jQuery('#date-picker');
+            $datePicker
                 .daterangepicker({
                     opens: 'left',
                     singleDatePicker: true,
-                    minDate: tomorrow, // Chỉ cho phép chọn từ ngày mai trở đi
+                    minDate: tomorrow,
                     locale: {
                         format: 'DD/MM/YYYY',
                         applyLabel: 'Xác nhận',
@@ -188,17 +187,24 @@ onMounted(() => {
                 })
                 .on('apply.daterangepicker', (ev, picker) => {
                     formData.value.date = picker.startDate.format('DD/MM/YYYY');
+                    $datePicker.val(picker.startDate.format('DD/MM/YYYY'));
+                })
+                .on('cancel.daterangepicker', () => {
+                    formData.value.date = '';
+                    $datePicker.val(''); // Xóa giá trị input để hiển thị placeholder
+                })
+                .on('showCalendar.daterangepicker', () => {
+                    window.jQuery('.daterangepicker').addClass('calendar-animated');
+                })
+                .on('show.daterangepicker', () => {
+                    window.jQuery('.daterangepicker').addClass('calendar-visible').removeClass('calendar-hidden');
+                })
+                .on('hide.daterangepicker', () => {
+                    window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
                 });
 
-            window.jQuery('#date-picker').on('showCalendar.daterangepicker', () => {
-                window.jQuery('.daterangepicker').addClass('calendar-animated');
-            });
-            window.jQuery('#date-picker').on('show.daterangepicker', () => {
-                window.jQuery('.daterangepicker').addClass('calendar-visible').removeClass('calendar-hidden');
-            });
-            window.jQuery('#date-picker').on('hide.daterangepicker', () => {
-                window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
-            });
+            // Đặt giá trị ban đầu trống để hiển thị placeholder
+            $datePicker.val(formData.value.date || '');
         } else {
             console.error('jQuery, Moment hoặc daterangepicker không được tải');
         }

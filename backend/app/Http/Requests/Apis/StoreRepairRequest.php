@@ -26,7 +26,7 @@ class StoreRepairRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'images' => ['nullable', 'array', 'max:5'],
-            'images.*' => ['file', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 
@@ -43,7 +43,7 @@ class StoreRepairRequest extends FormRequest
             'images.array' => 'Hình ảnh phải được gửi dưới dạng mảng',
             'images.max' => 'Tối đa chỉ được gửi 5 hình ảnh',
             'images.*.file' => 'Mỗi hình ảnh phải là một file hợp lệ',
-            'images.*.mimes' => 'Hình ảnh phải có định dạng jpg, jpeg hoặc png',
+            'images.*.mimes' => 'Hình ảnh phải có định dạng jpg, jpeg, png hoặc webp',
             'images.*.max' => 'Mỗi hình ảnh không được vượt quá 2MB',
         ];
     }

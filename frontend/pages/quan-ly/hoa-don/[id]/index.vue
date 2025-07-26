@@ -53,6 +53,9 @@
                     <p class="status-value" :class="invoice.status === 'Đã trả' ? 'status-paid' : 'status-unpaid'">
                         {{ invoice.status }}
                     </p>
+                    <p style="color: #ee3535; font-weight: bold" v-if="invoice.refunded_at">
+                        <em>Đã hoàn tiền lúc {{ formatDateTime(invoice.refunded_at) }}</em>
+                    </p>
                 </div>
             </div>
         </div>
@@ -246,7 +249,7 @@ definePageMeta({
 });
 
 const { formatPrice } = useFormatPrice();
-const { formatDate } = useFormatDate();
+const { formatDate, formatDateTime } = useFormatDate();
 const { $api } = useNuxtApp();
 const config = useState('configs');
 const route = useRoute();

@@ -94,6 +94,7 @@ class InvoiceService
                     'service_fee',
                     'total_amount',
                     'status',
+                    'refunded_at',
                     'created_at'
                 ]);
 
@@ -180,6 +181,7 @@ class InvoiceService
                     'service_fee',
                     'total_amount',
                     'status',
+                    'refunded_at',
                     'created_at'
                 ])
                 ->firstOrFail();
