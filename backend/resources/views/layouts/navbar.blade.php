@@ -8,17 +8,21 @@
     </a>
     <div class="navbar-nav align-items-center ms-auto">
         <div class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fa fa-message me-lg-2 position-relative">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" id="messages-toggle">
+                <div class="position-relative d-inline-block">
+                    <i class="fa fa-message me-lg-2"></i>
+
                     @if ($unreadMessageCount > 0)
                         <span id="messages-badge"
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                             {{ $unreadMessageCount }}
                         </span>
                     @endif
-                </i>
+                </div>
+
                 <span class="d-none d-lg-inline-flex">Messages</span>
             </a>
+
 
             <div id="messages-dropdown"
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
@@ -93,56 +97,81 @@
 
 <script>
     function fetchHeaderData(type) {
-        const route = type === 'messages' ?
-            '{{ route('messages.header') }}' :
-            '{{ route('notifications.header') }}';
+        const route = type === 'messages'
+            ? '{{ route('messages.header') }}'
+            : '{{ route('notifications.header') }}';
 
         fetch(route)
             .then(res => res.json())
             .then(data => {
-                const countBadge = document.querySelector(`#${type}-badge`);
-                const dropdown = document.getElementById(`${type}-dropdown`);
+                // Badge update
+                let countBadge = document.querySelector(`#${type}-badge`);
+                const toggleBtn = document.getElementById(`${type}-toggle`) || document.querySelector(`[data-bs-toggle="dropdown"]`);
 
-                if (data.unread_count > 0) {
+                // Nếu chưa có badge trong HTML thì tạo mới
+                if (!countBadge) {
+                    const badge = document.createElement('span');
+                    badge.id = `${type}-badge`;
+                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    badge.style.display = 'none';
+
+                    // Gắn vào trong icon container (phải có position-relative)
+                    if (toggleBtn?.querySelector('.position-relative')) {
+                        toggleBtn.querySelector('.position-relative').appendChild(badge);
+                        countBadge = badge;
+                    }
+                }
+
+                // Cập nhật số badge
+                if (data.unread_count > 0 && countBadge) {
                     countBadge.textContent = data.unread_count;
                     countBadge.style.display = 'inline-block';
-                } else {
+                } else if (countBadge) {
                     countBadge.style.display = 'none';
                 }
+
+                // Dropdown update
+                const dropdown = document.getElementById(`${type}-dropdown`);
+                if (!dropdown) return;
 
                 dropdown.innerHTML = '';
 
                 if (data.latest.length > 0) {
                     data.latest.forEach((item, i) => {
                         dropdown.innerHTML += `
-                        <a href="${item.url}" class="dropdown-item ${item.is_read === false || item.status === 'Chưa đọc' ? 'fw-bold' : ''}">
-                            <h6 class="mb-0">${item.title || item.message}</h6>
-                            <small class="text-muted">${item.created_at}</small>
-                        </a>
-                        ${i < data.latest.length - 1 ? '<hr class="dropdown-divider">' : ''}
-                    `;
+                            <a href="${item.url}" class="dropdown-item ${item.is_read === false || item.status === 'Chưa đọc' ? 'fw-bold' : ''}">
+                                <h6 class="mb-0">${item.title || item.message}</h6>
+                                <small class="text-muted">${item.created_at}</small>
+                            </a>
+                            ${i < data.latest.length - 1 ? '<hr class="dropdown-divider">' : ''}
+                        `;
                     });
                 } else {
-                    dropdown.innerHTML +=
-                        `<div class="dropdown-item text-muted text-center">Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}</div>`;
+                    dropdown.innerHTML += `
+                        <div class="dropdown-item text-muted text-center">
+                            Không có ${type === 'messages' ? 'tin nhắn' : 'thông báo'}
+                        </div>`;
                 }
 
                 dropdown.innerHTML += `
-                <a href="${data.latest[0]?.url || '#'}" class="dropdown-item text-center fw-bold text-primary">
-                    Xem tất cả ${type === 'messages' ? 'tin nhắn' : 'thông báo'}
-                </a>`;
+                    <a href="${data.latest[0]?.url || '#'}" class="dropdown-item text-center fw-bold text-primary">
+                        Xem tất cả ${type === 'messages' ? 'tin nhắn' : 'thông báo'}
+                    </a>`;
             });
     }
 
-    // Gọi cả 2
-    fetchHeaderData('notifications');
-    fetchHeaderData('messages');
-
-    setInterval(() => {
+    // Gọi khi trang load và mỗi 10s
+    document.addEventListener('DOMContentLoaded', () => {
         fetchHeaderData('notifications');
         fetchHeaderData('messages');
-    }, 10000);
+
+        setInterval(() => {
+            fetchHeaderData('notifications');
+            fetchHeaderData('messages');
+        }, 10000);
+    });
 </script>
+
 
 
 <!-- Navbar End -->
