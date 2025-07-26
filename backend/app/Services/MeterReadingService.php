@@ -58,7 +58,7 @@ class MeterReadingService
         try {
             $contractStartDate = Carbon::parse($contract->start_date);
             $invoiceCreatedDate = now(); // Ngày tạo hóa đơn (hiện tại)
-            $invoiceMonth = $meterReading->month-1;
+            $invoiceMonth = $meterReading->month;
             $invoiceYear = $meterReading->year;
 
             // Kiểm tra xem đã có hóa đơn nào cho hợp đồng này chưa

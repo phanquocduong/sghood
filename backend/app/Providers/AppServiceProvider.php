@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Notification;
+// use Illuminate\Support\Facades\Notification;
+use App\Notifications\FcmChannel;
 use Illuminate\Container\Attributes\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
@@ -29,8 +31,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+       \Illuminate\Support\Facades\Notification::extend('fcm', fn() => new FcmChannel());
+
+
         // Lấy đường dẫn tương đối từ .env
-        $googleCredentialsPath = env('GOOGLE_APPLICATION_CREDENTIALS');
+        $googleCredentialsPath = config('services.firebase.credentials');
 
         // Chuyển thành đường dẫn tuyệt đối
         $absolutePath = base_path($googleCredentialsPath);
