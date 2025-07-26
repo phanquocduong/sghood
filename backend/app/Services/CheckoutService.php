@@ -236,7 +236,7 @@ class CheckoutService
     {
         try {
             $manager = new \Intervention\Image\ImageManager(new Driver());
-            $filename = 'images/checkout_images/checkout-' . time() . '-' . uniqid() . '.webp';
+            $filename = 'images/checkouts/checkout-' . time() . '-' . uniqid() . '.webp';
 
             $image = $manager->read($imageFile)->toWebp(quality: 85)->toString();
 
