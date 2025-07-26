@@ -117,7 +117,7 @@ class BlogService
             if (!empty($data['thumbnail'])) {
                 $blog->thumbnail = $this->uploadBlogImage($data['thumbnail']);
             }
-            $blog->status = isset($data['status']) ? $data['status'] : 'draft';
+            $blog->status = isset($data['status']) ? $data['status'] : 'Nháp';
             $blog->author_id = $data['author_id'];
             $blog->save();
 

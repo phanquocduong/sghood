@@ -143,7 +143,7 @@ class MessageService
     {
         $adminId = Auth::id(); // ID admin hiện tại
 
-        $firestore = app(Firestore::class);
+        $firestore = (new Factory)->createFirestore();
         $db = $firestore->database();
 
         $messagesRef = $db->collection('messages');

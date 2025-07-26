@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Lấy đường dẫn tương đối từ .env
-        $googleCredentialsPath = env('GOOGLE_APPLICATION_CREDENTIALS');
+        $googleCredentialsPath = config('services.firebase.credentials');
 
         // Chuyển thành đường dẫn tuyệt đối
         $absolutePath = base_path($googleCredentialsPath);

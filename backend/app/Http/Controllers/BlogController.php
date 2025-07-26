@@ -101,7 +101,7 @@ class BlogController extends Controller
             $data['title'] = $validatedData['title'];
             $data['content'] = $validatedData['content'];
             $data['author_id'] = $validatedData['author_id']; // Lấy ID của người dùng đang đăng nhập
-            $data['status'] = $validatedData['status'] ?? 'draft'; // Mặc định là 'draft' nếu không có giá trị
+            $data['status'] = $validatedData['status'] ?? 'Nháp'; // Mặc định là 'Nháp' nếu không có giá trị
             $data['thumbnail'] = $request->file('thumbnail'); // Lấy tệp hình ảnh từ request
 
             $blog = $this->blogService->updateBlog($id, $data);
