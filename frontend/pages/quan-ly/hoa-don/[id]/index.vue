@@ -1,4 +1,3 @@
-<!-- pages/quan-ly/hoa-don/[id]/index.vue -->
 <template>
     <!-- Invoice -->
     <div v-if="invoice" id="invoice">

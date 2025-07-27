@@ -1,4 +1,3 @@
-```vue
 <template>
     <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
         <div class="small-dialog-header">

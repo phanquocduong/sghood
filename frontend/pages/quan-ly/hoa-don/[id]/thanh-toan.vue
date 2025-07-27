@@ -1,4 +1,3 @@
-<!-- pages/quan-ly/hoa-don/[id]/thanh-toan.vue -->
 <template>
     <Loading :is-loading="isLoading" />
     <div v-if="!isLoading" class="payment-section">

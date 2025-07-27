@@ -12,8 +12,7 @@ class Transaction extends Model
         'content',
         'transfer_type',
         'transfer_amount',
-        'reference_code',
-        'refund_request_id',
+        'reference_code'
     ];
 
     // Relationships
