@@ -10,13 +10,13 @@
 
         <div v-else class="row">
             <div class="col-lg-12 col-md-12">
-                <div class="dashboard-list-box margin-top-0">
-                    <div class="box-title-bar">
-                        <h4>Danh sách yêu cầu sửa chữa</h4>
-                        <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
-                            <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
-                        </NuxtLink>
-                    </div>
+                                <div class="dashboard-list-box margin-top-0">
+                                    <div class="box-title-bar-req">
+                <h4>Danh sách yêu cầu sửa chữa</h4>
+                <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
+                    <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
+                </NuxtLink>
+                </div>
 
                     <div v-if="repairRequests.length === 0" class="box-title-bar-tb">
                         <p>Chưa có yêu cầu nào.</p>
@@ -37,30 +37,6 @@
                         <div class="repair-content">
                             <!-- Sửa phần này trong repair-item -->
 <div class="repair-header">
-    <!-- Nút hủy + trạng thái bên phải -->
-    <div class="repair-actions">
-        <span
-          class="status-tag"
-          :class="{
-            pending: req.status === 'Chờ xác nhận',
-            inprogress: req.status === 'Đang thực hiện',
-            done: req.status === 'Hoàn thành',
-            canceled: req.status === 'Hủy bỏ'
-          }"
-        >
-          {{ req.status }}
-        </span>
-      <button
-        class="delete-btn"
-        v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-        @click="removeRequest(req.id)"
-        :disabled="isLoading === req.id"
-      >
-        <span v-if="isLoading === req.id" class="spinner"></span>
-        {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
-      </button>
-  
-    </div>
   <!-- Tiêu đề bên trái -->
   <div class="repair-title">
     <h5>
@@ -69,7 +45,33 @@
     </h5>
   </div>
 
+  <!-- Trạng thái + nút hủy bên phải theo cột dọc -->
+  <div class="repair-actions">
+    <span
+      class="status-tag"
+      :class="{
+        pending: req.status === 'Chờ xác nhận',
+        inprogress: req.status === 'Đang thực hiện',
+        done: req.status === 'Hoàn thành',
+        canceled: req.status === 'Huỷ bỏ'
+      }"
+    >
+      {{ req.status }}
+    </span>
+
+    <button
+      class="delete-btn"
+      :class="{ 'btn-cancelled-style': isLoading === req.id }"
+      v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+      @click="removeRequest(req.id)"
+      :disabled="isLoading === req.id"
+    >
+      <span v-if="isLoading === req.id" class="spinner"></span>
+      {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
+    </button>
+  </div>
 </div>
+
 
 
                             <p class="description">{{ req.description }}</p>
@@ -147,7 +149,7 @@ const FetchRepair = async () => {
             }
         });
         repairRequests.value = res.data || [];
-        console.log(res);
+        
     } catch (e) {
         console.log('sai o dau roi ban oi', e);
     } finally {
@@ -233,10 +235,9 @@ onMounted(() => {
 }
 
 .repair-header {
-  display: flex;
+   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: nowrap;
   gap: 10px;
 }
 
@@ -250,6 +251,7 @@ onMounted(() => {
     color: #7d7d7d;
     margin-top: -6px;
     font-size: 15px;
+        padding: 10px 1px 1px 1px;
 }
 
 .status-tag {
@@ -280,7 +282,12 @@ onMounted(() => {
     background-color: #f91942;
     color: white;
 }
-
+.btn-cancelled-style {
+  border: 2px solid #f91942 !important;
+  background-color: white !important;
+  color: #f91942 !important;
+  font-weight: bold;
+}
 .cancel-box {
     margin-top: 5px;
     padding: 10px;
@@ -484,39 +491,28 @@ h5 {
     overflow: visible; /* Cho mũi tên vượt ra ngoài */
 }
 
+/* ----------- Desktop & Default Styles ----------- */
 .add-button {
-    position: relative;
-    float: right;
-    background-color: transparent;
-    color: white;
-    border: 2px solid #f91942;
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-size: 16px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    background-color: #ffffff; /* Nền đỏ */
-    margin-top: -60px;
-    margin-right: 18px;
-    background-color: #f91942;
-    height: 35px;
-    top: 5px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    display: inline-flex;
-    align-items: center;
-    gap: 8px; /* khoảng cách giữa icon và chữ */
+  background-color: #f91942;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
 }
 
 .add-button:hover {
-    background-color: white;
-    color: #f91942;
-    border-color: #f91942;
+  background-color: white;
+  color: #f91942;
+  border: 1px solid #f91942;
 }
+
 .repair-actions {
   display: flex;
   flex-direction: row;
@@ -524,28 +520,60 @@ h5 {
   align-items: center;
   flex-shrink: 0;
 }
-@media screen and (max-width: 480px) {
-    .box-title-bar {
-    flex-direction: column;
-    align-items: stretch;
+
+.box-title-bar-req {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 5px 20px;
+  position: relative;
+  background-color: white;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+    
+}
+
+.box-title-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #eaeaea;
+
+}
+
+/* ----------- Responsive Styles (Mobile < 480px) ----------- */
+@media only screen and (max-width: 480px) {
+  .box-title-bar-req {
+    display: flex;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    justify-content: center;
   }
-   .add-button {
+
+  .box-title-bar-req h4 {
+    width: 100% !important;
+    text-align: center;
+    margin: auto;
+  }
+
+  .add-button {
+    display: flex;
     width: 100%;
     justify-content: center;
   }
-  .repair-header {
-    display: flex;
-    flex-direction: column-reverse; /* Title xuống dưới */
-    align-items: stretch;
-    gap: 10px;
-    width: 100%;
-  }
 
   .repair-actions {
-    display: flex;
-    flex-direction: column; /* ⬅ Quan trọng: Cho nút Hủy nằm dưới trạng thái */
-    align-items: flex-start;
-    gap: 6px;
+    flex-direction: column;
+    order: 1; /* hiển thị trước */
+    align-items: stretch;
+    gap: 8px;
     width: 100%;
   }
 
@@ -555,9 +583,21 @@ h5 {
     text-align: center;
   }
 
+  .repair-header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    gap: 8px;
+  }
+
   .repair-title {
+       order: 2; /* hiển thị sau */
     width: 100%;
+    padding: 8px 12px;
+    text-align: center; /* hoặc left nếu bạn thích */
   }
 }
+
+
 
 </style>
