@@ -1,10 +1,10 @@
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 
 export function useContractActions({ isLoading, contracts }) {
     const { $api } = useNuxtApp();
     const { handleBackendError } = useApi();
-    const toast = useToast();
+    const toast = useAppToast();
 
     const fetchContracts = async () => {
         isLoading.value = true;

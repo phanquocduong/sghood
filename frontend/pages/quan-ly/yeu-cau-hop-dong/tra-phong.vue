@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useRuntimeConfig } from '#app';
@@ -62,7 +62,7 @@ const { $api } = useNuxtApp();
 const config = useState('configs');
 const checkouts = ref([]);
 const isLoading = ref(false);
-const toast = useToast();
+const toast = useAppToast();
 const { handleBackendError } = useApi();
 const { formatPrice } = useFormatPrice();
 

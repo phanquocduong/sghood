@@ -37,15 +37,15 @@
                             </div>
 
                             <div class="message-by">
-                  <div class="message-header">
-                        <div class="left-side">
-                            <h5 class="message-title">{{ noti.title }}</h5>
-                        </div>
-                        <div class="right-side">
-                            <span v-if="noti.unread" class="message-status">Chưa đọc</span>
-                            <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
-                        </div>
-                        </div>
+                                <div class="message-header">
+                                    <div class="left-side">
+                                        <h5 class="message-title">{{ noti.title }}</h5>
+                                    </div>
+                                    <div class="right-side">
+                                        <span v-if="noti.unread" class="message-status">Chưa đọc</span>
+                                        <span class="message-time">{{ formatTimeAgo(noti.time) }}</span>
+                                    </div>
+                                </div>
 
                                 <p>{{ noti.content }}</p>
                             </div>
@@ -60,7 +60,7 @@
 
 <script setup>
 definePageMeta({ layout: 'management' });
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
 import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
@@ -126,36 +126,32 @@ const removeNotification = index => {
 }
 
 .message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
 }
 .left-side {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .message-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-  line-height: 1.4;
-  max-height: 2.8em; /* 2 dòng */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: break-word;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    line-height: 1.4;
+    max-height: 2.8em; /* 2 dòng */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
 }
-
-
-
-
 
 .right-side {
     display: contents;
@@ -166,7 +162,6 @@ const removeNotification = index => {
     flex-shrink: 0;
     max-width: 100px; /* hoặc thử 80-120px */
 }
-
 
 .message-status {
     background-color: #4caf50;
@@ -230,5 +225,4 @@ const removeNotification = index => {
     text-align: center;
     height: 46px;
 }
-
 </style>

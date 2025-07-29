@@ -74,12 +74,12 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior';
 import { questionMap } from '~/utils/questionMap';
 import { uploadImageToFirebase } from '~/utils/uploadImage';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 const { $firebaseStorage } = useNuxtApp();
 const emit = defineEmits(['close', 'unread']);
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-const toast = useToast();
+const toast = useAppToast();
 const currentUserId = ref(authStore.user?.id || null);
 const token = ref(authStore.token || '');
 const behavior = useBehaviorStore();

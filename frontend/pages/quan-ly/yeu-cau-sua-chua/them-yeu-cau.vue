@@ -54,7 +54,7 @@ import { ref, watch, nextTick, onMounted } from 'vue';
 import Dropzone from 'dropzone';
 import 'dropzone/dist/dropzone.css';
 import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 Dropzone.autoDiscover = false;
 
 definePageMeta({ layout: 'management' });
@@ -63,7 +63,7 @@ const router = useRouter();
 const { $api } = useNuxtApp();
 const loading = ref(true);
 const isLoading = ref(false);
-const toast = useToast();
+const toast = useAppToast();
 const form = ref({
     title: '',
     description: '',

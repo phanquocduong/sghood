@@ -47,13 +47,13 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { formatDate } = useFormatDate();
 const { formatPrice } = useFormatPrice();
-const toast = useToast();
+const toast = useAppToast();
 
 const props = defineProps({
     contract: {

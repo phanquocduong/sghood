@@ -43,11 +43,11 @@ definePageMeta({
 
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
+const toast = useAppToast();
 const loading = ref(true);
 const message = ref('');
 const error = ref(false);

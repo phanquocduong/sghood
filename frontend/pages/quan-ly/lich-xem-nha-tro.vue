@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, watch } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 import { useRouter } from 'vue-router';
 
@@ -114,7 +114,7 @@ definePageMeta({ layout: 'management' });
 
 const { $api } = useNuxtApp();
 const { handleBackendError } = useApi();
-const toast = useToast();
+const toast = useAppToast();
 const router = useRouter();
 
 const schedules = ref([]);

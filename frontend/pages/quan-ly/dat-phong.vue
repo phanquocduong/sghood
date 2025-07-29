@@ -13,7 +13,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 
 definePageMeta({
@@ -22,7 +22,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const { handleBackendError } = useApi();
-const toast = useToast();
+const toast = useAppToast();
 
 const bookings = ref([]);
 const filter = ref({ sort: 'default', status: '' });

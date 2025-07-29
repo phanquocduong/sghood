@@ -238,7 +238,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useNuxtApp } from '#app';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
@@ -252,7 +252,7 @@ const { formatDate, formatDateTime } = useFormatDate();
 const { $api } = useNuxtApp();
 const config = useState('configs');
 const route = useRoute();
-const toast = useToast();
+const toast = useAppToast();
 const invoice = ref(null);
 
 // Convert number to words (Vietnamese)

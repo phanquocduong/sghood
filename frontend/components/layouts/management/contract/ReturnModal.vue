@@ -88,7 +88,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, onUnmounted, watch } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
 import TomSelect from 'tom-select';
@@ -96,7 +96,7 @@ import 'tom-select/dist/css/tom-select.css';
 
 const { formatDate } = useFormatDate();
 const { formatPrice } = useFormatPrice();
-const toast = useToast();
+const toast = useAppToast();
 
 const props = defineProps({
     contract: { type: Object, required: true },

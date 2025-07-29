@@ -1,58 +1,56 @@
 <template>
-  <section class="comments">
-    <h4 class="headline margin-bottom-35">
-      Bình luận <span class="comments-amount">({{ comments.length }})</span>
-    </h4>
-    <p v-if="comments.length === 0" class="text-gray-400">Chưa có bình luận nào. Nếu muốn bình luận hãy đăng nhập nhé!</p>
-    <ul>
-      <template v-for="comment in comments" :key="comment.id" >
-        <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh=" fetchComments" />
-      </template> 
-      <div id="add-review" class="add-review-box" v-if="authStore.user ">
+    <section class="comments">
+        <h4 class="headline margin-bottom-35">
+            Bình luận <span class="comments-amount">({{ comments.length }})</span>
+        </h4>
+        <p v-if="comments.length === 0" class="text-gray-400">Chưa có bình luận nào. Nếu muốn bình luận hãy đăng nhập nhé!</p>
+        <ul>
+            <template v-for="comment in comments" :key="comment.id">
+                <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh="fetchComments" />
+            </template>
+            <div id="add-review" class="add-review-box" v-if="authStore.user">
+                <!-- Add Review -->
+                <h3 class="listing-desc-headline margin-bottom-35">Bình luận</h3>
 
-         <!-- Add Review -->
-         <h3 class="listing-desc-headline margin-bottom-35"> Bình luận</h3>
+                <!-- Review Comment -->
+                <form id="add-comment" class="add-comment">
+                    <fieldset>
+                        <div>
+                            <label>Bình luận:</label>
+                            <textarea cols="40" rows="3" v-model="ReplayContent"></textarea>
+                        </div>
+                    </fieldset>
 
-         <!-- Review Comment -->
-         <form id="add-comment" class="add-comment">
-           <fieldset>
-             <div>
-               <label>Bình luận:</label>
-               <textarea cols="40" rows="3" v-model="ReplayContent"></textarea>
-             </div>
- 
-           </fieldset>
- 
-           <button class="button" @click.prevent="AddReplay(blog_id)" type="submit"
-                           id="submit"
-                           value="Gửi tin nhắn"
-                           :disabled="loading"
-                           style="margin-bottom: 10px; margin-top: -10px"
-                       >
-                           <span v-if="loading" class="spinner">
-                           </span>
-                           {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
-                          </button>
-         </form>
- 
-       </div>
-    </ul>
-  </section>
-
+                    <button
+                        class="button"
+                        @click.prevent="AddReplay(blog_id)"
+                        type="submit"
+                        id="submit"
+                        value="Gửi tin nhắn"
+                        :disabled="loading"
+                        style="margin-bottom: 10px; margin-top: -10px"
+                    >
+                        <span v-if="loading" class="spinner"> </span>
+                        {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
+                    </button>
+                </form>
+            </div>
+        </ul>
+    </section>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
 import CommentsNode from './CommentsNode.vue';
 import { useRoute } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
 const comments = ref([]);
 const { $api } = useNuxtApp();
 const name = ref('');
 const showReplay = ref(false);
 const email = ref('');
-const toast = useToast();
+const toast = useAppToast();
 const loading = ref(false);
 const ReplayContent = ref('');
 const blog_id = ref(null);
@@ -123,8 +121,8 @@ const getBlogId = async slug => {
 // 👀 Theo dõi slug thay đổi
 onMounted(async () => {
     console.log('onMounted chạy');
-     await getBlogId(slug.value);
-        await fetchComments();
+    await getBlogId(slug.value);
+    await fetchComments();
     if (authStore.user) {
         name.value = authStore.user.name || '';
         email.value = authStore.user.email || '';
@@ -132,7 +130,7 @@ onMounted(async () => {
 });
 watch(
     slug,
-   async s => {
+    async s => {
         if (!s) return;
         await getBlogId(s);
         await fetchComments();

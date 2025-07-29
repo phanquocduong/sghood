@@ -55,7 +55,7 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router';
 import { ref, watch, nextTick, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
 const route = useRoute();
 const isLoading = ref(false);
@@ -65,7 +65,7 @@ const isChatOpen = ref(false);
 const unreadMessages = ref(0);
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-const toast = useToast();
+const toast = useAppToast();
 const router = useRouter();
 
 const toggleChat = () => {
