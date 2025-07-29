@@ -41,5 +41,9 @@ export default defineNuxtConfig({
             sepayAccountNumber: '31214717',
             sepayTemplate: 'compact'
         }
+    },
+
+    build: {
+        transpile: ['vue-toastification']
     }
 });
