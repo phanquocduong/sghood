@@ -68,7 +68,7 @@
                             <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
                             <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="Từ chối" {{ $status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                            <option value="Hủy" {{ $status == 'Hủy' ? 'selected' : '' }}>Hủy</option>
+                            <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -128,14 +128,14 @@
                                                 'Hoạt động' => 'success',
                                                 'Từ chối' => 'danger',
                                                 'Chờ duyệt' => 'warning',
-                                                'Hủy' => 'danger',
+                                                'Huỷ bỏ' => 'danger',
                                                 default => 'light'
                                             };
                                             $statusText = match ($extension->status) {
                                                 'Hoạt động' => 'Hoạt động',
                                                 'Từ chối' => 'Từ chối',
                                                 'Chờ duyệt' => 'Chờ duyệt',
-                                                'Hủy' => 'Hủy',
+                                                'Huỷ bỏ' => 'Huỷ bỏ',
                                                 default => $extension->status
                                             };
                                         @endphp

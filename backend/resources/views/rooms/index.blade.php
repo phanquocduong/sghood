@@ -138,16 +138,20 @@
                                     </span>
                                 </td>
                                 <td>
+                                    @if($room->status == 'Đã thuê')
+                                        <span class="text-muted">Không có hành động nào.</span>
+                                    @else
                                     <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-sm btn-primary action-btn me-2" style="transition: all 0.3s;">
-                                        <i class="fas fa-edit me-1"></i> Sửa
-                                    </a>
-                                    <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" style="display:inline-block;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger action-btn" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
-                                            <i class="fas fa-trash me-1"></i> Xóa
-                                        </button>
-                                    </form>
+                                            <i class="fas fa-edit me-1"></i> Sửa
+                                        </a>
+                                        <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" style="display:inline-block;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger action-btn" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
+                                                <i class="fas fa-trash me-1"></i> Xóa
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
