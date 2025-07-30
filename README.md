@@ -326,9 +326,7 @@ npm run test:coverage
 5. Tạo Pull Request
 
 ## Hỗ trợ & Liên hệ
-- **Email**: support@sghood.com
-- **Documentation**: docs.sghood.com
+- **Email**: sghood@gmail.com
 - **Issues**: GitHub Issues
-- **Discord**: Community Discord Server
 
 SGHood - Kết nối mọi nhu cầu thuê trọ tại TP.HCM 🏠✨
