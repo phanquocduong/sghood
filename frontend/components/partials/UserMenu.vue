@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
 @media screen and (max-width: 480px) {
   .user-name {
     max-width: 200px;
-    font-size: 13px;
+    font-size: 18px;
      overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

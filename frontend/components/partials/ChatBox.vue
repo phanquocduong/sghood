@@ -642,5 +642,9 @@ p {
     right: 0;
     z-index: 999;
   }
+  .chat-input{
+    padding: 1px 20px 1px 20px;
+    margin-bottom: 10px;
+  }
 }
 </style>
