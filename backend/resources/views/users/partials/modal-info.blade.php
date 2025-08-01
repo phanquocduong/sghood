@@ -11,7 +11,10 @@
             <p><strong>Trạng thái:</strong> {{ $user->status }}</p>
             <p><strong>Ngày tạo:</strong> {{ $user->created_at->format('d/m/Y H:i') }}</p>
             <p><strong>Địa chỉ:</strong> {{ $user->address }}</p>
-            <p><strong>Ngày sinh:</strong> {{ $user->birthdate->format('d/m/Y') }}</p>
+            <p>
+                <strong>Ngày sinh:</strong>
+                {{ $user->birthdate instanceof \Carbon\Carbon ? $user->birthdate->format('d/m/Y') : 'Chưa cập nhật' }}
+            </p>
             <p><strong>Giới tính:</strong> {{ $user->gender }}</p>
         </div>
     </div>

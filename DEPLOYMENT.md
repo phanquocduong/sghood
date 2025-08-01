@@ -135,8 +135,15 @@ sudo apt install -y certbot python3-certbot-nginx
 ```
 
 ### 8. Cài `ext-grpc` (cho Firestore)
-
-.... (Đang update)
+```bash
+sudo pecl install protobuf-3.21.12
+sudo pecl install grpc-1.56.0
+echo "extension=protobuf.so" | sudo tee -a /etc/php/8.2/cli/php.ini
+echo "extension=grpc.so" | sudo tee -a /etc/php/8.2/cli/php.ini
+echo "extension=protobuf.so" | sudo tee -a /etc/php/8.2/fpm/php.ini
+echo "extension=grpc.so" | sudo tee -a /etc/php/8.2/fpm/php.ini
+php -m | grep -E "grpc|protobuf"
+```
 
 ### 9. Cài Git
 
@@ -199,16 +206,16 @@ Nội dung:
 
 ```nginx
 server {
-listen 80;
-listen [::]:80;
-server_name admin.sghood.com.vn;
-return 301 https://$host$request_uri;
+    listen 80;
+    listen [::]:80;
+    server_name admin.sghood.com.vn;
+    return 301 https://$host$request_uri;
 }
 
 server {
-listen 443 ssl;
-listen [::]:443 ssl;
-server_name admin.sghood.com.vn;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name admin.sghood.com.vn;
 
     ssl_certificate /etc/letsencrypt/live/admin.sghood.com.vn/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/admin.sghood.com.vn/privkey.pem;
