@@ -122,27 +122,34 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@media screen and (max-width: 1024px) {
-    .user-menu .dropdown {
-        left: 50% !important; /* Đặt gốc ở giữa */
-        transform: translateX(-45%) !important; /* Căn giữa */
-        right: auto !important; /* Gỡ right nếu có */
-        top: 48px;
-        width: 280px;
-    }
+
+@media screen and (max-width: 480px) {
+  .user-name {
+    max-width: 200px;
+    font-size: 18px;
+     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .user-menu .dropdown {
+    right: 0 !important;
+    transform: none !important;
+    width: 280px;
+  }
+  .auth-container{
+    display: inline-flex;
+    padding: 12px 16px;
+  align-items: center;
+  gap: 12px; /* khoảng cách giữa chuông và user */
+  margin-left: auto;
+  }
+  .notification-icon{
+    margin-left: 0px !important;
+    top: -1px !important;
+  }
 }
-@media screen and (max-width: 640px) {
-    .notification-icon {
-        margin-right: 20px;
-    }
-    .user-menu .dropdown {
-        left: 50% !important; /* Đặt gốc ở giữa */
-        transform: translateX(-50%) !important; /* Căn giữa */
-        right: auto !important; /* Gỡ right nếu có */
-        top: 48px;
-        width: 280px;
-    }
-}
+
 .auth-container {
     margin-left: auto;
 }

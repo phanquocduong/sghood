@@ -155,4 +155,5 @@ button:disabled {
     margin-top: 20px;
     object-fit: cover;
 }
+
 </style>

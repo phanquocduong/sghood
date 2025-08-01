@@ -275,10 +275,8 @@ const initChat = async () => {
                 messages.value = [...messages.value, ...newUniqueMessages];
                 scrollToBottom();
                 const hasAdmin = newUniqueMessages.some(m => {
-                    return (
-                        m.from === 'admin' &&
-                        m.createdAt > lastRealtime.value
-                    )
+                    /* const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000); */
+                    return m.from === 'admin' && m.createdAt > lastRealtime.value;
                 });
 
                 if (hasAdmin) {
@@ -632,5 +630,19 @@ p {
 .chat-image {
     max-width: 200px;
     border-radius: 8px;
+}
+@media (max-width: 480px) {
+    .chat-box {
+        width: 100%;
+        height: 80vh;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        z-index: 999;
+    }
+    .chat-input {
+        padding: 1px 20px 1px 20px;
+        margin-bottom: 10px;
+    }
 }
 </style>
