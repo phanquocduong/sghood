@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:check-contract-expiry')->everyMinute()->withoutOverlapping();
+        $schedule->command('app:check-contract-expiry')->dailyAt('8:00')->withoutOverlapping();
         // log để kiểm tra xem có lỗi gì không
         $schedule->call(function () {
             \Log::info('Simple closure schedule is running.');
