@@ -61,7 +61,7 @@ import { useAuthStore } from '@/stores/auth';
 import CommentsNode from './CommentsNode.vue'; // quan trọng để đệ quy chính nó
 import { formatTimeAgo } from '~/utils/time';
 import { ref } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 const config = useRuntimeConfig();
 const baseUrl = config.public.baseUrl;
 
@@ -80,7 +80,7 @@ const showReplay = ref(false);
 const loading = ref(false);
 
 const ReplayContent = ref('');
-const toast = useToast();
+const toast = useAppToast();
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
 const defaultAvatar = '/images/sghood_logo1.png';

@@ -60,10 +60,7 @@
                                 <th>Người thuê</th>
                                 <th>Phòng</th>
                                 <th>Tiêu Đề</th>
-                                <!-- <th>Mô Tả</th> -->
-                                <!-- <th>Hình Ảnh</th> -->
                                 <th>Trạng Thái</th>
-                                <th>Lý Do Hủy</th>
                                 <th>Ngày Sửa</th>
                                 <th>Hành Động</th>
                             </tr>
@@ -76,15 +73,6 @@
                                     <td>{{ $repair->contract->user->name ?? 'N/A' }}</td>
                                     <td>{{ $repair->contract->room->name }}</td>
                                     <td>{{ $repair->title ?? 'N/A' }}</td>
-                                    <!-- <td>{{ Str::limit($repair->description, 100) ?? 'N/A' }}</td> -->
-                                    <!-- <td>
-                                                                        @if ($repair->images)
-                                                                            <img src="{{ $repair->images }}" alt="Hình ảnh"
-                                                                                style="width: 80px; border-radius: 8px;">
-                                                                        @else
-                                                                            N/A
-                                                                        @endif
-                                                                    </td> -->
                                     <td>
                                         @php
                                             $badgeClass = match ($repair->status) {
@@ -96,7 +84,6 @@
                                         @endphp
                                         <span class="badge bg-{{ $badgeClass }}">{{ $repair->status }}</span>
                                     </td>
-                                    <td>{{ $repair->cancellation_reason ?? 'N/A' }}</td>
                                     <td>
                                         {{ $repair->repaired_at ? \Carbon\Carbon::parse($repair->repaired_at)->format('d/m/Y H:i') : 'N/A' }}
                                     </td>
@@ -125,7 +112,6 @@
                                                     @csrf
                                                     @method('PUT')
                                                     <input type="hidden" name="status" value="{{ $repair->status }}">
-                                                    <input type="hidden" name="cancel_reason" class="cancel-reason-input">
                                                 </form>
                                                 <ul class="dropdown-menu">
                                                     @foreach ($options as $option)
@@ -142,7 +128,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">Không có yêu cầu sửa chữa nào.</td>
+                                    <td colspan="7" class="text-center text-muted py-4">Không có yêu cầu sửa chữa nào.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -151,27 +137,6 @@
 
                 <div class="d-flex justify-content-center mt-4">
                     {{ $repairRequests->links('vendor.pagination.custom') }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal hủy yêu cầu --}}
-    <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Lý do hủy yêu cầu sửa chữa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="cancelReason" class="form-label">Vui lòng nhập lý do hủy:</label>
-                    <textarea class="form-control" id="cancelReason" rows="4" required></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="confirmCancel">Xác nhận</button>
                 </div>
             </div>
         </div>
@@ -202,9 +167,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const modalElement = document.getElementById('cancelReasonModal');
-            const cancelModal = modalElement ? new bootstrap.Modal(modalElement) : null;
-
             // Event delegation for status updates
             document.addEventListener('click', function (e) {
                 const statusOption = e.target.closest('.status-option');
@@ -217,15 +179,8 @@
 
                     if (newStatus === originalStatus) return;
 
-                    if (newStatus === 'Huỷ bỏ') {
-                        if (cancelModal) {
-                            document.getElementById('cancelReason').value = '';
-                            cancelModal.show();
-                            window.currentRepairId = repairId; // Store globally for modal
-                        } else {
-                            alert('Không thể hiển thị form nhập lý do hủy.');
-                        }
-                    } else if (confirm(`Bạn có chắc muốn chuyển trạng thái thành "${newStatus}"?`)) {
+                    // Xác nhận cho tất cả trạng thái
+                    if (confirm(`Bạn có chắc muốn chuyển trạng thái thành "${newStatus}"?`)) {
                         const form = document.getElementById(`status-form-${repairId}`);
                         if (form) {
                             form.querySelector('[name="status"]').value = newStatus;
@@ -234,41 +189,16 @@
                     }
                 }
 
-                // Handle delete confirmation
+                // Handle delete confirmation (nếu có)
                 const deleteBtn = e.target.closest('.delete-btn');
                 if (deleteBtn) {
                     const repairId = deleteBtn.dataset.bsTarget.replace('#deleteConfirmationModal-', '');
-                    const confirmDelete = document.getElementById(`confirmDelete-${repairId}`);
-                    confirmDelete.addEventListener('click', function () {
-                        document.querySelector(`#deleteConfirmationModal-${repairId} .delete-form`).submit();
-                    });
-                }
-            });
-
-            // Handle cancel reason confirmation
-            document.getElementById('confirmCancel').addEventListener('click', function () {
-                const reason = document.getElementById('cancelReason').value.trim();
-                if (!reason) {
-                    alert('Vui lòng nhập lý do hủy!');
-                    return;
-                }
-                const form = document.getElementById(`status-form-${window.currentRepairId}`);
-                if (form) {
-                    form.querySelector('.cancel-reason-input').value = reason;
-                    form.querySelector('[name="status"]').value = 'Huỷ bỏ';
-                    form.submit();
-                }
-                if (cancelModal) cancelModal.hide();
-            });
-
-            // Reset on modal close
-            modalElement.addEventListener('hidden.bs.modal', function () {
-                if (window.currentRepairId) {
-                    const updateButton = document.querySelector(`.update-status[data-repair-id="${window.currentRepairId}"]`);
-                    if (updateButton) {
-                        updateButton.dataset.originalValue = updateButton.dataset.originalValue; // Reset if needed
+                    if (confirm('Bạn có chắc muốn xóa yêu cầu sửa chữa này?')) {
+                        const form = document.querySelector(`#deleteForm-${repairId}`);
+                        if (form) {
+                            form.submit();
+                        }
                     }
-                    window.currentRepairId = null;
                 }
             });
         });

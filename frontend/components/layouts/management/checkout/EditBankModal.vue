@@ -64,13 +64,13 @@
 
 <script setup>
 import { ref, watch, onMounted, nextTick, onUnmounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.css';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 
 const { formatPrice } = useFormatPrice();
-const toast = useToast();
+const toast = useAppToast();
 
 const props = defineProps({
     checkout: { type: Object, required: true },

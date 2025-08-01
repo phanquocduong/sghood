@@ -107,7 +107,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import Swal from 'sweetalert2';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 import { useContractUtils } from '~/composables/useContractUtils';
@@ -115,7 +115,7 @@ import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { $api } = useNuxtApp();
-const toast = useToast();
+const toast = useAppToast();
 const config = useState('configs');
 const { formatPrice } = useFormatPrice();
 const { formatDate, formatDateTime } = useFormatDate();

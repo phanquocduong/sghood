@@ -1,7 +1,7 @@
 import { defineNuxtPlugin } from '#app';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useRouter } from 'vue-router';
 
 export default defineNuxtPlugin(nuxtApp => {
@@ -16,9 +16,9 @@ export default defineNuxtPlugin(nuxtApp => {
             measurementId: 'G-LRB092W6Y5'
         };
 
-        const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
+        const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
-        const toast = useToast();
+        const toast = useAppToast();
         const router = useRouter();
 
         const getFcmToken = async () => {

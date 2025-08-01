@@ -36,10 +36,10 @@ return [
     ],
 
     'firebase' => [
-        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'credentials' => env('FIREBASE_CREDENTIALS', 'storage/firebase/firebase-adminsdk.json'),
     ],
 
     'sepay' => [
-        'api_key' => env('SEPAY_API_KEY'),
+        'api_key' => env('SEPAY_API_KEY', 'baomat000'),
     ],
 ];

@@ -15,7 +15,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 
 definePageMeta({
@@ -27,7 +27,7 @@ const { handleBackendError } = useApi();
 const extensions = ref([]);
 const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
-const toast = useToast();
+const toast = useAppToast();
 
 const fetchExtensions = async () => {
     isLoading.value = true;

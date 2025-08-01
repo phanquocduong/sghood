@@ -47,10 +47,9 @@ class RepairRequestController extends Controller
     {
         $request->validate([
             'status' => 'required|in:Chờ xác nhận,Đang thực hiện,Hoàn thành,Huỷ bỏ',
-            'cancel_reason' => 'nullable|string|max:255',
         ]);
 
-        $result = $this->repairRequestService->updateStatus($id, $request->status, $request->cancel_reason);
+        $result = $this->repairRequestService->updateStatus($id, $request->status);
 
         if ($result) {
             return redirect()->route('repair_requests.index')->with('success', 'Cập nhật trạng thái thành công.');

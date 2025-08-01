@@ -49,10 +49,10 @@
                         </button>
                     </div>
                     <div class="col-md-2">
-                        <a class="btn btn-success w-100 rounded-3" href="{{ route('blogs.create') }}">Thêm bài viết</a>
+                        <a class="btn btn-success w-100 rounded-3" href="{{ route('blogs.create') }}"><i class="fas fa-plus me-1"></i>Thêm bài viết</a>
                     </div>
                     <div class="col-md-2">
-                        <a class="btn btn-danger w-100 rounded-3" href="{{ route('blogs.trash') }}">Thùng rác</a>
+                        <a class="btn btn-danger w-100 rounded-3" href="{{ route('blogs.trash') }}"><i class="fas fa-trash me-1"></i>Thùng rác</a>
                     </div>
                 </form>
             </div>

@@ -74,12 +74,12 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior';
 import { questionMap } from '~/utils/questionMap';
 import { uploadImageToFirebase } from '~/utils/uploadImage';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 const { $firebaseStorage } = useNuxtApp();
 const emit = defineEmits(['close', 'unread']);
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-const toast = useToast();
+const toast = useAppToast();
 const currentUserId = ref(authStore.user?.id || null);
 const token = ref(authStore.token || '');
 const behavior = useBehaviorStore();
@@ -87,6 +87,7 @@ const { $api, $firebaseDb } = useNuxtApp();
 const newMessage = ref(behavior.chat || '');
 const messages = ref([]);
 const notiSound = ref(null);
+
 const AdminId = ref(null);
 const messageContainer = ref(null);
 let unsubscribe = null; // để dừng listener khi unmount
@@ -274,18 +275,21 @@ const initChat = async () => {
                 messages.value = [...messages.value, ...newUniqueMessages];
                 scrollToBottom();
                 const hasAdmin = newUniqueMessages.some(m => {
-                    const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000);
-                    return m.from === 'admin' && createdAt > Math.floor(lastRealtime.value / 1000);
+                    return (
+                        m.from === 'admin' &&
+                        m.createdAt > lastRealtime.value
+                    )
                 });
 
                 if (hasAdmin) {
                     lastRealtime.value = Date.now();
                     localStorage.setItem('lastRealtime', lastRealtime.value.toString());
-                    console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value));
+                    /* console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value)); */
 
                     emit('unread');
                     const audio = notiSound.value;
                     if (audio) {
+                        audio.pause();
                         audio.currentTime = 0;
                         audio.play().catch(err => {
                             console.warn('khong the phat am thanh', err);

@@ -17,7 +17,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 definePageMeta({
     layout: 'management'
@@ -27,7 +27,7 @@ const { $api } = useNuxtApp();
 const items = ref([]);
 const filter = ref({ sort: 'default', type: '', month: '', year: '' });
 const isLoading = ref(false);
-const toast = useToast();
+const toast = useAppToast();
 const currentPage = ref(1);
 const totalPages = ref(0);
 const perPage = ref(10);

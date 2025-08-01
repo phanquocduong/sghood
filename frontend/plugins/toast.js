@@ -1,4 +1,4 @@
-import Toast from 'vue-toastification';
+import Toast, { useToast } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 
 export default defineNuxtPlugin(nuxtApp => {
@@ -19,4 +19,10 @@ export default defineNuxtPlugin(nuxtApp => {
         icon: true,
         rtl: false
     });
+
+    return {
+        provide: {
+            toast: useToast()
+        }
+    };
 });

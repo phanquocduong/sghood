@@ -1,4 +1,3 @@
-```vue
 <template>
     <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
         <div class="small-dialog-header">
@@ -29,7 +28,7 @@
             <div v-if="checkout.images && checkout.images.length" class="inventory-images">
                 <div class="image-gallery">
                     <div v-for="(image, index) in checkout.images" :key="index" class="image-item">
-                        <img :src="useRuntimeConfig().public.baseUrl + '/storage/' + image" :alt="'Hình ảnh kiểm kê ' + (index + 1)" />
+                        <img :src="useRuntimeConfig().public.baseUrl + image" :alt="'Hình ảnh kiểm kê ' + (index + 1)" />
                     </div>
                 </div>
             </div>

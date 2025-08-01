@@ -53,7 +53,7 @@
 <script setup>
 import { useHead } from '@unhead/vue';
 import { shallowRef, ref, computed, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useRoute, useRouter } from 'vue-router';
 import { useContract } from '~/composables/useContract';
 
@@ -80,7 +80,7 @@ useHead({
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
+const toast = useAppToast();
 const { $dropzone } = useNuxtApp();
 
 // State

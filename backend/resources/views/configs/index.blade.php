@@ -21,12 +21,6 @@
                 style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}</h6>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('configs.create') }}" class="btn btn-primary shadow-sm" style="transition: all 0.3s;">
-                        <i class="fas fa-plus me-1"></i> {{ __('Thêm cấu hình') }}
-                    </a>
-                    <a href="{{ route('configs.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
-                        <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
-                    </a>
                 </div>
             </div>
             <div class="card-body p-4">
@@ -77,15 +71,6 @@
                                             class="btn btn-sm btn-warning action-btn me-2" style="transition: all 0.3s;">
                                             <i class="fas fa-pen me-1"></i> Sửa
                                         </a>
-                                        <form action="{{ route('configs.destroy', $config->id) }}" method="POST"
-                                            style="display:inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn"
-                                                onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
-                                                <i class="fas fa-trash me-1"></i> Xóa
-                                            </button>
-                                        </form>
                                     </td>
                                 </tr>
                             @endforeach

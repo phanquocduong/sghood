@@ -89,12 +89,18 @@
                                 @if (old('config_json'))
                                     @foreach (old('config_json', []) as $jsonValue)
                                         <input type="text" class="form-control shadow-sm mt-2" name="config_json[]"
-                                            value="{{ htmlspecialchars($jsonValue) }}" placeholder="Nhập lựa chọn" required>
+                                            value="{{ is_array($jsonValue) ? json_encode($jsonValue) : e($jsonValue) }}" placeholder="Nhập lựa chọn" required>
                                     @endforeach
                                 @elseif ($config->config_type == 'JSON' && $config->config_value)
-                                    @foreach (json_decode($config->config_value, true) as $jsonValue)
+                                    @php
+                                        $jsonData = json_decode($config->config_value, true);
+                                        if (!is_array($jsonData)) {
+                                            $jsonData = [];
+                                        }
+                                    @endphp
+                                    @foreach ($jsonData as $jsonValue)
                                         <input type="text" class="form-control shadow-sm mt-2" name="config_json[]"
-                                            value="{{ htmlspecialchars($jsonValue) }}" placeholder="Nhập lựa chọn" required>
+                                            value="{{ is_array($jsonValue) ? json_encode($jsonValue) : e($jsonValue) }}" placeholder="Nhập lựa chọn" required>
                                     @endforeach
                                 @endif
                             </div>

@@ -1,4 +1,3 @@
-<!-- pages/quan-ly/hoa-don/[id]/thanh-toan.vue -->
 <template>
     <Loading :is-loading="isLoading" />
     <div v-if="!isLoading" class="payment-section">
@@ -100,7 +99,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useNuxtApp } from '#app';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 
@@ -111,7 +110,7 @@ definePageMeta({
 const { $api } = useNuxtApp();
 const config = useState('configs');
 const route = useRoute();
-const toast = useToast();
+const toast = useAppToast();
 const invoice = ref(null);
 const qrCodeUrl = ref(null);
 const router = useRouter();

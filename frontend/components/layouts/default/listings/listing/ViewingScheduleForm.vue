@@ -50,11 +50,12 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { useToast } from 'vue-toastification';
+// import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 
-const toast = useToast();
+const toast = useAppToast();
 const authStore = useAuthStore();
 const route = useRoute();
 const { $api } = useNuxtApp();

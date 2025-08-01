@@ -1,9 +1,9 @@
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 export const useFirebaseAuth = () => {
     const { $firebaseAuth } = useNuxtApp();
-    const toast = useToast();
+    const toast = useAppToast();
     let confirmationResult = null;
 
     const handleFirebaseError = error => {

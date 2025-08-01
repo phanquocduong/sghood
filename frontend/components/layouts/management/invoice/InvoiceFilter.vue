@@ -51,10 +51,10 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue';
 import { useNuxtApp } from '#app';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 const { $api } = useNuxtApp();
-const toast = useToast();
+const toast = useAppToast();
 const months = ref([]);
 const years = ref([]);
 

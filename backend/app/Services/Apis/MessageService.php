@@ -5,6 +5,7 @@ namespace App\Services\Apis;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\UserAdmin;
+use Google\Cloud\Firestore\FieldValue;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
@@ -160,18 +161,20 @@ class MessageService
             ]);
             return null;
         }
+        $text = 'Chào mừng bạn đến với dịch vụ hỗ trợ của chúng tôi!';
+        $type = 'text'; // Hoặc có thể là 'image', 'file', v.v.
 
         // Tạo chatId
         $ids = [$adminId, $userId];
         sort($ids);
-        $chatId = 'chat_' . $ids[0] . '_' . $ids[1];
+        $chatId = $ids[0] . '_' . $ids[1];
 
         $messagesRef = $this->firestore->collection('messages');
 
         // Kiểm tra đã có chat chưa
         $query = $messagesRef
-            ->where('chat_id', '=', $chatId)
-            ->orderBy('created_at', 'ASC')
+            ->where('chatId', '=', $chatId)
+            ->orderBy('createdAt', 'ASC')
             ->limit(1);
 
         $documents = $query->documents();
@@ -179,13 +182,14 @@ class MessageService
         if ($documents->isEmpty()) {
             try {
                 $firstMessageData = [
-                    'chat_id'     => $chatId,
+                    'chatId'      => $chatId,
                     'sender_id'   => $adminId,
                     'receiver_id' => $userId,
-                    'message'     => 'Chào bạn! Tôi có thể giúp gì cho bạn ?',
-                    'imageUrl'    => null,
+                    'text'        => $text,
+                    'content'     => '', // nếu là file/image thì dùng trường này
+                    'type'        => $type, // 'text', 'image', 'file', ...
                     'is_read'     => false,
-                    'created_at'  => now()->toDateTimeString(),
+                    'createdAt'   => FieldValue::serverTimestamp(),
                 ];
 
                 $docRef = $messagesRef->add($firstMessageData);

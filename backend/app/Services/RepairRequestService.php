@@ -51,7 +51,7 @@ class RepairRequestService
         return RepairRequest::with(['contract.user', 'contract.room'])->find($id);
     }
 
-    public function updateStatus($id, $status, $cancelReason = null)
+    public function updateStatus($id, $status)
     {
         $repair = RepairRequest::find($id);
 
@@ -62,13 +62,10 @@ class RepairRequestService
         $repair->status = $status;
 
         if ($status === 'Huỷ bỏ') {
-            $repair->cancellation_reason = $cancelReason;
             $repair->repaired_at = null;
         } elseif ($status === 'Hoàn thành') {
-            $repair->cancellation_reason = null;
             $repair->repaired_at = now();
         } else {
-            $repair->cancellation_reason = null;
             $repair->repaired_at = null;
         }
 

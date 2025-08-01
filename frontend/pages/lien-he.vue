@@ -138,7 +138,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 import { useBehaviorStore } from '~/stores/behavior';
 // api config
 const config = useState('configs');
@@ -152,7 +152,7 @@ onMounted(() => {
     behavior.logAction(route.path, 'lien-he');
 });
 // api lien he
-const toast = useToast();
+const toast = useAppToast();
 const { $api } = useNuxtApp();
 const name = ref('');
 const email = ref('');

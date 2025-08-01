@@ -100,7 +100,7 @@
 import { ref, computed } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { storeToRefs } from 'pinia';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 // Định nghĩa layout
 definePageMeta({
@@ -108,7 +108,7 @@ definePageMeta({
 });
 
 const { $api } = useNuxtApp();
-const toast = useToast();
+const toast = useAppToast();
 const config = useRuntimeConfig();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);

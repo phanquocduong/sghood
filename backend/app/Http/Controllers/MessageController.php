@@ -18,7 +18,7 @@ class MessageController extends Controller
     public function __construct(MessageService $messageService)
     {
         $this->messageService = $messageService;
-        $serviceAccountPath = storage_path('firebase\firebase-adminsdk.json');
+        $serviceAccountPath = storage_path('firebase/firebase-adminsdk.json');
         if (!file_exists($serviceAccountPath)) {
             throw new \Exception("File service account not found at: $serviceAccountPath. Please download it from Firebase Console and place it in the config/firebase/ directory.");
         }

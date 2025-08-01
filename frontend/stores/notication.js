@@ -1,13 +1,13 @@
 // ~/stores/notification.ts
 import { defineStore } from 'pinia';
 import { useAuthStore } from './auth';
-import { useToast } from 'vue-toastification';
+import { useAppToast } from '~/composables/useToast';
 
 export const useNotificationStore = defineStore('notification', () => {
     const notifications = ref([]);
     const loading = ref(false);
     const { $api } = useNuxtApp();
-    const toast = useToast();
+    const toast = useAppToast();
     const authStore = useAuthStore();
 
     const fetchNotifications = async () => {
