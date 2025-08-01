@@ -203,6 +203,28 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     @endsection
+
+
+<!-- User Info Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Thông tin người dùng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="userModalBody">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        Đang tải dữ liệu...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -246,25 +268,25 @@
         }
     </script>
 
-@endsection
 
 <!-- User Info Modal -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="userModalLabel">
-                    <i class="fas fa-user-circle me-2"></i>
-                    Thông tin người dùng
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-            </div>
-            <div class="modal-body" id="userModalBody">
-                <div class="loading">
-                    <i class="fas fa-spinner"></i>
-                    Đang tải dữ liệu...
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Thông tin người dùng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="userModalBody">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        Đang tải dữ liệu...
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+@endsection
