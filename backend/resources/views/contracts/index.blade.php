@@ -73,6 +73,7 @@ use Illuminate\Support\Facades\Storage;
                             <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
                             <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh sửa</option>
                             <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
+                            <option value="Chờ thanh toán tiền cọc" {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc</option>
                             <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
                             <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>

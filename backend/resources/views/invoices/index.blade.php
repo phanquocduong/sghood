@@ -35,7 +35,7 @@
 
         <!-- Stats Cards -->
         <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #28a745 !important;">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -51,7 +51,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #17a2b8 !important;">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -67,7 +67,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-3">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -159,13 +159,12 @@
                     <table class="table table-hover table-bordered align-middle">
                         <thead class="table-success">
                             <tr>
-                                <th scope="col" style="width: 8%;" class="text-center">ID</th>
+                                <th scope="col" style="width: 5%;" class="text-center">ID</th>
                                 <th scope="col" style="width: 18%;" class="text-center">Mã hóa đơn</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Tổng tiền</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Ngày tạo</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Hoàn tiền</th>
+                                <th scope="col" style="width: 25%;" class="text-center">Hành động/Ngày hoàn tiền</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
                             </tr>
                         </thead>
@@ -188,32 +187,30 @@
                                                 default => 'secondary'
                                             };
                                         @endphp
-
-                                        @if($invoice->status === 'Chưa trả')
-                                            <!-- Form để cập nhật trạng thái -->
-                                            <form action="{{ route('invoices.updateStatus', $invoice->id) }}" method="POST"
-                                                style="display: inline-block;"
-                                                onsubmit="return confirm('Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang Đã trả?')">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="Đã trả">
-                                                <input type="hidden" name="reference_code" value="CASH_{{ $invoice->id }}_{{ now()->format('YmdHis') }}">
-                                                <button type="submit" class="btn btn-warning btn-sm" title="Cập nhật thành Đã trả">
-                                                    <i class="fas fa-clock me-1"></i>{{ $invoice->status }}
-                                                </button>
-                                            </form>
-                                        @else
-                                            <!-- Hiển thị badge thông thường -->
-                                            <span class="badge bg-{{ $statusClass }} py-2 px-3">
-                                                <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : ($invoice->status === 'Đã hoàn tiền' ? 'undo' : 'clock') }} me-1"></i>
-                                                {{ $invoice->status }}
-                                            </span>
-                                        @endif
+                                        <!-- Hiển thị badge thông thường -->
+                                        <span class="badge bg-{{ $statusClass }} py-2 px-3">
+                                            <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : ($invoice->status === 'Đã hoàn tiền' ? 'undo' : 'clock') }} me-1"></i>
+                                            {{ $invoice->status }}
+                                        </span>
                                     </td>
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
-                                    <td class="text-center">{{ $invoice->created_at->format('d/m/Y') }}</td>
                                     <td class="text-center">
-                                        {{ $invoice->refunded_at ? \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : '-' }}
+                                    @if($invoice->status === 'Chưa trả')
+                                        <!-- Form để cập nhật trạng thái -->
+                                        <form action="{{ route('invoices.updateStatus', $invoice->id) }}" method="POST"
+                                            style="display: inline-block;"
+                                            onsubmit="return confirm('Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang Đã trả?')">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="Đã trả">
+                                            <input type="hidden" name="reference_code" value="CASH_{{ $invoice->id }}_{{ now()->format('YmdHis') }}">
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Cập nhật thành Đã trả">
+                                                <i class="fa-regular fa-money-bill-1"></i> Người dùng thanh toán tiền mặt
+                                            </button>
+                                        </form>
+                                    @else
+                                        {{ $invoice->refunded_at ? 'Đã hoàn tiền vào: ' . \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : 'Hóa đơn đã được thanh toán' }}
+                                    @endif
                                     </td>
                                     <td class="text-center">
                                         <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})" title="Xem chi tiết hóa đơn">
