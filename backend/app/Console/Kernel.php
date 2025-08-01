@@ -5,17 +5,16 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
-
-
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:check-contract-expiry')->everyMinute()->withoutOverlapping();
+        $schedule->command('app:check-contract-expiry')->daily()->withoutOverlapping();
         // log để kiểm tra xem có lỗi gì không
         $schedule->call(function () {
-            \Log::info('Simple closure schedule is running.');
+            Log::info('Simple closure schedule is running.');
         })->everyMinute();
     }
 
