@@ -127,7 +127,7 @@
             Vui lòng thanh toán hóa đơn trước thời hạn để tránh các rủi ro khác. Bạn có thể xem chi tiết hóa đơn trong hệ thống bằng cách nhấn vào nút bên dưới:
         </p>
         <div class="cta-section">
-            <a href="http://127.0.0.1:3000/quan-ly/hoa-don" class="cta-button" style="color: #ffffff;">
+            <a href="https://sghood.com.vn/quan-ly/hoa-don" class="cta-button" style="color: #ffffff;">
                 <span class="icon">📄</span> Xem hóa đơn của tôi
             </a>
         </div>

@@ -75,7 +75,7 @@
             Bạn có thể xem hoặc quản lý hợp đồng của mình bằng cách nhấn vào nút bên dưới:
         </p>
         <div class="cta-section">
-            <a href="http://127.0.0.1:3000/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
+            <a href="https://sghood.com.vn/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
                 <span class="icon">📄</span> Xem hợp đồng của tôi
             </a>
         </div>

@@ -118,7 +118,7 @@
         </div>
 
         <div class="cta-section">
-            <a href="{{ url('/invoices/' . $invoice->id) }}" class="cta-button">
+            <a href="{{ url('https://sghood.com.vn/quan-ly/hoa-don/') }}" class="cta-button">
                 Xem chi tiết hóa đơn
             </a>
         </div>

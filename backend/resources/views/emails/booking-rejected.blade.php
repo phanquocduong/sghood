@@ -242,7 +242,7 @@
             </ul>
 
             <div class="cta-section">
-                <a href="{{ url('/') }}" class="cta-button" style="color: #ffffff;">
+                <a href="{{ url('https://sghood.com.vn/') }}" class="cta-button" style="color: #ffffff;">
                     🏠 Xem phòng khác
                 </a>
             </div>

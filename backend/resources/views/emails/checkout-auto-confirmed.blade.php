@@ -131,7 +131,7 @@
         </div>
 
         <div class="cta-section">
-            <a href="{{ url('/checkouts/' . $checkout->id) }}" class="cta-button">
+            <a href="{{ url('https://sghood.com.vn/quan-ly/kiem-ke') }}" class="cta-button">
                 Xem chi tiết kiểm kê
             </a>
         </div>

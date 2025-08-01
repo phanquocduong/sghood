@@ -177,7 +177,7 @@
                 Để hoàn tất quá trình đặt phòng, vui lòng truy cập vào trang quản lý hợp đồng của chúng tôi và nhập lại thông tin hợp đồng cần thiết. Bạn có thể thực hiện điều này bằng cách nhấn vào nút bên dưới:
             </p>
             <div class="cta-section">
-                <a href="http://127.0.0.1:3000/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
+                <a href="https://sghood.com.vn/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
                     <span class="icon">📝</span> Truy cập trang quản lý hợp đồng
                 </a>
             </div>

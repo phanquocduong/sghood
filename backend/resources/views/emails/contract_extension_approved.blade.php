@@ -213,7 +213,7 @@
             </p>
 
             <div class="cta-section">
-                <a href="{{ url('/quan-ly/hop-dong') }}" class="cta-button" style="color: #ffffff;">
+                <a href="{{ url('https://sghood.com.vn/quan-ly/hop-dong') }}" class="cta-button" style="color: #ffffff;">
                     <span class="icon">🏠</span> Xem hợp đồng
                 </a>
             </div>

@@ -207,7 +207,7 @@
             </p>
 
             <div class="cta-section">
-                <a href="http://127.0.0.1:3000/quan-ly/kiem-ke" class="cta-button" style="color: #ffffff;">
+                <a href="https://sghood.com.vn/quan-ly/kiem-ke" class="cta-button" style="color: #ffffff;">
                     <span class="icon">🏠</span> Xem chi tiết kiểm kê
                 </a>
             </div>
