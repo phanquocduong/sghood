@@ -18,90 +18,121 @@ Dự án này bao gồm **backend Laravel 12** (tại `admin.sghood.com.vn`) và
 ### 1. Dừng và xóa tiến trình PM2 (Nuxt 3 SSR)
 
 -   Kiểm tra tiến trình:
+    ```bash
     pm2 list
-
+    ```
 -   Dừng và xóa tiến trình `sghood-nuxt-app`:
+    ```bash
     sudo -u www-data pm2 stop sghood-nuxt-app
     sudo -u www-data pm2 delete sghood-nuxt-app
     sudo -u www-data pm2 save
-
+    ```
 -   Xóa thư mục PM2:
+    ```bash
     sudo rm -rf /var/www/.pm2
+    ```
 
 ### 2. Xóa thư mục dự án
 
 -   Xóa thư mục Laravel:
+    ```bash
     sudo rm -rf /var/www/html/admin.phanquocduong.id.vn
+    ```
 -   Xóa thư mục Nuxt:
+    ```bash
     sudo rm -rf /var/www/html/phanquocduong.id.vn
+    ```
 
 ### 3. Xóa cấu hình Nginx
 
 -   Xóa file cấu hình:
+    ```bash
     sudo rm /etc/nginx/sites-available/admin.phanquocduong.id.vn
     sudo rm /etc/nginx/sites-enabled/admin.phanquocduong.id.vn
     sudo rm /etc/nginx/sites-available/phanquocduong.id.vn
     sudo rm /etc/nginx/sites-enabled/phanquocduong.id.vn
-
+    ```
 -   Kiểm tra và reload Nginx:
+    ```bash
     sudo nginx -t
     sudo systemctl reload nginx
+    ```
 
 ### 4. Xóa chứng chỉ SSL (nếu cần)
 
 -   Nếu không tái sử dụng chứng chỉ SSL:
+    ```bash
     sudo certbot delete --cert-name admin.phanquocduong.id.vn
     sudo certbot delete --cert-name phanquocduong.id.vn
+    ```
 
 ### 5. Xóa cache Laravel và Nuxt
 
 -   Đảm bảo không còn cache cũ:
-    sudo rm -rf /var/www/html/admin.phanquocduong.id.vn/bootstrap/cache/\*
+    ```bash
+    sudo rm -rf /var/www/html/admin.phanquocduong.id.vn/bootstrap/cache/*
     sudo rm -rf /var/www/html/phanquocduong.id.vn/.output
     sudo rm -rf /var/www/html/phanquocduong.id.vn/node_modules
+    ```
 
 ### 6. Kiểm tra dịch vụ
 
 -   Đảm bảo PHP-FPM và Nginx chạy bình thường:
+    ```bash
     sudo systemctl status php8.2-fpm
     sudo systemctl status nginx
+    ```
 
 ## Cài đặt môi trường
 
 ### 1. Cập nhật hệ thống
 
+```bash
 sudo apt update && sudo apt upgrade -y
+```
 
 ### 2. Cài Nginx
 
+```bash
 sudo apt install -y nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
+```
 
 ### 3. Cài PHP 8.2 và PHP-FPM (cho Laravel)
 
+```bash
 sudo apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip
 sudo systemctl enable php8.2-fpm
 sudo systemctl start php8.2-fpm
+```
 
 ### 4. Cài Node.js 20.x (cho Nuxt 3)
 
+```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
 sudo apt install -y nodejs
-node -v # Nên là v20.x
+node -v  # Nên là v20.x
 npm -v
+```
 
 ### 5. Cài PM2 (cho Nuxt 3 SSR)
 
+```bash
 sudo npm install -g pm2
+```
 
 ### 6. Cài Composer (cho Laravel)
 
+```bash
 sudo apt install -y composer
+```
 
 ### 7. Cài Certbot (cho SSL)
 
+```bash
 sudo apt install -y certbot python3-certbot-nginx
+```
 
 ### 8. Cài `ext-grpc` (cho Firestore)
 
@@ -109,55 +140,64 @@ sudo apt install -y certbot python3-certbot-nginx
 
 ### 9. Cài Git
 
+```bash
 sudo apt install -y git
+```
 
 ## Triển khai Backend Laravel (`admin.sghood.com.vn`)
 
 ### 1. Tạo thư mục dự án
 
+```bash
 sudo mkdir -p /var/www/html/admin.sghood.com.vn
 sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn
 sudo chmod -R 755 /var/www/html/admin.sghood.com.vn
+```
 
 ### 2. Clone dự án
 
 -   Tạo PAT trên GitHub: **Settings** > **Developer settings** > **Personal access tokens** > **Generate new token** (chọn quyền `repo`).
 -   Clone:
-    cd /var/www/html/admin.sghood.com.vn
+    ```bash
+    cd /var/www/html/admin.phanquocduong.id.vn
     sudo -u www-data git clone https://<your-username>:<your-pat>@github.com/<your-repo>/<laravel-repo>.git .
+    ```
 -   Chỉ giữ lại backend/, xoá các folder và file khác
 -   Chuyển source trong backend/ ra ngoài -> xoá backend/
 
 ### 3. Cài dependencies
 
+```bash
 cd /var/www/html/admin.sghood.com.vn
 sudo -u www-data composer install --no-dev --optimize-autoloader
+```
 
 ### 4. Cấu hình `.env`
 
+```bash
 sudo nano /var/www/html/admin.sghood.com.vn/.env
+```
 
 ### 5. Cấp quyền
 
+```bash
 sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn/storage
 sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn/bootstrap/cache
 sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/storage
 sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/bootstrap/cache
+```
 
-### 6. Tối ưu Laravel
-
-sudo -u www-data php artisan config:cache
-sudo -u www-data php artisan route:cache
-sudo -u www-data php artisan view:cache
-
-### 7. Cấu hình Nginx
+### 6. Cấu hình Nginx
 
 Tạo file:
 
+```bash
 sudo nano /etc/nginx/sites-available/admin.sghood.com.vn
+```
 
 Nội dung:
 
+```nginx
 server {
 listen 80;
 listen [::]:80;
@@ -216,58 +256,74 @@ server_name admin.sghood.com.vn;
     }
 
 }
+```
 
 Kích hoạt:
 
+```bash
 sudo ln -s /etc/nginx/sites-available/admin.sghood.com.vn /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
+```
 
 ### 9. Cài SSL
 
-sudo certbot --nginx -d admin.sghood.com.vn
+```bash
+sudo certbot --nginx -d admin.sghood.com.vn -d www.admin.sghood.com.vn
+```
 
 ## Triển khai Frontend Nuxt 3 SSR (`sghood.com.vn`)
 
 ### 1. Tạo thư mục dự án
 
+```bash
 sudo mkdir -p /var/www/html/sghood.com.vn
 sudo chown -R www-data:www-data /var/www/html/sghood.com.vn
 sudo chmod -R 755 /var/www/html/sghood.com.vn
+```
 
 ### 2. Clone dự án
 
+```bash
 cd /var/www/html/sghood.com.vn
 sudo -u www-data git clone https://<your-username>:<your-pat>@github.com/phanquocduong/sghood.git .
+```
 
 -   Chỉ giữ lại frontend/, xoá các folder và file khác
 -   Chuyển source trong frontend/ ra ngoài -> xoá frontend/
 
 ### 3. Cài dependencies
 
+```bash
 cd /var/www/html/sghood.com.vn
 sudo npm install --production
 sudo npm run build
+```
 
-### 6. Cấu hình reCAPTCHA
+### 4. Cấu hình reCAPTCHA
 
 -   Thêm domain `sghood.com.vn` và `www.sghood.com.vn` vào reCAPTCHA.
 
-### 7. Cấu hình PM2
+### 5. Cấu hình PM2
 
+```bash
 sudo mkdir -p /var/www/.pm2/{logs,pids,modules}
 sudo chown -R www-data:www-data /var/www/.pm2
 sudo chmod -R 775 /var/www/.pm2
 sudo -u www-data pm2 start /var/www/html/sghood.com.vn/.output/server/index.mjs --name sghood-nuxt-app
 sudo -u www-data pm2 save
 sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u www-data --hp /var/www
+```
 
-### 8. Cấu hình Nginx
+### 6. Cấu hình Nginx
 
+```bash
 sudo nano /etc/nginx/sites-available/sghood.com.vn
+```
 
 Nội dung:
 
+```nginx
 server {
 listen 80;
 listen [::]:80;
@@ -299,47 +355,61 @@ server_name sghood.com.vn www.sghood.com.vn;
     }
 
 }
+```
 
 Kích hoạt:
 
+```bash
 sudo ln -s /etc/nginx/sites-available/sghood.com.vn /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
+```
 
 ### 9. Cài SSL
 
+```bash
 sudo certbot --nginx -d sghood.com.vn -d www.sghood.com.vn
+```
 
 ## Kiểm tra và xử lý lỗi
 
 ### 1. Kiểm tra log
 
 -   **Laravel**:
+    ```bash
     sudo tail -f /var/www/html/admin.sghood.com.vn/storage/logs/laravel.log
-
+    ```
 -   **Nginx**:
+    ```bash
     sudo tail -f /var/log/nginx/error.log
     sudo tail -f /var/log/nginx/access.log
-
+    ```
 -   **PHP-FPM**:
+    ```bash
     sudo tail -f /var/log/php8.2-fpm.log
-
+    ```
 -   **PM2**:
+    ```bash
     pm2 logs sghood-nuxt-app
+    ```
 
 ### 2. Xử lý lỗi thường gặp
 
 -   **Lỗi `SplFileObject::__construct(storage/firebase/firebase-adminsdk.json)`**:
     -   Đảm bảo file `firebase-adminsdk.json` tồn tại và đúng quyền:
+        ```bash
         ls -l /var/www/html/admin.sghood.com.vn/storage/firebase/firebase-adminsdk.json
+        ```
     -   Kiểm tra `FIREBASE_CREDENTIALS` trong `.env`.
 -   **Lỗi `auth/captcha-check-failed`**:
     -   Thêm domain `sghood.com.vn` và `www.sghood.com.vn` vào Firebase Console > **Authentication** > **Authorized Domains**.
     -   Cấu hình reCAPTCHA trong Google Cloud Console.
 -   **Lỗi PM2 quyền**:
     -   Kiểm tra quyền `/var/www/.pm2`:
+        ```bash
         sudo chown -R www-data:www-data /var/www/.pm2
         sudo chmod -R 775 /var/www/.pm2
+        ```
 
 ### 3. Kiểm tra truy cập
 
@@ -350,9 +420,12 @@ sudo certbot --nginx -d sghood.com.vn -d www.sghood.com.vn
 ## Bảo mật
 
 -   Thêm firewall:
+    ```bash
     sudo ufw allow 80
     sudo ufw allow 443
     sudo ufw enable
-
+    ```
 -   Kiểm tra SSL:
+    ```bash
     sudo certbot renew --dry-run
+    ```
