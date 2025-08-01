@@ -159,7 +159,7 @@ sudo chmod -R 755 /var/www/html/admin.sghood.com.vn
 -   Tạo PAT trên GitHub: **Settings** > **Developer settings** > **Personal access tokens** > **Generate new token** (chọn quyền `repo`).
 -   Clone:
     ```bash
-    cd /var/www/html/admin.phanquocduong.id.vn
+    cd /var/www/html/admin.sghood.com.vn
     sudo -u www-data git clone https://<your-username>:<your-pat>@github.com/<your-repo>/<laravel-repo>.git .
     ```
 -   Chỉ giữ lại backend/, xoá các folder và file khác
