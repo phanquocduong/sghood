@@ -266,10 +266,114 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 9. Cài SSL
+### 7 . Cài SSL
 
 ```bash
 sudo certbot --nginx -d admin.sghood.com.vn -d www.admin.sghood.com.vn
+```
+## 8 . Cài Cronjob
+
+```bash
+cd /var/www/html/admin.sghood.com.vn
+```
+
+Mở file crontab:
+
+```bash
+crontab -e
+```
+
+Thêm lệnh cron vào crontab:
+
+```bash
+* * * * * cd /var/www/html/admin.sghood.com.vn/ && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Kiểm tra cronjob đã được thêm chưa:
+
+```bash
+crontab -l
+```
+
+## 9 . Cài Suppervison
+
+# Cài đặt Supervisor:
+
+Cập nhật hệ thống và cài đặt Supervisor:
+
+```bash
+sudo apt update
+sudo apt install supervisor
+```
+
+Kích hoạt và khởi động Supervisor:
+
+```bash
+sudo systemctl enable supervisor
+sudo systemctl start supervisor
+```
+
+Kiểm tra trạng thái:
+
+```bash
+sudo systemctl status supervisor
+```
+
+# Tạo file cấu hình Supervisor
+
+Tạo file cấu hình cho Laravel worker:
+
+```bash
+sudo nano /etc/supervisor/conf.d/laravel-worker.conf
+```
+
+Nội dung cấu hình:
+
+```bash
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/html/admin.sghood.com.vn/artisan queue:work --queue=default --sleep=3 --tries=3 --max-time=3600
+directory=/var/www/html/admin.sghood.com.vn
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/html/admin.sghood.com.vn/storage/logs/worker.log
+stopwaitsecs=3600
+```
+
+# Cấu hình quyền truy cập
+
+Đảm bảo user www-data có quyền:
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn
+sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/storage
+sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/bootstrap/cache
+```
+
+Cấp quyền thực thi cho artisan:
+
+```bash
+sudo chmod +x /var/www/html/admin.sghood.com.vn/artisan
+```
+
+# Khởi động và kiểm tra Supervisor
+
+Áp dụng cấu hình:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+```
+
+Áp dụng cấu hình:
+
+```bash
+sudo supervisorctl start laravel-worker:*
 ```
 
 ## Triển khai Frontend Nuxt 3 SSR (`sghood.com.vn`)
