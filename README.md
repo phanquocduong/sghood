@@ -66,7 +66,7 @@ troviet-platform/
 
 ## Công nghệ sử dụng
 
-### Backend (Laravel 10)
+### Backend (Laravel 12)
 
 -   **Framework**: Laravel 10 với PHP 8.1+
 -   **Database**: MySQL 8.0
@@ -96,88 +96,6 @@ troviet-platform/
 -   **CI/CD**: GitHub Actions
 -   **Monitoring**: Laravel Telescope, Sentry
 -   **Caching**: Redis, Laravel Cache
-
-## Cài đặt & Phát triển
-
-### Yêu cầu hệ thống
-
--   PHP 8.1+
--   Node.js 16+
--   MySQL 8.0
--   Redis
--   Composer
--   NPM/Yarn
-
-### Backend Setup
-
-1. **Clone repository**
-
-    ```bash
-    git clone https://github.com/phanquocduong/sghood.git
-    cd troviet-platform/backend
-    ```
-
-2. **Install dependencies**
-
-    ```bash
-    composer install
-    ```
-
-3. **Environment setup**
-
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
-
-4. **Database setup**
-
-    ```bash
-    php artisan migrate
-    php artisan db:seed
-    ```
-
-5. **Storage setup**
-
-    ```bash
-    php artisan storage:link
-    ```
-
-6. **Queue worker (development)**
-
-    ```bash
-    php artisan queue:work
-    ```
-
-7. **Start development server**
-    ```bash
-    php artisan serve
-    ```
-
-### Frontend Setup
-
-1. **Chuyển đến thư mục frontend**
-
-    ```bash
-    cd ../frontend
-    ```
-
-2. **Install dependencies**
-
-    ```bash
-    npm install
-    ```
-
-3. **Environment setup**
-
-    ```bash
-    cp .env.example .env
-    ```
-
-4. **Start development server**
-    ```bash
-    npm run dev
-    ```
 
 ## Kiến trúc hệ thống
 
@@ -236,49 +154,6 @@ troviet-platform/
 -   **User Behavior**: Phân tích hành vi người dùng
 -   **Performance Metrics**: Các chỉ số hiệu suất hệ thống
 
-## Testing
-
-### Backend Testing
-
-**Run all tests**
-
-```bash
-php artisan test
-```
-
-**Run specific test suite**
-
-```bash
-php artisan test --testsuite=Feature
-php artisan test --testsuite=Unit
-```
-
-**Generate coverage report**
-
-```bash
-php artisan test --coverage
-```
-
-### Frontend Testing
-
-**Run unit tests**
-
-```bash
-npm run test
-```
-
-**Run e2e tests**
-
-```bash
-npm run test:e2e
-```
-
-**Run with coverage**
-
-```bash
-npm run test:coverage
-```
-
 ## Tối ưu hiệu suất
 
 ### Backend
@@ -313,21 +188,6 @@ npm run test:coverage
 -   **Log Management**: Quản lý logs tập trung
 -   **Uptime Monitoring**: Theo dõi tính khả dụng dịch vụ
 
-## Tài liệu
-
-### API Documentation
-
--   **Swagger/OpenAPI**: Tài liệu API tự động tạo
--   **Postman Collection**: Bộ sưu tập API sẵn sàng import
--   **Response Examples**: Mẫu request/response
-
-### Development Guide
-
--   **Coding Standards**: PSR-12 cho PHP, ESLint cho JS
--   **Git Workflow**: Quy trình làm việc theo nhánh tính năng
--   **Code Review**: Quy trình pull request
--   **Deployment Guide**: Hướng dẫn triển khai từng bước
-
 ## Đóng góp
 
 1. Fork repository
@@ -338,7 +198,7 @@ npm run test:coverage
 
 ## Hỗ trợ & Liên hệ
 
--   **Email**: sghood@gmail.com
+-   **Email**: sghoodvn@gmail.com
 -   **Issues**: GitHub Issues
 
 SGHood - Kết nối mọi nhu cầu thuê trọ tại TP.HCM 🏠✨
