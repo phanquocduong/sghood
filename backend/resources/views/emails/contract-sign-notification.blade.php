@@ -71,7 +71,7 @@
             Để ký tên hợp đồng, vui lòng truy cập vào trang quản lý hợp đồng của chúng tôi và thực hiện ký tên theo hướng dẫn. Bạn có thể thực hiện điều này bằng cách nhấn vào nút bên dưới:
         </p>
         <div class="cta-section">
-            <a href="http://127.0.0.1:3000/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
+            <a href="https://sghood.com.vn/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
                 <span class="icon">📝</span> Ký tên hợp đồng ngay
             </a>
         </div>
@@ -83,7 +83,7 @@
         <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
         <div class="contact-info">
             <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-            <p style="color: #ffffff;">🌐 Website: sghood.com</p>
+            <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
         </div>
     </div>
 </div>

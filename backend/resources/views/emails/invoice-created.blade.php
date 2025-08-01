@@ -127,7 +127,7 @@
             Vui lòng thanh toán hóa đơn trước thời hạn để tránh các rủi ro khác. Bạn có thể xem chi tiết hóa đơn trong hệ thống bằng cách nhấn vào nút bên dưới:
         </p>
         <div class="cta-section">
-            <a href="http://127.0.0.1:3000/quan-ly/hoa-don" class="cta-button" style="color: #ffffff;">
+            <a href="https://sghood.com.vn/quan-ly/hoa-don" class="cta-button" style="color: #ffffff;">
                 <span class="icon">📄</span> Xem hóa đơn của tôi
             </a>
         </div>
@@ -139,7 +139,7 @@
         <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
         <div class="contact-info">
             <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-            <p style="color: #ffffff;">🌐 Website: sghood.com</p>
+            <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
         </div>
     </div>
 </div>

@@ -240,7 +240,7 @@
             </ul>
 
             <div class="cta-section">
-                <a href="{{ url('/quan-ly/hop-dong') }}" class="cta-button" style="color: #ffffff;">
+                <a href="{{ url('https://sghood.com.vn/quan-ly/hop-dong') }}" class="cta-button" style="color: #ffffff;">
                     <span class="icon">🏠</span> Xem hợp đồng
                 </a>
             </div>
@@ -254,7 +254,7 @@
             <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
             <div class="contact-info">
                 <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-                <p style="color: #ffffff;">🌐 Website: sghood.com</p>
+                <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
             </div>
         </div>
     </div>

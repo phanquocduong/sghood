@@ -242,7 +242,7 @@
             </ul>
 
             <div class="cta-section">
-                <a href="{{ url('/') }}" class="cta-button" style="color: #ffffff;">
+                <a href="{{ url('https://sghood.com.vn/') }}" class="cta-button" style="color: #ffffff;">
                     🏠 Xem phòng khác
                 </a>
             </div>
@@ -256,7 +256,7 @@
             <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
             <div class="contact-info">
                 <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-                <pp style="color: #ffffff;">🌐 Website: sghood.com</pp>
+                <pp style="color: #ffffff;">🌐 Website: sghood.com.vn</pp>
             </div>
         </div>
     </div>
