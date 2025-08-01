@@ -287,9 +287,8 @@
             </div>
 
             <div class="social-links">
-                <a href="#" class="social-link">📧</a>
-                <a href="#" class="social-link">🌐</a>
-                <a href="#" class="social-link">📱</a>
+                <p style="color:rgb(102, 0, 0);">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
+                <p style="color:rgb(102, 0, 0);">🌐 Website: sghood.com.vn</p>
             </div>
         </div>
     </div>

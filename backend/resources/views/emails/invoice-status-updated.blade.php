@@ -125,12 +125,10 @@
     </div>
 
     <div class="footer">
-        <p><strong>Troviet Platform</strong></p>
-        <p>Hệ thống quản lý nhà trọ hiện đại</p>
+        <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
         <div class="contact-info">
-            <p>📧 Email: support@troviet.com</p>
-            <p>📞 Hotline: 1900-xxxx</p>
-            <p>&copy; {{ date('Y') }} Troviet Platform. All rights reserved.</p>
+            <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
+            <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
         </div>
     </div>
 </div>

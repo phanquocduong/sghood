@@ -189,7 +189,7 @@
             <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
             <div class="contact-info">
                 <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-                <p style="color: #ffffff;">🌐 Website: sghood.com</p>
+                <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
             </div>
         </div>
     </div>

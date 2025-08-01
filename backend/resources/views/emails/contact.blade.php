@@ -264,10 +264,10 @@
             </p>
         </div>
         <div class="footer">
-            <p><strong>🏢 Hệ thống quản lý Tro Việt Platform</strong></p>
-            <div class="contact-footer">
+            <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
+            <div class="contact-info">
                 <p style="color: #ffffff;">📞 Hotline: 082 828 3169 | ✉️ Email: sghood@gmail.com</p>
-                <p style="color: #ffffff;">🌐 Website: sghood.store</p>
+                <p style="color: #ffffff;">🌐 Website: sghood.com.vn</p>
             </div>
         </div>
     </div>
