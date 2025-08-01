@@ -112,13 +112,20 @@
                                                 <option value="Quản trị viên"
                                                     {{ $user->role == 'Quản trị viên' ? 'selected' : '' }}>Quản trị viên
                                                 </option>
+
+                                                {{-- Chỉ hiển thị nếu bản thân user đã là Super admin --}}
+                                                @if ($user->role === 'Super admin')
+                                                    <option value="Super admin" selected>Super admin</option>
+                                                @endif
                                             </select>
+
                                         </form>
                                     </td>
                                     <td>
                                         @php
                                             $canEditStatus =
-                                                Auth::user()->is_super_admin || $user->role !== 'Quản trị viên';
+                                                Auth::user()->role === 'Quản trị viên' ||
+                                                $user->role !== 'Quản trị viên';
                                         @endphp
 
                                         @if (Auth::id() !== $user->id && $canEditStatus)
@@ -243,21 +250,21 @@
 
 <!-- User Info Modal -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="userModalLabel">
-                        <i class="fas fa-user-circle me-2"></i>
-                        Thông tin người dùng
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body" id="userModalBody">
-                    <div class="loading">
-                        <i class="fas fa-spinner"></i>
-                        Đang tải dữ liệu...
-                    </div>
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalLabel">
+                    <i class="fas fa-user-circle me-2"></i>
+                    Thông tin người dùng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="userModalBody">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    Đang tải dữ liệu...
                 </div>
             </div>
         </div>
     </div>
+</div>

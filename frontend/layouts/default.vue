@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute } from 'vue-router'; 
 import { ref, watch, nextTick } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import ChatIcon from '~/components/partials/ChatIcon.vue';
