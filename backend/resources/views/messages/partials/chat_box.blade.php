@@ -21,10 +21,11 @@
         @endforeach
     </div>
 
-    <form id="sendMessageForm" style="display: flex; border-top: 1px solid #ccc; padding: 10px;" enctype="multipart/form-data">
+    <form id="sendMessageForm" style="display: flex; border-top: 1px solid #ccc; padding: 10px;" enctype="multipart/form-data" >
         @csrf
         <input type="hidden" name="receiver_id" value="{{ $selectedUserId }}">
-        <input type="text" name="message" id="messageInput" class="form-control me-2" placeholder="Nhập tin nhắn..." required>
+        <input type="text" name="message" id="messageInput" class="form-control me-2" placeholder="Nhập tin nhắn..." required min="1" maxlength="1000">
+
         {{-- <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;"> --}}
         {{-- <button type="button" class="btn btn-secondary" id="uploadImageBtn">Chọn ảnh</button> --}}
         <button type="submit" class="btn btn-primary" id="sendBtn">Gửi</button>

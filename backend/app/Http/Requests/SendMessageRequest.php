@@ -26,4 +26,14 @@ class SendMessageRequest extends FormRequest
             'message' => 'required|string|max:1000',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'receiver_id.required' => 'Vui lòng chọn người nhận tin nhắn.',
+            'receiver_id.exists' => 'Người nhận không tồn tại.',
+            'message.required' => 'Vui lòng nhập nội dung tin nhắn.',
+            'message.string' => 'Nội dung tin nhắn phải là một chuỗi.',
+            'message.max' => 'Nội dung tin nhắn không được vượt quá 1000 ký tự.',
+        ];
+    }
 }

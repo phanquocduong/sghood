@@ -78,7 +78,7 @@ class UserController extends Controller
     public function updateRole(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|in:Người đăng ký,Người thuê,Quản trị viên',
+            'role' => 'required|in:Người đăng ký,Người thuê,Quản trị viên,Super admin',
         ]);
 
         $auth = auth()->user();
@@ -89,10 +89,21 @@ class UserController extends Controller
             return back()->with('error', 'Bạn không thể sửa chính mình.');
         }
 
-        // Admin thường không được sửa Admin hoặc Super Admin
-        if (!$auth->is_super_admin) {
-            if ($target->role === 'Quản trị viên') {
-                return back()->with('error', 'Bạn không có quyền sửa quản trị viên.');
+        // Nếu là Super admin
+        if ($auth->role === 'Super admin') {
+            // Không cho tạo thêm Super admin
+            if ($request->role === 'Super admin' && $target->role !== 'Super admin') {
+                return back()->with('error', 'Không thể chuyển người khác thành Super admin.');
+            }
+        }
+        // Nếu là Admin thường
+        else {
+            if (in_array($target->role, ['Quản trị viên', 'Super admin'])) {
+                return back()->with('error', 'Bạn không có quyền sửa vai trò này.');
+            }
+            // Admin thường cũng không thể tạo Super admin
+            if ($request->role === 'Super admin') {
+                return back()->with('error', 'Bạn không có quyền gán vai trò Super admin.');
             }
         }
 
@@ -101,6 +112,7 @@ class UserController extends Controller
 
         return back()->with('success', 'Cập nhật vai trò thành công.');
     }
+
 
     public function updateStatus(Request $request, $id)
     {

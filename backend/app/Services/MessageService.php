@@ -2,50 +2,54 @@
 
 namespace App\Services;
 
-use App\Models\Message;
 use App\Models\User;
-use Google\Cloud\Core\Timestamp;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
-use Kreait\Firebase\Firestore;
 
 class MessageService
 {
+    /** 🔹 Hàm khởi tạo Firestore, tái sử dụng */
+    private function firestore()
+    {
+        $serviceAccount = storage_path('firebase/firebase-adminsdk.json');
+
+        if (!file_exists($serviceAccount)) {
+            throw new \Exception("Firebase service account not found: {$serviceAccount}");
+        }
+
+        return (new Factory)
+            ->withServiceAccount($serviceAccount)
+            ->createFirestore()
+            ->database();
+    }
+
     public function getMessagesWithUser(int $userId, int $authId)
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
-
+        $db = $this->firestore();
         $messagesRef = $db->collection('messages');
+
         $query = $messagesRef
             ->where('sender_id', 'in', [$authId, $userId])
             ->where('receiver_id', 'in', [$authId, $userId])
             ->orderBy('created_at');
 
-        $documents = $query->documents();
-
-        $messages = [];
-        foreach ($documents as $doc) {
-            if ($doc->exists()) {
-                $messages[] = $doc->data();
-            }
-        }
-
-        return collect($messages);
+        return collect(
+            array_map(fn($doc) => $doc->data(),
+                iterator_to_array($query->documents())
+            )
+        );
     }
 
     public function sendMessage(int $senderId, int $receiverId, string $text)
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
+        $db = $this->firestore();
 
         $messageData = [
-            'sender_id' => $senderId,
+            'sender_id'   => $senderId,
             'receiver_id' => $receiverId,
-            'message' => $text,
-            'is_read' => false,
-            'created_at' => now()->toDateTimeString(),
+            'message'     => $text,
+            'is_read'     => false,
+            'created_at'  => now()->toDateTimeString(),
         ];
 
         $db->collection('messages')->add($messageData);
@@ -55,30 +59,20 @@ class MessageService
 
     public function getTotalUnreadFor(int $userId): int
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
-
-        $messagesRef = $db->collection('messages');
-        $query = $messagesRef
+        $db = $this->firestore();
+        $query = $db->collection('messages')
             ->where('receiver_id', '=', $userId)
             ->where('is_read', '=', false);
 
-        $documents = $query->documents();
-
-        return $documents->size(); // Đếm số document
+        return $query->documents()->size();
     }
-
-
 
     public function getUserListWithUnread($authId)
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
-
-        $messagesRef = $db->collection('messages');
-        $query = $messagesRef->where('receiver_id', '=', $authId);
-
-        $documents = $query->documents();
+        $db = $this->firestore();
+        $documents = $db->collection('messages')
+            ->where('receiver_id', '=', $authId)
+            ->documents();
 
         $userIds = [];
         $unreadCounts = [];
@@ -89,19 +83,16 @@ class MessageService
                 $senderId = $data['sender_id'];
                 $userIds[$senderId] = true;
 
-                if (empty($data['is_read']) || $data['is_read'] == false || $data['is_read'] == 0) {
-                    if (!isset($unreadCounts[$senderId])) $unreadCounts[$senderId] = 0;
-                    $unreadCounts[$senderId]++;
+                if (empty($data['is_read'])) {
+                    $unreadCounts[$senderId] = ($unreadCounts[$senderId] ?? 0) + 1;
                 }
             }
         }
 
-        // Lấy thông tin user từ MySQL
         $users = User::whereIn('id', array_keys($userIds))
             ->where('role', '!=', 'Quản trị viên')
             ->get();
 
-        // Gắn số tin chưa đọc
         foreach ($users as $user) {
             $user->unread_count = $unreadCounts[$user->id] ?? 0;
         }
@@ -109,28 +100,15 @@ class MessageService
         return $users;
     }
 
-    // public function markAsRead(int $senderId, int $receiverId)
-    // {
-    //     return Message::where('sender_id', $senderId)
-    //         ->where('receiver_id', $receiverId)
-    //         ->where('is_read', 0)
-    //         ->update(['is_read' => 1]);
-    // }
-
     public function markAsReadFirestore(int $senderId, int $receiverId)
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
-
-        $messagesRef = $db->collection('messages');
-        $query = $messagesRef
+        $db = $this->firestore();
+        $query = $db->collection('messages')
             ->where('sender_id', '=', $senderId)
             ->where('receiver_id', '=', $receiverId)
             ->where('is_read', '=', false);
 
-        $documents = $query->documents();
-
-        foreach ($documents as $doc) {
+        foreach ($query->documents() as $doc) {
             if ($doc->exists()) {
                 $doc->reference()->update([
                     ['path' => 'is_read', 'value' => true]
@@ -142,32 +120,29 @@ class MessageService
     public function getLatestUnreadForHeader(): array
     {
         $adminId = Auth::id();
-
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
+        $db = $this->firestore();
         $messagesRef = $db->collection('messages');
 
-        // Lấy danh sách 3 tin nhắn mới nhất chưa đọc
-        $query = $messagesRef
+        $docs = $messagesRef
             ->where('receiver_id', '=', $adminId)
             ->where('is_read', '=', false)
             ->orderBy('createdAt', 'DESC')
-            ->limit(3);
-
-        $docs = $query->documents();
+            ->limit(3)
+            ->documents();
 
         $latest = [];
         foreach ($docs as $doc) {
             $data = $doc->data();
             $latest[] = [
-                'message'     => $data['text'] ?? '[Không có nội dung]',
-                'created_at'  => isset($data['createdAt']) ? \Carbon\Carbon::parse($data['createdAt'])->diffForHumans() : 'Không xác định',
-                'is_read'     => $data['is_read'] ?? false,
-                'url'         => route('messages.index'),
+                'message'    => $data['text'] ?? '[Không có nội dung]',
+                'created_at' => isset($data['createdAt'])
+                                ? \Carbon\Carbon::parse($data['createdAt'])->diffForHumans()
+                                : 'Không xác định',
+                'is_read'    => $data['is_read'] ?? false,
+                'url'        => route('messages.index'),
             ];
         }
 
-        // Đếm tổng số tin chưa đọc thật sự (nếu cần)
         $unreadCount = $messagesRef
             ->where('receiver_id', '=', $adminId)
             ->where('is_read', '=', false)
@@ -176,54 +151,45 @@ class MessageService
 
         return [
             'unread_count' => $unreadCount,
-            'latest' => $latest,
+            'latest'       => $latest,
         ];
     }
 
-
-
     public static function getUnreadMessagesDashboard()
     {
-        $firestore = (new Factory)->createFirestore();
-        $db = $firestore->database();
+        $serviceAccount = storage_path('firebase/firebase-adminsdk.json');
+        if (!file_exists($serviceAccount)) {
+            return [
+                'data'  => [],
+                'error' => "Firebase service account not found: {$serviceAccount}"
+            ];
+        }
 
-        $messagesRef = $db->collection('messages');
+        $db = (new Factory)
+            ->withServiceAccount($serviceAccount)
+            ->createFirestore()
+            ->database();
 
-        // 🔷 chỉ lấy những message có is_read == false
-        $query = $messagesRef
+        $query = $db->collection('messages')
             ->where('is_read', '=', false)
-            ->orderBy('createdAt', 'desc')   // 👈 Thêm sort
-            ->limit(3);                      // 👈 Giới hạn 3
-
-
-        $documents = $query->documents();
+            ->orderBy('createdAt', 'desc')
+            ->limit(3);
 
         $messages = collect();
-
-        foreach ($documents as $doc) {
+        foreach ($query->documents() as $doc) {
             if ($doc->exists()) {
                 $data = $doc->data();
                 $data['id'] = $doc->id();
-
-                // Gán sender_name
                 $user = User::find($data['sender_id'] ?? null);
+
                 $data['sender_name'] = $user?->name ?? 'Unknown';
-
-                // Gán message nếu thiếu
                 $data['message'] = $data['text'] ?? '(Không có nội dung)';
-
-                // ✅ Chuyển trường createdAt từ Firestore thành created_at (chuẩn Laravel)
                 $data['created_at'] = $data['createdAt'] ?? now();
 
                 $messages[] = (object) $data;
             }
         }
 
-
-
-        return [
-            'data' => $messages,
-            'error' => null,
-        ];
+        return ['data' => $messages, 'error' => null];
     }
 }
