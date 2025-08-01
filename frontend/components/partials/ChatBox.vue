@@ -274,18 +274,22 @@ const initChat = async () => {
                 messages.value = [...messages.value, ...newUniqueMessages];
                 scrollToBottom();
                 const hasAdmin = newUniqueMessages.some(m => {
-                    const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000);
-                    return m.from === 'admin' && createdAt > Math.floor(lastRealtime.value / 1000);
+                    /* const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000); */
+                    return (
+                        m.from === 'admin' &&
+                        m.createdAt > lastRealtime.value
+                    );      
                 });
 
                 if (hasAdmin) {
                     lastRealtime.value = Date.now();
                     localStorage.setItem('lastRealtime', lastRealtime.value.toString());
-                    console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value));
+                    /* console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value)); */
 
                     emit('unread');
                     const audio = notiSound.value;
                     if (audio) {
+                        audio.pause()
                         audio.currentTime = 0;
                         audio.play().catch(err => {
                             console.warn('khong the phat am thanh', err);
@@ -628,5 +632,15 @@ p {
 .chat-image {
     max-width: 200px;
     border-radius: 8px;
+}
+@media (max-width: 480px) {
+  .chat-box {
+    width: 100%;
+    height: 80vh;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 999;
+  }
 }
 </style>

@@ -51,9 +51,9 @@
 
         <!-- chatbox -->
         <div>
-            <ChatIcon v-if="user" :unreadMessages="unreadMessages" @toggle="toggleChat" />
+            <ChatIcon v-if="user  && (!isChatOpen || !isMobile)" :unreadMessages="unreadMessages" @toggle="toggleChat" class="chat-icon" />
             <div>
-                <ChatBox v-if="user" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage"></ChatBox>
+                <ChatBox v-if="user && isChatOpen" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage" class="chat-box"></ChatBox>
             </div>
         </div>
     </div>
@@ -73,6 +73,7 @@ const baseUrl = useRuntimeConfig().public.baseUrl;
 const isChatOpen = ref(false);
 const unreadMessages = ref(0);
 const authStore = useAuthStore();
+const isMobile = ref(false)
 const { user } = storeToRefs(authStore);
 
 const toggleChat = () => {
@@ -98,4 +99,27 @@ watch(
     },
     { immediate: true }
 );
+onMounted(() => {
+    const CheckMobile = () =>{
+
+        isMobile.value = window.innerWidth <= 480;
+    }
+    CheckMobile();
+    window.addEventListener('resize', CheckMobile);
+})
 </script>
+<style scoped>
+  @media only screen and (max-width:480px){
+    .chat-box {
+    width: 100% !important;
+    right: 0;
+    bottom: 0;
+    height: 80% !important;
+    max-height: none;
+    position: fixed;
+    z-index: 1000;
+  }
+ 
+  }
+ 
+</style>
