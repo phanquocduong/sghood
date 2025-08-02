@@ -68,13 +68,13 @@
 
                 <!-- Repair Requests -->
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-0 py-3">
+                    <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-semibold text-dark">
+                            <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-tools text-warning me-2"></i>
                                 Yêu cầu sửa chữa cần xử lý
                             </h6>
-                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-dark">Xem
+                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-white">Xem
                                 tất cả</a>
                         </div>
                     </div>
@@ -178,13 +178,13 @@
                         <!-- Newly Signed Contracts -->
                         <div class="col-md-12">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3">
+                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0 fw-semibold text-dark">
+                                        <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-file-signature text-success me-2"></i>
                                             Hợp đồng vừa ký
                                         </h6>
-                                        <a href="#" class="text-decoration-none small text-dark">Xem tất cả</a>
+                                        <a href="#" class="text-decoration-none small text-white">Xem tất cả</a>
                                     </div>
                                 </div>
                                 <div class="card-body p-0">
@@ -222,13 +222,13 @@
                         <!-- Contracts Nearing Expiration -->
                         <div class="col-md-12">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3">
+                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0 fw-semibold text-dark">
+                                        <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-hourglass-half text-warning me-2"></i>
                                             Hợp đồng sắp hết hạn
                                         </h6>
-                                        <a href="#" class="text-decoration-none small text-dark">Xem tất cả</a>
+                                        <a href="#" class="text-decoration-none small text-white">Xem tất cả</a>
                                     </div>
                                 </div>
                                 <div class="card-body p-0">
@@ -267,13 +267,13 @@
                         <!--  -->
                          <div class="col-md-12">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3">
+                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0 fw-semibold text-dark">
+                                        <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-sign-out-alt text-danger me-2"></i>
                                             Yêu cầu trả phòng
                                         </h6>
-                                        <a href="{{ route('checkouts.index') }}" class="text-decoration-none small text-dark">Xem tất cả</a>
+                                        <a href="{{ route('checkouts.index') }}" class="text-decoration-none small text-white">Xem tất cả</a>
                                     </div>
                                 </div>
                                 <div class="card-body p-0">
@@ -315,13 +315,13 @@
                 <div class="col-lg-3">
                     <!-- Expired Contracts -->
                     <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white border-0 py-3">
+                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-semibold text-dark">
+                                <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-message text-danger me-2"></i>
                                     Tin nhắn mới
                                 </h6>
-                                <a href="{{ route('messages.index') }}" class="text-decoration-none small text-dark">Xem tất
+                                <a href="{{ route('messages.index') }}" class="text-decoration-none small text-white">Xem tất
                                     cả</a>
                             </div>
                         </div>
@@ -363,8 +363,8 @@
 
                     <!-- Check-in Section -->
                     <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white border-0 py-3">
-                            <h6 class="mb-0 fw-semibold text-dark">
+                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
+                            <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sign-in-alt text-success me-2"></i>
                                 Check-in Sắp Tới
                             </h6>
@@ -404,13 +404,13 @@
 
                     <!-- Recently Renewed Contracts -->
                     <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-0 py-3">
+                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-semibold text-dark">
+                                <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-file-contract text-info text-white me-2"></i>
                                     Yêu cầu gia hạn hợp đồng
                                 </h6>
-                                <a href="#" class="text-decoration-none small text-dark">Xem tất cả</a>
+                                <a href="#" class="text-decoration-none small text-white">Xem tất cả</a>
                             </div>
                         </div>
                         <div class="card-body p-0">

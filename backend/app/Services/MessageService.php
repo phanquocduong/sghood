@@ -34,7 +34,8 @@ class MessageService
             ->orderBy('created_at');
 
         return collect(
-            array_map(fn($doc) => $doc->data(),
+            array_map(
+                fn($doc) => $doc->data(),
                 iterator_to_array($query->documents())
             )
         );
@@ -136,8 +137,8 @@ class MessageService
             $latest[] = [
                 'message'    => $data['text'] ?? '[Không có nội dung]',
                 'created_at' => isset($data['createdAt'])
-                                ? \Carbon\Carbon::parse($data['createdAt'])->diffForHumans()
-                                : 'Không xác định',
+                    ? \Carbon\Carbon::parse($data['createdAt'])->diffForHumans()
+                    : 'Không xác định',
                 'is_read'    => $data['is_read'] ?? false,
                 'url'        => route('messages.index'),
             ];
@@ -165,12 +166,16 @@ class MessageService
             ];
         }
 
+        $adminId = auth()->id();
+
         $db = (new Factory)
             ->withServiceAccount($serviceAccount)
             ->createFirestore()
             ->database();
 
+        // 🔹 Lọc: chỉ tin chưa đọc, gửi đến admin
         $query = $db->collection('messages')
+            ->where('receiver_id', '=', $adminId)
             ->where('is_read', '=', false)
             ->orderBy('createdAt', 'desc')
             ->limit(3);
@@ -179,6 +184,10 @@ class MessageService
         foreach ($query->documents() as $doc) {
             if ($doc->exists()) {
                 $data = $doc->data();
+
+                // 🔹 Nếu muốn loại trừ tin admin gửi cho admin (nếu có)
+                // if (($data['sender_id'] ?? null) == $adminId) continue;
+
                 $data['id'] = $doc->id();
                 $user = User::find($data['sender_id'] ?? null);
 
