@@ -21,7 +21,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Doanh thu hôm nay</small>
-                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format(1250000, 0, ',', '.') }} VNĐ</h5>
+                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($todayRevenue, 0, ',', '.') }} VNĐ</h5>
                         </div>
                     </div>
                 </div>
@@ -36,7 +36,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Doanh thu tháng này</small>
-                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($transactions['in_amount'], 0) }} VNĐ
+                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($monthRevenue, 0, ',', '.') }} VNĐ
                             </h5>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Services\TransactionService;
@@ -8,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\Contract;
 use App\Services\RoomService;
 use App\Services\ContractService;
+use Illuminate\Support\Facades\DB;
 
 class StatisticController extends Controller
 {
@@ -53,18 +55,30 @@ class StatisticController extends Controller
 
         $tenants = $this->contractService->getTenantsByContractStatus();
 
-        return view('statistics.index', [
-        'countUsersToday' => $countUsersToday,
-        'countUsersThisMonth' => $countUsersThisMonth,
-        'roomsCount' => $roomsCount,
-        'roomsRentedCount' => $roomsRentedCount,
-        'transactions' => $transactions,
-        'availableRoomsCount' => $availableRoomsCount,
-        'availableRoomsByMotel' => $availableRoomsByMotel,
-        'currentTenants' => $tenants['current'],
-        'expiringTenants' => $tenants['expiring'],
-        'expiredTenants' => $tenants['expired'],
-    ]);
-    }
+        $todayRevenue = DB::table('transactions')
+            ->where('transfer_type', 'in')
+            ->whereDate('transaction_date', $today)
+            ->sum('transfer_amount');
 
+        $monthRevenue = DB::table('transactions')
+            ->where('transfer_type', 'in')
+            ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
+            ->sum('transfer_amount');
+
+
+        return view('statistics.index', [
+            'countUsersToday' => $countUsersToday,
+            'countUsersThisMonth' => $countUsersThisMonth,
+            'roomsCount' => $roomsCount,
+            'roomsRentedCount' => $roomsRentedCount,
+            'transactions' => $transactions,
+            'availableRoomsCount' => $availableRoomsCount,
+            'availableRoomsByMotel' => $availableRoomsByMotel,
+            'currentTenants' => $tenants['current'],
+            'expiringTenants' => $tenants['expiring'],
+            'expiredTenants' => $tenants['expired'],
+            'todayRevenue' => $todayRevenue,
+            'monthRevenue' => $monthRevenue,
+        ]);
+    }
 }
