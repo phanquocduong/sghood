@@ -20,7 +20,7 @@
                     @endif
                 </div>
 
-                <span class="d-none d-lg-inline-flex">Messages</span>
+                <span class="d-none d-lg-inline-flex">Tin nhắn</span>
             </a>
 
 

@@ -5,14 +5,14 @@
         <!-- Header Section -->
         <div class="row mb-4">
             <div class="col-12">
-                <h4 class="text-dark fw-semibold mb-1">Tổng quan hệ thống</h4>
+                <h4 class="text-dark fw-semibold mb-1">Thống kê hệ thống</h4>
                 <p class="text-muted small mb-0">Quản lý trọ - Cập nhật {{ date('d/m/Y') }}</p>
             </div>
         </div>
 
-        <!-- Quick Stats Cards với Icons Phù Hợp -->
+        <!-- Quick Stats Cards - Reorganized into one row -->
         <div class="row g-4 mb-4">
-            <!-- Doanh thu hôm nay - Icon tiền -->
+            <!-- Doanh thu hôm nay -->
             <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
@@ -21,13 +21,13 @@
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Doanh thu hôm nay</small>
-                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format(1250000, 0, ',', '.') }} VNĐ</h5>
+                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($todayRevenue, 0, ',', '.') }} VNĐ</h5>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Doanh thu tháng - Icon biểu đồ tăng -->
+            <!-- Doanh thu tháng -->
             <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
@@ -36,20 +36,18 @@
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Doanh thu tháng này</small>
-                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($transactions['in_amount'], 0) }} VNĐ
-                            </h5>
+                            <h5 class="mb-0 fw-semibold text-dark">{{ number_format($monthRevenue, 0, ',', '.') }} VNĐ</h5>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Phòng đang thuê - Icon cửa mở -->
+            <!-- Phòng đang thuê -->
             <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="flex-shrink-0 me-3">
                             <i class="fas fa-door-open fa-2x text-info"></i>
-
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Phòng đang thuê</small>
@@ -59,24 +57,25 @@
                 </div>
             </div>
 
-            <!-- Phòng trống - Icon cửa đóng -->
-            {{-- <div class="col-sm-6 col-xl-3">
+            <!-- Phòng trống -->
+            <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <div class="flex-shrink-0 me-3">
-                            <i class="fas fa-door-closed fa-2x text-warning"></i>
+                            <i class="fas fa-home fa-2x text-warning"></i>
                         </div>
                         <div class="flex-grow-1">
                             <small class="text-muted mb-1 d-block">Phòng trống</small>
-                            <h5 class="mb-0 fw-semibold text-dark">10</h5>
+                            <h5 class="mb-0 fw-semibold text-dark">{{ $roomsCount - $roomsRentedCount }} phòng</h5>
                         </div>
                     </div>
                 </div>
-            </div> --}}
+            </div>
         </div>
 
+        <!-- Second row of stats -->
         <div class="row g-4 mb-4">
-            <!-- Người thuê hôm nay - Icon khách thuê -->
+            <!-- Người thuê hôm nay -->
             <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
@@ -91,7 +90,7 @@
                 </div>
             </div>
 
-            <!-- Người thuê tháng này - Icon khách thuê -->
+            <!-- Người thuê tháng này -->
             <div class="col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 stat-card">
                     <div class="card-body d-flex align-items-center">
@@ -107,10 +106,12 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
-        <div class="row g-4 mb-4">
+        <!-- Main Content Grid - Restructured -->
+        <div class="row g-4">
+            <!-- Left Column - Charts and Stats -->
             <div class="col-xl-8">
-                <div class="card border-0 shadow-sm h-100">
+                <!-- Revenue Chart -->
+                <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-0 py-3">
                         <h6 class="mb-0 fw-semibold">
                             <i class="fas fa-chart-area text-primary me-2"></i>
@@ -118,21 +119,18 @@
                         </h6>
                     </div>
                     <div class="card-body">
-                        <canvas id="monthlyRevenueChart" height="100"></canvas>
+                        <canvas id="monthlyRevenueChart" height="300"></canvas>
                     </div>
                 </div>
-            </div>
-            <div class="col-xl-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white border-0 py-3">
+
+                <!-- Available Rooms by Motel -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-semibold">
                             <i class="fas fa-building text-info me-2"></i>
                             Phòng trống theo dãy
                         </h6>
-                        <h6 class="mb-0 fw-semibold">
-                            <i class="fas fa-building text-info me-2"></i>
-                            Tổng phòng trống: {{ $roomsCount - $roomsRentedCount }}
-                        </h6>
+                        <span class="badge bg-primary">Tổng phòng trống: {{ $roomsCount - $roomsRentedCount }}</span>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -147,17 +145,17 @@
                                     }
                                 @endphp
 
-                                <div class="col-6 col-md-3 {{ $index >= 4 ? 'd-none more-motel' : '' }}">
+                                <div class="col-6 col-md-3 {{ $index >= 8 ? 'd-none more-motel' : '' }}">
                                     <div class="text-center p-3 bg-{{ $color }} bg-opacity-10 rounded">
-                                        <i class="fas fa-building text-{{ $color }} mb-2 text-white"></i>
-                                        <small class="mb-1 d-block text-white">Nhà {{ $motel->motel_id }}</small>
+                                        <i class="fas fa-building text-{{ $color }} mb-2"></i>
+                                        <small class="mb-1 d-block" style="color: white;"><strong>{{ $motel->motel->name }}</strong></small>
                                         <span class="badge bg-{{ $color }}">{{ $available }}</span>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
-                        @if (count($availableRoomsByMotel) > 4)
+                        @if (count($availableRoomsByMotel) > 8)
                             <div class="text-center mt-3">
                                 <button class="btn btn-sm btn-primary" onclick="toggleMotels(this)">Xem thêm</button>
                             </div>
@@ -165,184 +163,124 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Main Content Grid -->
-        <div class="row g-4">
-            <!-- Left Column -->
-            <div class="col-xl-8">
 
-
-            </div>
-
-            <!-- Right Column -->
+            <!-- Right Column - Tenant Information -->
             <div class="col-xl-4">
-                <!-- Notifications -->
+                <!-- Card for Tenant Overview -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-0 py-3">
                         <h6 class="mb-0 fw-semibold">
-                            <i class="fas fa-building text-info me-2"></i>
-                            Phòng trống theo dãy
+                            <i class="fas fa-users text-primary me-2"></i>
+                            Tình trạng người thuê
                         </h6>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
-                                    <i class="fas fa-building text-success mb-2 text-white"></i>
-                                    <small class="mb-1 d-block text-white">Dãy A</small>
-                                    <span class="badge bg-success">5</span>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
-                                    <i class="fas fa-building text-success mb-2 text-white"></i>
-                                    <small class="mb-1 d-block text-white">Dãy B</small>
-                                    <span class="badge bg-success">3</span>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
-                                    <i class="fas fa-building text-warning mb-2 text-white"></i>
-                                    <small class="mb-1 d-block text-white">Dãy C</small>
-                                    <span class="badge bg-warning">2</span>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
-                                    <i class="fas fa-building text-danger mb-2 text-white"></i>
-                                    <small class="mb-1 d-block text-white">Dãy D</small>
-                                    <span class="badge bg-danger">0</span>
-                                </div>
-                            </div>
+                    <div class="card-body p-0">
+                        <!-- Đang thuê -->
+                        <div class="p-3 border-bottom">
+                            <h6 class="text-primary fw-bold">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Đang thuê (Còn hạn)
+                            </h6>
+                            <ul class="list-group list-group-flush">
+                                @forelse($currentTenants as $index => $tenant)
+                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-current' : '' }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-2">
+                                                <i class="fas fa-user-circle text-primary"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold mb-0">{{ $tenant->user->name }}</div>
+                                                <small class="text-muted">{{ $tenant->room->name }}</small>
+                                            </div>
+                                            <span class="badge bg-success">Còn hạn</span>
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có người thuê</li>
+                                @endforelse
+
+                                @if (count($currentTenants) > 3)
+                                    <li class="list-group-item border-0 py-1 text-center">
+                                        <!-- <button class="btn btn-sm btn-outline-primary" onclick="toggleTenants('extra-current', this)">
+                                            Xem tất cả
+                                        </button> -->
+                                        <a href="{{ url('/contracts') }}?querySearch=&status=Hoạt%20động&sort=desc" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+
+                        <!-- Sắp hết hạn -->
+                        <div class="p-3 border-bottom">
+                            <h6 class="text-warning fw-bold">
+                                <i class="fas fa-clock me-2"></i>
+                                Sắp hết hạn (≤ {{ $isNearExpiration }} ngày)
+                            </h6>
+                            <ul class="list-group list-group-flush">
+                                @forelse($expiringTenants as $index => $tenant)
+                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expiring' : '' }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-2">
+                                                <i class="fas fa-user-clock text-warning"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold mb-0">{{ $tenant->user->name }}</div>
+                                                <small class="text-muted">{{ $tenant->room->name }}</small>
+                                            </div>
+                                            <span class="badge bg-warning text-dark">Sắp hết hạn</span>
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng sắp hết hạn</li>
+                                @endforelse
+
+                                @if (count($expiringTenants) > 3)
+                                    <li class="list-group-item border-0 py-1 text-center">
+                                        <button class="btn btn-sm btn-outline-warning" onclick="toggleTenants('extra-expiring', this)">
+                                            Xem tất cả
+                                        </button>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+
+                        <!-- Đã hết hạn -->
+                        <div class="p-3">
+                            <h6 class="text-danger fw-bold">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Đã hết hạn
+                            </h6>
+                            <ul class="list-group list-group-flush">
+                                @forelse($expiredTenants as $index => $tenant)
+                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expired' : '' }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-2">
+                                                <i class="fas fa-user-times text-danger"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold mb-0">{{ $tenant->user->name }}</div>
+                                                <small class="text-muted">{{ $tenant->room->name }}</small>
+                                            </div>
+                                            <span class="badge bg-danger">Hết hạn</span>
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng đã hết hạn</li>
+                                @endforelse
+
+                                @if (count($expiredTenants) > 3)
+                                    <li class="list-group-item border-0 py-1 text-center">
+                                        <!-- <button class="btn btn-sm btn-outline-danger" onclick="toggleTenants('extra-expired', this)">
+                                            Xem tất cả
+                                        </button> -->
+
+                                          <a href="{{ url('/contracts') }}?querySearch=&status=Kết%20thúc&sort=desc" class="btn btn-sm btn-outline-danger">Xem tất cả</a>
+                                    </li>
+                                @endif
+                            </ul>
                         </div>
                     </div>
                 </div>
-
-                <!-- Current Tenants -->
-                @php
-                    $maxVisible = 3;
-                @endphp
-
-                {{-- Nhóm 1: Đang thuê --}}
-                <h6 class="text-primary fw-bold mt-3">Đang thuê (Còn hạn)</h6>
-                <ul class="list-group list-group-flush">
-                    @forelse($currentTenants as $index => $tenant)
-                        <li
-                            class="list-group-item border-0 py-3 {{ $index >= $maxVisible ? 'd-none extra-current' : '' }}">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width: 40px; height: 40px;">
-                                        <i class="fas fa-user text-primary"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold mb-1">{{ $tenant->user->name }}</div>
-                                    <small class="text-muted">{{ $tenant->room->name }} - Còn hạn</small>
-                                </div>
-                                <span class="badge bg-opacity-20 text-success">
-                                    <i class="fas fa-check-circle me-1"></i> Active
-                                </span>
-                            </div>
-                        </li>
-                    @empty
-                        <li class="list-group-item border-0 py-3 text-muted text-center">Không có người thuê</li>
-                    @endforelse
-
-                    @if (count($currentTenants) > $maxVisible)
-                        <li class="list-group-item border-0 py-2 text-center">
-                            <button class="btn btn-sm btn-outline-primary" onclick="toggleTenants('extra-current', this)">
-                                Xem tất cả
-                            </button>
-                        </li>
-                    @endif
-                </ul>
-
-                {{-- Nhóm 2: Sắp hết hạn --}}
-                <h6 class="text-warning fw-bold mt-4">Sắp hết hạn (≤ 7 ngày)</h6>
-                <ul class="list-group list-group-flush">
-                    @forelse($expiringTenants as $index => $tenant)
-                        <li
-                            class="list-group-item border-0 py-3 {{ $index >= $maxVisible ? 'd-none extra-expiring' : '' }}">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width: 40px; height: 40px;">
-                                        <i class="fas fa-user-clock text-warning"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold mb-1">{{ $tenant->user->name }}</div>
-                                    <small class="text-muted">{{ $tenant->room->name }} - Sắp hết hạn</small>
-                                </div>
-                                <span class="badge bg-opacity-20 text-warning">
-                                    <i class="fas fa-clock me-1"></i> Expiring
-                                </span>
-                            </div>
-                        </li>
-                    @empty
-                        <li class="list-group-item border-0 py-3 text-muted text-center">Không có hợp đồng sắp hết hạn</li>
-                    @endforelse
-
-                    @if (count($expiringTenants) > $maxVisible)
-                        <li class="list-group-item border-0 py-2 text-center">
-                            <button class="btn btn-sm btn-outline-warning"
-                                onclick="toggleTenants('extra-expiring', this)">
-                                Xem tất cả
-                            </button>
-                        </li>
-                    @endif
-                </ul>
-
-                {{-- Nhóm 3: Đã hết hạn --}}
-                <h6 class="text-danger fw-bold mt-4">Đã hết hạn</h6>
-                <ul class="list-group list-group-flush">
-                    @forelse($expiredTenants as $index => $tenant)
-                        <li
-                            class="list-group-item border-0 py-3 {{ $index >= $maxVisible ? 'd-none extra-expired' : '' }}">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width: 40px; height: 40px;">
-                                        <i class="fas fa-user-times text-danger"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold mb-1">{{ $tenant->user->name }}</div>
-                                    <small class="text-muted">{{ $tenant->room->name }} - Đã hết hạn</small>
-                                </div>
-                                <span class="badge bg-opacity-20 text-danger">
-                                    <i class="fas fa-times-circle me-1"></i> Expired
-                                </span>
-                            </div>
-                        </li>
-                    @empty
-                        <li class="list-group-item border-0 py-3 text-muted text-center">Không có hợp đồng đã hết hạn</li>
-                    @endforelse
-
-                    @if (count($expiredTenants) > $maxVisible)
-                        <li class="list-group-item border-0 py-2 text-center">
-                            <button class="btn btn-sm btn-outline-danger" onclick="toggleTenants('extra-expired', this)">
-                                Xem tất cả
-                            </button>
-                        </li>
-                    @endif
-                </ul>
-
-                {{-- SCRIPT TOGGLE --}}
-                @push('scripts')
-                    <script>
-                        function toggleTenants(className, btn) {
-                            const items = document.querySelectorAll('.' + className);
-                            items.forEach(el => el.classList.toggle('d-none'));
-
-                            const isExpanded = btn.innerText === 'Ẩn bớt';
-                            btn.innerText = isExpanded ? 'Xem tất cả' : 'Ẩn bớt';
-                        }
-                    </script>
-                @endpush
-
-
             </div>
         </div>
     </div>
@@ -411,12 +349,18 @@
                 }
             }
         });
-    </script>
-    <script>
+
+        // Toggle functions
         function toggleMotels(btn) {
             const hiddenItems = document.querySelectorAll('.more-motel');
             hiddenItems.forEach(el => el.classList.toggle('d-none'));
             btn.textContent = btn.textContent === 'Xem thêm' ? 'Thu gọn' : 'Xem thêm';
+        }
+
+        function toggleTenants(className, btn) {
+            const items = document.querySelectorAll('.' + className);
+            items.forEach(el => el.classList.toggle('d-none'));
+            btn.innerText = btn.innerText === 'Ẩn bớt' ? 'Xem tất cả' : 'Ẩn bớt';
         }
     </script>
 @endsection
