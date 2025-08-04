@@ -517,8 +517,8 @@ class RoomService
     // Lấy số lượng phòng trống theo từng nhà trọ
     public function getAvailableRoomsPerMotel()
     {
-        return DB::table('rooms')
-            ->select('motel_id', DB::raw("COUNT(*) as total_rooms"), DB::raw("COUNT(CASE WHEN status = 'Trống' THEN 1 END) as available_rooms"))
+        return Room::with('motel')
+            ->selectRaw('motel_id, COUNT(*) as total_rooms, COUNT(CASE WHEN status = "Trống" THEN 1 END) as available_rooms')
             ->groupBy('motel_id')
             ->get();
     }

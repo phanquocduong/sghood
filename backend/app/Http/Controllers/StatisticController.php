@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Config;
 use App\Services\TransactionService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -65,6 +66,8 @@ class StatisticController extends Controller
             ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
             ->sum('transfer_amount');
 
+             $isNearExpiration = (int) Config::getValue('is_near_expiration', 30);
+
 
         return view('statistics.index', [
             'countUsersToday' => $countUsersToday,
@@ -79,6 +82,7 @@ class StatisticController extends Controller
             'expiredTenants' => $tenants['expired'],
             'todayRevenue' => $todayRevenue,
             'monthRevenue' => $monthRevenue,
+            'isNearExpiration' => $isNearExpiration,
         ]);
     }
 }
