@@ -65,7 +65,7 @@ import { useAuthStore } from '~/stores/auth';
 import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
 const NotiStore = useNotificationStore();
-const noti = useToast();
+const noti = useAppToast();
 const { notifications, loading } = storeToRefs(useNotificationStore());
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);

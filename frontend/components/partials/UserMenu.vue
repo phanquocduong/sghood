@@ -122,32 +122,31 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-
 @media screen and (max-width: 480px) {
-  .user-name {
-    max-width: 200px;
-    font-size: 18px;
-     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
+    .user-name {
+        max-width: 200px;
+        font-size: 18px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
 
-  .user-menu .dropdown {
-    right: 0 !important;
-    transform: none !important;
-    width: 280px;
-  }
-  .auth-container{
-    display: inline-flex;
-    padding: 12px 16px;
-  align-items: center;
-  gap: 12px; /* khoảng cách giữa chuông và user */
-  margin-left: auto;
-  }
-  .notification-icon{
-    margin-left: 0px !important;
-    top: -1px !important;
-  }
+    .user-menu .dropdown {
+        right: 0 !important;
+        transform: none !important;
+        width: 280px;
+    }
+    .auth-container {
+        display: inline-flex;
+        padding: 12px 16px;
+        align-items: center;
+        gap: 12px; /* khoảng cách giữa chuông và user */
+        margin-left: auto;
+    }
+    .notification-icon {
+        margin-left: 0px !important;
+        top: -1px !important;
+    }
 }
 
 .auth-container {

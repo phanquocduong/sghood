@@ -114,7 +114,7 @@
                     $year = $today->year;
 
                     // Special time range: from 24th of current month to 5th of next month
-                    $startDate = $today->copy()->day(24);
+                    $startDate = $today->copy()->day(2);
                     $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
 
                     $shouldDisplayTable = $today->between($startDate, $endDate);

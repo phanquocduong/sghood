@@ -26,7 +26,7 @@
                 </template>
 
                 <span class="date">{{ formatTimeAgo(comment.created_at) }}</span>
-                <a href="#" class="reply" @click.prevent="toggleReply"> <i class="fa fa-reply"></i> Trả lời </a>
+                <a href="#" class="reply" @click.prevent="handleClickReply"> <i class="fa fa-reply"></i> Trả lời </a>
             </div>
             <p>{{ comment.content }}</p>
         </div>
@@ -113,6 +113,13 @@ const HandleReply = async blog_id => {
         loading.value = false;
     }
 };
+const handleClickReply = () => {
+    if (!authStore.user) {
+        toast.warning('Bạn hãy đăng nhập để trả lời nhé!');
+        return;
+    }
+    toggleReply();
+};
 </script>
 
 <style scoped>
@@ -155,5 +162,4 @@ button:disabled {
     margin-top: 20px;
     object-fit: cover;
 }
-
 </style>
