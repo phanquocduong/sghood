@@ -193,6 +193,7 @@ const fetchBlogs = async(slug)=>{
         method:'POST',
         headers:{
           'Content-Type': 'application/json',
+          'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
         }
 
       })
@@ -220,6 +221,7 @@ const FetchPopularPosts = async ()=>{
       method:'GET',
       headers:{
         'Content-Type': 'application/json',
+        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
       },
       
     })

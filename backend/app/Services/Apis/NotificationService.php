@@ -26,7 +26,7 @@ class NotificationService
             $notification->save();
             return true;
         }
-
+        
         return false;
     }
 

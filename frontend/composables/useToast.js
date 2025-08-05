@@ -1,6 +1,5 @@
 export const useAppToast = () => {
     const { $toast } = useNuxtApp();
-
     return {
         success: (message, options = {}) => $toast.success(message, options),
         error: (message, options = {}) => $toast.error(message, options),
