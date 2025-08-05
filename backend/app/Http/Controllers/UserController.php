@@ -86,25 +86,29 @@ class UserController extends Controller
 
         // Không cho tự sửa chính mình
         if ($auth->id === $target->id) {
-            return back()->with('error', 'Bạn không thể sửa chính mình.');
+            return back()->with('error', 'Bạn không thể sửa vai trò của chính mình.');
         }
 
-        // Nếu là Super admin
-        if ($auth->role === 'Super admin') {
-            // Không cho tạo thêm Super admin
-            if ($request->role === 'Super admin' && $target->role !== 'Super admin') {
-                return back()->with('error', 'Không thể chuyển người khác thành Super admin.');
-            }
-        }
         // Nếu là Admin thường
-        else {
+        if ($auth->role !== 'Super admin') {
+            // Admin thường không thể sửa vai trò của Quản trị viên hoặc Super admin
             if (in_array($target->role, ['Quản trị viên', 'Super admin'])) {
                 return back()->with('error', 'Bạn không có quyền sửa vai trò này.');
             }
-            // Admin thường cũng không thể tạo Super admin
+
+            // Admin thường không thể tạo Super admin
             if ($request->role === 'Super admin') {
                 return back()->with('error', 'Bạn không có quyền gán vai trò Super admin.');
             }
+        }
+
+        // Logic chuyển vai trò đặc biệt
+        if ($target->role === 'Người thuê' && $request->role !== 'Quản trị viên') {
+            return back()->with('error', 'Người thuê chỉ có thể chuyển thành Quản trị viên.');
+        }
+
+        if ($target->role === 'Quản trị viên' && $request->role !== 'Người đăng ký') {
+            return back()->with('error', 'Quản trị viên chỉ có thể chuyển thành Người đăng ký.');
         }
 
         $target->role = $request->role;
@@ -112,6 +116,7 @@ class UserController extends Controller
 
         return back()->with('success', 'Cập nhật vai trò thành công.');
     }
+
 
 
     public function updateStatus(Request $request, $id)
@@ -123,14 +128,22 @@ class UserController extends Controller
         $auth = auth()->user();
         $target = User::findOrFail($id);
 
+        // Không cho tự khoá chính mình
         if ($auth->id === $target->id) {
             return back()->with('error', 'Bạn không thể khoá chính mình.');
         }
 
-        // Admin thường không được sửa Admin hoặc Super Admin
-        if (!$auth->is_super_admin) {
-            if ($target->role === 'Quản trị viên') {
-                return back()->with('error', 'Bạn không có quyền khoá quản trị viên.');
+        // Nếu là Super admin
+        if ($auth->role === 'Super admin') {
+            $target->status = $request->status;
+            $target->save();
+            return back()->with('success', 'Cập nhật trạng thái thành công.');
+        }
+        // Nếu là Admin thường
+        else {
+            // Admin thường không được khoá Quản trị viên hoặc Super admin
+            if (in_array($target->role, ['Quản trị viên', 'Super admin'])) {
+                return back()->with('error', 'Bạn không có quyền khoá người dùng này.');
             }
         }
 
@@ -139,6 +152,8 @@ class UserController extends Controller
 
         return back()->with('success', 'Cập nhật trạng thái thành công.');
     }
+
+
 
     /**
      * Remove the specified resource from storage.

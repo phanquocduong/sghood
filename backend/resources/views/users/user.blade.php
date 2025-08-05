@@ -77,10 +77,9 @@
                                 <th scope="col">Họ tên</th>
                                 <th scope="col">Số điện thoại</th>
                                 <th scope="col">Email</th>
-                                <th scope="col" style="width: 15%;">Ngày tạo</th>
+                                <th scope="col" style="width: 15%;">Ngày đăng ký</th>
                                 <th scope="col" style="width: 15%;">Vai trò</th>
                                 <th scope="col" style="width: 15%;">Trạng thái</th>
-                                {{-- <th scope="col" style="width: 15%;">Chức năng</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -88,7 +87,7 @@
                                 <tr class="table-row">
                                     <td>{{ $users->firstItem() + $index }}</td>
                                     <td>
-                                        <a href="javascript:void(0);" class="text-primary fw-semibold"
+                                        <a href="javascript:void(0);" class="text-decoration-none text-primary"
                                             onclick="showUserModal({{ $user->id }})">
                                             {{ $user->name }}
                                         </a>

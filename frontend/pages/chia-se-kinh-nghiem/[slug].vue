@@ -188,16 +188,24 @@ const fetchBlogs = async(slug)=>{
     }
     
     console.log('fetchblogs',res)
-    if(!hasIncreasedView.value){
-        await $api(`/blogs/${res.data.id}/increase-view`,{
-        method:'POST',
-        headers:{
-          'Content-Type': 'application/json',
-        }
+    if (!hasIncreasedView.value) {
+  try {
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log('CSRF Token:', token);
+    const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': token
+      },
+    })
+    console.log('Increase view response:', resView)
+    hasIncreasedView.value = true
+  } catch (err) {
+    console.error('Increase view error:', err)
+  }
+}
 
-      })
-      hasIncreasedView.value = true
-    }
     relatedPosts.value = (res.data.related || []).map( g => ({
        id: g.id,
       title: g.title,

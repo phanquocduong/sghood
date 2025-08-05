@@ -2,9 +2,8 @@
 
 namespace App\Services\Apis;
 
-use App\Models\Message;
+use App\Models\MessageRelationship;
 use App\Models\User;
-use App\Models\UserAdmin;
 use Google\Cloud\Firestore\FieldValue;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -38,17 +37,17 @@ class MessageService
 
         // Nếu sender là user, xử lý gán admin nếu cần
         if ($sender->role !== 'Quản trị viên') {
-            $userAdmin = UserAdmin::firstOrCreate(
+            $messageRelationship = MessageRelationship::firstOrCreate(
                 ['user_id' => $senderId],
                 ['admin_id' => $this->getRandomAdmin()?->id]
             );
 
-            if (!$userAdmin->admin_id) {
+            if (!$messageRelationship->admin_id) {
                 Log::error('Không tìm thấy admin để gán.');
                 return null;
             }
 
-            $receiverId = $userAdmin->admin_id;
+            $receiverId = $messageRelationship->admin_id;
         }
 
         if (!$receiverId || $senderId === $receiverId) {
@@ -220,10 +219,10 @@ class MessageService
 
     private function assignOrGetAdminForUser(int $userId): ?int
     {
-        $userAdmin = UserAdmin::where('user_id', $userId)->first();
+        $messageRelationship = MessageRelationship::where('user_id', $userId)->first();
 
-        if ($userAdmin) {
-            return $userAdmin->admin_id;
+        if ($messageRelationship) {
+            return $messageRelationship->admin_id;
         }
 
         $admin = $this->getRandomAdmin($userId);
@@ -233,7 +232,7 @@ class MessageService
             return null;
         }
 
-        UserAdmin::create([
+        MessageRelationship::create([
             'user_id' => $userId,
             'admin_id' => $admin->id,
         ]);
