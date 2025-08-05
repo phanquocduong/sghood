@@ -9,24 +9,28 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ContractRevisionNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $contract;
+    public $revisionReason;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(Contract $contract)
+    public function __construct(Contract $contract, $revisionReason)
     {
         $this->contract = $contract;
+        $this->revisionReason = $revisionReason;
+
+        Log::info('ContractRevisionNotification constructed', [
+            'contract_id' => $contract->id,
+            'revision_reason' => $revisionReason,
+            'revision_reason_length' => strlen($revisionReason ?? ''),
+            'revision_reason_type' => gettype($revisionReason)
+        ]);
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -34,9 +38,6 @@ class ContractRevisionNotification extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
@@ -52,16 +53,12 @@ class ContractRevisionNotification extends Mailable
                     ? \Carbon\Carbon::parse($this->contract->booking->end_date)->format('d/m/Y')
                     : 'N/A',
                 'createdAt' => $this->contract->created_at ? $this->contract->created_at->format('d/m/Y H:i') : 'N/A',
+                'revisionReason' => $this->revisionReason ?? 'Không có lý do nào được cung cấp.',
                 'contract' => $this->contract
             ]
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

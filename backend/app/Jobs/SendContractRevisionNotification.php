@@ -20,18 +20,19 @@ class SendContractRevisionNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $contract;
+    protected $revisionReason;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(Contract $contract)
+    public function __construct(Contract $contract, string $revisionReason = null)
     {
         $this->contract = $contract;
+        $this->revisionReason = $revisionReason;
+
+        Log::info('SendContractRevisionNotification job constructed', [
+            'contract_id' => $contract->id,
+            'revision_reason' => $revisionReason
+        ]);
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         try {
@@ -44,14 +45,22 @@ class SendContractRevisionNotification implements ShouldQueue
                 return;
             }
 
+            // Log trước khi gửi email
+            Log::info('Preparing to send contract revision email', [
+                'contract_id' => $this->contract->id,
+                'user_email' => $user->email,
+                'revision_reason' => $this->revisionReason
+            ]);
+
             // Gửi email
             if ($user->email) {
                 Mail::to($user->email, $user->name)
-                    ->send(new ContractRevisionNotification($this->contract));
+                    ->send(new ContractRevisionNotification($this->contract, $this->revisionReason));
 
                 Log::info('Contract revision email sent successfully', [
                     'contract_id' => $this->contract->id,
-                    'user_email' => $user->email
+                    'user_email' => $user->email,
+                    'revision_reason' => $this->revisionReason
                 ]);
             }
 
@@ -60,7 +69,6 @@ class SendContractRevisionNotification implements ShouldQueue
                 'user_id' => $user->id,
                 'title' => 'Hợp đồng cần chỉnh sửa',
                 'content' => 'Hợp đồng của bạn cần chỉnh sửa. Vui lòng kiểm tra email để biết chi tiết.',
-                'status' => 'Chưa đọc',
             ];
 
             $notification = Notification::create($notificationData);
@@ -98,23 +106,21 @@ class SendContractRevisionNotification implements ShouldQueue
             Log::error('Error in SendContractRevisionNotification job', [
                 'contract_id' => $this->contract->id,
                 'user_id' => $this->contract->user_id ?? null,
+                'revision_reason' => $this->revisionReason,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Re-throw exception để job có thể được retry
             throw $e;
         }
     }
 
-    /**
-     * Handle job failure.
-     */
     public function failed(\Throwable $exception): void
     {
         Log::error('SendContractRevisionNotification job failed', [
             'contract_id' => $this->contract->id,
             'user_id' => $this->contract->user_id ?? null,
+            'revision_reason' => $this->revisionReason,
             'error' => $exception->getMessage(),
         ]);
     }

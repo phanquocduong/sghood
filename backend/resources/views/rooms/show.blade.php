@@ -151,16 +151,18 @@
             <a href="{{ route('rooms.index', ['motel_id' => $room->motel_id]) }}" class="btn btn-secondary shadow-sm" style="transition: all 0.3s;">
                 <i class="fas fa-arrow-left me-1"></i>Quay lại
             </a>
-            <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-warning shadow-sm" style="transition: all 0.3s;">
-                <i class="fas fa-edit me-1"></i>Sửa
-            </a>
-            <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
-                    <i class="fas fa-trash me-1"></i>Xóa
-                </button>
-            </form>
+            @if($room->status !== 'Đã thuê')
+                        <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-warning shadow-sm" style="transition: all 0.3s;">
+                            <i class="fas fa-edit me-1"></i>Sửa
+                        </a>
+                        <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
+                                <i class="fas fa-trash me-1"></i>Xóa
+                            </button>
+                        </form>
+            @endif
         </div>
     </div>
 </div>

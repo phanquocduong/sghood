@@ -66,7 +66,7 @@
                             <th scope="col" style="width: 5%;">Stt</th>
                             <th scope="col">Tên tiện ích</th>
                             <th scope="col">Loại</th>
-                            <th scope="col">Thứ tự</th>
+                            <th scope="col">Thứ tự hiển thị</th>
                             <th scope="col" style="width: 15%;">Trạng thái</th>
                             <th scope="col" style="width: 20%;">Thao tác</th>
                         </tr>

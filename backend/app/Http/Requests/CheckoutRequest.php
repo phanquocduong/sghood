@@ -20,8 +20,6 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
 {
     return [
-        'check_out_date' => 'required|date',
-        'has_left' => 'required|boolean',
         'status' => 'required|in:Chờ kiểm kê,Đã kiểm kê',
         'item_name.*' => 'required|string|max:255',
         'item_condition.*' => 'nullable|string|max:1000',
@@ -35,10 +33,6 @@ class CheckoutRequest extends FormRequest
 public function messages(): array
 {
     return [
-        'check_out_date.required' => 'Ngày checkout là bắt buộc.',
-        'check_out_date.date' => 'Ngày checkout phải là định dạng ngày hợp lệ.',
-        'has_left.required' => 'Trạng thái rời đi là bắt buộc.',
-        'has_left.boolean' => 'Trạng thái rời đi phải là có hoặc không.',
         'status.required' => 'Trạng thái là bắt buộc.',
         'status.in' => 'Trạng thái phải là "Chờ kiểm kê" hoặc "Đã kiểm kê".',
         'item_name.*.required' => 'Tên mục là bắt buộc.',

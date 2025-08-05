@@ -67,8 +67,6 @@ class InvoiceService
         return [
             'Chưa trả' => 'Chưa trả',
             'Đã trả' => 'Đã trả',
-            'Quá hạn' => 'Quá hạn',
-            'Đã hủy' => 'Đã hủy'
         ];
     }
 

@@ -116,6 +116,7 @@
             padding: 25px;
             text-align: center;
         }
+
         .footer p {
             margin-bottom: 10px;
             opacity: 0.8;
@@ -152,7 +153,10 @@
             </div>
             <div class="warning-message">
                 <h4>🔄 Vui lòng cập nhật lại hợp đồng</h4>
-                <p>Thông tin hợp đồng của bạn (Mã hợp đồng: <strong style="color: #fd7e14;">#{{ $contractId }}</strong>) cần được bổ sung hoặc chỉnh sửa. Vui lòng truy cập hệ thống và nhập lại thông tin hợp đồng theo yêu cầu.</p>
+                <p>Thông tin hợp đồng của bạn (Mã hợp đồng: <strong style="color: #fd7e14;">#{{ $contractId }}</strong>) cần được bổ sung hoặc chỉnh sửa. Lý do:</p>
+                <p style="color: #856404; font-weight: 600; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ffeeba;">
+                    "{{ $revisionReason ?? 'Không có lý do nào được cung cấp.' }}"
+                </p>
             </div>
             <div class="contract-info">
                 <h3>📋 Thông tin hợp đồng</h3>
