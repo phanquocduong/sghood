@@ -198,8 +198,13 @@ Route::middleware('admin')->group(function () {
         Route::delete('/force-delete/{id}', [BlogController::class, 'Forcedelete'])->name('force-delete');
         Route::get('/detail/{id}', [BlogController::class, 'showBlog'])->name('detail');
         Route::patch('/{id}/update-cate', [BlogController::class, 'updateCategory'])->name('updateCategory');
-        Route::get('/{id}/comments', [CommentController::class, 'index'])->name('comment');
-        Route::post('/{id}/comments', [CommentController::class, 'reply'])->name('comment.reply');
+
+    });
+    // Comment routes
+    Route::prefix('blogs/{blogId}/comments')->name('comments.')->group(function () {
+        Route::get('/', [CommentController::class, 'index'])->name('index');
+        Route::post('/reply', [CommentController::class, 'reply'])->name('reply');
+        Route::post('/{id}/toggle-visibility', [CommentController::class, 'toggleVisibility'])->name('toggleVisibility');
     });
     Route::prefix('CKEditors')->name('ckeditors.')->group(function () {
         Route::post('/upload-image', [CKEditorController::class, 'upload'])->name('upload');

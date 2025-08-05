@@ -1,0 +1,29 @@
+/* Mobile dropdown full width */
+@media (max-width: 767.98px) {
+    .navbar .dropdown-menu {
+        position: static !important; /* Không bị lệch khi navbar collapse */
+        float: none;
+        width: 100%;
+        margin-top: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .navbar .dropdown-menu .dropdown-item {
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .navbar .dropdown-menu .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Badge dịch sát icon hơn trên mobile */
+    .navbar .position-relative .badge {
+        top: 5px;
+        left: 15px;
+        transform: translate(0, 0);
+    }
+}

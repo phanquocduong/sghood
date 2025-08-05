@@ -58,6 +58,6 @@ class BlogService
 
     public function increaseView(int $id)
     {
-        Blog::where('id', $id)->increment('views');
+        return Blog::where('id', $id)->increment('views');
     }
 }

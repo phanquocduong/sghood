@@ -15,10 +15,34 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    <div class="container-fluid pt-4 px-4">
-        <div class="bg-light rounded-top p-4 shadow-lg">
-            <h6 class="mb-4">Danh sách bài viết</h6>
+    <div class="container-fluid py-5 px-4">
+        <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
+            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(90deg, #6a11cb, #2575fc); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                <h6 class="mb-0 fw-bold">{{ __('Danh sách bài viết') }}</h6>
+                <div>
+                <a href="{{ route('blogs.create') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
+                    <i class="fas fa-plus me-1"></i> {{ __('Thêm bài viết') }}
+                </a>
+                <a href="{{ route('blogs.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
+                    <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
+                </a>
+                </div>
+            </div>
             <div class="card-body p-4">
+                @if (session('success') || session('message'))
+                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('success') ?: session('message') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            <div class="mb-4">
                 <form action="{{ route('blogs.index') }}" method="GET" class="row g-3 mb-4">
                     <div class="col-md-3">
                         <input type="text" class="form-control rounded-3" name="querySearch"
@@ -48,12 +72,6 @@
                             <i class="fas fa-search me-2"></i>Tìm
                         </button>
                     </div>
-                    <div class="col-md-2">
-                        <a class="btn btn-success w-100 rounded-3" href="{{ route('blogs.create') }}"><i class="fas fa-plus me-1"></i>Thêm bài viết</a>
-                    </div>
-                    <div class="col-md-2">
-                        <a class="btn btn-danger w-100 rounded-3" href="{{ route('blogs.trash') }}"><i class="fas fa-trash me-1"></i>Thùng rác</a>
-                    </div>
                 </form>
             </div>
             <div class="table-responsive">
@@ -62,7 +80,7 @@
                         <tr>
                             <th scope="col">Stt</th>
                             <th scope="col">Hình ảnh</th>
-                            <th scope="col" style="width: 30%;">Tiêu đề</th>
+                            <th scope="col" style="width: 10%;">Tiêu đề</th>
                             <th scope="col">Bình luận</th>
                             <th scope="col">Tác giả</th>
                             <th scope="col">Thể loại</th>
@@ -86,8 +104,11 @@
                                                 style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                         @endif
                                     </td>
-                                    <td><a href="{{ route('blogs.detail', $blog->id) }}">{{ Str::limit($blog->title, 30) }}</a></td>
-                                    <td><a href="{{ route('blogs.comment', $blog->id) }}">{{ $blog->comments_count }}</a></td>
+                                    <td><a
+                                            href="{{ route('blogs.detail', $blog->id) }}">{{ Str::limit($blog->title, 30) }}</a>
+                                    </td>
+                                    <td><a href="{{ route('comments.index', $blog->id) }}">{{ $blog->comments_count }}</a>
+                                    </td>
                                     <td>{{ $blog->author->name }}</td>
                                     <td>
                                         <form action="{{ route('blogs.updateCategory', $blog->id) }}" method="POST">
@@ -95,17 +116,22 @@
                                             @method('PATCH')
                                             <select name="category" class="form-select form-select-sm"
                                                 onchange="confirmCategoryChange(this)">
-                                                <option value="Tin tức" {{ $blog->category == 'Tin tức' ? 'selected' : '' }}>
+                                                <option value="Tin tức"
+                                                    {{ $blog->category == 'Tin tức' ? 'selected' : '' }}>
                                                     Tin tức
                                                 </option>
-                                                <option value="Hướng dẫn" {{ $blog->category == 'Hướng dẫn' ? 'selected' : '' }}>
+                                                <option value="Hướng dẫn"
+                                                    {{ $blog->category == 'Hướng dẫn' ? 'selected' : '' }}>
                                                     Hướng dẫn
                                                 </option>
-                                                <option value="Khuyến mãi" {{ $blog->category == 'Khuyến mãi' ? 'selected' : '' }}>Khuyến mãi
+                                                <option value="Khuyến mãi"
+                                                    {{ $blog->category == 'Khuyến mãi' ? 'selected' : '' }}>Khuyến mãi
                                                 </option>
-                                                <option value="Pháp luật" {{ $blog->category == 'Pháp luật' ? 'selected' : '' }}>Pháp luật
+                                                <option value="Pháp luật"
+                                                    {{ $blog->category == 'Pháp luật' ? 'selected' : '' }}>Pháp luật
                                                 </option>
-                                                <option value="Kinh nghiệm" {{ $blog->category == 'Kinh nghiệm' ? 'selected' : '' }}>Kinh nghiệm
+                                                <option value="Kinh nghiệm"
+                                                    {{ $blog->category == 'Kinh nghiệm' ? 'selected' : '' }}>Kinh nghiệm
                                                 </option>
                                             </select>
                                         </form>

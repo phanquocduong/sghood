@@ -59,7 +59,10 @@ class BlogController extends Controller
 
     public function increaseView($id)
     {
-        $this->blogService->increaseView($id);
-        return response()->json(['message' => 'View increased']);
+        $updated = $this->blogService->increaseView($id);
+        return response()->json([
+        'message' => 'View increased',
+        'updated' => $updated // số bản ghi update
+    ]);
     }
 }

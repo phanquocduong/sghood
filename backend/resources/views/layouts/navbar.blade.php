@@ -62,15 +62,7 @@
                 <div id="notifications-dropdown"
                     class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                     {{-- Mặc định render từ blade, nhưng JS sẽ update lại --}}
-                    {{-- @foreach ($latestNotifications as $notification)
-                        <a href="{{ route('notifications.index') }}"
-                            class="dropdown-item {{ $notification->status == 'Chưa đọc' ? 'fw-bold' : '' }}">
-                            <h6 class="mb-0">{{ $notification->title }}</h6>
-                            <small
-                                class="text-muted">{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
-                        </a>
-                        <hr class="dropdown-divider">
-                    @endforeach --}}
+
                     <a href="{{ route('notifications.index') }}"
                         class="dropdown-item text-center fw-bold text-primary">Xem
                         tất cả thông báo</a>
@@ -97,22 +89,24 @@
 
 <script>
     function fetchHeaderData(type) {
-        const route = type === 'messages'
-            ? '{{ route('messages.header') }}'
-            : '{{ route('notifications.header') }}';
+        const route = type === 'messages' ?
+            '{{ route('messages.header') }}' :
+            '{{ route('notifications.header') }}';
 
         fetch(route)
             .then(res => res.json())
             .then(data => {
                 // Badge update
                 let countBadge = document.querySelector(`#${type}-badge`);
-                const toggleBtn = document.getElementById(`${type}-toggle`) || document.querySelector(`[data-bs-toggle="dropdown"]`);
+                const toggleBtn = document.getElementById(`${type}-toggle`) || document.querySelector(
+                    `[data-bs-toggle="dropdown"]`);
 
                 // Nếu chưa có badge trong HTML thì tạo mới
                 if (!countBadge) {
                     const badge = document.createElement('span');
                     badge.id = `${type}-badge`;
-                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    badge.className =
+                        'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
                     badge.style.display = 'none';
 
                     // Gắn vào trong icon container (phải có position-relative)
@@ -171,6 +165,44 @@
         }, 10000);
     });
 </script>
+<style>
+    /* --- Giới hạn chữ h6 trong dropdown --- */
+    .dropdown-menu h6 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* --- Responsive cho mobile --- */
+    @media (max-width: 576px) {
+        .navbar-nav .nav-item.dropdown .dropdown-menu {
+            position: absolute;
+            left: -80px;
+            /* Đẩy dropdown gần icon hơn */
+            right: auto;
+            top: 100%;
+            z-index: 1000;
+            min-width: 220px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        /* Trên mobile chữ ngắn hơn */
+        .dropdown-menu h6 {
+            max-width: 150px;
+        }
+
+        /* Ẩn text dài để icon gọn */
+        .navbar-nav .nav-link .d-lg-inline-flex {
+            display: none !important;
+        }
+    }
+</style>
 
 
 

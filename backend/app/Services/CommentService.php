@@ -25,10 +25,12 @@ class CommentService
     ) {
         $query = CommentBlog::with('user');
 
+        // Lọc theo blog
         if ($blogId) {
             $query->where('blog_id', $blogId);
         }
 
+        // Lọc theo từ khóa nội dung hoặc tên user
         if ($querySearch) {
             $query->where(function ($q) use ($querySearch) {
                 $q->where('content', 'like', "%{$querySearch}%")
@@ -40,10 +42,16 @@ class CommentService
             });
         }
 
+        // Lọc theo trạng thái ẩn/hiện
         if ($status) {
-            $query->where('status', $status);
+            if ($status === 'hidden') {
+                $query->where('is_hidden', 1); // Đã ẩn
+            } elseif ($status === 'visible') {
+                $query->where('is_hidden', 0); // Hiển thị
+            }
         }
 
+        // Sắp xếp
         if ($sortOption) {
             if (str_ends_with($sortOption, '_asc')) {
                 $column = substr($sortOption, 0, -4);
@@ -63,6 +71,7 @@ class CommentService
 
         return $query->paginate($perPage);
     }
+
     public function reply(array $data): CommentBlog
     {
         return CommentBlog::create([
