@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Yêu cầu trả phòng" />
+        <Titlebar title="Trả phòng" />
 
         <!-- Inventory Modal -->
         <InventoryModal

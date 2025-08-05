@@ -61,10 +61,6 @@ h2 {
     clear: both;
 } */
 
-#logo img {
-    max-height: 44px;
-}
-
 #details {
     text-align: right;
 }
@@ -167,7 +163,444 @@ th span::after {
     background-color: #e2e2e2;
 }
 
-/* Print Styles*/
+#logo img {
+    max-height: 100px;
+}
+
+/* Enhanced Custom Styles */
+.company-details {
+    margin-top: 15px;
+}
+
+.company-details h3 {
+    margin-bottom: 10px;
+    font-size: 22px;
+    color: #333;
+}
+
+.company-details p {
+    margin: 3px 0;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.invoice-meta {
+    margin-top: 10px;
+}
+
+.invoice-meta p {
+    margin: 8px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.invoice-info p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.status-section {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.status-label {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+.status-value {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 25px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-paid {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-unpaid {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Enhanced Table Styles */
+.invoice-items-table {
+    margin: 40px 0;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.invoice-items-table th {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 15px 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.invoice-items-table td {
+    border: 1px solid #dee2e6;
+    padding: 15px 10px;
+    vertical-align: top;
+}
+
+.invoice-items-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.invoice-items-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.item-number {
+    text-align: center;
+    font-weight: bold;
+    color: #666;
+}
+
+.item-description {
+    line-height: 1.4;
+}
+
+.item-description strong {
+    color: #333;
+    font-size: 15px;
+}
+
+.item-amount {
+    text-align: right;
+    font-weight: bold;
+    color: #333;
+    font-size: 15px;
+}
+
+.service-note {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
+    font-style: italic;
+}
+
+.meter-details {
+    margin-top: 8px;
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #f91942;
+}
+
+.meter-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.meter-row.highlight {
+    color: #333;
+    font-weight: bold;
+}
+
+.meter-row span:first-child {
+    flex: 1;
+}
+
+.meter-row span:last-child {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Total Section */
+.invoice-total-section {
+    margin: 40px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.total-in-words {
+    margin-bottom: 20px;
+}
+
+.total-in-words p:first-child {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.amount-words {
+    font-size: 15px;
+    color: #333;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
+.total-amount-box {
+    background-color: white;
+    border: 2px solid #f91942;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.total-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: #f91942;
+}
+
+.loading-section {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+/* Responsive Styles for Tablet (max-width: 992px) */
+@media (max-width: 992px) {
+    body #logo {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    #invoice {
+        padding: 30px;
+        margin: 30px 15px;
+    }
+
+    h2 {
+        font-size: 28px;
+        line-height: 1.5;
+    }
+
+    .company-details h3 {
+        font-size: 18px;
+    }
+
+    .company-details p {
+        font-size: 12px;
+        text-align: center;
+    }
+
+    #details {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .invoice-meta p {
+        font-size: 14px;
+    }
+
+    .invoice-info p {
+        font-size: 13px;
+    }
+
+    .status-label {
+        display: inline-block;
+    }
+
+    .status-value {
+        font-size: 14px !important;
+        padding: 6px 12px !important;
+        margin-left: 10px;
+    }
+
+    .status-section {
+        text-align: left !important;
+        margin-top: 10px !important;
+    }
+
+    .invoice-items-table th {
+        font-size: 14px;
+    }
+
+    .invoice-items-table td {
+        font-size: 13px;
+        padding: 10px 5px;
+    }
+
+    .item-description strong {
+        font-size: 14px;
+    }
+
+    .item-amount {
+        font-size: 14px;
+    }
+
+    .service-note {
+        font-size: 11px;
+    }
+
+    .meter-details {
+        padding: 6px;
+    }
+
+    .meter-row {
+        font-size: 11px;
+    }
+
+    .total-amount-box {
+        padding: 15px;
+    }
+
+    .total-label {
+        font-size: 16px;
+    }
+
+    .total-amount {
+        font-size: 20px;
+    }
+
+    .total-in-words p:first-child {
+        font-size: 13px;
+    }
+
+    .amount-words {
+        font-size: 14px;
+    }
+
+    #footer {
+        margin-top: 40px;
+        font-size: 13px;
+    }
+
+    #footer li {
+        padding: 0 10px;
+    }
+
+    .col-md-6 {
+        width: 100%;
+    }
+}
+
+/* Responsive Styles for Mobile (max-width: 576px) */
+@media (max-width: 576px) {
+    #invoice {
+        padding: 20px;
+        margin: 20px 10px;
+    }
+
+    h2 {
+        font-size: 24px;
+        line-height: 1.4;
+    }
+
+    .company-details h3 {
+        font-size: 16px;
+    }
+
+    .company-details p {
+        font-size: 11px;
+    }
+
+    .invoice-meta p {
+        font-size: 12px;
+    }
+
+    .invoice-info p {
+        font-size: 12px;
+    }
+
+    .invoice-items-table {
+        margin: 20px 0;
+    }
+
+    .invoice-items-table th {
+        font-size: 12px;
+        padding: 8px 5px;
+    }
+
+    .invoice-items-table td {
+        font-size: 12px;
+        padding: 8px 5px;
+    }
+
+    .item-description strong {
+        font-size: 13px;
+    }
+
+    .item-amount {
+        font-size: 13px;
+    }
+
+    .service-note {
+        font-size: 10px;
+    }
+
+    .meter-details {
+        padding: 5px;
+    }
+
+    .meter-row {
+        font-size: 10px;
+    }
+
+    .total-amount-box {
+        padding: 10px;
+    }
+
+    .total-label {
+        font-size: 14px;
+    }
+
+    .total-amount {
+        font-size: 18px;
+    }
+
+    .total-in-words p:first-child {
+        font-size: 12px;
+    }
+
+    .amount-words {
+        font-size: 13px;
+    }
+
+    #footer {
+        margin-top: 30px;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    #footer li {
+        display: block;
+        padding: 5px 0;
+        border-right: none;
+    }
+
+    .print-button {
+        font-size: 14px;
+        padding: 8px 16px;
+        max-width: 150px;
+    }
+
+    th span::after {
+        bottom: -9px;
+    }
+}
+
+/* Print Styles */
 @media print {
     .print-button {
         display: none;

@@ -6,8 +6,9 @@
             <div class="col-lg-12">
                 <input type="text" id="date-picker" placeholder="Chọn ngày" readonly="readonly" />
             </div>
-            <!-- Time Slots Dropdown -->
-            <div class="col-lg-12">
+
+            <!-- Time Slots - Desktop Version -->
+            <div class="col-lg-12 desktop-time-slot">
                 <div class="panel-dropdown time-slots-dropdown">
                     <a href="#" :class="{ active: isTimeSlotDropdownOpen }" @click.prevent="toggleTimeSlotDropdown">
                         {{ selectedTimeSlot || 'Chọn khung giờ' }}
@@ -31,6 +32,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Time Slots - Mobile/Tablet Version -->
+            <div class="col-lg-12 mobile-time-slot">
+                <select v-model="formData.timeSlot" class="custom-select time-slot-select" @change="onMobileTimeSlotChange">
+                    <option value="" disabled>Chọn khung giờ</option>
+                    <option v-for="(slot, index) in timeSlots" :key="index" :value="slot.time">
+                        {{ slot.time }}
+                    </option>
+                </select>
+            </div>
+
             <!-- Message -->
             <div class="col-lg-12">
                 <textarea cols="10" rows="2" placeholder="Thêm lời nhắn (không bắt buộc)..." v-model="formData.message"></textarea>
@@ -50,7 +62,6 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-// import { useToast } from 'vue-toastification';
 import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
@@ -81,7 +92,7 @@ const formData = ref({
     message: ''
 });
 
-// Trạng thái dropdown
+// Trạng thái dropdown cho desktop
 const isTimeSlotDropdownOpen = ref(false);
 const selectedTimeSlot = ref('');
 
@@ -93,15 +104,29 @@ const props = defineProps({
     }
 });
 
-// Hàm toggle dropdown
+// Hàm toggle dropdown cho desktop
 const toggleTimeSlotDropdown = () => {
     isTimeSlotDropdownOpen.value = !isTimeSlotDropdownOpen.value;
 };
 
-// Hàm chọn time slot
+// Hàm chọn time slot cho desktop
 const selectTimeSlot = time => {
     selectedTimeSlot.value = time;
     isTimeSlotDropdownOpen.value = false;
+    formData.value.timeSlot = time;
+};
+
+// Hàm xử lý khi chọn time slot trên mobile
+const onMobileTimeSlotChange = () => {
+    selectedTimeSlot.value = formData.value.timeSlot;
+};
+
+// Handle click outside để đóng dropdown trên desktop
+const handleClickOutside = event => {
+    const dropdown = event.target.closest('.time-slots-dropdown');
+    if (!dropdown && isTimeSlotDropdownOpen.value) {
+        isTimeSlotDropdownOpen.value = false;
+    }
 };
 
 const handleBackendError = error => {
@@ -156,6 +181,9 @@ const submitForm = async () => {
 
 // Khởi tạo date picker
 onMounted(() => {
+    // Add click outside listener cho desktop dropdown
+    document.addEventListener('click', handleClickOutside);
+
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.daterangepicker && window.moment) {
             const tomorrow = window.moment().add(2, 'days');
@@ -192,7 +220,7 @@ onMounted(() => {
                 })
                 .on('cancel.daterangepicker', () => {
                     formData.value.date = '';
-                    $datePicker.val(''); // Xóa giá trị input để hiển thị placeholder
+                    $datePicker.val('');
                 })
                 .on('showCalendar.daterangepicker', () => {
                     window.jQuery('.daterangepicker').addClass('calendar-animated');
@@ -204,7 +232,6 @@ onMounted(() => {
                     window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
                 });
 
-            // Đặt giá trị ban đầu trống để hiển thị placeholder
             $datePicker.val(formData.value.date || '');
         } else {
             console.error('jQuery, Moment hoặc daterangepicker không được tải');
@@ -214,13 +241,127 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Desktop styles - giữ nguyên dropdown gốc */
+.desktop-time-slot {
+    display: block;
+}
+
+.mobile-time-slot {
+    display: none;
+}
+
 .panel-dropdown-content {
     position: absolute;
     top: 44px;
     left: 0;
     width: 100%;
+    z-index: 1000;
 }
 
+/* Custom Select Styling cho Mobile/Tablet */
+.custom-select {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #333;
+    background: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23f91942' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.15s ease-in-out;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #f91942;
+    box-shadow: 0 0 0 3px rgba(249, 25, 66, 0.15);
+}
+
+.custom-select:hover {
+    border-color: #f91942;
+}
+
+.custom-select option {
+    padding: 12px 16px;
+    font-size: 16px;
+    color: #333;
+    background-color: #fff;
+}
+
+.custom-select option:hover {
+    background-color: #fff;
+}
+
+.custom-select option:checked {
+    background-color: #f91942;
+    color: #fff;
+}
+
+/* Tablet styles */
+@media (max-width: 1024px) {
+    .desktop-time-slot {
+        display: none;
+    }
+
+    .mobile-time-slot {
+        display: block;
+    }
+
+    .custom-select {
+        line-height: 2rem;
+        padding: 9px 18px;
+        font-size: 15px;
+        background-size: 14px 10px;
+        background-position: right 14px center;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .custom-select {
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        background-size: 16px 12px;
+        background-position: right 16px center;
+        min-height: 56px;
+        border-width: 2px;
+    }
+
+    .custom-select:focus {
+        box-shadow: 0 0 0 4px rgba(249, 25, 66, 0.15);
+    }
+
+    /* iOS specific styles */
+    .custom-select option {
+        font-size: 16px;
+        padding: 16px;
+    }
+}
+
+/* Enhanced mobile select for better UX */
+@media (max-width: 480px) {
+    .custom-select {
+        line-height: 2rem;
+        font-size: 17px; /* Prevents zoom on iOS */
+        border-radius: 8px;
+        min-height: 60px;
+        background-position: right 18px center;
+    }
+}
+
+/* Loading spinner */
 .spinner {
     display: inline-block;
     width: 16px;
@@ -242,5 +383,16 @@ onMounted(() => {
 .button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Smooth transitions */
+* {
+    transition: all 0.15s ease-in-out;
+}
+
+/* Focus improvements for accessibility */
+.custom-select:focus-visible {
+    outline: 2px solid #f91942;
+    outline-offset: 2px;
 }
 </style>

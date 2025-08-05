@@ -226,8 +226,18 @@ Route::middleware('admin')->group(function () {
         Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
         Route::patch('/{id}/force-confirm-user', [CheckoutController::class, 'forceConfirmUser'])->name('forceConfirmUser');
     });
-});
 
+    // Route for meter reading index
+    Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
+    Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
+    Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+
+
+    // Route for repair requests
+    Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
+    Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+    Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
+});
 
 // File tải file PDF hợp đồng
 Route::get('/contract/pdf/{id}', function ($id) {
@@ -241,13 +251,4 @@ Route::get('/contract/pdf/{id}', function ($id) {
     abort(404, 'File hợp đồng không tồn tại');
 });
 
-// Route for meter reading index
-Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
-Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
-Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
 
-
-// Route for repair requests
-Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
-Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
-Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');

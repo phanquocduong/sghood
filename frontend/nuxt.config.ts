@@ -1,4 +1,16 @@
 export default defineNuxtConfig({
+    app: {
+        head: {
+            link: [
+                // Favicon cơ bản
+                { rel: 'icon', type: 'image/x-icon', href: '/images/sghood_icon.png' },
+                // Favicon cho Apple Touch Icon (iOS)
+                { rel: 'apple-touch-icon', sizes: '180x180', href: '/images/sghood_icon.png' },
+                // Favicon cho Android
+                { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/images/sghood_icon.png' }
+            ]
+        }
+    },
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
     css: ['public/css/fonts.css', 'public/css/style.css', 'public/css/main-color.css'],

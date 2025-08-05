@@ -279,15 +279,4 @@ input:disabled {
 .support-text a:hover {
     text-decoration: underline;
 }
-
-@media (max-width: 768px) {
-    .input-text {
-        font-size: 1.1em;
-        padding: 12px;
-    }
-    .button {
-        padding: 12px;
-        font-size: 1.1em;
-    }
-}
 </style>

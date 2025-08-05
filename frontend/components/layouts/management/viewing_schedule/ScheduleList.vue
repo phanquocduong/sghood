@@ -28,7 +28,7 @@
                         <div class="inner-booking-list">
                             <h5>Địa chỉ:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ item.motel_address }}</li>
+                                <li>{{ item.motel_address }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
@@ -46,7 +46,7 @@
                         <div v-if="item.message" class="inner-booking-list">
                             <h5>Lời nhắn từ bạn:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ item.message }}</li>
+                                <li>{{ item.message }}</li>
                             </ul>
                         </div>
                     </div>

@@ -22,7 +22,7 @@
                         <div v-if="item.cancellation_reason && item.status === 'Từ chối'" class="inner-booking-list">
                             <h5>Lý do QTV từ chối:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ item.cancellation_reason }}</li>
+                                <li>{{ item.cancellation_reason }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">
@@ -46,7 +46,7 @@
                         <div v-if="item.note" class="inner-booking-list">
                             <h5>Ghi chú:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ item.note }}</li>
+                                <li>{{ item.note }}</li>
                             </ul>
                         </div>
                     </div>

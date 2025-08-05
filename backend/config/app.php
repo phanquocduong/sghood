@@ -127,4 +127,5 @@ return [
         'server_key' => env('FCM_SERVER_KEY'),
     ],
 
+    'frontend_url' => env('FRONTEND_URL'),
 ];

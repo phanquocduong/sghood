@@ -4554,11 +4554,10 @@ input[type='range']:focus + .rangeslider .rangeslider__handle {
 
 .main-search-input-item .chosen-container .chosen-drop {
     border: none;
-    box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, 0.15);
     font-size: 15px;
     padding-top: 5px;
     padding-bottom: 5px;
-    z-index: 99;
+    z-index: 101;
 }
 
 .main-search-input-item .chosen-single:after {
@@ -18860,7 +18859,7 @@ text-overflow: ellipsis; */
     height: 100%;
     left: 0;
     top: 0;
-    padding: 0 18px;
+    /* padding: 0 18px; */
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -21773,13 +21772,6 @@ h4 span.headline-detail {
         line-height: 30px;
     }
 
-    #sign-in-dialog,
-    #edit-schedule-dialog,
-    #otp-dialog,
-    #small-dialog {
-        max-width: 75vw;
-    }
-
     .listing-nav li a {
         border-bottom: 1px solid #e0e0e0;
         padding: 15px;
@@ -21900,7 +21892,6 @@ h4 span.headline-detail {
     .tabs-nav.blog li a,
     .tabs-nav li,
     .tabs-nav li a {
-        width: 100%;
         padding: 0;
         border-radius: 3px;
         text-align: center;

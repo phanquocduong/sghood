@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Yêu cầu gia hạn hợp đồng" />
+        <Titlebar title="Gia hạn hợp đồng" />
 
         <div class="row">
             <div class="col-lg-12 col-md-12">
