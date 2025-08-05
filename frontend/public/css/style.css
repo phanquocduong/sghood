@@ -18838,6 +18838,7 @@ text-overflow: ellipsis; */
     position: fixed;
     background: #000;
     opacity: 0.96;
+    
 }
 
 .mfp-wrap {
@@ -19327,7 +19328,16 @@ button.mfp-close {
 /* animate in */
 .my-mfp-zoom-in.mfp-ready.mfp-bg {
     opacity: 0.8;
+     z-index: 1000 !important;
 }
+@media screen and (max-width: 480px) {
+    .my-mfp-zoom-in.mfp-bg {
+        opacity: 0.8;
+        z-index: 1000 !important;
+    }
+    
+}
+
 /* animate out */
 .my-mfp-zoom-in.mfp-removing.mfp-bg {
     opacity: 0;
@@ -22091,4 +22101,11 @@ div.layout-style {
 
 #style-switcher {
     display: none;
+}
+/* Ghi đè container toast */
+@media only screen and (max-width: 600px) {
+  /* Ghi đè Toast default nếu bị che */
+
+
+
 }

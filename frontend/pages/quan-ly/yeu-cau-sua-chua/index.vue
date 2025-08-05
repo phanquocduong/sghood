@@ -11,8 +11,8 @@
         <div v-else class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <div class="box-title-bar-req">
-                        <h4>Danh sách yêu cầu sửa chữa</h4>
+                    <div class=" box-title-bar-req">
+                        <h3>Danh sách yêu cầu sửa chữa</h3>
                         <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
                             <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
                         </NuxtLink>
@@ -207,10 +207,11 @@ onMounted(() => {
     display: flex;
     align-items: flex-start;
     border-bottom: 1px solid #eee;
-    padding: 20px;
+    padding: 20px 10px 10px 10px;
     position: relative;
     background: #fff;
-    gap: 20px;
+    
+    border-top: 1px solid #eee;
 }
 
 .repair-image-wrapper {
@@ -224,11 +225,13 @@ onMounted(() => {
     border-radius: 6px;
     border: 1px solid #ddd;
     cursor: pointer;
+    padding: 5px 10px;
 }
 
 .repair-content {
     display: block;
     flex: 1;
+    padding: 5px 10px;
 }
 
 .repair-header {
@@ -263,21 +266,29 @@ onMounted(() => {
 .pending {
     background-color: #edb717;
     color: white;
+     font-weight: 18px;
+    font-size: 14px;
 }
 
 .inprogress {
     background-color: #39bcf9;
     color: white;
+     font-weight: 18px;
+    font-size: 14px;
 }
 
 .done {
     background-color: #8ed83a;
     color: white;
+    font-weight: 18px;
+    font-size: 14px;
 }
 
 .canceled {
     background-color: #f91942;
     color: white;
+     font-weight: 18px;
+    font-size: 14px;
 }
 .btn-cancelled-style {
     border: 2px solid #f91942 !important;
@@ -306,12 +317,12 @@ onMounted(() => {
     align-items: center;
 }
 .repair-title h5 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
+    transform: translateX(-6px);
     word-break: break-word;
 }
 
@@ -401,7 +412,6 @@ onMounted(() => {
 
 .modal-close:hover {
     color: rgb(213, 13, 13);
-    transform: scale(1.2);
 }
 h5 {
     font-size: 18px;
@@ -490,7 +500,7 @@ h5 {
 
 /* ----------- Desktop & Default Styles ----------- */
 .add-button {
-    background-color: #f91942;
+    background-color: #ee3535;
     color: white;
     border: none;
     border-radius: 999px;
@@ -506,8 +516,8 @@ h5 {
 
 .add-button:hover {
     background-color: white;
-    color: #f91942;
-    border: 1px solid #f91942;
+    color: #ee3535;
+    border: 1px solid #ee3535;
 }
 
 .repair-actions {
@@ -525,11 +535,10 @@ h5 {
     flex-wrap: wrap;
     padding: 5px 20px;
     position: relative;
-    background-color: white;
     gap: 12px;
     position: sticky;
     top: 0;
-    z-index: 99;
+   background-color: #fff;
 }
 
 .box-title-bar::after {
@@ -539,9 +548,17 @@ h5 {
     left: 0;
     width: 100%;
     height: 1px;
-    background-color: #eaeaea;
 }
-
+ .box-title-bar-req h3{
+    font-size: 16px;
+    flex-grow: 1;
+    font-weight: 600;
+    margin: 0;
+    padding: 0px 10px;
+    color: #333;
+    display: block;
+    border-radius: 4px 4px 0 0;
+}
 /* ----------- Responsive Styles (Mobile < 480px) ----------- */
 @media only screen and (max-width: 480px) {
     .box-title-bar-req {
@@ -552,12 +569,20 @@ h5 {
         justify-content: center;
     }
 
-    .box-title-bar-req h4 {
+    .box-title-bar-req h3 {
         width: 100% !important;
         text-align: center;
         margin: auto;
+         padding: 5px 20px;
     }
-
+    .mfp-arrow-left
+   {
+    left: -60px;
+   
+    }
+    .mfp-arrow-right{
+    right: -60px;
+    }
     .add-button {
         display: flex;
         width: 100%;
@@ -581,7 +606,6 @@ h5 {
     .repair-header {
         flex-direction: column;
         align-items: flex-start;
-
         gap: 8px;
     }
 
@@ -589,7 +613,15 @@ h5 {
         order: 2; /* hiển thị sau */
         width: 100%;
         padding: 8px 12px;
-        text-align: center; /* hoặc left nếu bạn thích */
+        text-align: left; /* hoặc left nếu bạn thích */
     }
+    .repair-title h5 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    display: flex;
+     transform: translateX(-18px);
+
+}
 }
 </style>

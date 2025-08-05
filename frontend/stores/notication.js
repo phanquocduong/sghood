@@ -13,10 +13,9 @@ export const useNotificationStore = defineStore('notification', () => {
     const fetchNotifications = async () => {
         const userId = authStore.user?.id;
         if (!userId) return;
-
         loading.value = true;
         try {
-            const res = await $api(`notifications/user/${userId}`, {
+            const res = await $api(`/notifications/user/${userId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -28,10 +27,7 @@ export const useNotificationStore = defineStore('notification', () => {
                 notifications.value = []; // ← Đảm bảo luôn là mảng
                 return;
             }
-            if (res?.status === false) {
-                toast.error(` ${res.message || 'Lỗi khi lấy thông báo.'}`);
-                return;
-            }
+       
 
             const list = res.data.data;
             notifications.value = list.map(item => ({
@@ -42,7 +38,12 @@ export const useNotificationStore = defineStore('notification', () => {
                 time: item.created_at
             }));
         } catch (err) {
-            console.log(err);
+            if (err.response?.status === 404) {
+                notifications.value= [];
+            }else{
+                toast.error('Lỗi khi lấy thông báo');
+                console.log(err);
+            }
         } finally {
             loading.value = false;
         }
