@@ -195,4 +195,15 @@ class ContractController extends Controller
             abort(500, 'Đã xảy ra lỗi khi hiển thị hình ảnh căn cước công dân');
         }
     }
+
+    public function sendRevisionEmail(Request $request, $contractId)
+    {
+        $result = $this->contractService->sendRevisionEmail($contractId, $request->revision_reason);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
+    }
 }

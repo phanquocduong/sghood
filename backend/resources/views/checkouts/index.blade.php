@@ -36,7 +36,7 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
                                 <input type="text" class="form-control shadow-sm" name="querySearch"
-                                    placeholder="Tìm kiếm theo phòng..." value="{{ request('querySearch') }}">
+                                    placeholder="Tìm kiếm theo mã hợp đồng..." value="{{ request('querySearch') }}">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -78,19 +78,25 @@
                         <thead class="table-dark">
                             <tr>
                                 <th scope="col" style="width: 5%;" class="text-center">STT</th>
-                                <th scope="col" style="width: 15%;">Tên phòng</th>
+                                <th scope="col" style="width: 15%;">Mã HD</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Ngày checkout</th>
-                                <th scope="col" style="width: 15%;" class="text-center">Hoàn tiền</th>
+                                <th scope="col" style="width: 13%;" class="text-center">Hoàn tiền</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 20%;" class="text-center">Trạng thái người dùng</th>
-                                <th scope="col" style="width: 20%;" class="text-center">Thao tác</th>
+                                <th scope="col" style="width: 22%;" class="text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($checkouts as $checkout)
                                 <tr class="table-row">
                                     <td class="text-center">{{ $checkouts->firstItem() + $loop->index }}</td>
-                                    <td>{{ $checkout->contract->room->name }}</td>
+                                    <td>
+                                        <a href="{{ route('contracts.show', $checkout->contract->id) }}"
+                                        class="contract-id-clickable"
+                                        title="Xem chi tiết hợp đồng">
+                                            {{ 'HD'.$checkout->contract->id }}
+                                        </a>
+                                    </td>
                                     <td class="text-center">
                                         <small class="text-muted">
                                             <i class="fas fa-calendar me-1"></i>
@@ -137,7 +143,7 @@
                                         @if ($checkout->inventory_status !== 'Đã kiểm kê')
                                             <button type="button" class="btn btn-warning btn-sm shadow-sm"
                                                 data-bs-toggle="modal" data-bs-target="#editModal{{ $checkout->id }}">
-                                                <i class="fas fa-edit me-1"></i>Sửa
+                                                <i class="fas fa-edit me-1"></i>Kiểm kê
                                             </button>
                                         @else
                                             @if ($checkout->user_confirmation_status === 'Từ chối')
@@ -147,7 +153,19 @@
                                                 </button>
                                             @elseif ($checkout->user_confirmation_status === 'Đồng ý')
                                                 @if ($checkout->refund_status === 'Đã xử lý')
-                                                    <span class="fst-italic">Đã hoàn thành</span>
+                                                    @if ($checkout->has_left == 0)
+                                                        <form action="{{ route('checkouts.confirmLeft', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
+                                                            onsubmit="return confirm('Bạn có chắc chắn khách hàng đã rời đi?')">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn btn-primary btn-sm shadow-sm"
+                                                                title="Xác nhận khách hàng đã rời đi">
+                                                                <i class="fas fa-sign-out-alt me-1"></i>Xác nhận rời đi
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <span class="fst-italic">Đã hoàn thành</span>
+                                                    @endif
                                                 @endif
                                             @else
                                                 @php
@@ -323,7 +341,6 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
-
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                             </div>
                                         </div>
@@ -336,8 +353,7 @@
                                     <div class="modal-dialog modal-dialog-centered modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header bg-warning text-white">
-                                                <h5 class="modal-title" id="editModalLabel{{ $checkout->id }}">Sửa
-                                                    Checkout</h5>
+                                                <h5 class="modal-title" id="editModalLabel{{ $checkout->id }}">Kiểm kê</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -348,37 +364,6 @@
                                                     @csrf
                                                     @method('PUT')
 
-                                                    <div class="mb-3">
-                                                        <label for="check_out_date{{ $checkout->id }}"
-                                                            class="form-label">Ngày checkout <span
-                                                                style="color: red;">*</span></label>
-                                                        <input type="date" class="form-control"
-                                                            id="check_out_date{{ $checkout->id }}" name="check_out_date"
-                                                            value="{{ $checkout->check_out_date ? \Carbon\Carbon::parse($checkout->check_out_date)->format('Y-m-d') : '' }}"
-                                                            required>
-                                                        @error('check_out_date')
-                                                            <div class="text-danger small">{{ $message }}</div>
-                                                        @enderror
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label for="has_left{{ $checkout->id }}" class="form-label">Rời
-                                                            đi <span style="color: red;">*</span></label>
-                                                        <select class="form-select" id="has_left{{ $checkout->id }}"
-                                                            name="has_left" required>
-                                                            <option value="0"
-                                                                {{ $checkout->has_left == 0 ? 'selected' : '' }}>Chưa rời
-                                                                đi</option>
-                                                            <option value="1"
-                                                                {{ $checkout->has_left == 1 ? 'selected' : '' }}>Đã rời đi
-                                                            </option>
-                                                        </select>
-                                                        @error('has_left')
-                                                            <div class="text-danger small">{{ $message }}</div>
-                                                        @enderror
-                                                    </div>
-
-                                                    <!-- Change this part in your Blade template -->
                                                     <div class="mb-3">
                                                         <label for="inventory_status{{ $checkout->id }}"
                                                             class="form-label">Trạng thái <span
@@ -404,7 +389,6 @@
                                                         VNĐ</p>
 
                                                     <!-- Inventory Details Section -->
-                                                    <!-- Trong modal Edit section, thay thế phần Inventory Details -->
                                                     <div class="mb-3">
                                                         <label class="form-label">Kiểm kê</label>
                                                         <div class="row">

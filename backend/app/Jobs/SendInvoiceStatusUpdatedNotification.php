@@ -99,7 +99,7 @@ class SendInvoiceStatusUpdatedNotification implements ShouldQueue
                         'total_amount' => $this->invoice->total_amount,
                         'month' => $this->invoice->month,
                         'year' => $this->invoice->year,
-                        'action_url' => url("/invoices/{$this->invoice->id}")
+                        'action_url' => 'https://sghood.com.vn/quan-ly/hoa-don'
                     ])
                 ];
 

@@ -16,12 +16,24 @@ class ContractExtensionService
             $query = ContractExtension::with(['contract', 'contract.user', 'contract.room']);
 
             // Apply search filter by room name only
-            if ($querySearch) {
-                $querySearch = trim($querySearch);
-                $query->whereHas('contract.room', function ($roomQuery) use ($querySearch) {
-                    $roomQuery->where('name', 'like', "%{$querySearch}%");
-                });
+            if (!empty($querySearch)) {
+            $query->whereHas('contract', function ($q) use ($querySearch) {
+            // If query is exactly "hd" or "HD", show all contracts
+            if (strtolower($querySearch) === 'hd') {
+                // No additional filtering - show all contracts
+                return;
             }
+
+            // If query starts with HD or hd, extract the numeric part
+            $numericQuery = $querySearch;
+            if (preg_match('/^hd(\d+)$/i', $querySearch, $matches)) {
+                $numericQuery = $matches[1];
+            }
+
+            $q->where('id', 'like', '%' . $querySearch . '%')
+              ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            });
+        }
 
             // Apply status filter
             if ($status) {

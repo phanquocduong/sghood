@@ -85,11 +85,12 @@
                     <thead class="table-dark">
                         <tr>
                             <th scope="col" style="width: 5%;">Stt</th>
-                            <th scope="col" style="width: 15%;">Ảnh</th>
-                            <th scope="col">Tên phòng trọ</th>
-                            <th scope="col">Ghi chú</th>
-                            <th scope="col" style="width: 15%;">Trạng thái</th>
-                            <th scope="col" style="width: 20%;">Thao tác</th>
+                            <th scope="col" style="width: 11%;">Ảnh</th>
+                            <th scope="col" style="width: 11%;">Diện tích/Giá</th>
+                            <th scope="col" style="width: 11%;">Tên phòng trọ</th>
+                            <th scope="col" style="width: 20%;">Ghi chú</th>
+                            <th scope="col" style="width: 10%;">Trạng thái</th>
+                            <th scope="col" style="width: 18%;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,6 +103,12 @@
                                     @else
                                         <img src="https://via.placeholder.com/100?text=Không+có+ảnh" alt="No Image" class="img-fluid rounded motel-image" style="max-height: 80px; object-fit: cover; transition: transform 0.3s;">
                                     @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold">{{ $room->area }} m²</span>
+                                        <span class="text-muted">{{ number_format($room->price, 0, ',', '.') }} đ</span>
+                                    </div>
                                 </td>
                                 <td>
                                     <a href="{{ route('rooms.show', $room->id) }}" class="text-primary fw-bold text-decoration-none" style="transition: color 0.3s;">

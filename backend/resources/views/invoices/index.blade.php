@@ -183,13 +183,12 @@
                                             $statusClass = match($invoice->status) {
                                                 'Đã trả' => 'success',
                                                 'Chưa trả' => 'warning',
-                                                'Đã hoàn tiền' => 'secondary',
                                                 default => 'secondary'
                                             };
                                         @endphp
                                         <!-- Hiển thị badge thông thường -->
                                         <span class="badge bg-{{ $statusClass }} py-2 px-3">
-                                            <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : ($invoice->status === 'Đã hoàn tiền' ? 'undo' : 'clock') }} me-1"></i>
+                                            <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : 'clock' }} me-1"></i>
                                             {{ $invoice->status }}
                                         </span>
                                     </td>

@@ -166,6 +166,7 @@ Route::middleware('admin')->group(function () {
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
+        Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
     });
 
     // Notification routes
@@ -230,6 +231,7 @@ Route::middleware('admin')->group(function () {
         Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('reInventory');
         Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
         Route::patch('/{id}/force-confirm-user', [CheckoutController::class, 'forceConfirmUser'])->name('forceConfirmUser');
+        Route::patch('/{id}/confirmLeft', [CheckoutController::class, 'confirmLeft'])->name('confirmLeft');
     });
 
     // Route for meter reading index

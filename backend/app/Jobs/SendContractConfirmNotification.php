@@ -78,7 +78,9 @@ class SendContractConfirmNotification implements ShouldQueue
                     ->withNotification(FirebaseNotification::create(
                         $notificationData['title'],
                         $notificationData['content']
-                    ));
+                    ))
+                    ->withData(['url' => 'https://sghood.com.vn/quan-ly/hop-dong']);
+
 
                 $messaging->send($fcmMessage);
 

@@ -20,7 +20,6 @@ class ContractService
             DB::enableQueryLog();
             $query = Contract::with(['user', 'room', 'booking']);
 
-            // Apply search filter
             if ($querySearch) {
                 $querySearch = trim($querySearch);
                 $query->where(function ($q) use ($querySearch) {
@@ -37,7 +36,6 @@ class ContractService
                 $query->where('status', $status);
             }
 
-            // Apply sort by created_at
             $sortDirection = in_array($sort, ['asc', 'desc']) ? $sort : 'desc';
             $contracts = $query->orderBy('created_at', $sortDirection)->paginate(15);
             Log::info('SQL Query', DB::getQueryLog());
@@ -55,10 +53,7 @@ class ContractService
     public function getContractsEndingSoon(): array
     {
         try {
-            // Lấy ngày hiện tại
             $today = Carbon::now()->startOfDay();
-
-            // Lấy ngày 1 tháng tới
             $oneMonthFromNow = $today->copy()->addMonth()->endOfDay();
 
             Log::info('Getting contracts ending soon', [
@@ -66,7 +61,6 @@ class ContractService
                 'to_date' => $oneMonthFromNow->toDateString()
             ]);
 
-            // Lấy các hợp đồng có end_date trong khoảng từ hôm nay đến 1 tháng sau
             $contracts = Contract::with(['user', 'room', 'booking'])
                 ->where('status', 'Hoạt động')
                 ->whereDate('end_date', '>=', $today)
@@ -89,7 +83,6 @@ class ContractService
 
     public function signedContracts(): array
     {
-        // hợp đồng được kí hôm nay
         try {
             $today = Carbon::today();
             $contracts = Contract::with(['user', 'room', 'booking'])
@@ -148,25 +141,37 @@ class ContractService
             $contract->update(['status' => $status]);
             $contract->refresh();
 
-            // Cập nhật status người dùng thành "Người đăng ký" khi hợp đồng kết thúc
             if ($status === 'Kết thúc' && $oldStatus !== 'Kết thúc') {
                 if ($contract->user) {
+                    // Update user role to "Người đăng ký"
                     $contract->user->update(['role' => 'Người đăng ký']);
+
+                    // Remove identity documents from user and storage
+                    if ($contract->user->identity_document) {
+                        $imagePaths = explode('|', $contract->user->identity_document);
+                        foreach ($imagePaths as $index => $imagePath) {
+                            // Delete the file from storage
+                            if (Storage::disk('public')->exists($imagePath)) {
+                                Storage::disk('public')->delete($imagePath);
+                                Log::info('Deleted identity document file', [
+                                    'user_id' => $contract->user->id,
+                                    'file_path' => $imagePath
+                                ]);
+                            }
+                        }
+                        // Clear the identity_document field in the user model
+                        $contract->user->update(['identity_document' => null]);
+                        Log::info('User identity document cleared', [
+                            'user_id' => $contract->user->id,
+                            'contract_id' => $contract->id
+                        ]);
+                    }
+
                     Log::info('User status updated to "Người đăng ký"', [
                         'user_id' => $contract->user->id,
                         'contract_id' => $contract->id
                     ]);
                 }
-            }
-
-            // Gửi thông báo khi trạng thái chuyển thành "Chờ chỉnh sửa" bằng Job
-            if ($status === 'Chờ chỉnh sửa' && $oldStatus !== 'Chờ chỉnh sửa') {
-                SendContractRevisionNotification::dispatch($contract);
-
-                Log::info('Contract revision notification job dispatched', [
-                    'contract_id' => $contract->id,
-                    'user_id' => $contract->user_id,
-                ]);
             }
 
             // Gửi thông báo khi trạng thái chuyển thành "Chờ ký" bằng Job
@@ -199,7 +204,6 @@ class ContractService
         }
     }
 
-    // Tải file PDF hợp đồng
     public function downloadContractPdf(int $id): array
     {
         try {
@@ -213,10 +217,8 @@ class ContractService
                 return ['error' => 'File PDF chưa được tạo cho hợp đồng này', 'status' => 404];
             }
 
-            // Đường dẫn file PDF trong thư mục private/pdf/contracts
             $pdfPath = $contract->file;
 
-            // Kiểm tra file tồn tại trong storage/app
             if (!Storage::disk('local')->exists($pdfPath)) {
                 return ['error' => 'File PDF không tồn tại trên hệ thống', 'status' => 404];
             }
@@ -241,7 +243,6 @@ class ContractService
         }
     }
 
-    // Lấy hình ảnh căn cước công dân từ hợp đồng
     public function getIdentityDocument(int $contractId, string $imagePath): array
     {
         try {
@@ -299,8 +300,7 @@ class ContractService
                 continue;
             }
 
-            // Tính đúng số ngày còn lại (có dấu)
-            $daysLeft = $today->diffInDays($endDate, false); // <-- thêm false để phân biệt âm/dương
+            $daysLeft = $today->diffInDays($endDate, false);
 
             if ($daysLeft > 7) {
                 $currentTenants[] = $tenant;
@@ -314,5 +314,49 @@ class ContractService
             'expiring' => $expiringTenants,
             'expired' => $expiredTenants,
         ];
+    }
+
+    public function sendRevisionEmail($contractId, string $revisionReason): array
+    {
+        try {
+            $contract = Contract::with(['user', 'room', 'booking'])->findOrFail($contractId);
+
+            if (!$contract->user || !$contract->user->email) {
+                Log::error('User or email not found for contract', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin người dùng hoặc email.',
+                    'status' => 404
+                ];
+            }
+
+            $contract->update(['status' => 'Chờ chỉnh sửa']);
+
+            SendContractRevisionNotification::dispatch($contract, $revisionReason);
+
+            Log::info('Contract revision notification job dispatched', [
+                'contract_id' => $contract->id,
+                'user_id' => $contract->user_id,
+                'revision_reason' => $revisionReason
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Yêu cầu chỉnh sửa đã được gửi thành công!'
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Error dispatching contract revision notification job: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'revision_reason' => $revisionReason,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi gửi yêu cầu chỉnh sửa.',
+                'status' => 500
+            ];
+        }
     }
 }
