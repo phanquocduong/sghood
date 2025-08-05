@@ -244,6 +244,7 @@ Route::middleware('admin')->group(function () {
     Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
     Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
     Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
+    Route::put('repair-requests/{id}/note', [RepairRequestController::class, 'updateNote'])->name('repair_requests.updateNote');
 });
 
 // File tải file PDF hợp đồng
@@ -257,5 +258,3 @@ Route::get('/contract/pdf/{id}', function ($id) {
 
     abort(404, 'File hợp đồng không tồn tại');
 });
-
-

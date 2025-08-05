@@ -148,7 +148,8 @@
                                 <div class="col-6 col-md-3 {{ $index >= 8 ? 'd-none more-motel' : '' }}">
                                     <div class="text-center p-3 bg-{{ $color }} bg-opacity-10 rounded">
                                         <i class="fas fa-building text-{{ $color }} mb-2"></i>
-                                        <small class="mb-1 d-block" style="color: white;"><strong>{{ $motel->motel->name }}</strong></small>
+                                        <small class="mb-1 d-block"
+                                            style="color: white;"><strong>{{ $motel->motel->name }}</strong></small>
                                         <span class="badge bg-{{ $color }}">{{ $available }}</span>
                                     </div>
                                 </div>
@@ -201,10 +202,8 @@
 
                                 @if (count($currentTenants) > 3)
                                     <li class="list-group-item border-0 py-1 text-center">
-                                        <!-- <button class="btn btn-sm btn-outline-primary" onclick="toggleTenants('extra-current', this)">
-                                            Xem tất cả
-                                        </button> -->
-                                        <a href="{{ url('/contracts') }}?querySearch=&status=Hoạt%20động&sort=desc" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                                        <a href="{{ url('/contracts') }}?querySearch=&status=Hoạt%20động&sort=desc"
+                                            class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                                     </li>
                                 @endif
                             </ul>
@@ -231,12 +230,14 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng sắp hết hạn</li>
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng sắp hết
+                                        hạn</li>
                                 @endforelse
 
                                 @if (count($expiringTenants) > 3)
                                     <li class="list-group-item border-0 py-1 text-center">
-                                        <button class="btn btn-sm btn-outline-warning" onclick="toggleTenants('extra-expiring', this)">
+                                        <button class="btn btn-sm btn-outline-warning"
+                                            onclick="toggleTenants('extra-expiring', this)">
                                             Xem tất cả
                                         </button>
                                     </li>
@@ -265,16 +266,14 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng đã hết hạn</li>
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng đã hết
+                                        hạn</li>
                                 @endforelse
 
                                 @if (count($expiredTenants) > 3)
                                     <li class="list-group-item border-0 py-1 text-center">
-                                        <!-- <button class="btn btn-sm btn-outline-danger" onclick="toggleTenants('extra-expired', this)">
-                                            Xem tất cả
-                                        </button> -->
-
-                                          <a href="{{ url('/contracts') }}?querySearch=&status=Kết%20thúc&sort=desc" class="btn btn-sm btn-outline-danger">Xem tất cả</a>
+                                        <a href="{{ url('/contracts') }}?querySearch=&status=Kết%20thúc&sort=desc"
+                                            class="btn btn-sm btn-outline-danger">Xem tất cả</a>
                                     </li>
                                 @endif
                             </ul>
@@ -296,9 +295,7 @@
                 labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
                 datasets: [{
                     label: 'Doanh thu (VNĐ)',
-                    data: [18500000, 22000000, 19800000, 25600000, 28200000, 31000000, 29500000, 33200000,
-                        27800000, 30500000, 32500000, 35200000
-                    ],
+                    data: @json($monthlyRevenue), // Sử dụng dữ liệu từ controller
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     borderWidth: 3,
@@ -317,6 +314,16 @@
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                }).format(context.parsed.y);
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -338,7 +345,7 @@
                             display: false
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return new Intl.NumberFormat('vi-VN', {
                                     notation: 'compact',
                                     compactDisplay: 'short'
@@ -350,17 +357,10 @@
             }
         });
 
-        // Toggle functions
         function toggleMotels(btn) {
             const hiddenItems = document.querySelectorAll('.more-motel');
             hiddenItems.forEach(el => el.classList.toggle('d-none'));
             btn.textContent = btn.textContent === 'Xem thêm' ? 'Thu gọn' : 'Xem thêm';
-        }
-
-        function toggleTenants(className, btn) {
-            const items = document.querySelectorAll('.' + className);
-            items.forEach(el => el.classList.toggle('d-none'));
-            btn.innerText = btn.innerText === 'Ẩn bớt' ? 'Xem tất cả' : 'Ẩn bớt';
         }
     </script>
 @endsection

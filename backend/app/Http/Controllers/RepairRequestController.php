@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RepairRequest;
 use App\Services\RepairRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -56,5 +57,28 @@ class RepairRequestController extends Controller
         }
 
         return redirect()->route('repair_requests.index')->with('error', 'Cập nhật trạng thái thất bại.');
+    }
+
+    public function updateNote(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'note' => 'nullable|string|max:1000'
+            ]);
+
+            $repairRequest = RepairRequest::findOrFail($id);
+            $repairRequest->update(['note' => $request->note]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật ghi chú thành công',
+                'note' => $request->note
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
