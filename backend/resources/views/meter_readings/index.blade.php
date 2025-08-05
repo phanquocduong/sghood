@@ -102,7 +102,7 @@
                     </div>
                     <div class="col-md-1">
                         <a href="{{ route('meter_readings.index') }}" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-undo me-1"></i>Đặt lại
+                            <i class="fas fa-undo me-1"></i>
                         </a>
                     </div>
                 </form>
@@ -233,7 +233,7 @@
                     <div class="alert alert-info text-center" style="display: block;" id="displayIndex">
                         <i class="fas fa-info-circle me-2"></i>
                         Chỉ số điện nước chỉ được cập nhật vào cuối tháng.
-                        Vui lòng kiểm tra sau ngày 23.
+                        Vui lòng kiểm tra sau ngày 27.
                     </div>
                 @endif
 
@@ -243,11 +243,11 @@
                 </div>
 
                 <!-- Pagination -->
-                @if(isset($meterReadings) && $meterReadings instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                <!-- @if(isset($meterReadings) && $meterReadings instanceof \Illuminate\Pagination\LengthAwarePaginator)
                     <div class="mt-4">
                         {{ $meterReadings->appends(request()->query())->links('pagination::bootstrap-4') }}
                     </div>
-                @endif
+                @endif -->
             </div>
         </div>
     </div>
@@ -391,7 +391,7 @@
                                                                                     <span class="input-group-text bg-warning text-dark">
                                                                                         <i class="fas fa-bolt"></i>
                                                                                     </span>
-                                                                                    <input type="number" step="0.01" min="0" max="2000" name="readings[${globalIndex}][electricity_kwh]" class="form-control ${electricityError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}">
+                                                                                    <input type="number" step="0.01" min="0" name="readings[${globalIndex}][electricity_kwh]" class="form-control ${electricityError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}">
                                                                                 </div>
                                                                                 ${electricityError ? `<div class="invalid-feedback d-block">${electricityError}</div>` : ""}
                                                                             </div>
@@ -400,7 +400,7 @@
                                                                                     <span class="input-group-text bg-info text-white">
                                                                                         <i class="fas fa-tint"></i>
                                                                                     </span>
-                                                                                    <input type="number" step="0.01" min="0" max="200" name="readings[${globalIndex}][water_m3]" class="form-control ${waterError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                                                    <input type="number" step="0.01" min="0" name="readings[${globalIndex}][water_m3]" class="form-control ${waterError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
                                                                                 </div>
                                                                                 ${waterError ? `<div class="invalid-feedback d-block">${waterError}</div>` : ""}
                                                                             </div>

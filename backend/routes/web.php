@@ -251,3 +251,4 @@ Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])-
 Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
 Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
 Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
+Route::put('repair-requests/{id}/note', [RepairRequestController::class, 'updateNote'])->name('repair_requests.updateNote');

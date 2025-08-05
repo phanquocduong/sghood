@@ -12,7 +12,7 @@ class ConfigController extends Controller
 
     public function __construct(ConfigService $configService)
     {
-        $this->configService = $this->configService = $configService;
+        $this->configService = $configService;
     }
 
     /**
@@ -43,21 +43,31 @@ class ConfigController extends Controller
         $imageFile = $data['config_type'] === 'IMAGE' ? $request->file('config_image') : null;
         $jsonData = null;
 
-        // Improved JSON handling
+        // Xử lý JSON (OPTION)
         if ($data['config_type'] === 'JSON' && $request->has('config_json')) {
             $jsonArray = $request->input('config_json');
             $jsonArray = array_filter($jsonArray, fn($v) => trim($v) !== '');
 
-            try {
-                json_encode($jsonArray, JSON_UNESCAPED_UNICODE); // chỉ để kiểm tra
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return back()->with('error', 'JSON không hợp lệ: ' . json_last_error_msg())->withInput();
-                }
-
-                $jsonData = $jsonArray; // ✨ giữ là mảng
-            } catch (\Exception $e) {
-                return back()->with('error', 'Lỗi xử lý JSON: ' . $e->getMessage())->withInput();
+            if (empty($jsonArray)) {
+                return back()->with('error', 'Vui lòng thêm ít nhất một lựa chọn')->withInput();
             }
+
+            $jsonData = array_values($jsonArray); // Reset array keys
+        }
+        // Xử lý BANK
+        elseif ($data['config_type'] === 'BANK' && $request->has('config_json')) {
+            $bankArray = $request->input('config_json');
+            
+            // Lọc bỏ các bank rỗng
+            $validBanks = array_filter($bankArray, function($bank) {
+                return !empty($bank['value']) && !empty($bank['label']);
+            });
+
+            if (empty($validBanks)) {
+                return back()->with('error', 'Vui lòng thêm ít nhất một ngân hàng hợp lệ')->withInput();
+            }
+
+            $jsonData = array_values($validBanks); // Reset array keys
         }
 
         $result = $this->configService->createConfig($data, $imageFile, $jsonData);
@@ -87,18 +97,48 @@ class ConfigController extends Controller
         $imageFile = $data['config_type'] === 'IMAGE' && $request->hasFile('config_image') ? $request->file('config_image') : null;
         $jsonData = null;
 
-        if ($data['config_type'] === 'JSON' && isset($data['config_json'])) {
-            try {
-                $decodedJson = $data['config_json'];
-
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return redirect()->back()->with('error', 'JSON không hợp lệ: ' . json_last_error_msg())->withInput();
+        // Xử lý JSON (OPTION)
+        if ($data['config_type'] === 'JSON' && $request->has('config_json')) {
+            $jsonArray = $request->input('config_json');
+            
+            // Nếu chuyển từ BANK sang JSON, xử lý conversion
+            if (is_array($jsonArray) && isset($jsonArray[0]) && is_array($jsonArray[0])) {
+                // Dữ liệu từ BANK format, chuyển đổi thành JSON format
+                $convertedArray = [];
+                foreach ($jsonArray as $item) {
+                    if (is_array($item)) {
+                        $value = $item['value'] ?? $item['label'] ?? '';
+                        if (!empty(trim($value))) {
+                            $convertedArray[] = trim($value);
+                        }
+                    }
                 }
-
-                $jsonData = $decodedJson; // ✅ Dùng mảng
-            } catch (\Exception $e) {
-                return redirect()->back()->with('error', 'Lỗi xử lý JSON: ' . $e->getMessage())->withInput();
+                $jsonArray = $convertedArray;
+            } else {
+                // Dữ liệu JSON format bình thường
+                $jsonArray = array_filter($jsonArray, fn($v) => trim($v) !== '');
             }
+
+            if (empty($jsonArray)) {
+                return back()->with('error', 'Vui lòng thêm ít nhất một lựa chọn')->withInput();
+            }
+
+            $jsonData = array_values($jsonArray); // Reset array keys
+        }
+        // Xử lý BANK
+        elseif ($data['config_type'] === 'BANK' && $request->has('config_json')) {
+            $bankArray = $request->input('config_json');
+            
+            // Lọc bỏ các bank rỗng
+            $validBanks = array_filter($bankArray, function($bank) {
+                return !empty($bank['value']) && !empty($bank['label']);
+            });
+
+            if (empty($validBanks)) {
+                return back()->with('error', 'Vui lòng thêm ít nhất một ngân hàng hợp lệ')->withInput();
+            }
+
+            $jsonData = array_values($validBanks); // Reset array keys
         }
 
         $result = $this->configService->updateConfig($id, $data, $imageFile, $jsonData);
@@ -108,5 +148,19 @@ class ConfigController extends Controller
         }
 
         return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công!');
+    }
+
+    /**
+     * Remove the specified configuration from storage.
+     */
+    public function destroy($id)
+    {
+        $result = $this->configService->deleteConfig($id);
+
+        if (isset($result['error'])) {
+            return redirect()->back()->with('error', $result['error']);
+        }
+
+        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được xóa thành công!');
     }
 }

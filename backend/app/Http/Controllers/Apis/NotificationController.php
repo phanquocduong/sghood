@@ -27,7 +27,7 @@ class NotificationController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Không có thông báo nào.'
-            ], 404);
+            ], 200);
         }
 
         // Trả về dữ liệu đã phân trang
