@@ -3,8 +3,6 @@
 @section('title', 'Danh sách hóa đơn')
 
 @section('content')
-
-
     <div class="container-fluid py-5 px-4">
         <!-- Filter Info -->
         <div class="row mb-3">
@@ -164,8 +162,8 @@
                                 <th scope="col" style="width: 15%;" class="text-center">Tổng tiền</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Tháng/Năm</th>
-                                <th scope="col" style="width: 25%;" class="text-center">Hành động/Ngày hoàn tiền</th>
-                                <th scope="col" style="width: 13%;" class="text-center">Xem chi tiết</th>
+                                <th scope="col" style="width: 27%;" class="text-center">Hành động/Ngày hoàn tiền</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Xem chi tiết</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -180,16 +178,30 @@
                                     </td>
                                     <td class="text-center">
                                         @php
-                                            $statusClass = match($invoice->status) {
-                                                'Đã trả' => 'success',
-                                                'Chưa trả' => 'warning',
+                                            $isOverdue = false;
+                                            if ($invoice->status === 'Chưa trả') {
+                                                $dueDate = \Carbon\Carbon::createFromDate($invoice->year, $invoice->month, 1)->addMonth()->setDay(5);
+                                                $isOverdue = now()->gt($dueDate);
+                                            }
+
+                                            $statusClass = match(true) {
+                                                $isOverdue => 'danger',
+                                                $invoice->status === 'Đã trả' => 'success',
+                                                $invoice->status === 'Chưa trả' => 'warning',
                                                 default => 'secondary'
+                                            };
+
+                                            $statusText = $isOverdue ? 'Quá hạn' : $invoice->status;
+                                            $statusIcon = match(true) {
+                                                $isOverdue => 'exclamation-triangle',
+                                                $invoice->status === 'Đã trả' => 'check-circle',
+                                                default => 'clock'
                                             };
                                         @endphp
                                         <!-- Hiển thị badge thông thường -->
                                         <span class="badge bg-{{ $statusClass }} py-2 px-3">
-                                            <i class="fas fa-{{ $invoice->status === 'Đã trả' ? 'check-circle' : 'clock' }} me-1"></i>
-                                            {{ $invoice->status }}
+                                            <i class="fas fa-{{ $statusIcon }} me-1"></i>
+                                            {{ $statusText }}
                                         </span>
                                     </td>
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
@@ -213,10 +225,9 @@
                                     </td>
                                     <td class="text-center">
                                         <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})" title="Xem chi tiết hóa đơn">
-                                            <i class="fas fa-eye"></i> Chi tiết
+                                            <i class="fas fa-eye"></i>
                                         </button>
                                     </td>
-
                                 </tr>
                             @empty
                                 <tr>
@@ -374,8 +385,12 @@
                                 <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Chỉ số điện nước</h6>
                             </div>
                             <div class="card-body">
-                                <p><strong>Điện:</strong> ${invoice.meter_reading.electricity_kwh} kWh</p>
-                                <p><strong>Nước:</strong> ${invoice.meter_reading.water_m3} m³</p>
+                                <p><strong>Điện tiêu thụ:</strong> ${invoice.meter_reading.electricity_consumption} kWh</p>
+                                <p><strong>Chỉ số điện hiện tại:</strong> ${invoice.meter_reading.electricity_kwh} kWh</p>
+                                <p><strong>Chỉ số điện tháng trước:</strong> ${invoice.meter_reading.previous_electricity_kwh} kWh</p>
+                                <p><strong>Nước tiêu thụ:</strong> ${invoice.meter_reading.water_consumption} m³</p>
+                                <p><strong>Chỉ số nước hiện tại:</strong> ${invoice.meter_reading.water_m3} m³</p>
+                                <p><strong>Chỉ số nước tháng trước:</strong> ${invoice.meter_reading.previous_water_m3} m³</p>
                             </div>
                         </div>
                     </div>

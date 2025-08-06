@@ -350,4 +350,75 @@ class AmenityService
             $index++;
         }
     }
+    public function reorderAmenyties(string $type, array $order): array
+    {
+        DB::beginTransaction();
+        try {
+            $amenities = Amenity::where('type', $type)
+                ->whereNull('deleted_at')
+                ->whereIn('id', $order)
+                ->get()
+                ->keyBy('id');
+
+            foreach ($order as $index => $id) {
+                if (isset($amenities[$id])) {
+                    $amenities[$id]->update(['order' => $index + 1]);
+                }
+            }
+
+            // Đảm bảo thứ tự liên tục và không bị trùng
+            $this->reorderAmenitiesByType($type);
+
+            DB::commit();
+            return $this->successResponse(true);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error in reorderAmenities: ' . $e->getMessage());
+            return $this->errorResponse('Đã xảy ra lỗi khi cập nhật thứ tự', 500);
+        }
+    }
+
+    // Thêm method hỗ trợ sắp xếp lại toàn bộ theo type
+    private function reorderAmenitiesByType(string $type): void
+    {
+        $amenities = Amenity::where('type', $type)
+            ->whereNull('deleted_at')
+            ->orderBy('order', 'asc')
+            ->get();
+
+        $index = 1;
+        foreach ($amenities as $amenity) {
+            if ($amenity->order !== $index) {
+                $amenity->update(['order' => $index]);
+            }
+            $index++;
+        }
+    }
+    // Lấy tất cả tiện ích nhóm theo type
+    public function getAllAmenitiesByType(?string $typeFilter = null, ?string $searchQuery = null): array
+    {
+        try {
+            $query = Amenity::whereNull('deleted_at');
+
+            // Áp dụng filter theo type
+            if (!empty($typeFilter)) {
+                $query->where('type', $typeFilter);
+            }
+
+            // Áp dụng tìm kiếm
+            if (!empty($searchQuery)) {
+                $query->where('name', 'like', '%' . $searchQuery . '%');
+            }
+
+            $amenities = $query->orderBy('type', 'asc')
+                ->orderBy('order', 'asc')
+                ->get()
+                ->groupBy('type');
+
+            return $this->successResponse($amenities);
+        } catch (\Throwable $e) {
+            Log::error('Error in getAllAmenitiesByType: ' . $e->getMessage());
+            return $this->errorResponse('Đã xảy ra lỗi khi lấy danh sách tiện ích theo type', 500);
+        }
+    }
 }

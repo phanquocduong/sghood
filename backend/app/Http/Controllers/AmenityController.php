@@ -23,7 +23,7 @@ class AmenityController extends Controller
         $querySearch = $request->query('query', '');
         $type = $request->query('type', '');
         $sortOption = $request->query('sortOption', '');
-        $perPage = $request->query('perPage', 10);
+        $perPage = $request->query('perPage', 15);
 
         // Sửa: Thêm tham số $type
         $result = $this->amenityService->getAvailableAmenities($querySearch, $type, $sortOption, $perPage);
@@ -164,5 +164,44 @@ class AmenityController extends Controller
 
         return redirect()->route('amenities.trash')
             ->with('success', 'Tiện nghi đã được xóa vĩnh viễn!');
+    }
+
+    public function changeOrder(Request $request): View
+    {
+        $typeFilter = $request->get('type');
+        $searchQuery = $request->get('search');
+
+        $amenitiesByType = $this->amenityService->getAllAmenitiesByType($typeFilter, $searchQuery);
+
+        if (isset($amenitiesByType['error'])) {
+            return view('amenities.change_order')
+                ->with('error', $amenitiesByType['error'])
+                ->with('amenitiesByType', [])
+                ->with('selectedType', $typeFilter)
+                ->with('searchQuery', $searchQuery);
+        }
+
+        return view('amenities.change_order', [
+            'amenitiesByType' => $amenitiesByType['data'],
+            'selectedType' => $typeFilter,
+            'searchQuery' => $searchQuery
+        ]);
+    }
+
+    public function reorder(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $data = $request->validate([
+            'type' => 'required|string',
+            'order' => 'required|array',
+            'order.*' => 'required|integer|exists:amenities,id'
+        ]);
+
+        $result = $this->amenityService->reorderAmenyties($data['type'], $data['order']);
+
+        if (isset($result['error'])) {
+            return response()->json(['success' => false, 'error' => $result['error']], $result['status'] ?? 400);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Thứ tự đã được cập nhật thành công']);
     }
 }

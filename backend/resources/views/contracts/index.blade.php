@@ -220,61 +220,74 @@
 </div>
 
 <!-- User Info Modal -->
-<div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="userInfoModalLabel">
-                    <i class="fas fa-user-circle me-2"></i>Thông tin người thuê
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted">
-                                <i class="fas fa-user me-2"></i>Họ và tên:
-                            </label>
-                            <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserName">-</p>
+    <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="userInfoModalLabel">
+                        <i class="fas fa-user-circle me-2"></i>Thông tin người thuê
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <img id="modalUserAvatar" src="{{ asset('img/user.jpg') }}" alt="User Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted">
-                                <i class="fas fa-envelope me-2"></i>Email:
-                            </label>
-                            <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserEmail">-</p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted">
-                                <i class="fas fa-phone me-2"></i>Số điện thoại:
-                            </label>
-                            <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserPhone">-</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted">
-                                <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
-                            </label>
-                            <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserAddress">-</p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted">
-                                <i class="fas fa-calendar-plus me-2"></i>Ngày tạo tài khoản:
-                            </label>
-                            <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserCreated">-</p>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-user me-2"></i>Họ và tên:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserName">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-envelope me-2"></i>Email:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserEmail">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-phone me-2"></i>Số điện thoại:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserPhone">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserAddress">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-venus-mars me-2"></i>Giới tính:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserGender">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-birthday-cake me-2"></i>Ngày sinh:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserBirthdate">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-calendar-plus me-2"></i>Ngày tạo tài khoản:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserCreated">-</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Đóng
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Đóng
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 <style>
 .breadcrumb {
@@ -413,14 +426,32 @@ document.addEventListener('DOMContentLoaded', function() {
             const userPhone = this.getAttribute('data-user-phone');
             const userAddress = this.getAttribute('data-user-address');
             const userCreated = this.getAttribute('data-user-created');
+            const userGender = this.getAttribute('data-user-gender');
+            const userBirthdate = this.getAttribute('data-user-birthdate');
+            const userAvatar = this.getAttribute('data-user-avatar');
 
             // Update modal content
             document.getElementById('modalUserName').textContent = userName || 'N/A';
             document.getElementById('modalUserEmail').textContent = userEmail || 'N/A';
             document.getElementById('modalUserPhone').textContent = userPhone || 'N/A';
             document.getElementById('modalUserAddress').textContent = userAddress || 'N/A';
+            document.getElementById('modalUserGender').textContent = userGender || 'N/A';
+            document.getElementById('modalUserAvatar').src = userAvatar || '{{ asset('img/user.jpg') }}';
 
-            // Format date if available
+            // Format birthdate if available
+            if (userBirthdate && userBirthdate !== 'N/A') {
+                const date = new Date(userBirthdate);
+                const formattedBirthdate = date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('modalUserBirthdate').textContent = formattedBirthdate;
+            } else {
+                document.getElementById('modalUserBirthdate').textContent = 'N/A';
+            }
+
+            // Format created date if available
             if (userCreated && userCreated !== 'N/A') {
                 const date = new Date(userCreated);
                 const formattedDate = date.toLocaleDateString('vi-VN', {
@@ -448,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const roomId = this.getAttribute('data-room-id');
             if (roomId && roomId !== '') {
                 // Navigate to room detail page
-                window.location.href = `{{ url('rooms') }}/${roomId}`;
+                window.open(`{{ url('rooms') }}/${roomId}`, '_blank');
             }
         });
     });

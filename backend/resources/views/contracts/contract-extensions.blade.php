@@ -90,7 +90,6 @@
                 <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden" style="text-align: center">
                     <thead class="table-dark">
                         <tr>
-                            <th scope="col" style="width: 5%;" class="text-center">STT</th>
                             <th scope="col" style="width: 15%;">Mã HD</th>
                             <th scope="col" style="width: 15%;">Ngày kết thúc mới</th>
                             <th scope="col" style="width: 15%;">Giá thuê mới</th>
@@ -102,7 +101,6 @@
                     <tbody>
                         @forelse ($contractExtensions as $extension)
                             <tr class="table-row">
-                                <td class="text-center">{{ $contractExtensions->firstItem() + $loop->index }}</td>
                                 <td>
                                     <a href="{{ route('contracts.show', $extension->contract->id) }}"
                                        class="contract-id-clickable"

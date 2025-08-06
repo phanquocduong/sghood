@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>SGHood - Hệ thống quản lý thuê trọ thông minh tại TP.HCM</title>
     <!-- Favicon -->
-    <link href="img/sghood_icon.png" rel="icon">
+    <link href="{{ asset('img/sghood_icon.png') }}" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
