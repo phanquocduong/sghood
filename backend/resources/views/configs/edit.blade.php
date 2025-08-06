@@ -98,12 +98,12 @@
                                             if (!is_array($objectData)) $objectData = [];
                                         @endphp
                                         @foreach ($objectData as $groupIndex => $group)
-                                            <div class="object-group-item mb-4" id="object_group_{{ $groupIndex }}">
-                                                <div class="card border-primary">
-                                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                        <h6 class="mb-0 text-primary">
-                                                            <i class="fas fa-layer-group"></i> Nhóm đối tượng #{{ $groupIndex + 1 }}
-                                                        </h6>
+                                        <div class="object-group-item mb-4" id="object_group_{{ $groupIndex }}">
+                                            <div class="card border-primary">
+                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0 text-primary">
+                                                        <i class="fas fa-layer-group"></i> Nhóm đối tượng #{{ $loop->iteration }}
+                                                    </h6>
                                                         <div>
                                                             <button type="button" class="btn btn-sm btn-outline-success me-2" 
                                                                 onclick="addObjectKeyValue('object_group_{{ $groupIndex }}')">
