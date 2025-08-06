@@ -9,7 +9,7 @@
                     <div class="row margin-bottom-25" style="display: flex; align-items: flex-end">
                         <div class="col-md-6 col-xs-12">
                             <h2>Danh sách bài viết</h2>
-                            <span>Góc chia sẻ</span>
+                            <span>Gốc chia sẻ</span>
                         </div>
                         <div class="col-md-6 col-xs-12">
                             <SortByBlogs
@@ -18,7 +18,8 @@
                                 @update:selectedCategory="
                                     val => {
                                         selectedCategory = val;
-                                        handleFilter(); // lọc lại blog
+                                        // lọc lại blog
+                                        fetchBlogs(1, selectedCategory); // tải lại blog theo category
                                     }
                                 "
                             />
@@ -252,12 +253,11 @@ const fetchBlogs = async (page = 1, selectedCategory = '') => {
             url: `/chia-se-kinh-nghiem/${g.slug}`,
             created_at: formatDate(g.created_at)
         }));
-
+        console.log('fetchBlogs', res);
         blogPosts.value = mapped;
         allBlogs.value = [...mapped];
 
-        const allCate = mapped.map(b => b.category).filter(Boolean);
-        categories.value = [...new Set(allCate)];
+        categories.value = res.categories || [];
 
         currentPage.value = res.current_page || 1;
         totalPages.value = res.last_page || 1;
