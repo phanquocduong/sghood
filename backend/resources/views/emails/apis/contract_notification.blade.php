@@ -112,7 +112,7 @@
             margin-bottom: 24px;
         }
 
-        .status-pending {
+        .status-pending, .status-bypass-pending {
             background: #fef3c7;
             color: #92400e;
         }
@@ -127,7 +127,7 @@
             color: #065f46;
         }
 
-        .status-canceled {
+        .status-canceled, .status-early-terminated {
             background: #fecaca;
             color: #dc2626;
         }
@@ -308,6 +308,9 @@
                 @if ($type == 'pending')
                     <span class="status-badge status-pending">Chờ duyệt</span><br>
                     Một hợp đồng mới vừa được gửi và đang chờ sự duyệt từ bạn. Vui lòng kiểm tra và xử lý trong thời gian sớm nhất.
+                @elseif ($type == 'bypass_pending')
+                    <span class="status-badge status-bypass-pending">Chờ duyệt thủ công</span><br>
+                    Hợp đồng đã được gửi với thông tin CCCD nhập tay và ảnh tải lên. Vui lòng kiểm tra thông tin và ảnh để duyệt thủ công.
                 @elseif ($type == 'updated')
                     <span class="status-badge status-updated">Đã chỉnh sửa</span><br>
                     Thông tin hợp đồng vừa được cập nhật trong hệ thống. Vui lòng kiểm tra các thay đổi mới nhất.
@@ -320,6 +323,9 @@
                 @elseif ($type == 'deposit_paid')
                     <span class="status-badge status-deposit_paid">Đã thanh toán tiền cọc</span><br>
                     Hợp đồng đã được thanh toán tiền cọc và đang chờ kích hoạt. Vui lòng kiểm tra và xử lý trong hệ thống.
+                @elseif ($type == 'early_terminated')
+                    <span class="status-badge status-early-terminated">Kết thúc sớm</span><br>
+                    Hợp đồng đã được người dùng kết thúc sớm. Vui lòng kiểm tra trong hệ thống.
                 @else
                     <span class="status-badge status-updated">Thông báo</span><br>
                     Có một thông báo quan trọng liên quan đến hợp đồng cần sự chú ý của bạn.

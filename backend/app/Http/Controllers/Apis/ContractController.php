@@ -76,7 +76,7 @@ class ContractController extends Controller
     {
         try {
             $contract = Contract::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
-            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id);
+            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id, $request->input('bypass_extract'));
 
             if ($contract->status === 'Chờ xác nhận' && $request->hasFile('identity_images')) {
                 $this->userService->extractAndSaveIdentityImages(
@@ -152,6 +152,25 @@ class ContractController extends Controller
         } catch (\Throwable $e) {
             Log::error('Lỗi tải PDF hợp đồng:' . $e->getMessage());
             return response()->json(['error' => 'Đã có lỗi xảy ra khi tải PDF.'], 500);
+        }
+    }
+
+    public function earlyTermination(int $id): JsonResponse
+    {
+        try {
+            $result = $this->contractService->earlyTermination($id);
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json(['message' => 'Hợp đồng của bạn đã được kết thúc sớm.'], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi kết thúc hợp đồng sớm:' . $e->getMessage());
+            return response()->json(['error' => 'Đã xảy ra lỗi khi gửi yêu cầu kết thúc hợp đồng sớm.'], 500);
         }
     }
 }

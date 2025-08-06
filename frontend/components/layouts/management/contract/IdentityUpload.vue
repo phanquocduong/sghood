@@ -14,6 +14,9 @@
                     </ul>
                 </div>
                 <p v-if="identityDocument?.has_valid" class="valid-message">Ảnh căn cước đã hợp lệ, không thể tải lên thêm.</p>
+                <p v-else-if="bypassExtract" class="bypass-message">
+                    Quét CCCD thất bại nhiều lần. Vui lòng nhập thông tin CCCD trực tiếp vào hợp đồng và tải ảnh lên để admin xác nhận.
+                </p>
                 <div class="edit-profile-photo">
                     <form id="dropzone-upload" class="dropzone" :class="{ 'dropzone-disabled': identityDocument?.has_valid }"></form>
                 </div>
@@ -37,6 +40,10 @@ defineProps({
         required: true
     },
     saveLoading: {
+        type: Boolean,
+        required: true
+    },
+    bypassExtract: {
         type: Boolean,
         required: true
     }
@@ -124,6 +131,12 @@ defineEmits(['save-contract', 'identity-upload']);
 
 .upload-instructions li {
     margin-bottom: 8px;
+}
+
+.bypass-message {
+    color: #f39c12;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
 @media (max-width: 992px) {

@@ -1,4 +1,4 @@
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 
 export function useContract({
@@ -18,8 +18,10 @@ export function useContract({
     const { $api } = useNuxtApp();
     const { sendOTP, verifyOTP } = useFirebaseAuth();
 
-    const phoneNumber = ref(null); // Lưu số điện thoại từ contract
-    const otpCode = ref(''); // Mã OTP người dùng nhập
+    const phoneNumber = ref(null);
+    const otpCode = ref('');
+    const extractErrorCount = ref(0); // Đếm số lần quét lỗi
+    const bypassExtract = ref(false); // Cờ cho phép bypass quét CCCD
 
     const processContractContent = () => {
         if (!contract.value?.content) return;
@@ -85,6 +87,11 @@ export function useContract({
     };
 
     const handleIdentityUpload = async files => {
+        if (bypassExtract.value) {
+            identityImages.value = files;
+            return;
+        }
+
         const formData = new FormData();
         files.forEach(file => formData.append('identity_images[]', file));
 
@@ -98,11 +105,13 @@ export function useContract({
             identityDocument.value = response.data;
             identityImages.value = files;
             toast.success(response.message);
+            extractErrorCount.value = 0; // Reset lỗi khi quét thành công
 
             if (dropzoneInstance.value && identityDocument.value.has_valid) {
                 dropzoneInstance.value.disable();
             }
         } catch (error) {
+            extractErrorCount.value += 1;
             handleBackendError(error);
             identityDocument.value = {
                 full_name: '',
@@ -110,11 +119,19 @@ export function useContract({
                 identity_number: '',
                 date_of_issue: '',
                 place_of_issue: '',
-                permanent_address: ''
+                permanent_address: '',
+                has_valid: false
             };
             identityImages.value = [];
             if (dropzoneInstance.value) {
                 dropzoneInstance.value.removeAllFiles(true);
+            }
+
+            if (extractErrorCount.value >= 5) {
+                bypassExtract.value = true;
+                toast.warning(
+                    'Quét CCCD thất bại 5 lần. Bạn có thể nhập thông tin CCCD trực tiếp vào hợp đồng và tải ảnh lên để admin xác nhận.'
+                );
             }
         } finally {
             extractLoading.value = false;
@@ -192,16 +209,13 @@ export function useContract({
             return false;
         }
 
-        // Đợi DOM cập nhật
         await nextTick();
 
-        // Kiểm tra client-side và container
         if (typeof window === 'undefined' || !document.getElementById('recaptcha-container')) {
             toast.error('Không thể khởi tạo reCAPTCHA. Vui lòng thử lại.');
             return false;
         }
 
-        // Mở modal OTP
         window.jQuery.magnificPopup.open({
             items: { src: '#otp-dialog', type: 'inline' },
             fixedContentPos: false,
@@ -234,12 +248,8 @@ export function useContract({
 
     const signContract = async () => {
         try {
-            // Bắt đầu bằng việc yêu cầu OTP
             const otpSent = await requestOTP();
             if (!otpSent) return;
-
-            // Chờ người dùng xác minh OTP trong modal
-            // Logic xác minh OTP sẽ được xử lý trong OTPModal
         } catch (error) {
             console.error(error);
         }
@@ -264,7 +274,6 @@ export function useContract({
                 headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
             });
             toast.success(response.message);
-            // Đóng modal OTP
             if (window.jQuery && window.jQuery.fn.magnificPopup) {
                 window.jQuery.magnificPopup.close();
             }
@@ -309,6 +318,7 @@ export function useContract({
             const updatedHtml = updateContractHtml();
             const formData = new FormData();
             formData.append('contract_content', updatedHtml);
+            formData.append('bypass_extract', bypassExtract);
 
             if (contract.value.status === 'Chờ xác nhận') {
                 identityImages.value.forEach(file => formData.append('identity_images[]', file));
@@ -338,6 +348,8 @@ export function useContract({
         confirmOTPAndSign,
         saveContract,
         phoneNumber,
-        otpCode
+        otpCode,
+        extractErrorCount,
+        bypassExtract
     };
 }

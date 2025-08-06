@@ -20,7 +20,3 @@
     </nav>
     <div class="clearfix"></div>
 </template>
-
-<script setup></script>
-
-<style scoped></style>

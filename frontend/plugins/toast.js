@@ -51,20 +51,16 @@ export default defineNuxtPlugin(nuxtApp => {
 
     // Thêm CSS responsive
     if (process.client) {
-        let style = document.querySelector('style[data-toast-plugin]');
-        if (!style) {
-            style = document.createElement('style');
-            style.setAttribute('data-toast-plugin', 'true');
-            style.textContent = `
+        const style = document.createElement('style');
+        style.textContent = `
             /* CSS Responsive cho Toast trên mobile */
             @media screen and (max-width: 768px) {
-                .Vue-Toastification__container.top-center {
+                .Vue-Toastification__container {
                     width: 100% !important;
                     max-width: calc(100vw - 20px) !important;
                     left: 10px !important;
                     right: 10px !important;
                     top: 10px !important;
-                    z-index: 1000000 !important; /* Cao hơn mmenu và Magnific Popup */
                 }
 
                 .Vue-Toastification__toast {
@@ -97,45 +93,17 @@ export default defineNuxtPlugin(nuxtApp => {
                 .Vue-Toastification__progress-bar {
                     height: 3px !important;
                 }
-
-                .Vue-Toastification__toast--success {
-                    background-color: #10b981 !important;
-                }
-
-                .Vue-Toastification__toast--error {
-                    background-color: #ef4444 !important;
-                }
-
-                .Vue-Toastification__toast--warning {
-                    background-color: #f59e0b !important;
-                }
-
-                .Vue-Toastification__toast--info {
-                    background-color: #3b82f6 !important;
-                }
-
-                /* Ẩn các container toast không sử dụng */
-                .Vue-Toastification__container:not(.top-center) {
-                    display: none !important;
-                }
             }
 
             /* Tablet responsive */
             @media screen and (min-width: 769px) and (max-width: 1024px) {
-                .Vue-Toastification__container.top-right {
+                .Vue-Toastification__container {
                     width: 400px !important;
                     max-width: calc(100vw - 40px) !important;
-                    z-index: 1000000 !important;
                 }
 
                 .Vue-Toastification__toast {
                     font-size: 15px !important;
-                    padding: 14px 18px !important;
-                }
-
-                /* Ẩn các container toast không sử dụng */
-                .Vue-Toastification__container:not(.top-right) {
-                    display: none !important;
                 }
             }
 
@@ -149,14 +117,18 @@ export default defineNuxtPlugin(nuxtApp => {
                     animation-duration: 0.2s !important;
                 }
             }
-
-            /* Đảm bảo toast luôn ở trên */
-            .Vue-Toastification__container {
-                z-index: 1000000 !important;
-            }
         `;
-            document.head.appendChild(style);
-        }
+        document.head.appendChild(style);
+
+        // Cập nhật config khi resize màn hình
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Có thể thêm logic để reload toast config nếu cần
+                console.log('Screen resized, current mobile status:', isMobile());
+            }, 250);
+        });
     }
 
     return {

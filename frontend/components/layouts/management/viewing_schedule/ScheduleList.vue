@@ -7,7 +7,7 @@
         <li v-for="item in schedules" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
+                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
                         <img :src="config.public.baseUrl + item.motel_image" :alt="item.motel_name" />
                     </NuxtLink>
                 </div>
@@ -20,7 +20,7 @@
                             }}</span>
                         </h3>
                         <div v-if="item.rejection_reason && item.status === 'Từ chối'" class="inner-booking-list">
-                            <h5>Lý do QTV từ chối:</h5>
+                            <h5>Lý do SGHood từ chối:</h5>
                             <ul class="booking-list">
                                 <li>{{ item.rejection_reason }}</li>
                             </ul>
@@ -32,17 +32,12 @@
                             </ul>
                         </div>
                         <div class="inner-booking-list">
-                            <h5>Ngày:</h5>
+                            <h5>Thời gian:</h5>
                             <ul class="booking-list">
-                                <li class="highlighted">{{ formatDate(item.scheduled_at) }}</li>
+                                <li class="highlighted">{{ formatDateTime(item.scheduled_at) }}</li>
                             </ul>
                         </div>
-                        <div class="inner-booking-list">
-                            <h5>Giờ:</h5>
-                            <ul class="booking-list">
-                                <li class="highlighted">{{ formatTime(item.scheduled_at) }}</li>
-                            </ul>
-                        </div>
+
                         <div v-if="item.message" class="inner-booking-list">
                             <h5>Lời nhắn từ bạn:</h5>
                             <ul class="booking-list">
@@ -84,7 +79,7 @@
 import Swal from 'sweetalert2';
 import { useFormatDate } from '~/composables/useFormatDate';
 
-const { formatDate, formatTime } = useFormatDate();
+const { formatDate, formatTime, formatDateTime } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
     schedules: { type: Array, required: true },
