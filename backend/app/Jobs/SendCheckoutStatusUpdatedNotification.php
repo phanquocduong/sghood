@@ -84,7 +84,7 @@ class SendCheckoutStatusUpdatedNotification implements ShouldQueue
                         $notificationData['title'],
                         $notificationData['content']
                     ))
-                    ->withData(['url' => 'http://127.0.0.1:3000/quan-ly/kiem-ke']);
+                    ->withData(['url' => 'https://sghood.com.vn/quan-ly/kiem-ke']);
 
                 $messaging->send($fcmMessage);
 

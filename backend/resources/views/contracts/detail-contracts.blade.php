@@ -211,7 +211,11 @@
                                 </h6>
                                 <p class="mb-1">
                                     <strong>Ngày ký:</strong>
-                                    <span class="text-muted">Chưa ký</span>
+                                    @if($contract->signature)
+                                        <span class="text-success">{{ $contract->updated_at ? $contract->updated_at->setTimezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') : 'Chưa cập nhật' }}</span>
+                                    @else
+                                        <span class="text-muted">Chưa ký</span>
+                                    @endif
                                 </p>
                                 <p class="mb-0">
                                     <strong>Ngày hết hạn:</strong>
@@ -223,8 +227,41 @@
                     </div>
                 </div>
 
-                <!-- Status Update Form -->
-                @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hắt hạn')
+                <!-- Thêm Modal cho Chờ chỉnh sửa -->
+                <div class="modal fade" id="revisionModal" tabindex="-1" aria-labelledby="revisionModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title" id="revisionModalLabel">
+                                    <i class="fas fa-edit me-2"></i>Yêu cầu chỉnh sửa hợp đồng
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="revisionForm" action="{{ route('contracts.sendRevisionEmail', $contract->id) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label for="revisionReason" class="form-label fw-bold">
+                                            <i class="fas fa-comment me-1"></i>Lý do yêu cầu chỉnh sửa
+                                        </label>
+                                        <textarea class="form-control" id="revisionReason" name="revision_reason" rows="5" placeholder="Vui lòng nhập lý do yêu cầu chỉnh sửa..." required></textarea>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i>Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi yêu cầu
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cập nhật phần Status Update Form -->
+                @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hết hạn')
                     <div class="card border-0 bg-white shadow-sm">
                         <div class="card-header bg-primary text-white">
                             <h6 class="mb-0 text-white">
@@ -232,36 +269,50 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('contracts.updateStatus', $contract->id) }}" method="POST"
-                                onsubmit="return confirmStatusChange()">
-                                @csrf
-                                @method('PATCH')
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="status" class="form-label">
-                                            <i class="fas fa-tasks me-1"></i>Trạng thái mới
-                                        </label>
-                                        <select class="form-select shadow-sm" name="status" id="status" required>
-                                            <option value="">{{ $contract->status }}</option>
-                                            @if ($currentStatus === 'Chờ duyệt')
-                                                <option value="Chờ chỉnh sửa">Chờ chỉnh sửa</option>
-                                                <option value="Chờ ký">Chờ ký</option>
-                                            @elseif($currentStatus === 'Hoạt động')
-                                                <option value="Kết thúc">Kết thúc hợp đồng</option>
-                                            @endif
-                                        </select>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-tasks me-1"></i>Chọn trạng thái mới
+                                    </label>
+                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                        @if ($currentStatus === 'Chờ duyệt')
+                                            <!-- Nút Chờ chỉnh sửa mở modal -->
+                                            <button type="button" class="btn btn-warning shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#revisionModal">
+                                                <i class="fas fa-edit me-2"></i>Chờ chỉnh sửa
+                                            </button>
+
+                                            <form action="{{ route('contracts.updateStatus', $contract->id) }}" method="POST"
+                                                onsubmit="return confirmStatusChange('Chờ ký')" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="Chờ ký">
+                                                <button type="submit" class="btn btn-info shadow-sm px-4 py-2">
+                                                    <i class="fas fa-pen-fancy me-2"></i>Chờ ký
+                                                </button>
+                                            </form>
+                                        @elseif($currentStatus === 'Hoạt động')
+                                            <form action="{{ route('contracts.updateStatus', $contract->id) }}" method="POST"
+                                                onsubmit="return confirmStatusChange('Kết thúc')" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="Kết thúc">
+                                                <button type="submit" class="btn btn-danger shadow-sm px-4 py-2">
+                                                    <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="{{ route('contracts.index') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
-                                    </a>
-                                    <button type="submit" class="btn btn-primary shadow-sm">
-                                        <i class="fas fa-save me-1"></i>Cập nhật trạng thái
-                                    </button>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <a href="{{ route('contracts.index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                                </a>
+                                <div class="text-muted small">
+                                    <i class="fas fa-info-circle me-1"></i>Nhấn vào nút trạng thái để cập nhật
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 @else
@@ -328,21 +379,29 @@
         .zoom-image:hover {
             background-color: #0052cc;
         }
-        .contract-document{
-            box-shadow: none;
+        .contract-document {
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
     </style>
 
     <script>
-        function confirmStatusChange() {
-            const status = document.getElementById('status').value;
-            if (!status) {
-                alert('Vui lòng chọn trạng thái mới!');
-                return false;
-            }
+        function confirmStatusChange(status) {
             let message = `Bạn có chắc muốn thay đổi trạng thái hợp đồng thành "${status}"?`;
             return confirm(message);
         }
+
+        // Handle image zoom modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const zoomButtons = document.querySelectorAll('.zoom-image');
+            const modalImage = document.getElementById('modalImage');
+
+            zoomButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const imageUrl = this.getAttribute('data-image');
+                    modalImage.src = imageUrl;
+                });
+            });
+        });
 
         // Handle image zoom modal
         document.addEventListener('DOMContentLoaded', function() {

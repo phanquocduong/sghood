@@ -18,7 +18,8 @@ class ConfigService
     {
         return Config::when($search, function ($query, $search) {
             return $query->where('config_key', 'like', "%{$search}%")
-                ->orWhere('config_value', 'like', "%{$search}%");
+                ->orWhere('config_value', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
         })->paginate($perPage);
     }
 
@@ -58,23 +59,43 @@ class ConfigService
 
             // Xử lý IMAGE
             if ($data['config_type'] === 'IMAGE' && $imageFile && $imageFile->isValid()) {
+                // Xóa ảnh cũ nếu đang cập nhật
                 if ($id && $config->config_type === 'IMAGE' && $config->config_value) {
                     $this->deleteImage($config->config_value);
                 }
-
                 $data['config_value'] = $this->storeImageAsWebp($imageFile);
             }
-            // Xử lý JSON
+            // Xử lý JSON (OPTION)
             elseif ($data['config_type'] === 'JSON' && $jsonData) {
-                $data['config_value'] = json_encode($jsonData, JSON_UNESCAPED_UNICODE);
+                $data['config_value'] = $this->processJsonData($jsonData);
+            }
+            // Xử lý BANK
+            elseif ($data['config_type'] === 'BANK' && $jsonData) {
+                $data['config_value'] = $this->processBankData($jsonData);
             }
             // Xử lý TEXT, URL, HTML
+            elseif (in_array($data['config_type'], ['TEXT', 'URL', 'HTML'])) {
+                if (empty($data['config_value'])) {
+                    throw new \Exception('Nội dung không được để trống cho loại ' . $data['config_type']);
+                }
+                // Giữ nguyên config_value đã được validate
+            }
+            // Trường hợp đặc biệt: cập nhật IMAGE mà không có file mới
+            elseif ($data['config_type'] === 'IMAGE' && $id && $config->config_type === 'IMAGE') {
+                // Giữ nguyên ảnh cũ
+                $data['config_value'] = $config->config_value;
+            }
             else {
-                $data['config_value'] = $data['config_value'] ?? ($config->config_value ?? null);
+                // Fallback cho các trường hợp khác
+                $data['config_value'] = $data['config_value'] ?? ($config->config_value ?? '');
             }
 
             // Tạo mới hoặc cập nhật
-            $id ? $config->update($data) : $config = Config::create($data);
+            if ($id) {
+                $config->update($data);
+            } else {
+                $config = Config::create($data);
+            }
 
             DB::commit();
             return ['data' => $config];
@@ -84,25 +105,137 @@ class ConfigService
                 'id' => $id,
                 'data' => $data,
                 'jsonData' => $jsonData,
+                'trace' => $e->getTraceAsString(),
             ]);
             return ['error' => 'Đã xảy ra lỗi khi lưu/cập nhật cấu hình: ' . $e->getMessage(), 'status' => 500];
         }
     }
 
+    /**
+     * Xử lý dữ liệu JSON cho type OPTION
+     */
+    protected function processJsonData(array $jsonData): string
+    {
+        // Lọc bỏ các giá trị rỗng
+        $filteredData = array_filter($jsonData, function($item) {
+            return !empty(trim($item));
+        });
+
+        if (empty($filteredData)) {
+            throw new \Exception('Vui lòng thêm ít nhất một lựa chọn hợp lệ');
+        }
+
+        return json_encode(array_values($filteredData), JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Xử lý dữ liệu BANK
+     */
+    protected function processBankData(array $jsonData): string
+    {
+        $validBanks = [];
+
+        foreach ($jsonData as $bank) {
+            // Kiểm tra dữ liệu bắt buộc
+            if (empty($bank['value']) || empty($bank['label'])) {
+                continue; // Bỏ qua bank không đầy đủ thông tin
+            }
+
+            $bankData = [
+                'value' => trim($bank['value']),
+                'label' => trim($bank['label']),
+            ];
+
+            // Thêm logo nếu có
+            if (!empty($bank['logo']) && filter_var($bank['logo'], FILTER_VALIDATE_URL)) {
+                $bankData['logo'] = trim($bank['logo']);
+            }
+
+            $validBanks[] = $bankData;
+        }
+
+        if (empty($validBanks)) {
+            throw new \Exception('Vui lòng thêm ít nhất một ngân hàng hợp lệ');
+        }
+
+        return json_encode($validBanks, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Xóa cấu hình
+     */
+    public function deleteConfig(int $id): array
+    {
+        try {
+            DB::beginTransaction();
+
+            $config = Config::findOrFail($id);
+
+            // Xóa ảnh nếu là type IMAGE
+            if ($config->config_type === 'IMAGE' && $config->config_value) {
+                $this->deleteImage($config->config_value);
+            }
+
+            $config->delete();
+
+            DB::commit();
+            return ['success' => true];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Lỗi khi xóa cấu hình: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ['error' => 'Đã xảy ra lỗi khi xóa cấu hình: ' . $e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Lấy giá trị cấu hình theo key
+     */
+    public function getConfigByKey(string $key, $default = null)
+    {
+        $config = Config::where('config_key', $key)->first();
+        
+        if (!$config) {
+            return $default;
+        }
+
+        // Trả về dữ liệu đã parse cho JSON và BANK
+        if (in_array($config->config_type, ['JSON', 'BANK'])) {
+            return json_decode($config->config_value, true) ?? $default;
+        }
+
+        return $config->config_value ?? $default;
+    }
 
     /**
      * Chuyển đổi và lưu trữ hình ảnh tải lên dưới định dạng WebP.
      */
     protected function storeImageAsWebp(UploadedFile $imageFile): string
     {
+        // Tạo thư mục nếu chưa tồn tại
+        $directory = storage_path('app/public/images/configs');
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
         $fileName = time() . '_' . Str::slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.webp';
-        $tempPath = $imageFile->getPathname();
+        $webpPath = $directory . '/' . $fileName;
 
         // Convert image to WebP using GD
         $image = $this->createImageResource($imageFile);
-        $webpPath = storage_path('app/public/images/configs/' . $fileName);
-        imagewebp($image, $webpPath, 80); // Quality set to 80
+        
+        if (!$image) {
+            throw new \Exception('Không thể tạo resource từ file ảnh');
+        }
+
+        $result = imagewebp($image, $webpPath, 80); // Quality set to 80
         imagedestroy($image);
+
+        if (!$result) {
+            throw new \Exception('Không thể lưu ảnh WebP');
+        }
 
         return '/storage/images/configs/' . $fileName;
     }
@@ -113,16 +246,22 @@ class ConfigService
     protected function createImageResource(UploadedFile $imageFile)
     {
         $extension = strtolower($imageFile->getClientOriginalExtension());
+        $tempPath = $imageFile->getPathname();
+
         switch ($extension) {
             case 'jpeg':
             case 'jpg':
-                return imagecreatefromjpeg($imageFile->getPathname());
+                return imagecreatefromjpeg($tempPath);
             case 'png':
-                return imagecreatefrompng($imageFile->getPathname());
+                $image = imagecreatefrompng($tempPath);
+                // Preserve transparency for PNG
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+                return $image;
             case 'gif':
-                return imagecreatefromgif($imageFile->getPathname());
+                return imagecreatefromgif($tempPath);
             default:
-                throw new \Exception('Định dạng ảnh không được hỗ trợ.');
+                throw new \Exception('Định dạng ảnh không được hỗ trợ: ' . $extension);
         }
     }
 
@@ -131,9 +270,14 @@ class ConfigService
      */
     protected function deleteImage(string $imagePath): void
     {
-        $path = str_replace('/storage/', '', $imagePath);
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        try {
+            $path = str_replace('/storage/', '', $imagePath);
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+                Log::info('Đã xóa ảnh: ' . $path);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Không thể xóa ảnh: ' . $imagePath . ' - ' . $e->getMessage());
         }
     }
 }

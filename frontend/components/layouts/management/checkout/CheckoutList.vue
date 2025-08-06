@@ -38,7 +38,7 @@
                             </ul>
                         </div>
                         <div class="inner-booking-list">
-                            <h5>Ngày dự kiến rời phòng:</h5>
+                            <h5>Ngày rời phòng:</h5>
                             <ul class="booking-list">
                                 <li class="highlighted">{{ formatDate(item.check_out_date) }}</li>
                             </ul>

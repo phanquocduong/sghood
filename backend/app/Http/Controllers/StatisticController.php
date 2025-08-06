@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Config;
 use App\Services\TransactionService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -38,6 +39,7 @@ class StatisticController extends Controller
         $roomsCount = $this->roomService->getAllRoomsCount();
         $roomsRentedCount = $this->roomService->getRentedRoomsCount();
         $transactions = $this->transactionService->getTransactionStats($filters);
+        $monthlyRevenue = $this->getMonthlyRevenue();
 
         $countUsersToday = Contract::whereDate('start_date', '=', Carbon::today())
             ->distinct()
@@ -65,6 +67,8 @@ class StatisticController extends Controller
             ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
             ->sum('transfer_amount');
 
+        $isNearExpiration = (int) Config::getValue('is_near_expiration', 30);
+
 
         return view('statistics.index', [
             'countUsersToday' => $countUsersToday,
@@ -79,6 +83,31 @@ class StatisticController extends Controller
             'expiredTenants' => $tenants['expired'],
             'todayRevenue' => $todayRevenue,
             'monthRevenue' => $monthRevenue,
+            'isNearExpiration' => $isNearExpiration,
+            'monthlyRevenue' => $monthlyRevenue,
         ]);
+    }
+
+
+    private function getMonthlyRevenue()
+    {
+        $currentYear = date('Y');
+        $monthlyData = [];
+
+        // Lấy dữ liệu từ bảng invoices hoặc payments (tùy theo cấu trúc database của bạn)
+        for ($month = 1; $month <= 12; $month++) {
+            $revenue = DB::table('transactions')
+                ->where('transfer_type', 'in')
+                ->whereYear('transaction_date', $currentYear) // Năm hiện tại
+                ->whereMonth('transaction_date', $month) // Tháng cụ thể
+                ->sum('transfer_amount');
+            // Nếu không có giao dịch trong tháng, đặt doanh thu là 0
+            if ($revenue === null) {
+                $revenue = 0;
+            }
+            $monthlyData[] = (float) $revenue;
+        }
+
+        return $monthlyData;
     }
 }

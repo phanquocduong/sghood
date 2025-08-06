@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Yêu cầu trả phòng" />
+        <Titlebar title="Trả phòng" />
 
         <!-- Inventory Modal -->
         <InventoryModal
@@ -30,7 +30,6 @@
         />
 
         <div class="row">
-            <nearby-motels />
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
                     <CheckoutList

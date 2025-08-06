@@ -65,7 +65,7 @@ import { useAuthStore } from '~/stores/auth';
 import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
 const NotiStore = useNotificationStore();
-const noti = useToast();
+const noti = useAppToast();
 const { notifications, loading } = storeToRefs(useNotificationStore());
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
@@ -219,10 +219,11 @@ const removeNotification = index => {
 }
 .box-title-bar-tb {
     font-size: larger;
-    padding: 10px;
+    padding: 5px 20px 5px 20px;
     align-items: center;
     border: none;
     text-align: center;
     height: 46px;
+
 }
 </style>

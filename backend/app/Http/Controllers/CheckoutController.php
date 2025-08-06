@@ -87,4 +87,15 @@ class CheckoutController extends Controller
             return redirect()->route('checkouts.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
+
+    public function confirmLeft($id)
+    {
+        try {
+            $checkout = $this->checkoutService->confirmLeftCheckout($id);
+            return redirect()->route('checkouts.index')->with('success', 'Xác nhận người dùng đã rời khỏi phòng thành công.');
+        } catch (\Exception $e) {
+            Log::error('Error confirming left checkout: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
 }

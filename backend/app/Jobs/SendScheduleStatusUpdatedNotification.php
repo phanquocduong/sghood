@@ -99,7 +99,8 @@ class SendScheduleStatusUpdatedNotification implements ShouldQueue
                     $messaging = app('firebase.messaging');
 
                     $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                        ->withNotification(FirebaseNotification::create($title, $content));
+                        ->withNotification(FirebaseNotification::create($title, $content))
+                        ->withData(['url' => 'https://sghood.com.vn/quan-ly/lich-xem-nha-tro']);
 
                     try {
                         $messaging->send($fcmMessage);

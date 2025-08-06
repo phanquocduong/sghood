@@ -38,6 +38,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'status' => 'string',
     ];
 
+    // Accessor để định dạng birthdate
+    public function getBirthdateAttribute($value)
+    {
+        return $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+    }
+
     public function notes()
     {
         return $this->hasMany(Note::class);

@@ -21,6 +21,9 @@
                 style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}</h6>
                 <div class="d-flex gap-2">
+                    <a href="{{ route('configs.create') }}" class="btn btn-success shadow-sm" style="transition: all 0.3s;">
+                        <i class="fas fa-plus me-1"></i> Thêm cấu hình
+                    </a>
                 </div>
             </div>
             <div class="card-body p-4">
@@ -65,7 +68,23 @@
                                         @endif
                                     </td>
                                     <td>{{ $config->description ?? 'Không có mô tả' }}</td>
-                                    <td>{{ $config->config_type }}</td>
+                                    <td>
+                                        @if($config->config_type === 'BANK')
+                                            Ngân hàng
+                                        @elseif($config->config_type === 'IMAGE')
+                                            Ảnh
+                                        @elseif($config->config_type === 'TEXT')
+                                            Văn bản
+                                        @elseif($config->config_type === 'URL')
+                                            Liên kết
+                                        @elseif($config->config_type === 'HTML')
+                                            HTML
+                                        @elseif($config->config_type === 'JSON')
+                                            Lựa chọn
+                                        @else
+                                            {{ $config->config_type }}
+                                        @endif
+                                    </td>
                                     <td>
                                         <a href="{{ route('configs.edit', $config->id) }}"
                                             class="btn btn-sm btn-warning action-btn me-2" style="transition: all 0.3s;">

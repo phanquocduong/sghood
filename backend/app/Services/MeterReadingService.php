@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Jobs\SendInvoiceCreatedNotification;
 use Carbon\Carbon;
 
+
 class MeterReadingService
 {
 

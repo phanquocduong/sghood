@@ -16,6 +16,68 @@
         </div>
     @endif
 
+    <style>
+    .table td,
+    .table th {
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        border-radius: 20px;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-info-link,
+    .motel-info-link {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .user-info-link:hover,
+    .motel-info-link:hover {
+        text-decoration: underline !important;
+        transform: scale(1.05);
+    }
+
+    .motel-info-link:hover .fa-external-link-alt {
+        color: #0d6efd !important;
+        transform: translateX(2px);
+    }
+
+    .user-avatar-container {
+        position: relative;
+    }
+
+    .user-details .row {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 8px 0;
+    }
+
+    .user-details .row:last-child {
+        border-bottom: none;
+    }
+
+    #userInfoModal .modal-body {
+        background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    }
+
+    #userInfoModal .user-details i {
+        color: #6c757d;
+        width: 16px;
+    }
+</style>
+
     <div class="container-fluid py-5 px-4">
         <div class="card shadow border-0 rounded-4">
             <div class="card-header text-white d-flex justify-content-between align-items-center rounded-top-4">
@@ -64,7 +126,7 @@
                                 <th>Người dùng</th>
                                 <th>Dãy trọ</th>
                                 <th>Ngày xem phòng</th>
-                                <th>Nội dung</th>
+                                <th>Lời nhắn của người dùng</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
                             </tr>
@@ -72,8 +134,7 @@
                         <tbody>
                             @forelse ($schedules as $schedule)
                                 <tr>
-                                    <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}
-                                    </td>
+                                    <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}</td>
                                     <td>{{ $schedule->user->name ?? 'N/A' }}</td>
                                     <td>{{ $schedule->motel->name ?? 'N/A' }}</td>
                                     <td>
@@ -88,7 +149,7 @@
                                                 'Đã xác nhận' => 'warning',
                                                 'Hoàn thành' => 'success',
                                                 'Từ chối' => 'dark',
-                                                default => 'secondary',
+                                                default => 'secondary'
                                             };
                                         @endphp
                                         <span class="badge bg-{{ $badgeClass }}">
@@ -103,44 +164,31 @@
                                             class="status-form" id="status-form-{{ $schedule->id }}">
                                             @csrf
                                             @method('PATCH')
-                                            @if ($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
-                                                <select name="status" class="form-select form-select-sm status-select"
-                                                    data-schedule-id="{{ $schedule->id }}" disabled>
-                                                    @switch($schedule->status)
-                                                        @case('Chờ xác nhận')
-                                                            <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
-                                                            <option value="Đã xác nhận">Đã xác nhận</option>
-                                                            <option value="Từ chối">Từ chối</option>
-                                                        @break
-
-                                                        @case('Đã xác nhận')
-                                                            <option value="Đã xác nhận" selected>Đã xác nhận</option>
-                                                            <option value="Hoàn thành">Hoàn thành</option>
-                                                        @break
-
-                                                        @case('Từ chối')
-                                                            <option value="Từ chối" selected>Từ chối</option>
-                                                        @break
-
-                                                        @case('Hoàn thành')
-                                                            <option value="Hoàn thành" selected>Hoàn thành</option>
-                                                        @break
-
-                                                        @default
-                                                            <option value="Chờ xác nhận"
-                                                                {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
-                                                                nhận</option>
-                                                            <option value="Đã xác nhận"
-                                                                {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
-                                                                nhận</option>
-                                                            <option value="Từ chối"
-                                                                {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối
-                                                            </option>
-                                                            <option value="Hoàn thành"
-                                                                {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn
-                                                                thành</option>
-                                                    @endswitch
-                                                </select>
+                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
+                                            <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}" disabled>
+                                                @switch($schedule->status)
+                                                    @case('Chờ xác nhận')
+                                                        <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
+                                                        <option value="Đã xác nhận">Đã xác nhận</option>
+                                                        <option value="Từ chối">Từ chối</option>
+                                                    @break
+                                                    @case('Đã xác nhận')
+                                                        <option value="Đã xác nhận" selected>Đã xác nhận</option>
+                                                        <option value="Hoàn thành">Hoàn thành</option>
+                                                    @break
+                                                    @case('Từ chối')
+                                                        <option value="Từ chối" selected>Từ chối</option>
+                                                    @break
+                                                    @case('Hoàn thành')
+                                                        <option value="Hoàn thành" selected>Hoàn thành</option>
+                                                    @break
+                                                    @default
+                                                        <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
+                                                        <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
+                                                        <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
+                                                        <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
+                                                @endswitch
+                                            </select>
                                             @else
                                                 <select name="status" class="form-select form-select-sm status-select"
                                                     data-schedule-id="{{ $schedule->id }}">
@@ -200,28 +248,27 @@
             </div>
         </div>
 
-        <!-- Cancel Reason Modal -->
-        <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="cancelReasonModalLabel">Lý do hủy/từ chối lịch xem phòng</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Cancel Reason Modal -->
+    <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelReasonModalLabel">Lý do hủy/từ chối lịch xem phòng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label">Vui lòng nhập lý do:</label>
+                        <textarea class="form-control" id="cancelReason" rows="4" required></textarea>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="cancelReason" class="form-label">Vui lòng nhập lý do:</label>
-                            <textarea class="form-control" id="cancelReason" rows="4" required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary" id="confirmCancel">Xác nhận</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="confirmCancel">Xác nhận</button>
                 </div>
             </div>
         </div>
+    </div>
 
         <style>
             .table td,
@@ -240,20 +287,10 @@
                 box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
             }
 
-            .btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            }
-@media (max-width: 576px) {
-    .pagination {
-        display: flex;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding-bottom: 4px;
-    }
-}
-
-
-        </style>
-        <script src="{{ asset('js/schedule.js') }}"></script>
-    @endsection
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script src="{{ asset('js/schedule.js') }}"></script>
+@endsection

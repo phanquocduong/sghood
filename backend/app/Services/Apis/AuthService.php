@@ -17,6 +17,23 @@ use Illuminate\Support\Facades\Log;
 class AuthService
 {
     /**
+     * Các trường cần trả về trong phản hồi API.
+     *
+     * @var array
+     */
+    protected $userFields = [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'birthdate',
+        'address',
+        'avatar',
+        'role',
+        'email_verified_at',
+    ];
+
+    /**
      * Attempt user login with provided credentials.
      *
      * @param array $credentials
@@ -47,7 +64,7 @@ class AuthService
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return [
-                'data' => $user->fresh(), // Get fresh user data
+                'data' => $user->fresh()->only($this->userFields), // Chỉ trả về các trường cần thiết
                 'token' => $token,
             ];
         } catch (\Throwable $e) {
@@ -97,7 +114,7 @@ class AuthService
             DB::commit();
 
             return [
-                'data' => $user->fresh(),
+                'data' => $user->fresh()->only($this->userFields), // Chỉ trả về các trường cần thiết
                 'token' => $token,
             ];
         } catch (\Throwable $e) {

@@ -116,7 +116,7 @@
                 style="background: linear-gradient(90deg, #007bff, #0056b3); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <div class="d-flex align-items-center">
                     <h6 class="mb-0 fw-bold">{{ __('Danh sách giao dịch') }}
-                        <span class="badge bg-light text-primary ms-2">{{ $transactions->total() ?? 0 }} bản ghi</span>
+                        <span class="badge bg-light text-primary ms-2">{{ $transactions->total() ?? 0 }} bản ghi</span> <span class="fst-italic text-danger"> Chi tiết: <a href="https://my.sepay.vn/transactions">Sepay</a></span>
                     </h6>
                 </div>
             </div>

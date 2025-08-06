@@ -36,7 +36,7 @@ class CheckContractExpiry extends Command
         $this->checkOverdueInvoices($debug);
 
         // Kiểm tra và xử lý kiểm kê tự động xác nhận
-        $this->processAutoConfirmedCheckouts($debug); // Thêm lời gọi hàm mới
+        $this->processAutoConfirmedCheckouts($debug);
 
         return 0;
     }

@@ -166,6 +166,7 @@ Route::middleware('admin')->group(function () {
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
+        Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
     });
 
     // Notification routes
@@ -230,9 +231,21 @@ Route::middleware('admin')->group(function () {
         Route::put('/{checkout}/re-inventory', [CheckoutController::class, 'reInventory'])->name('reInventory');
         Route::patch('/{id}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
         Route::patch('/{id}/force-confirm-user', [CheckoutController::class, 'forceConfirmUser'])->name('forceConfirmUser');
+        Route::patch('/{id}/confirmLeft', [CheckoutController::class, 'confirmLeft'])->name('confirmLeft');
     });
-});
 
+    // Route for meter reading index
+    Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
+    Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
+    Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+
+
+    // Route for repair requests
+    Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
+    Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+    Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
+    Route::put('repair-requests/{id}/note', [RepairRequestController::class, 'updateNote'])->name('repair_requests.updateNote');
+});
 
 // File tải file PDF hợp đồng
 Route::get('/contract/pdf/{id}', function ($id) {
@@ -245,14 +258,3 @@ Route::get('/contract/pdf/{id}', function ($id) {
 
     abort(404, 'File hợp đồng không tồn tại');
 });
-
-// Route for meter reading index
-Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
-Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
-Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
-
-
-// Route for repair requests
-Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
-Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
-Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');

@@ -83,7 +83,7 @@
         </div>
 
         <div style="text-align: center;">
-            <a href="http://127.0.0.1:3000/quan-ly/hoa-don" class="btn">
+            <a href="https://sghood.com.vn/quan-ly/hoa-don" class="btn">
                 💳 THANH TOÁN NGAY
             </a>
         </div>
