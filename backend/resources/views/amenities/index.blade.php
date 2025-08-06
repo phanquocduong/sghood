@@ -5,13 +5,14 @@
 @section('content')
 <div class="container-fluid py-5 px-4">
     <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
-        <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-            <h6 class="mb-0 fw-bold">{{ __('Danh sách tiện ích') }}</h6>
-            <div>
-                <a href="{{ route('amenities.create') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
+        <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
+        style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+            <h6 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">{{ __('Danh sách tiện ích') }}</h6>
+            <div class="d-flex flex-row w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                <a href="{{ route('amenities.create') }}" class="btn btn-primary me-2 shadow-sm w-50 w-sm-auto" style="transition: all 0.3s;">
                     <i class="fas fa-plus me-1"></i> {{ __('Thêm tiện ích') }}
                 </a>
-                <a href="{{ route('amenities.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
+                <a href="{{ route('amenities.trash') }}" class="btn btn-danger shadow-sm w-50 w-sm-auto" style="transition: all 0.3s;">
                     <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
                 </a>
             </div>
@@ -87,15 +88,17 @@
                                         {{ $statusText }}
                                     </span>
                                 </td>
-                                <td>
-                                    <a href="{{ route('amenities.edit', $amenity->id) }}" class="btn btn-sm btn-primary action-btn me-2" style="transition: all 0.3s;">
-                                        <i class="fas fa-edit me-1"></i> Sửa
+                                <td class="d-flex justify-content-center align-items-center">
+                                    <a href="{{ route('amenities.edit', $amenity->id) }}" class="btn btn-sm btn-primary action-btn me-2 action-icon" style="transition: all 0.3s;">
+                                        <i class="fas fa-edit me-1"></i>
+                                        <span class="d-none d-sm-inline ms-1">Sửa</span>
                                     </a>
                                     <form action="{{ route('amenities.destroy', $amenity->id) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger action-btn" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
-                                            <i class="fas fa-trash me-1"></i> Xóa
+                                        <button type="submit" class="btn btn-sm btn-danger action-btn action-icon" onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
+                                            <i class="fas fa-trash me-1"></i>
+                                            <span class="d-none d-sm-inline ms-1">Xóa</span>
                                         </button>
                                     </form>
                                 </td>
