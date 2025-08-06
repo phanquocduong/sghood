@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\Booking;
+// use App\Models\Config;
 use App\Jobs\SendBookingAcceptedNotification;
 use App\Jobs\SendBookingRejectedNotification;
 use Illuminate\Support\Facades\Log;
@@ -129,7 +130,12 @@ class BookingService
 
         // Tính số tháng hợp đồng
         $contractMonths = $this->calculateContractMonths($booking->start_date, $booking->end_date);
-
+        // $landlord_name = Config::get('landlord_name');
+        // $landlord_birthday = Config::get('landlord_birthday');
+        // $landlord_identity_number = Config::get('landlord_identity_number');
+        // $landlord_date_of_issue = Config::get('landlord_date_of_issue');
+        // $landlord_place_of_issue = Config::get('landlord_place_of_issue');
+        // $landlord_permanent_address = Config::get('landlord_permanent_address');
         return [
             'current_date' => $currentDate,
             'current_day' => date('d'),

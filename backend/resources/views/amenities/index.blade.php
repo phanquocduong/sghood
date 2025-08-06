@@ -11,6 +11,9 @@
                 <a href="{{ route('amenities.create') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-plus me-1"></i> {{ __('Thêm tiện ích') }}
                 </a>
+                <a href="{{ route('amenities.change-order') }}" class="btn btn-primary me-2 shadow-sm" style="transition: all 0.3s;">
+                    <i class="fas fa-edit me-1"></i> {{ __('Thay đổi thứ tự') }}
+                </a>
                 <a href="{{ route('amenities.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
                     <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
                 </a>

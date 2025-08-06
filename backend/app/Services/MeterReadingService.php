@@ -9,14 +9,11 @@ use Illuminate\Support\Facades\Log;
 use App\Jobs\SendInvoiceCreatedNotification;
 use Carbon\Carbon;
 
-
 class MeterReadingService
 {
-
     public function getAllMeterReadings(?string $search = null, int $perPage = 10)
     {
         return MeterReading::when($search, function ($query, $search) {
-            // $search = request('search');
             return $query->where('room_id', 'like', "%{$search}%")
                 ->orWhere('month', 'like', "%{$search}%")
                 ->orWhere('year', 'like', "%{$search}%")
@@ -35,14 +32,13 @@ class MeterReadingService
         $startDate = $today->copy()->subMonthNoOverflow()->day(28)->startOfDay();
         $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
 
-        // Lấy phòng đã thuê và chưa có meter_readings trong khoảng thời gian
-        $rooms = Room::with('motel') // eager load nhà trọ
+        $rooms = Room::with('motel')
             ->where('status', 'Đã Thuê')
             ->whereDoesntHave('meterReadings', function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             })
             ->get()
-            ->groupBy('motel_id'); // group theo nhà trọ
+            ->groupBy('motel_id');
 
         return $rooms;
     }
@@ -53,23 +49,79 @@ class MeterReadingService
         return $meterReading;
     }
 
-    // Tính tiền phòng cho tháng đầu tiên của hợp đồng
+    /**
+     * Tính toán số điện/nước tiêu thụ và lấy chỉ số tháng trước
+     */
+    public function getConsumptionAndPreviousReadings($meterReading)
+    {
+        $electricityConsumption = $meterReading->electricity_kwh ?? 0;
+        $waterConsumption = $meterReading->water_m3 ?? 0;
+        $previousElectricityKwh = 0;
+        $previousWaterM3 = 0;
+
+        // Lấy chỉ số tháng trước
+        $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
+            ->where('year', $meterReading->year)
+            ->where('month', $meterReading->month - 1)
+            ->first();
+
+        // Nếu không có tháng trước, kiểm tra tháng 12 năm trước
+        if (!$previousMeterReading && $meterReading->month == 1) {
+            $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
+                ->where('year', $meterReading->year - 1)
+                ->where('month', 12)
+                ->first();
+        }
+
+        if ($previousMeterReading) {
+            $electricityConsumption = ($meterReading->electricity_kwh ?? 0) - ($previousMeterReading->electricity_kwh ?? 0);
+            $waterConsumption = ($meterReading->water_m3 ?? 0) - ($previousMeterReading->water_m3 ?? 0);
+            $electricityConsumption = max(0, $electricityConsumption);
+            $waterConsumption = max(0, $waterConsumption);
+            $previousElectricityKwh = $previousMeterReading->electricity_kwh ?? 0;
+            $previousWaterM3 = $previousMeterReading->water_m3 ?? 0;
+
+            // Cảnh báo nếu chỉ số hiện tại nhỏ hơn chỉ số trước
+            if ($meterReading->electricity_kwh < $previousMeterReading->electricity_kwh || $meterReading->water_m3 < $previousMeterReading->water_m3) {
+                Log::warning('Current meter reading is less than previous reading', [
+                    'room_id' => $meterReading->room_id,
+                    'current_electricity' => $meterReading->electricity_kwh,
+                    'previous_electricity' => $previousMeterReading->electricity_kwh,
+                    'current_water' => $meterReading->water_m3,
+                    'previous_water' => $previousMeterReading->water_m3
+                ]);
+            }
+        } else {
+            Log::warning('No previous meter reading found, assuming zero consumption for first month', [
+                'room_id' => $meterReading->room_id,
+                'month' => $meterReading->month,
+                'year' => $meterReading->year
+            ]);
+        }
+
+        return [
+            'electricity_consumption' => $electricityConsumption,
+            'water_consumption' => $waterConsumption,
+            'previous_electricity_kwh' => $previousElectricityKwh,
+            'previous_water_m3' => $previousWaterM3,
+        ];
+    }
+
     private function calculateFirstMonthFees($contract, $room, $meterReading, $motel)
     {
         try {
             $contractStartDate = Carbon::parse($contract->start_date);
-            $invoiceCreatedDate = now(); // Ngày tạo hóa đơn (hiện tại)
+            $invoiceCreatedDate = now();
             $invoiceMonth = $meterReading->month;
             $invoiceYear = $meterReading->year;
 
             // Kiểm tra xem đã có hóa đơn nào cho hợp đồng này chưa
             $hasExistingInvoices = Invoice::where('contract_id', $contract->id)
-                ->where(function($query) use ($invoiceMonth, $invoiceYear) {
-                    // Kiểm tra các hóa đơn trước hóa đơn hiện tại
+                ->where(function ($query) use ($invoiceMonth, $invoiceYear) {
                     $query->where('year', '<', $invoiceYear)
-                        ->orWhere(function($q) use ($invoiceMonth, $invoiceYear) {
+                        ->orWhere(function ($q) use ($invoiceMonth, $invoiceYear) {
                             $q->where('year', $invoiceYear)
-                            ->where('month', '<', $invoiceMonth);
+                              ->where('month', '<', $invoiceMonth);
                         });
                 })
                 ->exists();
@@ -82,7 +134,6 @@ class MeterReadingService
             $serviceFee = $motel->service_fee ?? 0;
 
             if ($hasExistingInvoices) {
-                // Đã có hóa đơn trước đó, không phải tháng đầu tiên - trả về giá đầy đủ
                 Log::info('Not first month of contract, using full service fees', [
                     'contract_start_date' => $contractStartDate->toDateString(),
                     'invoice_created_date' => $invoiceCreatedDate->toDateString(),
@@ -101,12 +152,9 @@ class MeterReadingService
             }
 
             // Đây là hóa đơn đầu tiên - tính theo tỷ lệ số ngày từ start_date đến ngày tạo hóa đơn
-            $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1; // +1 để bao gồm ngày bắt đầu
+            $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1;
+            $percentage = min(1.0, $daysDifference / 30.0);
 
-            // Tính tỷ lệ dựa trên 30 ngày (1 tháng chuẩn)
-            $percentage = min(1.0, $daysDifference / 30.0); // Đảm bảo không vượt quá 100%
-
-            // Áp dụng tỷ lệ cho tất cả các phí
             $calculatedRoomFee = $roomPrice * $percentage;
             $calculatedParkingFee = $parkingFee * $percentage;
             $calculatedJunkFee = $junkFee * $percentage;
@@ -143,7 +191,6 @@ class MeterReadingService
                 'internet_fee' => round($calculatedInternetFee, 0),
                 'service_fee' => round($calculatedServiceFee, 0)
             ];
-
         } catch (\Exception $e) {
             Log::error('Error calculating first month fees: ' . $e->getMessage(), [
                 'contract_id' => $contract->id ?? null,
@@ -152,7 +199,6 @@ class MeterReadingService
                 'meter_reading_year' => $meterReading->year ?? null
             ]);
 
-            // Trả về giá đầy đủ nếu có lỗi
             return [
                 'room_fee' => $room->price ?? 0,
                 'parking_fee' => $motel->parking_fee ?? 0,
@@ -196,17 +242,18 @@ class MeterReadingService
                 throw new \Exception('Hóa đơn cho tháng ' . $meterReading->month . '/' . $meterReading->year . ' đã tồn tại.');
             }
 
-            $currentTime = now()->format('His');
-            $currentDate = now()->format('Ymd');
+            // Tính số điện và nước tiêu thụ
+            $consumptionData = $this->getConsumptionAndPreviousReadings($meterReading);
+            $electricityConsumption = $consumptionData['electricity_consumption'];
+            $waterConsumption = $consumptionData['water_consumption'];
 
-            $invoiceCode = 'INV' . $contractId . $currentTime . $currentDate;
-
+            // Lấy đơn giá điện nước từ nhà trọ
             $electricityRate = $motel->electricity_fee ?? 0;
             $waterRate = $motel->water_fee ?? 0;
 
-            // Tính phí điện và nước (không chia tỷ lệ)
-            $electricityFee = ($meterReading->electricity_kwh ?? 0) * $electricityRate;
-            $waterFee = ($meterReading->water_m3 ?? 0) * $waterRate;
+            // Tính phí điện và nước dựa trên lượng tiêu thụ
+            $electricityFee = $electricityConsumption * $electricityRate;
+            $waterFee = $waterConsumption * $waterRate;
 
             // Tính các phí dịch vụ với logic tháng đầu tiên
             $calculatedFees = $this->calculateFirstMonthFees($contract, $room, $meterReading, $motel);
@@ -220,10 +267,18 @@ class MeterReadingService
             // Tính tổng số tiền
             $totalAmount = $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee + $roomFee;
 
-            Log::info('Creating invoice with proportional fees', [
+            // Tạo mã hóa đơn
+            $currentTime = now()->format('His');
+            $currentDate = now()->format('Ymd');
+            $invoiceCode = 'INV' . $contractId . $currentTime . $currentDate;
+
+            // Ghi log thông tin
+            Log::info('Creating invoice with consumption-based fees', [
                 'meter_reading_id' => $meterReadingId,
                 'contract_id' => $contractId,
                 'contract_start_date' => $contract->start_date,
+                'electricity_consumption' => $electricityConsumption,
+                'water_consumption' => $waterConsumption,
                 'electricity_fee' => $electricityFee,
                 'water_fee' => $waterFee,
                 'room_fee' => $roomFee,
