@@ -361,8 +361,6 @@ const allBlogs = ref([]);
     margin-bottom: 10px;
 }
 
-.post-excerpt::after {
-}
 .post-excerpt p {
     display: -webkit-box;
     -webkit-line-clamp: 2; /* hoặc 2 hoặc 4 tuỳ bạn */
