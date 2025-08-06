@@ -22,15 +22,13 @@
             </div>
             <div class="card-body p-4">
                 @if (session('success') || session('message'))
-                    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn"
-                        role="alert">
+                    <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
                         {{ session('success') ?: session('message') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
                 @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn"
-                        role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -40,18 +38,17 @@
                         <div class="col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" name="querySearch"
-                                    placeholder="Tìm kiếm nhà trọ..." value="{{ request('querySearch') }}">
+                                <input type="text" class="form-control" name="querySearch" placeholder="Tìm kiếm nhà trọ..."
+                                    value="{{ request('querySearch') }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <select class="form-select" name="area" aria-label="Chọn khu vực">
                                 <option value="">Tất cả khu vực</option>
-                                @if (isset($districts) && $districts->count() > 0)
-                                    @foreach ($districts as $district)
-                                        <option value="{{ $district->id }}"
-                                            {{ request('area') == $district->id ? 'selected' : '' }}>{{ $district->name }}
-                                        </option>
+                                @if(isset($districts) && $districts->count() > 0)
+                                    @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" {{ request('area') == $district->id ? 'selected' : '' }}>
+                                            {{ $district->name }}</option>
                                     @endforeach
                                 @else
                                     <option value="">Không có quận/huyện nào.</option>
@@ -61,23 +58,20 @@
                         <div class="col-md-2">
                             <select class="form-select" name="status" aria-label="Chọn trạng thái">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="Hoạt động" {{ request('status') == 'Hoạt động' ? 'selected' : '' }}>Hoạt
-                                    động</option>
-                                <option value="Không hoạt động"
-                                    {{ request('status') == 'Không hoạt động' ? 'selected' : '' }}>Không hoạt động</option>
+                                <option value="Hoạt động" {{ request('status') == 'Hoạt động' ? 'selected' : '' }}>Hoạt động
+                                </option>
+                                <option value="Không hoạt động" {{ request('status') == 'Không hoạt động' ? 'selected' : '' }}>Không hoạt động</option>
                             </select>
                         </div>
                         <div class="col-md-2">
                             <select class="form-select" name="sortOption" aria-label="Sắp xếp">
                                 <option value="">Sắp xếp mặc định</option>
-                                <option value="name_asc" {{ request('sortOption') == 'name_asc' ? 'selected' : '' }}>Tên:
-                                    A-Z</option>
+                                <option value="name_asc" {{ request('sortOption') == 'name_asc' ? 'selected' : '' }}>Tên: A-Z
+                                </option>
                                 <option value="name_desc" {{ request('sortOption') == 'name_desc' ? 'selected' : '' }}>Tên:
                                     Z-A</option>
-                                <option value="created_at_desc"
-                                    {{ request('sortOption') == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
-                                <option value="created_at_asc"
-                                    {{ request('sortOption') == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
+                                <option value="created_at_desc" {{ request('sortOption') == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
+                                <option value="created_at_asc" {{ request('sortOption') == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
                             </select>
                         </div>
                         <div class="col-md-1">
@@ -92,11 +86,11 @@
                             <tr>
                                 <th scope="col" style="width: 5%;">Stt</th>
                                 <th scope="col" style="width: 15%;">Ảnh</th>
-                                <th scope="col">Tên nhà trọ</th>
-                                <th scope="col">Mô tả</th>
+                                <th scope="col" width="15%">Tên nhà trọ</th>
+                                <th scope="col" width="22%">Địa chỉ</th>
                                 <th scope="col">Số lượng phòng</th>
                                 <th scope="col">Trạng thái</th>
-                                <th scope="col" style="width: 20%;">Thao tác</th>
+                                <th scope="col" style="width: 15%;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -105,11 +99,9 @@
                                     <td>{{ $motels->firstItem() + $index }}</td>
                                     <td>
                                         @php
-                                            $mainImage =
-                                                $motel->images && $motel->images->count() > 0
-                                                    ? $motel->images->where('is_main', 1)->first() ??
-                                                        $motel->images->first()
-                                                    : null;
+                                            $mainImage = $motel->images && $motel->images->count() > 0
+                                                ? $motel->images->where('is_main', 1)->first() ?? $motel->images->first()
+                                                : null;
                                         @endphp
                                         @if ($mainImage)
                                             <img src="{{ $mainImage->image_url }}" alt="{{ $mainImage->image_url }}"
@@ -123,19 +115,19 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('motels.show', $motel->id) }}"
-                                            class="text-primary fw-bold text-decoration-none"
-                                            style="transition: color 0.3s;">
+                                            class="text-primary fw-bold text-decoration-none" style="transition: color 0.3s;">
                                             {{ $motel->name }}
                                         </a>
                                     </td>
-                                    <td class="text-muted">{{ Str::limit($motel->description ?? 'Không có mô tả', 50) }}
-                                    </td>
+                                    <td class="text-muted">{{$motel->address ?? 'Không có địa chỉ' }}</td>
                                     <td>
                                         <a href="{{ route('rooms.index', ['motel_id' => $motel->id]) }}"
-                                            class="text-decoration-none">
+                                            class="text-decoration-none" title="Xem danh sách phòng">
                                             <div class="d-flex flex-column align-items-center">
-                                                <span class="fw-bold text-primary">{{ $motel->rooms_count ?? 0 }}
-                                                    phòng</span>
+                                                <button class="btn btn-outline-primary btn-sm rounded-pill">
+                                                    <i class="fas fa-door-open me-1"></i> {{ $motel->rooms_count ?? 0 }} phòng
+                                                    <i class="fas fa-arrow-right ms-1 small"></i>
+                                                </button>
                                                 <small class="text-muted">
                                                     <span
                                                         class="badge bg-success me-1">{{ $motel->rooms->where('status', 'Trống')->count() }}
@@ -164,10 +156,9 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
-                                                onclick="return confirm('Bạn có chắc muốn xóa?')"
-                                                style="transition: all 0.3s;">
+                                                onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
                                                 <i class="fas fa-trash me-1"></i>
-                                                 <span class="d-none d-sm-inline ms-1">Xóa</span>
+                                                <span class="d-none d-sm-inline ms-1">Xóa</span>
                                             </button>
                                         </form>
                                     </td>
@@ -203,7 +194,7 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    text-align: center;
+                    text-align: center
                 }
 
                 /* Icon căn giữa */

@@ -43,7 +43,7 @@
                                 <p class="text-muted">Chưa có hình ảnh nào.</p>
                             @endif
                         </div>
-                        <label for="image" class="form-label fw-bold text-primary">Thêm ảnh mới</label>
+                        <label for="image" class="form-label fw-bold text-primary">Ảnh mới</label>
                         <input type="file" class="form-control shadow-sm {{ $errors->has('image') ? 'is-invalid' : '' }}" id="images" name="image" accept="image/*">
                         @if ($errors->has('image'))
                             <div class="invalid-feedback">
