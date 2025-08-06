@@ -171,9 +171,8 @@
                                 </div>
                             </div>
 
-                            <!-- BANK Options Container -->
+                            <!-- BANK Options Container (Đẹp) -->
                             <div id="bank_options_container" style="display: none;">
-                                {{-- Giữ nguyên code BANK hiện có --}}
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="text-primary mb-0">
                                         <i class="fas fa-university"></i> Danh sách ngân hàng
@@ -182,14 +181,125 @@
                                         <i class="fas fa-plus"></i> Thêm ngân hàng
                                     </button>
                                 </div>
+
                                 <div id="bank_options_list">
-                                    {{-- Code BANK hiện có... --}}
+                                    @if (old('config_json'))
+                                        @foreach (old('config_json', []) as $index => $jsonValue)
+                                            <div class="bank-option-item mb-3">
+                                                <div class="card border-light shadow-sm">
+                                                    <div class="card-body p-3">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div class="flex-grow-1">
+                                                                <div class="row g-2">
+                                                                    <div class="col-md-3">
+                                                                        <label class="form-label text-muted small fw-semibold">Mã
+                                                                            ngân hàng</label>
+                                                                        <input type="text" class="form-control form-control-sm"
+                                                                            name="config_json[{{ $index }}][value]"
+                                                                            value="{{ is_array($jsonValue) ? ($jsonValue['value'] ?? '') : '' }}"
+                                                                            placeholder="VD: ACB" required>
+                                                                    </div>
+                                                                    <div class="col-md-5">
+                                                                        <label class="form-label text-muted small fw-semibold">Tên
+                                                                            ngân hàng</label>
+                                                                        <input type="text" class="form-control form-control-sm"
+                                                                            name="config_json[{{ $index }}][label]"
+                                                                            value="{{ is_array($jsonValue) ? ($jsonValue['label'] ?? '') : '' }}"
+                                                                            placeholder="VD: ACB - Ngân hàng TMCP Á Châu" required>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label class="form-label text-muted small fw-semibold">Logo
+                                                                            URL</label>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="url" class="form-control"
+                                                                                name="config_json[{{ $index }}][logo]"
+                                                                                value="{{ is_array($jsonValue) ? ($jsonValue['logo'] ?? '') : '' }}"
+                                                                                placeholder="https://..."
+                                                                                onchange="previewLogo(this)">
+                                                                            <span class="input-group-text p-1 logo-preview"
+                                                                                style="display: none;">
+                                                                                <img src="" alt="Logo"
+                                                                                    style="width: 24px; height: 24px; object-fit: contain;"
+                                                                                    class="rounded border">
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm ms-2"
+                                                                onclick="removeBankOption(this)" title="Xóa ngân hàng">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @elseif ($config->config_type == 'BANK' && $config->config_value)
+                                        @php
+                                            $bankData = json_decode($config->config_value, true);
+                                            if (!is_array($bankData)) {
+                                                $bankData = [];
+                                            }
+                                        @endphp
+                                        @foreach ($bankData as $index => $bankValue)
+                                            <div class="bank-option-item mb-3">
+                                                <div class="card border-light shadow-sm">
+                                                    <div class="card-body p-3">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div class="flex-grow-1">
+                                                                <div class="row g-2">
+                                                                    <div class="col-md-3">
+                                                                        <label class="form-label text-muted small fw-semibold">Mã
+                                                                            ngân hàng</label>
+                                                                        <input type="text" class="form-control form-control-sm"
+                                                                            name="config_json[{{ $index }}][value]"
+                                                                            value="{{ $bankValue['value'] ?? '' }}"
+                                                                            placeholder="VD: ACB" required>
+                                                                    </div>
+                                                                    <div class="col-md-5">
+                                                                        <label class="form-label text-muted small fw-semibold">Tên
+                                                                            ngân hàng</label>
+                                                                        <input type="text" class="form-control form-control-sm"
+                                                                            name="config_json[{{ $index }}][label]"
+                                                                            value="{{ $bankValue['label'] ?? '' }}"
+                                                                            placeholder="VD: ACB - Ngân hàng TMCP Á Châu" required>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label class="form-label text-muted small fw-semibold">Logo
+                                                                            URL</label>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="url" class="form-control"
+                                                                                name="config_json[{{ $index }}][logo]"
+                                                                                value="{{ $bankValue['logo'] ?? '' }}"
+                                                                                placeholder="https://..."
+                                                                                onchange="previewLogo(this)">
+                                                                            @if (!empty($bankValue['logo']))
+                                                                                <span class="input-group-text p-1">
+                                                                                    <img src="{{ $bankValue['logo'] }}" alt="Logo"
+                                                                                        style="width: 24px; height: 24px; object-fit: contain;"
+                                                                                        class="rounded border">
+                                                                                </span>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm ms-2"
+                                                                onclick="removeBankOption(this)" title="Xóa ngân hàng">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
 
-                            <!-- JSON Options Container -->
+                            <!-- JSON Options Container (Đơn giản) -->
                             <div id="json_options_container" style="display: none;">
-                                {{-- Giữ nguyên code JSON hiện có --}}
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="text-primary mb-0">
                                         <i class="fas fa-list"></i> Danh sách lựa chọn
@@ -198,8 +308,43 @@
                                         <i class="fas fa-plus"></i> Thêm lựa chọn
                                     </button>
                                 </div>
+
                                 <div id="json_options_list">
-                                    {{-- Code JSON hiện có... --}}
+                                    @if (old('config_json'))
+                                        @foreach (old('config_json', []) as $jsonValue)
+                                            <div class="json-option-item mb-2">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="config_json[]"
+                                                        value="{{ is_array($jsonValue) ? json_encode($jsonValue) : e($jsonValue) }}"
+                                                        placeholder="Nhập lựa chọn" required>
+                                                    <button type="button" class="btn btn-outline-danger"
+                                                        onclick="removeJsonOption(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @elseif ($config->config_type == 'JSON' && $config->config_value)
+                                        @php
+                                            $jsonData = json_decode($config->config_value, true);
+                                            if (!is_array($jsonData)) {
+                                                $jsonData = [];
+                                            }
+                                        @endphp
+                                        @foreach ($jsonData as $jsonValue)
+                                            <div class="json-option-item mb-2">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="config_json[]"
+                                                        value="{{ is_array($jsonValue) ? json_encode($jsonValue, JSON_UNESCAPED_UNICODE) : e($jsonValue) }}"
+                                                        placeholder="Nhập lựa chọn" required>
+                                                    <button type="button" class="btn btn-outline-danger"
+                                                        onclick="removeJsonOption(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
 
