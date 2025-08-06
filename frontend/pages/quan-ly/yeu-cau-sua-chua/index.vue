@@ -34,51 +34,66 @@
                         </div>
 
                         <!-- Nội dung bên phải -->
-                        <div class="repair-content">
-                            <!-- Sửa phần này trong repair-item -->
-                            <div class="repair-header">
-                                <!-- Tiêu đề bên trái -->
-                                <div class="repair-title">
-                                    <h5>
-                                        <i class="fas fa-tools icon-repair"></i>
-                                        {{ req.title }}
-                                    </h5>
-                                </div>
+                       <!-- Thay đoạn này trong phần v-for mỗi req -->
+<div class="repair-content">
+    <!-- Header: Tiêu đề và trạng thái -->
+    <div class="repair-header">
+        <div class="repair-title">
+            <h5>
+                <i class="fas fa-tools icon-repair"></i>
+                {{ req.title }}
+            </h5>
+            <span
+                class="status-tag"
+                :class="{
+                    pending: req.status === 'Chờ xác nhận',
+                    inprogress: req.status === 'Đang thực hiện',
+                    done: req.status === 'Hoàn thành',
+                    canceled: req.status === 'Huỷ bỏ'
+                }"
+            >
+                {{ req.status }}
+            </span>
+        </div>
 
-                                <!-- Trạng thái + nút hủy bên phải theo cột dọc -->
-                                <div class="repair-actions">
-                                    <span
-                                        class="status-tag"
-                                        :class="{
-                                            pending: req.status === 'Chờ xác nhận',
-                                            inprogress: req.status === 'Đang thực hiện',
-                                            done: req.status === 'Hoàn thành',
-                                            canceled: req.status === 'Huỷ bỏ'
-                                        }"
-                                    >
-                                        {{ req.status }}
-                                    </span>
+        <!-- Trạng thái + nút hủy chỉ hiển thị trên desktop -->
+        <div class="repair-actions action-desktop">
+            <button
+                class="button gray approve popup-with-zoom-anim delete-btn  "
+                :class="{ 'btn-cancelled-style': isLoading === req.id }"
+                v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+                @click="removeRequest(req.id)"
+                :disabled="isLoading === req.id"
+            >
+                <span v-if="isLoading === req.id" class="spinner"></span>
+                {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy yêu cầu' }}
+            </button>
+        </div>
+    </div>
 
-                                    <button
-                                        class="delete-btn"
-                                        :class="{ 'btn-cancelled-style': isLoading === req.id }"
-                                        v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-                                        @click="removeRequest(req.id)"
-                                        :disabled="isLoading === req.id"
-                                    >
-                                        <span v-if="isLoading === req.id" class="spinner"></span>
-                                        {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
-                                    </button>
-                                </div>
-                            </div>
+    <!-- Mô tả -->
+    <p class="description">{{ req.description }}</p>
 
-                            <p class="description">{{ req.description }}</p>
+    <!-- Lý do hủy -->
+    <div v-if="req.status === 'Đã hủy' && req.cancellation_reason" class="cancel-box">
+        <strong>Lý do hủy:</strong> {{ req.cancellation_reason }}
+    </div>
 
-                            <!-- Lý do hủy -->
-                            <div v-if="req.status === 'Đã hủy' && req.cancellation_reason" class="cancel-box">
-                                <strong>Lý do hủy:</strong> {{ req.cancellation_reason }}
-                            </div>
-                        </div>
+    <!-- Nút hủy riêng cho mobile -->
+    <div class="repair-actions action-mobile">
+        <button
+            class="delete-btn"
+            :class="{ 'btn-cancelled-style': isLoading === req.id }"
+            v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+            @click="removeRequest(req.id)"
+            :disabled="isLoading === req.id"
+        >
+            <span v-if="isLoading === req.id" class="spinner"></span>
+            {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
+        </button>
+    </div>
+</div>
+
                     </div>
                 </div>
             </div>
@@ -92,7 +107,6 @@
                         <img :src="selectedImages[currentIndex]" class="slider-image" />
                     </div>
                 </Transition>
-
                 <!-- Nút điều hướng dạng overlay nằm ngoài khung -->
                 <button class="mfp-arrow mfp-arrow-left mfp-prevent-close" title="Previous" @click.stop="prevImage"></button>
                 <button class="mfp-arrow mfp-arrow-right mfp-prevent-close" title="Next" @click.stop="nextImage"></button>
@@ -147,6 +161,7 @@ const FetchRepair = async () => {
             }
         });
         repairRequests.value = res.data || [];
+    console.log('id repair:', res);
     } catch (e) {
         console.log('sai o dau roi ban oi', e);
     } finally {
@@ -168,7 +183,7 @@ const removeRequest = async id => {
             }
         });
         await FetchRepair();
-        console.log(res);
+        
     } catch (e) {
         console.log('sai o dau roi ban oi', e);
     } finally {
@@ -216,16 +231,17 @@ onMounted(() => {
 
 .repair-image-wrapper {
     flex-shrink: 0;
+    margin-right: 0px;
+    margin-left: 21px;
 }
 
 .repair-image {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     object-fit: cover;
     border-radius: 6px;
-    border: 1px solid #ddd;
     cursor: pointer;
-    padding: 5px 10px;
+
 }
 
 .repair-content {
@@ -247,11 +263,8 @@ onMounted(() => {
 }
 
 .description {
-    margin: 8px 0;
-    color: #7d7d7d;
-    margin-top: -6px;
-    font-size: 15px;
-    padding: 10px 1px 1px 1px;
+    margin-top: 0px;
+    color: #909090;
 }
 
 .status-tag {
@@ -264,44 +277,85 @@ onMounted(() => {
 }
 
 .pending {
-    background-color: #edb717;
-    color: white;
-     font-weight: 18px;
+    background-color: #ebb40e;
+      color: white;
+    font-weight: 18px;
     font-size: 14px;
+    border-radius: 50px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    font-style: normal;
+    padding: 2px 8px;
+    margin-left: 3px;
+    position: relative;
+    top: -2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .inprogress {
-    background-color: #39bcf9;
-    color: white;
-     font-weight: 18px;
-    font-size: 14px;
-}
-
-.done {
-    background-color: #8ed83a;
+    background-color: #127daf;
     color: white;
     font-weight: 18px;
     font-size: 14px;
+    border-radius: 50px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    font-style: normal;
+    padding: 2px 8px;
+    margin-left: 3px;
+    position: relative;
+    top: -2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.done {
+    background-color: #4caf50;
+    color: white;
+    font-weight: 18px;
+    font-size: 14px;
+    border-radius: 50px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    font-style: normal;
+    padding: 2px 8px;
+    margin-left: 3px;
+    position: relative;
+    top: -2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
 }
 
 .canceled {
-    background-color: #f91942;
-    color: white;
-     font-weight: 18px;
+    background-color: #ee3535;
+       color: white;
+    font-weight: 18px;
     font-size: 14px;
+    border-radius: 50px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    font-style: normal;
+    padding: 2px 8px;
+    margin-left: 3px;
+    position: relative;
+    top: -2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .btn-cancelled-style {
-    border: 2px solid #f91942 !important;
+    border: 2px solid #ee3535 !important;
     background-color: white !important;
-    color: #f91942 !important;
+    color: #ee3535 !important;
     font-weight: bold;
 }
 .cancel-box {
     margin-top: 5px;
     padding: 10px;
     background: #ffebee;
-    border-left: 4px solid #f91942;
-    color: #f91942;
+    border-left: 4px solid #ee3535;
+    color: #ee3535;
 }
 
 .repair-title {
@@ -319,23 +373,27 @@ onMounted(() => {
 .repair-title h5 {
     font-size: 20px;
     font-weight: bold;
-    margin: 0;
+    margin-left: 7px;
     display: flex;
     align-items: center;
-    transform: translateX(-6px);
     word-break: break-word;
+    color: #222222;
+    font-weight: 200;
 }
 
 .delete-btn {
-    background: transparent;
-    border: 1px solid #f91942;
-    font-size: 14px;
+   background: transparent;
     color: white;
-    padding: 4px 10px;
     border-radius: 4px;
+    border: 1px solid #ee3535;
     cursor: pointer;
     margin-left: auto;
-    background-color: #f91942;
+    background-color: #ee3535;
+    padding: 6px 15px;
+    line-height: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
 }
 .box-title-bar-tb {
     font-size: larger;
@@ -502,7 +560,7 @@ h5 {
 .add-button {
     background-color: #ee3535;
     color: white;
-    border: none;
+    border: 1px solid transparent; /* 👈 giữ chỗ cho border */
     border-radius: 999px;
     padding: 8px 16px;
     font-size: 16px;
@@ -519,6 +577,7 @@ h5 {
     color: #ee3535;
     border: 1px solid #ee3535;
 }
+
 
 .repair-actions {
     display: flex;
@@ -559,6 +618,14 @@ h5 {
     display: block;
     border-radius: 4px 4px 0 0;
 }
+
+.status-tag {
+  order: 0;
+}
+
+.delete-btn {
+  order: 1;
+}
 /* ----------- Responsive Styles (Mobile < 480px) ----------- */
 @media only screen and (max-width: 480px) {
     .box-title-bar-req {
@@ -573,7 +640,10 @@ h5 {
         width: 100% !important;
         text-align: center;
         margin: auto;
-         padding: 5px 20px;
+        padding: 5px 20px;
+        font-size: 18px;
+        font-weight: 500;
+
     }
     .mfp-arrow-left
    {
@@ -609,19 +679,72 @@ h5 {
         gap: 8px;
     }
 
-    .repair-title {
-        order: 2; /* hiển thị sau */
-        width: 100%;
-        padding: 8px 12px;
-        text-align: left; /* hoặc left nếu bạn thích */
-    }
-    .repair-title h5 {
-    font-size: 18px;
-    font-weight: bold;
-    margin: 0;
-    display: flex;
-     transform: translateX(-18px);
+   .repair-title {
+    flex-direction: column !important; /* Hiển thị theo chiều dọc */
+    align-items: flex-start !important;
+}
 
+.repair-title  {
+    order: 1;
+    margin-bottom: 4px;
+    width: 100%; /* hoặc 100% nếu bạn muốn full width */
 }
+
+        .repair-title h5 {
+            order: 2;
+            margin: 0;
+            font-size: 18px;
+            font-weight:500;
+            transform: translateX(-7px); /* bỏ translate nếu cần */
+            width: 100%;
+                    padding: 7px 0px 0px 0px
+        }
+  .status-tag {
+    order: 0; /* vẫn trên cùng */
+  }
+  .repair-description {
+    order: 1;
+  }
+  .delete-btn {
+    order: 2; /* nằm dưới mô tả */
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+    text-align: center;
+  }
 }
+/* Mặc định: hiển thị trên PC */
+.action-desktop {
+    display: block;
+}
+.action-mobile {
+    display: none;
+}
+
+.action-desktop .delete-btn {
+       padding: 5px 3px;
+    font-size: 13px;
+    height: auto;
+    min-width: 130px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+}
+/* Trên mobile: đảo ngược */
+@media (max-width: 768px) {
+    .action-desktop {
+        display: none;
+    }
+    .action-mobile {
+        display: block;
+        margin-top: 10px;
+    }
+
+    .repair-content {
+ 
+        flex-direction: column;
+    }
+}
+
+
 </style>

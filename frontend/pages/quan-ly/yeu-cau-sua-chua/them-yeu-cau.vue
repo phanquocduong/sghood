@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Titlebar title="Thêm Yêu Cầu Sửa Chữa" />
+        <Titlebar title="Thêm Yêu Cầu " />
 
         <Loading :is-loading="loading" />
 

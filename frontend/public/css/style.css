@@ -235,6 +235,7 @@ a:hover {
 }
 img {
     max-width: 100%;
+    
 }
 
 /* ---------------------------------- */
@@ -14330,6 +14331,7 @@ header.fullwidth.dashboard .container {
 }
 .dashboard #logo a.dashboard-logo {
     display: inline-block;
+        margin-left: 70px;
 }
 
 /* ---------------------------------- */
