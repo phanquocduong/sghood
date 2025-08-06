@@ -3,13 +3,13 @@
 @section('title', 'Quản lý lịch xem phòng')
 
 @section('content')
-    @if(session('success'))
+    @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
             {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    @if(session('error'))
+    @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
             {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -25,22 +25,28 @@
                 <form action="{{ route('schedules.index') }}" method="GET" class="row g-3 mb-4">
                     <div class="col-md-4">
                         <input type="text" class="form-control rounded-3" name="querySearch"
-                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên dãy trọ..." value="{{ request('querySearch') }}">
+                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên dãy trọ..."
+                            value="{{ request('querySearch') }}">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="status">
                             <option value="">Tất cả trạng thái</option>
-                            <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                            <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
+                            <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
+                                nhận</option>
+                            <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
+                                nhận</option>
                             <option value="Từ chối" {{ request('status') == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                            <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
+                            <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="sort_by">
                             <option value="">Sắp xếp theo</option>
-                            <option value="created_at_desc" {{ request('sort_by') == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
-                            <option value="created_at_asc" {{ request('sort_by') == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
+                            <option value="created_at_desc" {{ request('sort_by') == 'created_at_desc' ? 'selected' : '' }}>
+                                Mới nhất</option>
+                            <option value="created_at_asc" {{ request('sort_by') == 'created_at_asc' ? 'selected' : '' }}>Cũ
+                                nhất</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -66,7 +72,8 @@
                         <tbody>
                             @forelse ($schedules as $schedule)
                                 <tr>
-                                    <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}</td>
+                                    <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}
+                                    </td>
                                     <td>{{ $schedule->user->name ?? 'N/A' }}</td>
                                     <td>{{ $schedule->motel->name ?? 'N/A' }}</td>
                                     <td>
@@ -81,134 +88,172 @@
                                                 'Đã xác nhận' => 'warning',
                                                 'Hoàn thành' => 'success',
                                                 'Từ chối' => 'dark',
-                                                default => 'secondary'
+                                                default => 'secondary',
                                             };
                                         @endphp
                                         <span class="badge bg-{{ $badgeClass }}">
                                             {{ $schedule->status }}
                                         </span> <br>
-                                        @if($schedule->status == 'Từ chối' && $schedule->rejection_reason)
+                                        @if ($schedule->status == 'Từ chối' && $schedule->rejection_reason)
                                             Lí do: <strong>{{ $schedule->rejection_reason }}</strong>
                                         @endif
                                     </td>
                                     <td>
-                                        <form action="{{ route('schedules.updateStatus', $schedule->id) }}" method="POST" class="status-form" id="status-form-{{ $schedule->id }}">
+                                        <form action="{{ route('schedules.updateStatus', $schedule->id) }}" method="POST"
+                                            class="status-form" id="status-form-{{ $schedule->id }}">
                                             @csrf
                                             @method('PATCH')
-                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
-                                            <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}" disabled>
-                                                @switch($schedule->status)
-                                                    @case('Chờ xác nhận')
-                                                        <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận">Đã xác nhận</option>
-                                                        <option value="Từ chối">Từ chối</option>
-                                                    @break
-                                                    @case('Đã xác nhận')
-                                                        <option value="Đã xác nhận" selected>Đã xác nhận</option>
-                                                        <option value="Hoàn thành">Hoàn thành</option>
-                                                    @break
-                                                    @case('Từ chối')
-                                                        <option value="Từ chối" selected>Từ chối</option>
-                                                    @break
-                                                    @case('Hoàn thành')
-                                                        <option value="Hoàn thành" selected>Hoàn thành</option>
-                                                    @break
-                                                    @default
-                                                        <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
-                                                        <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                                                        <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
-                                                @endswitch
-                                            </select>
+                                            @if ($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
+                                                <select name="status" class="form-select form-select-sm status-select"
+                                                    data-schedule-id="{{ $schedule->id }}" disabled>
+                                                    @switch($schedule->status)
+                                                        @case('Chờ xác nhận')
+                                                            <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
+                                                            <option value="Đã xác nhận">Đã xác nhận</option>
+                                                            <option value="Từ chối">Từ chối</option>
+                                                        @break
+
+                                                        @case('Đã xác nhận')
+                                                            <option value="Đã xác nhận" selected>Đã xác nhận</option>
+                                                            <option value="Hoàn thành">Hoàn thành</option>
+                                                        @break
+
+                                                        @case('Từ chối')
+                                                            <option value="Từ chối" selected>Từ chối</option>
+                                                        @break
+
+                                                        @case('Hoàn thành')
+                                                            <option value="Hoàn thành" selected>Hoàn thành</option>
+                                                        @break
+
+                                                        @default
+                                                            <option value="Chờ xác nhận"
+                                                                {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
+                                                                nhận</option>
+                                                            <option value="Đã xác nhận"
+                                                                {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
+                                                                nhận</option>
+                                                            <option value="Từ chối"
+                                                                {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối
+                                                            </option>
+                                                            <option value="Hoàn thành"
+                                                                {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn
+                                                                thành</option>
+                                                    @endswitch
+                                                </select>
                                             @else
-                                             <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}">
-                                                @switch($schedule->status)
-                                                    @case('Chờ xác nhận')
-                                                        <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận">Đã xác nhận</option>
-                                                        <option value="Từ chối">Từ chối</option>
-                                                    @break
-                                                    @case('Đã xác nhận')
-                                                        <option value="Đã xác nhận" selected>Đã xác nhận</option>
-                                                        <option value="Hoàn thành">Hoàn thành</option>
-                                                    @break
-                                                    @case('Từ chối')
-                                                        <option value="Từ chối" selected>Từ chối</option>
-                                                    @break
-                                                    @case('Hoàn thành')
-                                                        <option value="Hoàn thành" selected>Hoàn thành</option>
-                                                    @break
-                                                    @default
-                                                        <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
-                                                        <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                                                        <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
-                                                @endswitch
-                                            </select>
+                                                <select name="status" class="form-select form-select-sm status-select"
+                                                    data-schedule-id="{{ $schedule->id }}">
+                                                    @switch($schedule->status)
+                                                        @case('Chờ xác nhận')
+                                                            <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
+                                                            <option value="Đã xác nhận">Đã xác nhận</option>
+                                                            <option value="Từ chối">Từ chối</option>
+                                                        @break
+
+                                                        @case('Đã xác nhận')
+                                                            <option value="Đã xác nhận" selected>Đã xác nhận</option>
+                                                            <option value="Hoàn thành">Hoàn thành</option>
+                                                        @break
+
+                                                        @case('Từ chối')
+                                                            <option value="Từ chối" selected>Từ chối</option>
+                                                        @break
+
+                                                        @case('Hoàn thành')
+                                                            <option value="Hoàn thành" selected>Hoàn thành</option>
+                                                        @break
+
+                                                        @default
+                                                            <option value="Chờ xác nhận"
+                                                                {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
+                                                                nhận</option>
+                                                            <option value="Đã xác nhận"
+                                                                {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
+                                                                nhận</option>
+                                                            <option value="Từ chối"
+                                                                {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối
+                                                            </option>
+                                                            <option value="Hoàn thành"
+                                                                {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn
+                                                                thành</option>
+                                                    @endswitch
+                                                </select>
                                             @endif
                                             <input type="hidden" name="cancel_reason" class="cancel-reason-input">
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">Không có lịch xem phòng nào.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">Không có lịch xem phòng nào.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $schedules->links('vendor.pagination.custom') }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cancel Reason Modal -->
-    <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cancelReasonModalLabel">Lý do hủy/từ chối lịch xem phòng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="cancelReason" class="form-label">Vui lòng nhập lý do:</label>
-                        <textarea class="form-control" id="cancelReason" rows="4" required></textarea>
+                    <div class="d-flex justify-content-center mt-4 pagination">
+                        {{ $schedules->onEachSide(0)->links('vendor.pagination.custom') }}
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="confirmCancel">Xác nhận</button>
+            </div>
+        </div>
+
+        <!-- Cancel Reason Modal -->
+        <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelReasonModalLabel">Lý do hủy/từ chối lịch xem phòng</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="cancelReason" class="form-label">Vui lòng nhập lý do:</label>
+                            <textarea class="form-control" id="cancelReason" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-primary" id="confirmCancel">Xác nhận</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <style>
-        .table td,
-        .table th {
-            vertical-align: middle;
-        }
+        <style>
+            .table td,
+            .table th {
+                vertical-align: middle;
+            }
 
-        .badge {
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            border-radius: 20px;
-        }
+            .badge {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+                border-radius: 20px;
+            }
 
-        .form-select:focus,
-        .form-control:focus {
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
-        }
+            .form-select:focus,
+            .form-control:focus {
+                box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+            }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-    <script src="{{ asset('js/schedule.js') }}"></script>
-@endsection
+            .btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+@media (max-width: 576px) {
+    .pagination {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+    }
+}
+
+
+        </style>
+        <script src="{{ asset('js/schedule.js') }}"></script>
+    @endsection
