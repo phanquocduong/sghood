@@ -8,7 +8,7 @@
                 <i class="list-box-icon sl sl-icon-doc"></i>
                 <strong v-if="item.type === 'Hàng tháng'">Tiền phòng trọ tháng {{ item.month }}/{{ item.year }}</strong>
                 <strong v-else>Đặt cọc hợp đồng</strong>
-                <ul>
+                <ul style="margin-top: 5px">
                     <li :class="getStatusClass(item.status)">
                         {{ item.status
                         }}<em style="color: #ee3535" v-if="item.refunded_at"> / Đã hoàn tiền lúc {{ formatDateTime(item.refunded_at) }}</em>
@@ -59,4 +59,16 @@ const getStatusClass = status => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+@media (max-width: 576px) {
+    .dashboard-list-box.invoices ul ul li:after {
+        height: 0;
+        width: 0;
+        margin: 0;
+    }
+
+    .dashboard-list-box.invoices > ul > li > ul > li + li {
+        margin-top: 5px;
+    }
+}
+</style>

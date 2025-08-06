@@ -82,7 +82,9 @@ class SendBookingAcceptedNotification implements ShouldQueue
                     ->withNotification(FirebaseNotification::create(
                         $notificationData['title'],
                         $notificationData['content']
-                    ));
+                    ))
+                    ->withData(['url' => 'https://sghood.com.vn/quan-ly/dat-phong']);
+
 
                 $messaging->send($fcmMessage);
 

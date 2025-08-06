@@ -101,7 +101,8 @@ class SendInvoiceCreatedNotification implements ShouldQueue
                         ->withNotification(FirebaseNotification::create(
                             $notificationData['title'],
                             $notificationData['content']
-                        ));
+                        ))
+                        ->withData(['url' => 'https://sghood.com.vn/quan-ly/hoa-don']);
 
                     try {
                         $messaging->send($fcmMessage);

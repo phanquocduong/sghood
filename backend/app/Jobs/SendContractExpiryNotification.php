@@ -43,7 +43,7 @@ class SendContractExpiryNotification implements ShouldQueue
             }
 
             $endDate = Carbon::parse($this->contract->end_date);
-            
+
             // Tạo thông báo trong database
             $notificationData = [
                 'user_id' => $user->id,
@@ -64,7 +64,7 @@ class SendContractExpiryNotification implements ShouldQueue
             if ($user->email) {
                 try {
                     Mail::to($user->email)->send(new ContractExpiryNotification($this->contract));
-                    
+
                     Log::info('Contract expiry email sent', [
                         'contract_id' => $this->contract->id,
                         'user_email' => $user->email,
@@ -82,7 +82,7 @@ class SendContractExpiryNotification implements ShouldQueue
             if ($user->fcm_token) {
                 try {
                     $messaging = app('firebase.messaging');
-                    
+
                     $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
                         ->withNotification(FirebaseNotification::create(
                             $notificationData['title'],
@@ -95,11 +95,11 @@ class SendContractExpiryNotification implements ShouldQueue
                             'end_date' => $this->contract->end_date,
                             'room_name' => $room->name ?? '',
                             'motel_name' => $motel->name ?? '',
-                            'action_url' => url("/contracts/{$this->contract->id}")
+                            'url' => 'https://sghood.com.vn/quan-ly/hop-dong'
                         ]);
 
                     $messaging->send($fcmMessage);
-                    
+
                     Log::info('Contract expiry FCM sent', [
                         'user_id' => $user->id,
                         'contract_id' => $this->contract->id,

@@ -75,15 +75,24 @@
 
     // Hàm làm mới CSRF token
     async function refreshCsrfToken() {
-        const response = await fetch('/csrf-token', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
+        try {
+            const response = await fetch('/csrf-token', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                console.error('Lỗi khi lấy CSRF token:', response.statusText);
+                return null;
             }
-        });
-        const result = await response.json();
-        document.querySelector('meta[name="csrf-token"]').content = result.csrf_token;
-        return result.csrf_token;
+            const result = await response.json();
+            document.querySelector('meta[name="csrf-token"]').content = result.csrf_token;
+            return result.csrf_token;
+        } catch (error) {
+            console.error('Lỗi khi làm mới CSRF token:', error);
+            return null;
+        }
     }
 
     // Hàm gửi FCM token lên server

@@ -410,7 +410,8 @@ export default defineNuxtPlugin(nuxtApp => {
                     preloader: false,
                     midClick: true,
                     removalDelay: 300,
-                    mainClass: 'my-mfp-zoom-in'
+                    mainClass: 'my-mfp-zoom-in',
+                    closeOnBgClick: false
                 });
 
                 $('.mfp-image').magnificPopup({

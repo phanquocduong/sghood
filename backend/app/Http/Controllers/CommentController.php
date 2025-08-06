@@ -51,4 +51,16 @@ class CommentController extends Controller
 
         return redirect()->back()->with('success', 'Trả lời bình luận thành công!');
     }
+    public function toggleVisibility($blogId, $id)
+    {
+        $comment = CommentBlog::where('id', $id)->where('blog_id', $blogId)->firstOrFail();
+
+        $comment->is_hidden = !$comment->is_hidden;
+        $comment->save();
+
+        return response()->json([
+            'success' => true,
+            'is_hidden' => $comment->is_hidden
+        ]);
+    }
 }

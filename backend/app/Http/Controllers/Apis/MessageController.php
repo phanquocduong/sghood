@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Apis\SendMessageRequest;
 use App\Http\Requests\Apis\StartChatRequest;
 use App\Services\Apis\MessageService;
-use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

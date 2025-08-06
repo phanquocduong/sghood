@@ -115,7 +115,20 @@ class AuthController extends Controller
             }
 
             $user = $request->user();
-            return response()->json(['data' => $user ?? []]);
+            // Chỉ trả về các trường cần thiết
+            $userData = $user->only([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'avatar',
+                'birthdate',
+                'address',
+                'role',
+                'email_verified_at',
+            ]);
+
+            return response()->json(['data' => $userData ?? []]);
         } catch (\Exception $e) {
             Log::error('Get user error: ' . $e->getMessage());
             return response()->json(['error' => 'Đã có lỗi xảy ra', 'data' => []], 500);
@@ -170,6 +183,7 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
         $frontendUrl = 'http://127.0.0.1:3000/xac-minh-email';
+        $frontendUrl = config('app.frontend_url') . '/xac-minh-email';
 
         if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
             return redirect()->to("{$frontendUrl}?error=" . urlencode('Liên kết xác minh không hợp lệ'));

@@ -136,7 +136,7 @@ class SendOverdueInvoiceNotification implements ShouldQueue
                     'total_amount' => (string) $this->invoice->total_amount,
                     'room_name' => $this->invoice->contract->room->name ?? '',
                     'motel_name' => $this->invoice->contract->room->motel->name ?? '',
-                    'action_url' => url("/invoices/{$this->invoice->id}")
+                    'action_url' => 'https://sghood.com.vn/quan-ly/hoa-don'
                 ]);
 
             $messaging->send($fcmMessage);

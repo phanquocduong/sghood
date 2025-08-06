@@ -33,7 +33,15 @@
                 <label class="col-sm-3 fw-bold">Hình ảnh:</label>
                 <div class="col-sm-9">
                     @if ($repair->images)
-                        <img src="{{ asset($repair->images) }}" alt="Hình ảnh" class="img-thumbnail" style="max-width: 300px;">
+                        <div class="row">
+                            @foreach(explode('|', $repair->images) as $image)
+                                <div class="col-md-4 col-6 mb-3">
+                                    <a href="{{ asset($image) }}" target="_blank">
+                                        <img src="{{ asset($image) }}" alt="Hình ảnh" class="img-thumbnail" style="height: 150px; object-fit: cover;">
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
                     @else
                         <em>Không có hình ảnh</em>
                     @endif

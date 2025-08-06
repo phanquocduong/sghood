@@ -51,16 +51,22 @@
 
         <!-- chatbox -->
         <div>
-            <ChatIcon v-if="user  && (!isChatOpen || !isMobile)" :unreadMessages="unreadMessages" @toggle="toggleChat" class="chat-icon" />
+            <ChatIcon v-if="user && (!isChatOpen || !isMobile)" :unreadMessages="unreadMessages" @toggle="toggleChat" class="chat-icon" />
             <div>
-                <ChatBox v-if="user && isChatOpen" :isOpen="isChatOpen" @close="isChatOpen = false" @unread="onUnreadMessage" class="chat-box"></ChatBox>
+                <ChatBox
+                    v-if="user && isChatOpen"
+                    :isOpen="isChatOpen"
+                    @close="isChatOpen = false"
+                    @unread="onUnreadMessage"
+                    class="chat-box"
+                ></ChatBox>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'; 
+import { useRoute } from 'vue-router';
 import { ref, watch, nextTick } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import ChatIcon from '~/components/partials/ChatIcon.vue';
@@ -73,7 +79,7 @@ const baseUrl = useRuntimeConfig().public.baseUrl;
 const isChatOpen = ref(false);
 const unreadMessages = ref(0);
 const authStore = useAuthStore();
-const isMobile = ref(false)
+const isMobile = ref(false);
 const { user } = storeToRefs(authStore);
 
 const toggleChat = () => {
@@ -100,26 +106,23 @@ watch(
     { immediate: true }
 );
 onMounted(() => {
-    const CheckMobile = () =>{
-
+    const CheckMobile = () => {
         isMobile.value = window.innerWidth <= 480;
-    }
+    };
     CheckMobile();
     window.addEventListener('resize', CheckMobile);
-})
+});
 </script>
 <style scoped>
-  @media only screen and (max-width:480px){
+@media only screen and (max-width: 480px) {
     .chat-box {
-    width: 100% !important;
-    right: 0;
-    bottom: 0;
-    height: 80% !important;
-    max-height: none;
-    position: fixed;
-    z-index: 1000;
-  }
- 
-  }
- 
+        width: 100% !important;
+        right: 0;
+        bottom: 0;
+        height: 80% !important;
+        max-height: none;
+        position: fixed;
+        z-index: 1000;
+    }
+}
 </style>

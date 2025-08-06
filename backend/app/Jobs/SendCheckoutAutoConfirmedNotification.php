@@ -113,7 +113,7 @@ class SendCheckoutAutoConfirmedNotification implements ShouldQueue
                             'room_name' => $this->room->name,
                             'final_refunded_amount' => (string)$this->checkout->final_refunded_amount,
                             'auto_confirmed_reason' => 'Quá hạn 7 ngày không phản hồi',
-                            'action_url' => url("/checkouts/{$this->checkout->id}")
+                            'url' => 'https://sghood.com.vn/quan-ly/kiem-ke'
                         ]);
 
                     $messaging->send($fcmMessage);

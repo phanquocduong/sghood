@@ -91,7 +91,7 @@
                     <thead class="table-dark">
                         <tr>
                             <th scope="col" style="width: 5%;" class="text-center">STT</th>
-                            <th scope="col" style="width: 15%;">Tên phòng</th>
+                            <th scope="col" style="width: 15%;">Mã HD</th>
                             <th scope="col" style="width: 15%;">Ngày kết thúc mới</th>
                             <th scope="col" style="width: 15%;">Giá thuê mới</th>
                             <th scope="col" style="width: 15%;">Chi tiết</th>
@@ -103,7 +103,13 @@
                         @forelse ($contractExtensions as $extension)
                             <tr class="table-row">
                                 <td class="text-center">{{ $contractExtensions->firstItem() + $loop->index }}</td>
-                                <td>{{ $extension->contract->room->name }}</td>
+                                <td>
+                                    <a href="{{ route('contracts.show', $extension->contract->id) }}"
+                                       class="contract-id-clickable"
+                                       title="Xem chi tiết hợp đồng">
+                                        {{ 'HD'.$extension->contract->id }}
+                                    </a>
+                                </td>
                                 <td>{{ \Carbon\Carbon::parse($extension->new_end_date)->format('d/m/Y') }}</td>
                                 <td>{{ number_format($extension->new_rental_price, 0, ',', '.') }} VNĐ</td>
                                 <td>
@@ -111,7 +117,7 @@
                                         Xem chi tiết
                                     </a>
                                 </td>
-                                <td>{{ $extension->rejection_reason ?? 'N/A' }}</td>
+                                <td>{{ $extension->rejection_reason ?? 'Không có lí do từ chối' }}</td>
                                 <td>
                                     @if($extension->status == 'Chờ duyệt')
                                         <form action="{{ route('contracts.contract_extensions.update_status', $extension->id) }}" method="POST" class="status-form">

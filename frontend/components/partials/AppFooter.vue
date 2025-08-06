@@ -23,6 +23,7 @@
                         <li><NuxtLink to="/ve-chung-toi">Về chúng tôi</NuxtLink></li>
                         <li><NuxtLink to="/lien-he">Liên hệ</NuxtLink></li>
                     </ul>
+                    <div class="clearfix"></div>
                 </div>
 
                 <div class="col-md-3 col-sm-12">

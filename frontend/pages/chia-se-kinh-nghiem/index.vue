@@ -17,7 +17,8 @@
                             :selected-category="selectedCategory"
                             @update:selectedCategory="(val) => {
                               selectedCategory = val
-                              handleFilter() // lọc lại blog
+                          // lọc lại blog
+                              fetchBlogs(1, selectedCategory) // tải lại blog theo category
                               }"
                               />
                           </div>
@@ -239,7 +240,7 @@ const socialLinks = [
 const fetchBlogs = async(page = 1, selectedCategory = '') => {
   loading.value = true
   try {
-    const url = selectedCategory?`/blogs?category=${encodeURIComponent(selectedCategory)}&page=${page}` : `/blogs?page=${page}`
+    const url = selectedCategory ? `/blogs?category=${encodeURIComponent(selectedCategory)}&page=${page}` : `/blogs?page=${page}`
     const res = await $api(url, {
       method: 'GET',
       headers: {
@@ -256,12 +257,11 @@ const fetchBlogs = async(page = 1, selectedCategory = '') => {
       url: `/chia-se-kinh-nghiem/${g.slug}`,
       created_at: formatDate(g.created_at),
     }))
-
+    console.log('fetchBlogs', res)
     blogPosts.value = mapped
     allBlogs.value = [...mapped]
 
-    const allCate = mapped.map(b => b.category).filter(Boolean)
-    categories.value = [...new Set(allCate)]
+    categories.value = res.categories || []
 
     currentPage.value = res.current_page || 1
     totalPages.value = res.last_page || 1

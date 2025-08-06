@@ -9,7 +9,7 @@
                 <strong :class="getTypeClass(item.transfer_type)"
                     >{{ item.transfer_type === 'in' ? '-' : '+' }}{{ formatPrice(item.transfer_amount) }}</strong
                 >
-                <ul>
+                <ul style="margin-top: 5px">
                     <li>Thời gian: {{ formatDate(item.transaction_date) }}</li>
                     <li>Hoá đơn: {{ item.invoice_code }}</li>
                     <li>Mã tham chiếu: {{ item.reference_code }}</li>
@@ -56,5 +56,17 @@ const getTypeClass = type => {
 
 .paid_in {
     color: #4bbf73 !important;
+}
+
+@media (max-width: 576px) {
+    .dashboard-list-box.invoices ul ul li:after {
+        height: 0;
+        width: 0;
+        margin: 0;
+    }
+
+    .dashboard-list-box.invoices > ul > li > ul > li + li {
+        margin-top: 5px;
+    }
 }
 </style>
