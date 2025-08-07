@@ -34,7 +34,8 @@
             <div class="row with-forms">
                 <div class="col-md-12">
                     <select name="priceRange" :value="filters.priceRange" class="chosen-select">
-                        <option v-for="option in priceOptions" :key="option.value" :value="option.value">
+                        <option value="">Tất cả mức giá</option>
+                        <option v-for="option in priceOptions" :key="option.key" :value="option.key">
                             {{ option.label }}
                         </option>
                     </select>
@@ -47,7 +48,8 @@
             <div class="row with-forms">
                 <div class="col-md-12">
                     <select name="areaRange" :value="filters.areaRange" class="chosen-select">
-                        <option v-for="option in areaRangeOptions" :key="option.value" :value="option.value">
+                        <option value="">Tất cả diện tích</option>
+                        <option v-for="option in areaRangeOptions" :key="option.key" :value="option.key">
                             {{ option.label }}
                         </option>
                     </select>

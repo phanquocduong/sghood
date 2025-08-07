@@ -67,13 +67,11 @@
                         </div>
                     </div>
 
-                        <div class="row">
+                    <div class="row">
                         <Blogs />
 
                         <div class="col-md-12 centered-content">
-                        <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-10">
-                            Xem thêm
-                        </NuxtLink>
+                            <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-10"> Xem thêm </NuxtLink>
                         </div>
                     </div>
                 </div>
@@ -89,19 +87,29 @@ import { useRouter } from 'vue-router';
 
 const { $api } = useNuxtApp();
 const router = useRouter();
+const config = useState('configs');
 
 const search = ref({ keyword: '', district: '', priceRange: '' });
 const districts = ref([]);
 const isLoading = ref(true);
+const priceOptions = ref([]);
 
-const priceOptions = ref([
-    { value: '', label: 'Tất cả mức giá' },
-    { value: 'under_1m', label: 'Dưới 1 triệu' },
-    { value: '1m_2m', label: '1 - 2 triệu' },
-    { value: '2m_3m', label: '2 - 3 triệu' },
-    { value: '3m_5m', label: '3 - 5 triệu' },
-    { value: 'over_5m', label: 'Trên 5 triệu' }
-]);
+onMounted(async () => {
+    requestAnimationFrame(async () => {
+        try {
+            if (config.value?.price_filter_options) {
+                priceOptions.value = JSON.parse(config.value.price_filter_options) || [];
+            }
+
+            const response = await $api('/districts', { method: 'GET' });
+            districts.value = response.data;
+        } catch (error) {
+            console.error('Lỗi khi tải dữ liệu:', error);
+        } finally {
+            isLoading.value = false;
+        }
+    });
+});
 
 const handleSearch = () => {
     router.push({
@@ -113,19 +121,6 @@ const handleSearch = () => {
         }
     });
 };
-
-onMounted(async () => {
-    requestAnimationFrame(async () => {
-        try {
-            const response = await $api('/districts', { method: 'GET' });
-            districts.value = response.data;
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách quận:', error);
-        } finally {
-            isLoading.value = false;
-        }
-    });
-});
 </script>
 
 <style scoped>

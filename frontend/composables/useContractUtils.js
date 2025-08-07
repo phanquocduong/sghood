@@ -16,7 +16,6 @@ export function useContractUtils() {
             'Chờ xác nhận': 'pending-booking',
             'Chờ duyệt': 'pending-booking',
             'Chờ duyệt thủ công': 'pending-booking',
-            'Chờ chỉnh sửa': 'pending-booking',
             'Chờ ký': 'pending-booking',
             'Chờ thanh toán tiền cọc': 'pending-booking',
             'Hoạt động': 'approved-booking',
@@ -33,7 +32,6 @@ export function useContractUtils() {
             'Chờ xác nhận': 'pending',
             'Chờ duyệt': 'pending',
             'Chờ duyệt thủ công': 'pending',
-            'Chờ chỉnh sửa': 'pending',
             'Chờ ký': 'pending',
             'Hoạt động': 'approved',
             'Kết thúc': 'canceled',
@@ -46,7 +44,6 @@ export function useContractUtils() {
     const getActText = status => {
         const statusMap = {
             'Chờ xác nhận': 'Hoàn thiện thông tin',
-            'Chờ chỉnh sửa': 'Chỉnh sửa thông tin',
             'Chờ ký': 'Ký hợp đồng',
             'Chờ duyệt': 'Xem chi tiết',
             'Chờ duyệt thủ công': 'Xem chi tiết',

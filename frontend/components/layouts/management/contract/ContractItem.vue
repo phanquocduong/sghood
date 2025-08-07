@@ -197,7 +197,7 @@ const openConfirmEarlyTerminationPopup = async id => {
                     props.item.deposit_amount
                 )}) sẽ không được hoàn trả dưới bất kỳ hình thức nào.</li>
                 <li><strong>Rời khỏi phòng sớm:</strong> Bạn cần rời khỏi phòng trong vòng <strong>3 ngày</strong> kể từ khi yêu cầu được xác nhận để hỗ trợ việc kiểm kê và sửa chữa phòng cho khách thuê mới.</li>
-                <li><strong>Nghĩa vụ tài chính:</strong> Bạn cần thanh toán toàn bộ các hóa đơn chưa thanh toán (nếu có) trước khi kết thúc hợp đồng.</li>
+                <li><strong>Nghĩa vụ tài chính:</strong> Bạn cần thanh toán toàn bộ các hóa đơn chưa thanh toán trước khi kết thúc hợp đồng. Nếu thời gian hiện tại từ ngày 27 cuối tháng đến ngày 5 đầu tháng, vui lòng đợi SGHood tạo hóa đơn tháng cuối để thanh toán trước khi yêu cầu kết thúc sớm.</li>
                 <li><strong>Lịch sử thuê:</strong> Việc kết thúc hợp đồng sớm có thể ảnh hưởng đến hồ sơ thuê phòng của bạn, có thể tác động đến các giao dịch thuê trong tương lai.</li>
             </ul>
             <p>Bạn có chắc chắn muốn tiếp tục yêu cầu kết thúc hợp đồng sớm?</p>

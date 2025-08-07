@@ -3,6 +3,7 @@
 namespace App\Services\Apis;
 
 use App\Models\Motel;
+use App\Models\Config;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -13,23 +14,6 @@ class MotelService
     private const SORT_FEATURED = 'Nổi bật nhất';
     private const SORT_NEWEST = 'Mới nhất';
     private const SORT_OLDEST = 'Cũ nhất';
-
-    // Hằng số cho khoảng giá
-    private const PRICE_RANGES = [
-        'under_1m' => ['max' => 1000000],
-        '1m_2m' => ['min' => 1000000, 'max' => 2000000],
-        '2m_3m' => ['min' => 2000000, 'max' => 3000000],
-        '3m_5m' => ['min' => 3000000, 'max' => 5000000],
-        'over_5m' => ['min' => 5000000],
-    ];
-
-    // Hằng số cho diện tích
-    private const AREA_RANGES = [
-        'under_20' => ['max' => 20],
-        '20_30' => ['min' => 20, 'max' => 30],
-        '30_50' => ['min' => 30, 'max' => 50],
-        'over_50' => ['min' => 50],
-    ];
 
     /**
      * Lấy danh sách nhà trọ nổi bật.
@@ -95,15 +79,20 @@ class MotelService
 
         // Lọc theo khoảng giá
         if ($priceRange = $request->input('priceRange')) {
-            $query->whereHas('rooms', function (Builder $q) use ($priceRange) {
-                if (isset(self::PRICE_RANGES[$priceRange])) {
-                    $range = self::PRICE_RANGES[$priceRange];
-                    if (isset($range['min']) && isset($range['max'])) {
-                        $q->whereBetween('price', [$range['min'], $range['max']]);
-                    } elseif (isset($range['min'])) {
-                        $q->where('price', '>', $range['min']);
-                    } else {
-                        $q->where('price', '<', $range['max']);
+            $priceRangesJson = Config::getValue('price_filter_options', '[]');
+            $priceRanges = json_decode($priceRangesJson, true) ?: [];
+            $query->whereHas('rooms', function (Builder $q) use ($priceRange, $priceRanges) {
+                $range = collect($priceRanges)->firstWhere('key', $priceRange);
+                if ($range) {
+                    // Chuyển đổi min/max từ chuỗi sang số
+                    $min = isset($range['min']) ? (float)$range['min'] : null;
+                    $max = isset($range['max']) ? (float)$range['max'] : null;
+                    if ($min !== null && $max !== null) {
+                        $q->whereBetween('price', [$min, $max]);
+                    } elseif ($min !== null) {
+                        $q->where('price', '>=', $min);
+                    } elseif ($max !== null) {
+                        $q->where('price', '<=', $max);
                     }
                 }
             });
@@ -111,15 +100,20 @@ class MotelService
 
         // Lọc theo diện tích
         if ($areaRange = $request->input('areaRange')) {
-            $query->whereHas('rooms', function (Builder $q) use ($areaRange) {
-                if (isset(self::AREA_RANGES[$areaRange])) {
-                    $range = self::AREA_RANGES[$areaRange];
-                    if (isset($range['min']) && isset($range['max'])) {
-                        $q->whereBetween('area', [$range['min'], $range['max']]);
-                    } elseif (isset($range['min'])) {
-                        $q->where('area', '>', $range['min']);
-                    } else {
-                        $q->where('area', '<', $range['max']);
+            $areaRangesJson = Config::getValue('area_filter_options', '[]');
+            $areaRanges = json_decode($areaRangesJson, true) ?: [];
+            $query->whereHas('rooms', function (Builder $q) use ($areaRange, $areaRanges) {
+                $range = collect($areaRanges)->firstWhere('key', $areaRange);
+                if ($range) {
+                    // Chuyển đổi min/max từ chuỗi sang số
+                    $min = isset($range['min']) ? (float)$range['min'] : null;
+                    $max = isset($range['max']) ? (float)$range['max'] : null;
+                    if ($min !== null && $max !== null) {
+                        $q->whereBetween('area', [$min, $max]);
+                    } elseif ($min !== null) {
+                        $q->where('area', '>=', $min);
+                    } elseif ($max !== null) {
+                        $q->where('area', '<=', $max);
                     }
                 }
             });
@@ -155,7 +149,7 @@ class MotelService
         ];
     }
 
-   /**
+    /**
      * Lấy chi tiết nhà trọ theo slug.
      *
      * @param string $slug
@@ -241,3 +235,5 @@ class MotelService
         })->toArray();
     }
 }
+
+?>
