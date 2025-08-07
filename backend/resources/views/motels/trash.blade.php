@@ -73,23 +73,25 @@
                                             {{ $motel->status }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="d-flex justify-content-center align-items-center">
                                         <form action="{{ route('motels.restore', $motel->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success me-2 action-btn"
+                                            <button type="submit" class="btn btn-sm btn-success me-2 action-btn action-icon"
                                                 onclick="return confirm('Bạn có chắc chắn muốn khôi phục?')"
                                                 style="transition: all 0.3s;">
-                                                <i class="fas fa-trash-restore me-1"></i> {{ __('Khôi phục') }}
+                                                <i class="fas fa-trash-restore me-1"></i>
+                                                <span class="d-none d-sm-inline ms-1">{{ __('Khôi phục') }}</span>
                                             </button>
                                         </form>
                                         <form action="{{ route('motels.forceDelete', $motel->id) }}" method="POST"
                                             style="display:inline-block;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn"
+                                            <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
                                                 onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn không?')"
                                                 style="transition: all 0.3s;">
-                                                <i class="fas fa-trash me-1"></i> Xóa vĩnh viễn
+                                                <i class="fas fa-trash me-1"></i>
+                                                <span class="d-none d-sm-inline ms-1">{{ __('Xóa vĩnh viễn') }}</span>
                                             </button>
                                         </form>
                                     </td>
@@ -132,6 +134,36 @@
         .text-primary:hover {
             color: #ff7e5f !important;
         }
+        @media (max-width: 576px) {
+
+                /* Nút hành động trên mobile chỉ là icon tròn */
+                .action-icon {
+                    padding: 6px 8px;
+                    /* Nhỏ gọn */
+                    border-radius: 50%;
+                    /* Bo tròn */
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center
+                }
+
+                /* Icon căn giữa */
+                .action-icon i {
+                    margin: 0 !important;
+                    font-size: 14px;
+                }
+
+                .card-header .btn {
+                    font-size: 14px;
+                    padding: 6px 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
     </style>
 
     @section('styles')

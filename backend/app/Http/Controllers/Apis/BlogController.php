@@ -15,7 +15,9 @@ class BlogController extends Controller
     }
     public function index(Request $request)
     {
-        $blogs = $this->blogService->getAll($request->all());
+        $result = $this->blogService->getAll($request->all());
+        $blogs = $result['blogs'];
+        $categories = $result['categories'];
 
         return response()->json([
             'success' => true,
@@ -26,8 +28,11 @@ class BlogController extends Controller
             'prev_page_url' => $blogs->previousPageUrl(),
             'per_page' => $blogs->perPage(),
             'total' => $blogs->total(),
+            'categories' => $categories,
         ]);
     }
+
+
 
 
     public function showBlog($slug)
@@ -61,8 +66,8 @@ class BlogController extends Controller
     {
         $updated = $this->blogService->increaseView($id);
         return response()->json([
-        'message' => 'View increased',
-        'updated' => $updated // số bản ghi update
-    ]);
+            'message' => 'View increased',
+            'updated' => $updated // số bản ghi update
+        ]);
     }
 }

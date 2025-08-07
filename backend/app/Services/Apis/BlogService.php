@@ -26,9 +26,15 @@ class BlogService
 
         $perPage = $params['per_page'] ?? 6;
 
+        $blogs = $query->latest()->paginate($perPage);
 
-        return $query->latest()->paginate($perPage);
+        return [
+            'blogs' => $blogs,
+            'categories' => Blog::select('category')->distinct()->pluck('category'),
+        ];
     }
+
+
 
     public function getBlogBySlug($slug)
     {

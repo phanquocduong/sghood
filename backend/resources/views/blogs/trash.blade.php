@@ -84,15 +84,16 @@
                                 <td>{{ $blog->title }}</td>
                                 <td>{{ $blog->author->name }}</td>
                                 <td>{{ $blog->created_at->format('d/m/Y') }}</td>
-                                <td>
+                                <td class="d-flex justify-content-center align-items-center">
                                     <form action="{{ route('blogs.restore', $blog->id) }}" method="POST"
                                         style="display:inline-block;">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="btn btn-sm btn-success action-btn"
+                                        <button type="submit" class="btn btn-sm btn-success action-btn action-icon"
                                             onclick="return confirm('Bạn có chắc muốn khôi phục?')"
                                             style="transition: all 0.3s;">
-                                            Khôi phục bài viết
+                                            <i class="fas fa-undo"></i>
+                                            <span class="d-none d-sm-inline ms-1">Khôi phục bài viết</span>
                                         </button>
                                     </form>
                                     <form action="{{ route('blogs.force-delete', $blog->id) }}" method="POST"
@@ -101,7 +102,8 @@
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger action-btn"
                                             onclick="return confirm('Bạn có chắc muốn xóa bài viết vĩnh viễn?')" style="transition: all 0.3s;">
-                                            <i class="fas fa-trash me-1"></i> Xóa bài viết
+                                            <i class="fas fa-trash me-1"></i>
+                                            <span class="d-none d-sm-inline">Xóa bài viết</span>
                                         </button>
                                     </form>
                                 </td>
@@ -113,3 +115,37 @@
         </div>
     </div>
 @endsection
+@section('styles')
+        <style>
+            @media (max-width: 576px) {
+
+                /* Nút hành động trên mobile chỉ là icon tròn */
+                .action-icon {
+                    padding: 6px 8px;
+                    /* Nhỏ gọn */
+                    border-radius: 50%;
+                    /* Bo tròn */
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center
+                }
+
+                /* Icon căn giữa */
+                .action-icon i {
+                    margin: 0 !important;
+                    font-size: 14px;
+                }
+
+                .card-header .btn {
+                    font-size: 14px;
+                    padding: 6px 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
+        </style>
+    @endsection
