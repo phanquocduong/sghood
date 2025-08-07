@@ -11,8 +11,11 @@ use App\Models\Invoice;
 use App\Jobs\SendContractExpiryNotification;
 use App\Jobs\SendOverdueInvoiceNotification;
 use App\Jobs\SendCheckoutAutoConfirmedNotification;
+use App\Models\Room;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 use Mail;
 use App\Mail\ContractExpiryNotification;
 use Illuminate\Support\Facades\Log;
@@ -396,6 +399,40 @@ class CheckContractExpiry extends Command
 
         $contract->status = 'Kết thúc';
         $contract->save();
+        $checkout = Checkout::where('contract_id', $contract->id)->first();
+
+        Room::where('id', $checkout->contract->room_id)->update([
+                        'status' => 'Sửa chữa',
+                    ]);
+
+                    // Cập nhật vai trò người dùng thành "Người đăng ký"
+                    $user = $checkout->contract->user;
+                    if ($user) {
+                        // Xóa identity_document nếu tồn tại
+                        if ($user->identity_document && Storage::disk('private')->exists($user->identity_document)) {
+                            Storage::disk('private')->delete($user->identity_document);
+                            Log::info('Identity document deleted', [
+                                'user_id' => $user->id,
+                                'document_path' => $user->identity_document,
+                            ]);
+                        }
+
+                        User::where('id', $user->id)->update([
+                            'role' => 'Người đăng ký',
+                            'identity_document' => null,
+                        ]);
+
+                        Log::info('User role updated to Người đăng ký and identity_document cleared', [
+                            'user_id' => $user->id,
+                            'checkout_id' => $checkout->id,
+                            'contract_id' => $checkout->contract->id,
+                        ]);
+                    } else {
+                        Log::warning('User not found for role update', [
+                            'checkout_id' => $checkout->id,
+                            'contract_id' => $checkout->contract->id,
+                        ]);
+                    }
 
         $this->info("✅ Hợp đồng #{$contract->id} đã được kết thúc");
 

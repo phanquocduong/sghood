@@ -253,11 +253,6 @@
                 </div>
 
                 <div class="info-row">
-                    <span class="info-label">Chủ nhà:</span>
-                    <span class="info-value">{{ $landlord->name ?? ($property->motel->user->name ?? 'N/A') }}</span>
-                </div>
-
-                <div class="info-row">
                     <span class="info-label">Ngày bắt đầu:</span>
                     <span class="info-value">{{ \Carbon\Carbon::parse($contract->start_date)->format('d/m/Y') }}</span>
                 </div>
@@ -284,7 +279,7 @@
             <div class="next-steps">
                 <h3>📝 Các bước tiếp theo cần thực hiện:</h3>
                 <ul>
-                    <li><strong>Kiểm tra tình trạng bất động sản:</strong> Đảm bảo bàn giao theo đúng tình trạng ban đầu
+                    <li><strong>Kiểm tra tình trạng phòng:</strong> Đảm bảo bàn giao theo đúng tình trạng ban đầu
                     </li>
                     <li><strong>Thanh toán cuối kỳ:</strong> Hoàn tất các khoản phí còn lại (nếu có)</li>
                     <li><strong>Hoàn trả tiền đặt cọc:</strong> Xử lý việc hoàn trả tiền đặt cọc theo quy định</li>
@@ -298,9 +293,9 @@
                 <p>Nếu bạn có bất kỳ câu hỏi nào về việc kết thúc hợp đồng này, vui lòng liên hệ với chúng tôi:</p>
                 <p><strong>Hotline:</strong> 1900-1234 | <strong>Email:</strong> support@troviet.com</p>
 
-                <div style="margin-top: 20px;">
-                    <a href="{{ url('/contracts/' . $contract->id) }}" class="btn">Xem chi tiết hợp đồng</a>
-                    <a href="{{ url('/contact') }}" class="btn btn-secondary">Liên hệ hỗ trợ</a>
+                <div style="margin-top: 20px; color:white;">
+                    <a href="{{ url('https://sghood.com.vn/quan-ly/hop-dong/' . $contract->id) }}" class="btn">Xem chi tiết hợp đồng</a>
+                    <a href="{{ url('https://sghood.com.vn/lien-he') }}" class="btn btn-secondary">Liên hệ hỗ trợ</a>
                 </div>
             </div>
 
