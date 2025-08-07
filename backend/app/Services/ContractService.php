@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\User;
+use App\Models\Invoice;
+use App\Models\Config;
 use App\Jobs\SendContractRevisionNotification;
 use App\Jobs\SendContractSignNotification;
 use App\Jobs\SendContractConfirmNotification;
@@ -414,5 +416,29 @@ class ContractService
         $contract->save();
 
         return $newContent;
+    }
+
+    public function checkOverdueInvoices($contractId): bool
+    {
+        try {
+            $today = Carbon::today();
+            // Giả định có model Config để lấy ngày quá hạn
+            $overdueDays = (int) Config::getValue('date_end_contract');
+            $overdueDate = $today->subDays($overdueDays);
+            // $overdueDate = $today->subDays(30);
+
+            // Giả định có model Invoice liên kết với Contract
+            $overdueInvoices = Invoice::where('contract_id', $contractId)
+                ->where('status', 'Chưa trả')
+                ->whereDate('created_at', '<=', $overdueDate)
+                ->exists();
+
+            return $overdueInvoices;
+        } catch (\Throwable $e) {
+            Log::error('Error checking overdue invoices: ' . $e->getMessage(), [
+                'contract_id' => $contractId
+            ]);
+            return false;
+        }
     }
 }

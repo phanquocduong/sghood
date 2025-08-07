@@ -361,12 +361,22 @@ class CheckoutService
                     // Cập nhật vai trò người dùng thành "Người đăng ký"
                     $user = $checkout->contract->user;
                     if ($user) {
+                        // Xóa identity_document nếu tồn tại
+                        if ($user->identity_document && Storage::disk('private')->exists($user->identity_document)) {
+                            Storage::disk('private')->delete($user->identity_document);
+                            Log::info('Identity document deleted', [
+                                'user_id' => $user->id,
+                                'document_path' => $user->identity_document,
+                            ]);
+                        }
+
                         User::where('id', $user->id)->update([
                             'role' => 'Người đăng ký',
+                            'identity_document' => null,
                             'updated_at' => $refundedAt,
                         ]);
 
-                        Log::info('User role updated to Người đăng ký', [
+                        Log::info('User role updated to Người đăng ký and identity_document cleared', [
                             'user_id' => $user->id,
                             'checkout_id' => $checkout->id,
                             'contract_id' => $checkout->contract->id,
@@ -387,6 +397,7 @@ class CheckoutService
                 }
 
                 // Gửi thông báo bằng Job
+                
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 

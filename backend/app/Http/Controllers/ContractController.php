@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\ContractService;
 use App\Models\Contract;
 use App\Models\ContractExtension;
+use App\Models\Config;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -47,15 +48,23 @@ class ContractController extends Controller
             return redirect()->route('contracts.index')->with('error', $result['error']);
         }
 
-        // Lấy các gia hạn hợp đồng đã được duyệt cho hợp đồng này
+        // Lấy các gia hạn hợp đồng đã được duyệt
         $contractExtensions = ContractExtension::where('contract_id', $id)
             ->where('status', 'Hoạt động')
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Kiểm tra hóa đơn chưa thanh toán quá 30 ngày
+        $hasOverdueInvoices = $this->contractService->checkOverdueInvoices($id);
+
+        $config = Config::where('config_key', 'rental_contract_terms')->first();
+        $terminationRights = $config ? json_decode($config->config_value, true)[0]['termination_rights'] : [];
+
         return view('contracts.detail-contracts', [
             'contract' => $result['data'],
-            'contractExtensions' => $contractExtensions
+            'contractExtensions' => $contractExtensions,
+            'hasOverdueInvoices' => $hasOverdueInvoices,
+            'terminationRights' => $terminationRights
         ]);
     }
 
