@@ -9,6 +9,7 @@ use App\Models\Config;
 use App\Jobs\SendContractRevisionNotification;
 use App\Jobs\SendContractSignNotification;
 use App\Jobs\SendContractConfirmNotification;
+use App\Jobs\SendContractEarlyTerminationNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -148,7 +149,8 @@ class ContractService
                     // Update user role to "Người đăng ký"
                     $contract->user->update(['role' => 'Người đăng ký']);
 
-                    // Remove identity documents from user and storage
+                    // Remove identity docume
+                    $contract->room->update(['status' => 'Sửa chữa']);
                     if ($contract->user->identity_document) {
                         $imagePaths = explode('|', $contract->user->identity_document);
                         foreach ($imagePaths as $index => $imagePath) {
@@ -362,6 +364,89 @@ class ContractService
         }
     }
 
+    public function terminateContractEarly($contractId, string $terminationReason = null): array
+    {
+        try {
+            $contract = Contract::with(['user', 'room', 'booking'])->findOrFail($contractId);
+
+            if (!$contract->user || !$contract->user->email) {
+                Log::error('User or email not found for contract early termination', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin người dùng hoặc email.',
+                    'status' => 404
+                ];
+            }
+
+            // Cập nhật trạng thái hợp đồng thành "Kết thúc sớm"
+            $contract->update(['status' => 'Kết thúc sớm']);
+
+            // Xử lý khi kết thúc hợp đồng sớm
+            if ($contract->user) {
+                // Update user role to "Người đăng ký"
+                $contract->user->update(['role' => 'Người đăng ký']);
+
+                // Update room status
+                if ($contract->room) {
+                    $contract->room->update(['status' => 'Sửa chữa']);
+                }
+
+                // Remove identity documents from user and storage
+                if ($contract->user->identity_document) {
+                    $imagePaths = explode('|', $contract->user->identity_document);
+                    foreach ($imagePaths as $index => $imagePath) {
+                        // Delete the file from storage
+                        if (Storage::disk('public')->exists($imagePath)) {
+                            Storage::disk('public')->delete($imagePath);
+                            Log::info('Deleted identity document file', [
+                                'user_id' => $contract->user->id,
+                                'file_path' => $imagePath
+                            ]);
+                        }
+                    }
+                    // Clear the identity_document field in the user model
+                    $contract->user->update(['identity_document' => null]);
+                    Log::info('User identity document cleared', [
+                        'user_id' => $contract->user->id,
+                        'contract_id' => $contract->id
+                    ]);
+                }
+
+                Log::info('User status updated to "Người đăng ký"', [
+                    'user_id' => $contract->user->id,
+                    'contract_id' => $contract->id
+                ]);
+            }
+
+            // Gửi thông báo kết thúc hợp đồng sớm bằng Job
+            SendContractEarlyTerminationNotification::dispatch($contract, $terminationReason);
+
+            Log::info('Contract early termination notification job dispatched', [
+                'contract_id' => $contract->id,
+                'user_id' => $contract->user_id,
+                'termination_reason' => $terminationReason
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Hợp đồng đã được kết thúc sớm và email thông báo đã được gửi thành công!'
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Error terminating contract early: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'termination_reason' => $terminationReason,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi kết thúc hợp đồng sớm.',
+                'status' => 500
+            ];
+        }
+    }
+
     public function updateContractContent(Contract $contract, array $data): string
     {
         // Get the current content
@@ -417,7 +502,6 @@ class ContractService
 
         return $newContent;
     }
-
     public function checkOverdueInvoices($contractId): bool
     {
         try {
@@ -441,4 +525,6 @@ class ContractService
             return false;
         }
     }
+
+
 }

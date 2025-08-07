@@ -89,6 +89,21 @@ class ContractController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
+    public function terminateEarly(Request $request, $id)
+    {
+        $request->validate([
+            'termination_reason' => 'nullable|string|max:1000',
+        ]);
+
+        $result = $this->contractService->terminateContractEarly($id, $request->input('termination_reason'));
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
+    }
+
     public function download($id)
     {
         $result = $this->contractService->downloadContractPdf($id);
