@@ -6,6 +6,7 @@ use App\Models\Checkout;
 use App\Models\Transaction;
 use App\Models\Invoice;
 use App\Models\Contract;
+use App\Models\Room;
 use App\Models\User;
 use App\Jobs\SendCheckoutStatusUpdatedNotification;
 use App\Jobs\SendCheckoutRefundNotification;
@@ -45,7 +46,10 @@ class CheckoutService
             }
 
             $q->where('id', 'like', '%' . $querySearch . '%')
-              ->orWhere('id', 'like', '%' . $numericQuery . '%');
+              ->orWhere('id', 'like', '%' . $numericQuery . '%')
+              ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                  $userQuery->where('name', 'like', '%' . $querySearch . '%');
+              });
             });
         }
 
@@ -346,6 +350,11 @@ class CheckoutService
                     // Cập nhật trạng thái hợp đồng thành "Kết thúc"
                     Contract::where('id', $checkout->contract->id)->update([
                         'status' => 'Kết thúc',
+                        'updated_at' => $refundedAt,
+                    ]);
+
+                    Room::where('id', $checkout->contract->room_id)->update([
+                        'status' => 'Sửa chữa',
                         'updated_at' => $refundedAt,
                     ]);
 

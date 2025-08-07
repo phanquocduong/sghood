@@ -4,11 +4,18 @@
 
         <!-- Modal Dialog for Booking -->
         <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
-            <div class="small-dialog-header">
+            <div class="small-dialog-header" style="margin-bottom: 0">
                 <h3>Đặt phòng trọ</h3>
-                <p class="booking-subtitle">Vui lòng điền đầy đủ thông tin để đặt phòng</p>
+                <p class="booking-subtitle">Vui lòng điền đầy đủ thông tin để đặt phòng.</p>
             </div>
             <div class="message-reply margin-top-0">
+                <a
+                    style="text-decoration: underline !important; color: #007bff; margin: 10px 0 20px; display: inline-block"
+                    href="/dieu-khoan-hop-dong"
+                    target="_blank"
+                    class="terms-link"
+                    >Xem điều khoản hợp đồng</a
+                >
                 <div class="booking-form-grid">
                     <div class="form-row">
                         <div class="form-col">

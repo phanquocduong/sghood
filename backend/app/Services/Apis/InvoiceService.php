@@ -203,8 +203,9 @@ class InvoiceService
             throw new \Exception('Lỗi khi lấy chi tiết hóa đơn: ' . $e->getMessage());
         }
     }
+
     /**
-     * Lấy chỉ số đồng hồ tháng trước
+     * Lấy chỉ số đồng hồ gần nhất phía trước theo thời gian
      *
      * @param int $roomId
      * @param int $month
@@ -213,18 +214,12 @@ class InvoiceService
      */
     private function getPreviousMeterReading(int $roomId, int $month, int $year): ?MeterReading
     {
-        // Tính tháng trước
-        $prevMonth = $month - 1;
-        $prevYear = $year;
-
-        if ($prevMonth < 1) {
-            $prevMonth = 12;
-            $prevYear = $year - 1;
-        }
+        // Tính ngày đầu tháng của hóa đơn hiện tại
+        $currentMonthDate = now()->setDate($year, $month, 1)->startOfDay();
 
         return MeterReading::where('room_id', $roomId)
-            ->where('month', $prevMonth)
-            ->where('year', $prevYear)
+            ->where('created_at', '<', $currentMonthDate)
+            ->orderByDesc('created_at') // Lấy bản ghi gần nhất phía trước
             ->first();
     }
 

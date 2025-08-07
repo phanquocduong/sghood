@@ -13,9 +13,11 @@ class BlogController extends Controller
     {
         $this->blogService = $blogService;
     }
-    public function index(Request $request)
+   public function index(Request $request)
     {
-        $blogs = $this->blogService->getAll($request->all());
+        $result = $this->blogService->getAll($request->all());
+        $blogs = $result['blogs'];
+        $categories = $result['categories'];
 
         return response()->json([
             'success' => true,
@@ -26,6 +28,7 @@ class BlogController extends Controller
             'prev_page_url' => $blogs->previousPageUrl(),
             'per_page' => $blogs->perPage(),
             'total' => $blogs->total(),
+            'categories' => $categories,
         ]);
     }
 

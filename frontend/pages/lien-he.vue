@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useToast';
@@ -143,7 +143,6 @@ import { useBehaviorStore } from '~/stores/behavior';
 // api config
 const config = useState('configs');
 const baseUrl = useRuntimeConfig().public.baseUrl;
-console.log('Config:', config.value);
 const behavior = useBehaviorStore();
 const route = useRoute();
 

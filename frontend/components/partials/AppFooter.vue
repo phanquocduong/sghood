@@ -20,6 +20,7 @@
                     </ul>
 
                     <ul class="footer-links">
+                        <li><NuxtLink to="/dieu-khoan-hop-dong">Điều khoản hợp đồng</NuxtLink></li>
                         <li><NuxtLink to="/ve-chung-toi">Về chúng tôi</NuxtLink></li>
                         <li><NuxtLink to="/lien-he">Liên hệ</NuxtLink></li>
                     </ul>

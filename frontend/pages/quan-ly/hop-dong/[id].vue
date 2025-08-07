@@ -9,7 +9,7 @@
                 <div v-if="extractLoading" class="extract-loading-overlay">
                     <p>Đang quét ảnh căn cước...</p>
                 </div>
-                <div v-else ref="contractContainer" v-html="contract?.content"></div>
+                <div v-else ref="contractContainer" v-html="contract?.content" @input="handleInput"></div>
 
                 <ContractSignature
                     v-if="contract?.status === 'Chờ ký'"
@@ -28,6 +28,7 @@
                 :identity-document="identityDocument"
                 :is-form-complete="isFormComplete"
                 :save-loading="saveLoading"
+                :bypass-extract="bypassExtract"
                 @save-contract="saveContract"
                 @identity-upload="handleIdentityUpload"
             />
@@ -110,20 +111,32 @@ const isFormComplete = computed(() =>
 );
 
 // Composable
-const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, otpCode } = useContract({
-    contract,
-    signatureData,
-    identityDocument,
-    identityImages,
-    contractContainer,
-    loading,
-    extractLoading,
-    saveLoading,
-    toast,
-    router,
-    route,
-    dropzoneInstance
-});
+const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, otpCode, bypassExtract } =
+    useContract({
+        contract,
+        signatureData,
+        identityDocument,
+        identityImages,
+        contractContainer,
+        loading,
+        extractLoading,
+        saveLoading,
+        toast,
+        router,
+        route,
+        dropzoneInstance
+    });
+
+// Xử lý sự kiện input
+const handleInput = event => {
+    if (bypassExtract.value) {
+        const input = event.target;
+        const { name, value } = input;
+        if (name in identityDocument.value) {
+            identityDocument.value[name] = value;
+        }
+    }
+};
 
 onMounted(async () => {
     await fetchContract();

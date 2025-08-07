@@ -3,13 +3,13 @@
 @section('title', 'Quản lý lịch xem phòng')
 
 @section('content')
-    @if(session('success'))
+    @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
             {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    @if(session('error'))
+    @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
             {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -87,22 +87,28 @@
                 <form action="{{ route('schedules.index') }}" method="GET" class="row g-3 mb-4">
                     <div class="col-md-4">
                         <input type="text" class="form-control rounded-3" name="querySearch"
-                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên dãy trọ..." value="{{ request('querySearch') }}">
+                            placeholder="Tìm kiếm theo tên người dùng, nội dung, tên dãy trọ..."
+                            value="{{ request('querySearch') }}">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="status">
                             <option value="">Tất cả trạng thái</option>
-                            <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                            <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
+                            <option value="Chờ xác nhận" {{ request('status') == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
+                                nhận</option>
+                            <option value="Đã xác nhận" {{ request('status') == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
+                                nhận</option>
                             <option value="Từ chối" {{ request('status') == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                            <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
+                            <option value="Hoàn thành" {{ request('status') == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <select class="form-select rounded-3" name="sort_by">
                             <option value="">Sắp xếp theo</option>
-                            <option value="created_at_desc" {{ request('sort_by') == 'created_at_desc' ? 'selected' : '' }}>Mới nhất</option>
-                            <option value="created_at_asc" {{ request('sort_by') == 'created_at_asc' ? 'selected' : '' }}>Cũ nhất</option>
+                            <option value="created_at_desc" {{ request('sort_by') == 'created_at_desc' ? 'selected' : '' }}>
+                                Mới nhất</option>
+                            <option value="created_at_asc" {{ request('sort_by') == 'created_at_asc' ? 'selected' : '' }}>Cũ
+                                nhất</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -129,37 +135,8 @@
                             @forelse ($schedules as $schedule)
                                 <tr>
                                     <td>{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $loop->iteration }}</td>
-                                    <td>
-                                        @if($schedule->user)
-                                            <a href="javascript:void(0)" 
-                                               class="text-primary text-decoration-none user-info-link fw-bold"
-                                               data-user-id="{{ $schedule->user->id }}"
-                                               data-user-name="{{ $schedule->user->name }}"
-                                               data-user-email="{{ $schedule->user->email }}"
-                                               data-user-phone="{{ $schedule->user->phone ?? 'Chưa cập nhật' }}"
-                                               data-user-address="{{ $schedule->user->address ?? 'Chưa cập nhật' }}"
-                                               data-user-created="{{ $schedule->user->created_at ? \Carbon\Carbon::parse($schedule->user->created_at)->format('d/m/Y H:i') : 'N/A' }}"
-                                               data-user-avatar="{{ $schedule->user->avatar ? asset($schedule->user->avatar) : asset('img/user.jpg') }}"
-                                               title="Xem thông tin chi tiết">
-                                               <i class="fas fa-user-circle me-1"></i>{{ $schedule->user->name }}
-                                            </a>
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($schedule->motel)  
-                                        <a href="{{ route('motels.show', $schedule->motel->id) }}" 
-                                        target="_blank" 
-                                        class="text-primary text-decoration-none motel-info-link fw-bold"
-                                        title="Xem chi tiết nhà trọ (mở tab mới)">
-                                        <i class="fas fa-building me-1"></i>{{ $schedule->motel->name }}
-                                        <i class="fas fa-external-link-alt ms-1 text-muted" style="font-size: 0.8rem;"></i>
-                                        </a>
-                                     @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                    </td>
+                                    <td>{{ $schedule->user->name ?? 'N/A' }}</td>
+                                    <td>{{ $schedule->motel->name ?? 'N/A' }}</td>
                                     <td>
                                         {{ $schedule->scheduled_at
                                             ? \Carbon\Carbon::parse($schedule->scheduled_at)->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i')
@@ -172,23 +149,22 @@
                                                 'Đã xác nhận' => 'warning',
                                                 'Hoàn thành' => 'success',
                                                 'Từ chối' => 'dark',
-                                                'Chờ xác nhận' => 'primary',
-                                                'Huỷ bỏ' => 'danger',
                                                 default => 'secondary'
                                             };
                                         @endphp
                                         <span class="badge bg-{{ $badgeClass }}">
                                             {{ $schedule->status }}
                                         </span> <br>
-                                        @if($schedule->status == 'Từ chối' && $schedule->rejection_reason)
+                                        @if ($schedule->status == 'Từ chối' && $schedule->rejection_reason)
                                             Lí do: <strong>{{ $schedule->rejection_reason }}</strong>
                                         @endif
                                     </td>
                                     <td>
-                                        <form action="{{ route('schedules.updateStatus', $schedule->id) }}" method="POST" class="status-form" id="status-form-{{ $schedule->id }}">
+                                        <form action="{{ route('schedules.updateStatus', $schedule->id) }}" method="POST"
+                                            class="status-form" id="status-form-{{ $schedule->id }}">
                                             @csrf
                                             @method('PATCH')
-                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành' || $schedule->status == 'Huỷ bỏ')
+                                            @if($schedule->status == 'Từ chối' || $schedule->status == 'Hoàn thành')
                                             <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}" disabled>
                                                 @switch($schedule->status)
                                                     @case('Chờ xác nhận')
@@ -206,9 +182,6 @@
                                                     @case('Hoàn thành')
                                                         <option value="Hoàn thành" selected>Hoàn thành</option>
                                                     @break
-                                                    @case('Huỷ bỏ')
-                                                        <option value="Huỷ bỏ" selected>Huỷ bỏ</option>
-                                                    @break
                                                     @default
                                                         <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
                                                         <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
@@ -217,50 +190,63 @@
                                                 @endswitch
                                             </select>
                                             @else
-                                             <select name="status" class="form-select form-select-sm status-select" data-schedule-id="{{ $schedule->id }}">
-                                                @switch($schedule->status)
-                                                    @case('Chờ xác nhận')
-                                                        <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận">Đã xác nhận</option>
-                                                        <option value="Từ chối">Từ chối</option>
-                                                    @break
-                                                    @case('Đã xác nhận')
-                                                        <option value="Đã xác nhận" selected>Đã xác nhận</option>
-                                                        <option value="Hoàn thành">Hoàn thành</option>
-                                                    @break
-                                                    @case('Từ chối')
-                                                        <option value="Từ chối" selected>Từ chối</option>
-                                                    @break
-                                                    @case('Hoàn thành')
-                                                        <option value="Hoàn thành" selected>Hoàn thành</option>
-                                                    @break
-                                                    @default
-                                                        <option value="Chờ xác nhận" {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                                                        <option value="Đã xác nhận" {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác nhận</option>
-                                                        <option value="Từ chối" {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối</option>
-                                                        <option value="Hoàn thành" {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn thành</option>
-                                                @endswitch
-                                            </select>
+                                                <select name="status" class="form-select form-select-sm status-select"
+                                                    data-schedule-id="{{ $schedule->id }}">
+                                                    @switch($schedule->status)
+                                                        @case('Chờ xác nhận')
+                                                            <option value="Chờ xác nhận" selected>Chờ xác nhận</option>
+                                                            <option value="Đã xác nhận">Đã xác nhận</option>
+                                                            <option value="Từ chối">Từ chối</option>
+                                                        @break
+
+                                                        @case('Đã xác nhận')
+                                                            <option value="Đã xác nhận" selected>Đã xác nhận</option>
+                                                            <option value="Hoàn thành">Hoàn thành</option>
+                                                        @break
+
+                                                        @case('Từ chối')
+                                                            <option value="Từ chối" selected>Từ chối</option>
+                                                        @break
+
+                                                        @case('Hoàn thành')
+                                                            <option value="Hoàn thành" selected>Hoàn thành</option>
+                                                        @break
+
+                                                        @default
+                                                            <option value="Chờ xác nhận"
+                                                                {{ $schedule->status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác
+                                                                nhận</option>
+                                                            <option value="Đã xác nhận"
+                                                                {{ $schedule->status == 'Đã xác nhận' ? 'selected' : '' }}>Đã xác
+                                                                nhận</option>
+                                                            <option value="Từ chối"
+                                                                {{ $schedule->status == 'Từ chối' ? 'selected' : '' }}>Từ chối
+                                                            </option>
+                                                            <option value="Hoàn thành"
+                                                                {{ $schedule->status == 'Hoàn thành' ? 'selected' : '' }}>Hoàn
+                                                                thành</option>
+                                                    @endswitch
+                                                </select>
                                             @endif
                                             <input type="hidden" name="cancel_reason" class="cancel-reason-input">
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">Không có lịch xem phòng nào.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">Không có lịch xem phòng nào.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $schedules->links('vendor.pagination.custom') }}
+                    <div class="d-flex justify-content-center mt-4 pagination">
+                        {{ $schedules->onEachSide(0)->links('vendor.pagination.custom') }}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Cancel Reason Modal -->
     <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel" aria-hidden="true">
@@ -284,168 +270,27 @@
         </div>
     </div>
 
-    <!-- User Info Modal -->
-    <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="userInfoModalLabel">
-                        <i class="fas fa-user-circle me-2"></i>Thông tin người dùng
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <div class="user-avatar-container mb-3">
-                                <img id="userAvatar" src="" alt="Avatar" class="rounded-circle border border-3 border-primary" style="width: 120px; height: 120px; object-fit: cover;">
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="user-details">
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-id-card me-2"></i>ID:
-                                    </div>
-                                    <div class="col-8" id="userId"></div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-user me-2"></i>Họ tên:
-                                    </div>
-                                    <div class="col-8 fw-bold text-primary" id="userName"></div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-envelope me-2"></i>Email:
-                                    </div>
-                                    <div class="col-8" id="userEmail"></div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-phone me-2"></i>Số điện thoại:
-                                    </div>
-                                    <div class="col-8" id="userPhone"></div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
-                                    </div>
-                                    <div class="col-8" id="userAddress"></div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-4 fw-bold text-muted">
-                                        <i class="fas fa-calendar-plus me-2"></i>Ngày tạo:
-                                    </div>
-                                    <div class="col-8" id="userCreated"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Đóng
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+        <style>
+            .table td,
+            .table th {
+                vertical-align: middle;
+            }
 
-    <style>
-        .table td,
-        .table th {
-            vertical-align: middle;
-        }
+            .badge {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+                border-radius: 20px;
+            }
 
-        .badge {
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            border-radius: 20px;
-        }
-
-        .form-select:focus,
-        .form-control:focus {
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
-        }
+            .form-select:focus,
+            .form-control:focus {
+                box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+            }
 
         .btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-
-        .user-info-link {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .user-info-link:hover {
-            text-decoration: underline !important;
-            transform: scale(1.05);
-        }
-
-        .user-avatar-container {
-            position: relative;
-        }
-
-        .user-details .row {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 8px 0;
-        }
-
-        .user-details .row:last-child {
-            border-bottom: none;
-        }
-
-        #userInfoModal .modal-body {
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-        }
-
-        #userInfoModal .user-details i {
-            color: #6c757d;
-            width: 16px;
-        }
     </style>
-
-    <script>
-        // User info modal functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const userInfoLinks = document.querySelectorAll('.user-info-link');
-            const userInfoModal = new bootstrap.Modal(document.getElementById('userInfoModal'));
-
-            userInfoLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Get user data from data attributes
-                    const userId = this.dataset.userId;
-                    const userName = this.dataset.userName;
-                    const userEmail = this.dataset.userEmail;
-                    const userPhone = this.dataset.userPhone;
-                    const userAddress = this.dataset.userAddress;
-                    const userCreated = this.dataset.userCreated;
-                    const userAvatar = this.dataset.userAvatar;
-
-                    // Populate modal with user data
-                    document.getElementById('userId').textContent = userId;
-                    document.getElementById('userName').textContent = userName;
-                    document.getElementById('userEmail').textContent = userEmail;
-                    document.getElementById('userPhone').textContent = userPhone;
-                    document.getElementById('userAddress').textContent = userAddress;
-                    document.getElementById('userCreated').textContent = userCreated;
-                    document.getElementById('userAvatar').src = userAvatar;
-
-                    // Show modal
-                    userInfoModal.show();
-                });
-            });
-
-            // Handle avatar load error
-            document.getElementById('userAvatar').addEventListener('error', function() {
-                this.src = '{{ asset('img/user.jpg') }}';
-            });
-        });
-    </script>
-
     <script src="{{ asset('js/schedule.js') }}"></script>
 @endsection

@@ -111,6 +111,8 @@ Route::middleware('admin')->group(function () {
         Route::get('/create', [AmenityController::class, 'create'])->name('create');
         Route::post('/', [AmenityController::class, 'store'])->name('store');
         Route::get('/trash', [AmenityController::class, 'trash'])->name('trash');
+        Route::get('/change-order', [AmenityController::class, 'changeOrder'])->name('change-order');
+        Route::post('/reorder', [AmenityController::class, 'reorder'])->name('reorder');
         Route::get('/{id}', [AmenityController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [AmenityController::class, 'edit'])->name('edit');
         Route::match(['put', 'patch'], '/{id}', [AmenityController::class, 'update'])->name('update');

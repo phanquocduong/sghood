@@ -75,10 +75,29 @@ export function useContractActions({ isLoading, contracts }) {
         }
     };
 
+    const earlyTermination = async id => {
+        isLoading.value = true;
+        try {
+            await $api(`/contracts/${id}/early-termination`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            toast.success('Yêu cầu kết thúc hợp đồng sớm đã được gửi.');
+            await fetchContracts();
+        } catch (error) {
+            handleBackendError(error, toast);
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
     return {
         fetchContracts,
         cancelContract,
         extendContract,
-        returnContract
+        returnContract,
+        earlyTermination
     };
 }

@@ -20,7 +20,8 @@ class Contract extends Model
         'signature',
         'status',
         'file',
-        'signed_at'
+        'signed_at',
+        'early_terminated_at'
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class Contract extends Model
         'rental_price' => 'integer',
         'deposit_amount' => 'integer',
         'signed_at' => 'datetime',
+        'early_terminated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

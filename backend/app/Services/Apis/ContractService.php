@@ -20,10 +20,10 @@ class ContractService
         try {
             return Contract::query()
                 ->where('user_id', Auth::id())
-                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at')
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at', 'early_terminated_at')
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
-                        ->with(['motel' => fn($query) => $query->select('id', 'name')]),
+                        ->with(['motel' => fn($query) => $query->select('id', 'name', 'slug')]),
                     'invoices' => fn($query) => $query->select('id', 'contract_id')
                         ->where('type', 'Đặt cọc'),
                     'extensions' => fn($query) => $query->select('id', 'contract_id', 'status')
@@ -32,9 +32,8 @@ class ContractService
                         'id',
                         'contract_id',
                         'check_out_date',
-                        'inventory_status',
-                        'has_left',
-                        'note'
+                        'canceled_at',
+                        'has_left'
                     )->latest(),
                 ])
                 ->get()
@@ -43,6 +42,7 @@ class ContractService
                     'room_name' => $contract->room->name,
                     'room_price' => $contract->room->price,
                     'motel_name' => $contract->room->motel->name,
+                    'motel_slug' => $contract->room->motel->slug,
                     'room_image' => $contract->room->main_image->image_url,
                     'start_date' => $contract->start_date->toDateString(),
                     'end_date' => $contract->end_date->toDateString(),
@@ -50,9 +50,10 @@ class ContractService
                     'deposit_amount' => $contract->deposit_amount,
                     'rental_price' => $contract->rental_price,
                     'signed_at' => $contract->signed_at?->toDateTimeString(),
+                    'early_terminated_at' => $contract->early_terminated_at?->toDateTimeString(),
                     'invoice_id' => $contract->invoices->first()?->id,
                     'latest_extension_status' => $contract->extensions->first()?->status,
-                    'latest_checkout_status' => $contract->checkouts->first()?->inventory_status,
+                    'latest_checkout_status' => $contract->checkouts->first()?->canceled_at,
                 ])
                 ->toArray();
         } catch (\Throwable $e) {
@@ -147,7 +148,7 @@ class ContractService
         }
     }
 
-    public function saveContract(string $content, int $id): Contract
+    public function saveContract(string $content, int $id, bool $bypassExtract = false): Contract
     {
         try {
             $contract = Contract::query()
@@ -157,18 +158,25 @@ class ContractService
 
             $oldStatus = $contract->status;
 
+            // Đặt trạng thái dựa trên bypassExtract
+            $newStatus = $bypassExtract ? 'Chờ duyệt thủ công' : 'Chờ duyệt';
+
             $contract->update([
                 'content' => $content,
-                'status' => 'Chờ duyệt'
+                'status' => $newStatus
             ]);
 
-            $type = $oldStatus === 'Chờ xác nhận' ? 'pending' : 'updated';
-            $title = $oldStatus === 'Chờ xác nhận'
-                ? "Hợp đồng mới #{$contract->id} đang chờ duyệt"
-                : "Hợp đồng #{$contract->id} đã được chỉnh sửa";
-            $body = $oldStatus === 'Chờ xác nhận'
-                ? "Người dùng {$contract->user->name} đã gửi hợp đồng #{$contract->id} để duyệt."
-                : "Người dùng {$contract->user->name} đã chỉnh sửa hợp đồng #{$contract->id}.";
+            $type = $bypassExtract ? 'bypass_pending' : ($oldStatus === 'Chờ xác nhận' ? 'pending' : 'updated');
+            $title = $bypassExtract
+                ? "Hợp đồng #{$contract->id} đang chờ duyệt thủ công"
+                : ($oldStatus === 'Chờ xác nhận'
+                    ? "Hợp đồng mới #{$contract->id} đang chờ duyệt"
+                    : "Hợp đồng #{$contract->id} đã được chỉnh sửa");
+            $body = $bypassExtract
+                ? "Người dùng {$contract->user->name} đã nhập thông tin CCCD trực tiếp và gửi hợp đồng #{$contract->id} để duyệt thủ công."
+                : ($oldStatus === 'Chờ xác nhận'
+                    ? "Người dùng {$contract->user->name} đã gửi hợp đồng #{$contract->id} để duyệt."
+                    : "Người dùng {$contract->user->name} đã chỉnh sửa hợp đồng #{$contract->id}.");
 
             SendContractNotification::dispatch($contract, $type, $title, $body);
 
@@ -222,6 +230,67 @@ class ContractService
         Storage::disk('private')->put($path, $signatureData);
 
         return $path;
+    }
+
+    public function earlyTermination(int $id): array
+    {
+        try {
+            $contract = Contract::query()
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'Hoạt động')
+                ->first();
+
+            if (!$contract) {
+                return [
+                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền kết thúc sớm',
+                    'status' => 404,
+                ];
+            }
+
+            if ($contract->end_date <= now()) {
+                return [
+                    'error' => 'Hợp đồng đã hết hạn, không thể kết thúc sớm',
+                    'status' => 400,
+                ];
+            }
+
+            $latestExtension = $contract->extensions()->where('status', 'Chờ duyệt')->first();
+            if ($latestExtension) {
+                return [
+                    'error' => 'Hợp đồng đang có yêu cầu gia hạn chờ duyệt, không thể kết thúc sớm',
+                    'status' => 400,
+                ];
+            }
+
+            $existingCheckout = $contract->checkouts()
+                ->where('canceled_at', '==', NULL)
+                ->first();
+
+            if ($existingCheckout) {
+                return [
+                    'error' => 'Hợp đồng đã có yêu cầu trả phòng, không thể kết thúc sớm',
+                    'status' => 400,
+                ];
+            }
+
+            $contract->update([
+                'status' => 'Kết thúc sớm',
+                'early_terminated_at' => now(),
+            ]);
+
+            SendContractNotification::dispatch(
+                $contract,
+                'early_terminated',
+                "Hợp đồng #{$contract->id} đã được kết thúc sớm",
+                "Người dùng {$contract->user->name} đã kết thúc sớm hợp đồng #{$contract->id}."
+            );
+
+            return ['data' => $contract->fresh()];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi kết thúc hợp đồng sớm:' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**

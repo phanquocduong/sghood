@@ -1298,6 +1298,34 @@ export default defineNuxtPlugin(nuxtApp => {
                     });
                 }
                 starRating('.star-rating');
+
+                // Đảm bảo toast luôn trong <body> và trên cùng
+                const ensureToastInBody = () => {
+                    const containers = $('.Vue-Toastification__container');
+                    containers.each(function () {
+                        if (this.parentElement !== document.body) {
+                            document.body.appendChild(this);
+                            console.log('Moved toast container to <body>');
+                        }
+                        $(this).css({
+                            'z-index': '10000000',
+                            position: 'fixed'
+                        });
+                    });
+                };
+
+                // Lắng nghe sự kiện mmenu và Magnific Popup
+                if ($.fn.mmenu) {
+                    $('.mmenu-init').on('mmenu:open mmenu:close', ensureToastInBody);
+                }
+                $(document).on('mfpOpen mfpClose', ensureToastInBody);
+
+                // Gọi trong document.ready hoặc hook của Nuxt
+                $(document).ready(function () {
+                    mmenuInit();
+                    $(window).off('resize.mmenu').on('resize.mmenu', mmenuInit);
+                    ensureToastInBody(); // Gọi lần đầu
+                });
             };
 
             // Gọi initCustom

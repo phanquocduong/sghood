@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Apis\ChatBoxAIController;
 use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
@@ -65,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}', 'update');
         Route::post('/{id}/sign', 'sign');
         Route::get('/{id}/download-pdf', 'downloadPdf');
+        Route::post('/{id}/early-termination', 'earlyTermination');
     });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);
@@ -137,4 +139,9 @@ Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
     Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
+});
+
+// Chat Box AI Routes
+Route::prefix('chatbox-ai')->group(function () {
+    Route::get('/', [ChatBoxAIController::class, 'index'])->name('chatbox-ai.index');
 });

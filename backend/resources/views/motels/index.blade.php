@@ -7,15 +7,15 @@
 
     <div class="container-fluid py-5 px-4">
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
+            <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
                 style="background: linear-gradient(90deg, #6a11cb, #2575fc); border-top-left-radius: 15px; border-top-right-radius: 15px;">
-                <h6 class="mb-0 fw-bold">{{ __('Danh sách nhà trọ') }}</h6>
-                <div>
-                    <a href="{{ route('motels.create') }}" class="btn btn-primary me-2 shadow-sm"
+                <h6 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">{{ __('Danh sách nhà trọ') }}</h6>
+                <div class="d-flex flex-row w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                    <a href="{{ route('motels.create') }}" class="btn btn-primary me-2 shadow-sm w-50 w-sm-auto"
                         style="transition: all 0.3s;">
                         <i class="fas fa-plus me-1"></i> {{ __('Thêm nhà trọ') }}
                     </a>
-                    <a href="{{ route('motels.trash') }}" class="btn btn-danger shadow-sm" style="transition: all 0.3s;">
+                    <a href="{{ route('motels.trash') }}" class="btn btn-danger shadow-sm w-50 w-sm-auto" style="transition: all 0.3s;">
                         <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
                     </a>
                 </div>
@@ -145,18 +145,20 @@
                                             {{ $motel->status == 'Hoạt động' ? 'Hoạt động' : 'Không hoạt động' }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="d-flex justify-content-center align-items-center">
                                         <a href="{{ route('motels.edit', $motel->id) }}"
-                                            class="btn btn-sm btn-primary action-btn me-2" style="transition: all 0.3s;">
-                                            <i class="fas fa-edit me-1"></i> Sửa
+                                            class="btn btn-sm btn-primary action-btn me-2 action-icon" style="transition: all 0.3s;">
+                                            <i class="fas fa-edit me-1"></i>
+                                            <span class="d-none d-sm-inline ms-1">Sửa</span>
                                         </a>
                                         <form action="{{ route('motels.destroy', $motel->id) }}" method="POST"
                                             style="display:inline-block;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn"
+                                            <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
                                                 onclick="return confirm('Bạn có chắc muốn xóa?')" style="transition: all 0.3s;">
-                                                <i class="fas fa-trash me-1"></i> Xóa
+                                                <i class="fas fa-trash me-1"></i>
+                                                <span class="d-none d-sm-inline ms-1">Xóa</span>
                                             </button>
                                         </form>
                                     </td>
@@ -178,5 +180,37 @@
 
     @section('styles')
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+        <style>
+            @media (max-width: 576px) {
+
+                /* Nút hành động trên mobile chỉ là icon tròn */
+                .action-icon {
+                    padding: 6px 8px;
+                    /* Nhỏ gọn */
+                    border-radius: 50%;
+                    /* Bo tròn */
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center
+                }
+
+                /* Icon căn giữa */
+                .action-icon i {
+                    margin: 0 !important;
+                    font-size: 14px;
+                }
+
+                .card-header .btn {
+                    font-size: 14px;
+                    padding: 6px 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
+        </style>
     @endsection
 @endsection

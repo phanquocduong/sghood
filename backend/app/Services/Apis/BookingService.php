@@ -17,7 +17,7 @@ class BookingService
     {
         $query = Booking::query()
             ->where('user_id', Auth::id())
-            ->with(['room.motel']);
+            ->with(['room.motel', 'contract']);
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -38,6 +38,7 @@ class BookingService
                 'note' => $booking->note,
                 'status' => $booking->status,
                 'rejection_reason' => $booking->rejection_reason,
+                'contract_id' => $booking->contract ? $booking->contract->id : null,
             ];
         })->values();
     }

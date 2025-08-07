@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class CheckoutService
 {
-    public function requestReturn(int $id, array $bankInfo, string $checkOutDate): array
+    public function requestReturn(int $id, ?array $bankInfo, string $checkOutDate): array
     {
         try {
             $contract = Contract::where('id', $id)
@@ -41,7 +41,7 @@ class CheckoutService
             }
 
             $existingCheckout = $contract->checkouts()
-                ->where('inventory_status', '!=', 'Huỷ bỏ')
+                ->where('canceled_at', '==', NULL)
                 ->first();
 
             if ($existingCheckout) {
@@ -51,11 +51,14 @@ class CheckoutService
                 ];
             }
 
-            $qrUrl = sprintf(
-                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
-                urlencode($bankInfo['account_number']),
-                urlencode($bankInfo['bank_name']),
-            );
+            $qrUrl = null;
+            if ($bankInfo) {
+                $qrUrl = sprintf(
+                    'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
+                    urlencode($bankInfo['account_number']),
+                    urlencode($bankInfo['bank_name']),
+                );
+            }
 
             $checkout = Checkout::create([
                 'contract_id' => $contract->id,
@@ -68,11 +71,12 @@ class CheckoutService
                 'has_left' => false,
             ]);
 
+            $method = $bankInfo ? 'chuyển khoản' : 'tiền mặt';
             SendCheckoutNotification::dispatch(
                 $checkout,
                 'pending',
                 'Yêu cầu trả phòng #' . $checkout->id,
-                "Người dùng {$contract->user->name} đã tạo yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$contract->id} vào ngày {$checkOutDate}."
+                "Người dùng {$contract->user->name} đã tạo yêu cầu trả phòng #{$checkout->id} cho hợp đồng #{$contract->id} vào ngày {$checkOutDate} với phương thức hoàn tiền {$method}."
             );
 
             return [
@@ -186,7 +190,7 @@ class CheckoutService
         return $checkout;
     }
 
-    public function updateBankInfo(int $id, array $bankInfo): array
+    public function updateBankInfo(int $id, ?array $bankInfo): array
     {
         try {
             $checkout = Checkout::query()
@@ -204,33 +208,37 @@ class CheckoutService
                 ];
             }
 
-            $qrUrl = sprintf(
-                'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
-                urlencode($bankInfo['account_number']),
-                urlencode($bankInfo['bank_name'])
-            );
+            $qrUrl = null;
+            if ($bankInfo) {
+                $qrUrl = sprintf(
+                    'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
+                    urlencode($bankInfo['account_number']),
+                    urlencode($bankInfo['bank_name'])
+                );
+            }
 
             $checkout->update([
                 'bank_info' => $bankInfo,
                 'qr_code_path' => $qrUrl,
             ]);
 
+            $method = $bankInfo ? 'chuyển khoản' : 'tiền mặt';
             SendCheckoutNotification::dispatch(
                 $checkout,
                 'update-bank',
-                "Thông tin chuyển khoản yêu cầu trả phòng #{$checkout->id} đã được cập nhật",
-                "Người dùng {$checkout->contract->user->name} đã cập nhật thông tin chuyển khoản cho yêu cầu trả phòng #{$checkout->id}."
+                "Thông tin hoàn tiền yêu cầu trả phòng #{$checkout->id} đã được cập nhật",
+                "Người dùng {$checkout->contract->user->name} đã cập nhật thông tin hoàn tiền cho yêu cầu trả phòng #{$checkout->id} thành {$method}."
             );
 
             return [
                 'data' => [
                     'checkout' => $checkout,
                 ],
-                'message' => 'Cập nhật thông tin chuyển khoản thành công',
+                'message' => 'Cập nhật thông tin hoàn tiền thành công',
                 'status' => 200,
             ];
         } catch (\Throwable $e) {
-            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+            Log::error('Lỗi chỉnh sửa thông tin hoàn tiền', [
                 'checkout_id' => $id,
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),

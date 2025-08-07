@@ -1,13 +1,10 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-// import { useToast } from 'vue-toastification';
 import { useAppToast } from '~/composables/useToast';
-import { useRouter } from 'vue-router';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
 
 export const useAuthStore = defineStore('auth', () => {
     const toast = useAppToast();
-    const router = useRouter();
     const { $api } = useNuxtApp();
     const { sendOTP, verifyOTP, getIdToken, signOut } = useFirebaseAuth();
     const config = useRuntimeConfig();

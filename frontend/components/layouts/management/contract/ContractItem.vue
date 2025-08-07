@@ -1,9 +1,10 @@
-<!-- ContractItem.vue -->
 <template>
     <li :class="getItemClass(item.status)">
         <div class="list-box-listing bookings">
             <div class="list-box-listing-img">
-                <img :src="useRuntimeConfig().public.baseUrl + item.room_image" alt="Room image" />
+                <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
+                    <img :src="useRuntimeConfig().public.baseUrl + item.room_image" alt="Room image" />
+                </NuxtLink>
             </div>
             <div class="list-box-listing-content">
                 <div class="inner">
@@ -12,15 +13,9 @@
                         <span :class="getStatusClass(item.status)">{{ item.status }}</span>
                     </h3>
                     <div class="inner-booking-list">
-                        <h5>Ngày bắt đầu:</h5>
+                        <h5>Thời hạn:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatDate(item.start_date) }}</li>
-                        </ul>
-                    </div>
-                    <div class="inner-booking-list">
-                        <h5>Ngày kết thúc:</h5>
-                        <ul class="booking-list">
-                            <li class="highlighted">{{ formatDate(item.end_date) }}</li>
+                            <li class="highlighted">{{ formatDate(item.start_date) }} - {{ formatDate(item.end_date) }}</li>
                         </ul>
                     </div>
                     <div class="inner-booking-list">
@@ -30,13 +25,19 @@
                         </ul>
                     </div>
                     <div class="inner-booking-list">
-                        <h5>Giá thuê mỗi tháng:</h5>
+                        <h5>Giá thuê:</h5>
                         <ul class="booking-list">
                             <li class="highlighted">{{ formatPrice(item.rental_price) }}</li>
                         </ul>
                     </div>
                     <div v-if="item.signed_at" class="inner-booking-list">
-                        <h5>Đã ký lúc:</h5>
+                        <h5>Đã ký vào:</h5>
+                        <ul class="booking-list">
+                            <li class="highlighted">{{ formatDateTime(item.signed_at) }}</li>
+                        </ul>
+                    </div>
+                    <div v-if="item.early_terminated_at" class="inner-booking-list">
+                        <h5>Đã kết thúc hợp đồng sớm vào:</h5>
                         <ul class="booking-list">
                             <li class="highlighted">{{ formatDateTime(item.signed_at) }}</li>
                         </ul>
@@ -66,8 +67,7 @@
                     item.status === 'Hoạt động' &&
                     isNearExpiration(item.end_date) &&
                     item.latest_extension_status !== 'Chờ duyệt' &&
-                    item.latest_checkout_status !== 'Chờ kiểm kê' &&
-                    item.latest_checkout_status !== 'Đã kiểm kê'
+                    item.latest_checkout_status === null
                 "
                 href="#"
                 @click.prevent="openConfirmExtendPopup(item)"
@@ -80,14 +80,21 @@
                     item.status === 'Hoạt động' &&
                     isNearExpiration(item.end_date) &&
                     item.latest_extension_status !== 'Chờ duyệt' &&
-                    item.latest_checkout_status !== 'Chờ kiểm kê' &&
-                    item.latest_checkout_status !== 'Đã kiểm kê'
+                    item.latest_checkout_status === null
                 "
                 href="#"
                 @click.prevent="openReturnModal(item)"
                 class="button"
             >
                 <i class="sl sl-icon-logout"></i> Trả phòng
+            </a>
+            <a
+                v-if="item.status === 'Hoạt động' && item.latest_extension_status !== 'Chờ duyệt' && item.latest_checkout_status === null"
+                href="#"
+                @click.prevent="openConfirmEarlyTerminationPopup(item.id)"
+                class="button"
+            >
+                <i class="sl sl-icon-close"></i> Kết thúc sớm
             </a>
         </div>
 
@@ -133,7 +140,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract', 'downloadPdf']);
+const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract', 'earlyTermination', 'downloadPdf']);
 
 const selectedContract = ref({});
 const otpPhoneNumber = ref('');
@@ -145,7 +152,8 @@ const returnForm = ref({
     check_out_date: '',
     bank_name: '',
     account_number: '',
-    account_holder: ''
+    account_holder: '',
+    is_cash_refunded: false
 });
 const extendForm = ref({
     months: 6
@@ -153,7 +161,11 @@ const extendForm = ref({
 
 const validateReturnForm = () => {
     const form = returnForm.value;
-    return form.check_out_date && form.bank_name && form.account_number && form.account_holder;
+    if (!form.check_out_date) return false;
+    if (!form.is_cash_refunded) {
+        return form.bank_name && form.account_number && form.account_holder;
+    }
+    return true;
 };
 
 const isExtendFormValid = computed(() => extendForm.value.months >= 1);
@@ -172,6 +184,59 @@ const openConfirmCancelPopup = async id => {
 
     if (result.isConfirmed) {
         emit('cancelContract', id);
+    }
+};
+
+const openConfirmEarlyTerminationPopup = async id => {
+    const result = await Swal.fire({
+        title: 'Xác nhận kết thúc hợp đồng sớm',
+        html: `
+            <p><strong>Lưu ý quan trọng:</strong> Việc kết thúc hợp đồng sớm sẽ có các hậu quả sau:</p>
+            <ul style="text-align: left;">
+                <li><strong>Tiền cọc không được hoàn lại:</strong> Toàn bộ số tiền cọc (${formatPrice(
+                    props.item.deposit_amount
+                )}) sẽ không được hoàn trả dưới bất kỳ hình thức nào.</li>
+                <li><strong>Rời khỏi phòng sớm:</strong> Bạn cần rời khỏi phòng trong vòng <strong>3 ngày</strong> kể từ khi yêu cầu được xác nhận để hỗ trợ việc kiểm kê và sửa chữa phòng cho khách thuê mới.</li>
+                <li><strong>Nghĩa vụ tài chính:</strong> Bạn cần thanh toán toàn bộ các hóa đơn chưa thanh toán (nếu có) trước khi kết thúc hợp đồng.</li>
+                <li><strong>Lịch sử thuê:</strong> Việc kết thúc hợp đồng sớm có thể ảnh hưởng đến hồ sơ thuê phòng của bạn, có thể tác động đến các giao dịch thuê trong tương lai.</li>
+            </ul>
+            <p>Bạn có chắc chắn muốn tiếp tục yêu cầu kết thúc hợp đồng sớm?</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#f91942',
+        cancelButtonColor: '#e0e0e0',
+        customClass: {
+            popup: 'swal-wide',
+            htmlContainer: 'swal-html-container'
+        }
+    });
+
+    if (result.isConfirmed) {
+        await requestEarlyTermination(id);
+    }
+};
+
+const requestEarlyTermination = async id => {
+    try {
+        otpLoading.value = true;
+        const response = await $api(`/contracts/${id}`, { method: 'GET' });
+        // Gán hợp đồng vào selectedContract để đảm bảo id tồn tại
+        selectedContract.value = { id, ...response.data };
+        otpPhoneNumber.value = response.data.user_phone || '';
+        if (!otpPhoneNumber.value) {
+            toast.error('Không tìm thấy số điện thoại cho hợp đồng này.');
+            return;
+        }
+        currentAction.value = 'early_termination';
+        await requestOTP(id);
+    } catch (error) {
+        toast.error('Lỗi khi lấy thông tin hợp đồng.');
+        console.error(error);
+    } finally {
+        otpLoading.value = false;
     }
 };
 
@@ -244,7 +309,8 @@ const openReturnModal = async contract => {
             check_out_date: '',
             bank_name: '',
             account_number: '',
-            account_holder: ''
+            account_holder: '',
+            is_cash_refunded: false
         };
         if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
             console.error('Magnific Popup không được tải');
@@ -315,7 +381,8 @@ const closeReturnModal = () => {
         check_out_date: '',
         bank_name: '',
         account_number: '',
-        account_holder: ''
+        account_holder: '',
+        is_cash_refunded: false
     };
     otpCode.value = '';
     otpPhoneNumber.value = '';
@@ -386,7 +453,6 @@ const confirmOTP = async () => {
         }
         if (currentAction.value === 'return') {
             if (validateReturnForm()) {
-                console.log(returnForm.value);
                 emit('returnContract', selectedContract.value.id, returnForm.value);
                 closeReturnModal();
             } else {
@@ -403,6 +469,8 @@ const confirmOTP = async () => {
                 otpLoading.value = false;
                 return;
             }
+        } else if (currentAction.value === 'early_termination') {
+            emit('earlyTermination', selectedContract.value.id);
         }
         closeOTPModal();
     } catch (error) {
@@ -416,7 +484,7 @@ const confirmOTP = async () => {
 const requestOTPForReturn = async formData => {
     returnForm.value = { ...formData };
     if (!validateReturnForm()) {
-        toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng và tài khoản ngân hàng.');
+        toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng.');
         return;
     }
     currentAction.value = 'return';
@@ -424,4 +492,19 @@ const requestOTPForReturn = async formData => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.swal-wide {
+    width: 600px !important;
+}
+.swal-html-container {
+    text-align: left;
+    font-size: 14px;
+}
+.swal-html-container ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+.swal-html-container li {
+    margin-bottom: 8px;
+}
+</style>

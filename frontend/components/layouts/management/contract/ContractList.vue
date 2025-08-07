@@ -12,6 +12,7 @@
             @cancel-contract="handleCancelContract"
             @extend-contract="handleExtendContract"
             @return-contract="handleReturnContract"
+            @early-termination="handleEarlyTermination"
             @download-pdf="downloadPdf"
         />
         <div v-if="!items.length" class="col-md-12 text-center">
@@ -38,7 +39,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract']);
+const emit = defineEmits(['cancelContract', 'extendContract', 'returnContract', 'earlyTermination']);
 const today = computed(() => new Date().toISOString().split('T')[0]);
 
 const handleCancelContract = id => {
@@ -51,6 +52,10 @@ const handleExtendContract = (id, months) => {
 
 const handleReturnContract = (id, data) => {
     emit('returnContract', id, data);
+};
+
+const handleEarlyTermination = id => {
+    emit('earlyTermination', id);
 };
 
 const downloadPdf = async id => {

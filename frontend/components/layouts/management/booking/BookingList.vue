@@ -16,7 +16,7 @@
                         <h3>
                             {{ item.room_name }} - {{ item.motel_name }}
                             <span :class="getStatusClass(item.status)">{{
-                                item.status === 'Chấp nhận' ? 'Được chấp nhận' : item.status
+                                item.status === 'Chấp nhận' ? 'Đã được chấp nhận' : item.status
                             }}</span>
                         </h3>
                         <div v-if="item.cancellation_reason && item.status === 'Từ chối'" class="inner-booking-list">
@@ -61,6 +61,9 @@
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
                 </a>
+                <NuxtLink v-if="item.status === 'Chấp nhận'" :to="`/quan-ly/hop-dong/${item.contract_id}`" class="button gray approve">
+                    <i class="sl sl-icon-close"></i> Xem hợp đồng
+                </NuxtLink>
             </div>
         </li>
         <div v-if="!bookings.length" class="col-md-12 text-center">
