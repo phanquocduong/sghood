@@ -16,7 +16,7 @@ class ReturnRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check(); // Cho phép nếu người dùng đã đăng nhập
+        return Auth::check();
     }
 
     /**
@@ -26,12 +26,13 @@ class ReturnRequest extends FormRequest
      */
     public function rules(): array
     {
-        $contractId = $this->route('id'); // Lấy ID hợp đồng từ route
+        $contractId = $this->route('id');
 
         return [
-            'bank_name' => 'required|string|max:255',
-            'account_number' => 'required|string|max:50',
-            'account_holder' => 'required|string|max:255',
+            'is_cash_refunded' => 'required|boolean',
+            'bank_name' => 'nullable|required_if:is_cash_refunded,false|string|max:255',
+            'account_number' => 'nullable|required_if:is_cash_refunded,false|string|max:50',
+            'account_holder' => 'nullable|required_if:is_cash_refunded,false|string|max:255',
             'check_out_date' => [
                 'required',
                 'date_format:d/m/Y',
@@ -61,13 +62,15 @@ class ReturnRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'bank_name.required' => 'Vui lòng chọn ngân hàng thụ hưởng.',
+            'is_cash_refunded.required' => 'Vui lòng chọn phương thức hoàn tiền.',
+            'is_cash_refunded.boolean' => 'Phương thức hoàn tiền không hợp lệ.',
+            'bank_name.required_if' => 'Vui lòng chọn ngân hàng thụ hưởng khi chọn chuyển khoản.',
             'bank_name.string' => 'Tên ngân hàng phải là chuỗi ký tự.',
             'bank_name.max' => 'Tên ngân hàng không được vượt quá 255 ký tự.',
-            'account_number.required' => 'Vui lòng nhập số tài khoản.',
+            'account_number.required_if' => 'Vui lòng nhập số tài khoản khi chọn chuyển khoản.',
             'account_number.string' => 'Số tài khoản phải là chuỗi ký tự.',
             'account_number.max' => 'Số tài khoản không được vượt quá 50 ký tự.',
-            'account_holder.required' => 'Vui lòng nhập tên chủ tài khoản.',
+            'account_holder.required_if' => 'Vui lòng nhập tên chủ tài khoản khi chọn chuyển khoản.',
             'account_holder.string' => 'Tên chủ tài khoản phải là chuỗi ký tự.',
             'account_holder.max' => 'Tên chủ tài khoản không được vượt quá 255 ký tự.',
             'check_out_date.required' => 'Vui lòng chọn ngày dự kiến trả phòng.',

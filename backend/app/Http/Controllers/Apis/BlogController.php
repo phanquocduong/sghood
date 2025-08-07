@@ -13,7 +13,7 @@ class BlogController extends Controller
     {
         $this->blogService = $blogService;
     }
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $result = $this->blogService->getAll($request->all());
         $blogs = $result['blogs'];

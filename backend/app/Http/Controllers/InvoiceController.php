@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\InvoiceService;
+use App\Services\MeterReadingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -10,10 +11,12 @@ use Illuminate\Support\Facades\Log;
 class InvoiceController extends Controller
 {
     protected InvoiceService $invoiceService;
+    protected MeterReadingService $meterReadingService;
 
-    public function __construct(InvoiceService $invoiceService)
+    public function __construct(InvoiceService $invoiceService, MeterReadingService $meterReadingService)
     {
         $this->invoiceService = $invoiceService;
+        $this->meterReadingService = $meterReadingService;
     }
 
     // Hiển thị danh sách hóa đơn
@@ -56,6 +59,9 @@ class InvoiceController extends Controller
             // Đảm bảo các relationship được load
             $invoice->load(['contract.user', 'contract.room.motel', 'meterReading']);
 
+            // Lấy số tiêu thụ và chỉ số tháng trước từ MeterReadingService
+            $consumptionData = $this->meterReadingService->getConsumptionAndPreviousReadings($invoice->meterReading);
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -66,21 +72,15 @@ class InvoiceController extends Controller
                     'year' => $invoice->year,
                     'status' => $invoice->status,
                     'created_at' => $invoice->created_at->format('d/m/Y H:i'),
-
-                    // Thông tin khách hàng
                     'customer' => [
                         'name' => $invoice->contract->user->name ?? 'N/A',
                         'email' => $invoice->contract->user->email ?? 'N/A',
                         'phone' => $invoice->contract->user->phone ?? 'N/A',
                     ],
-
-                    // Thông tin phòng
                     'room' => [
                         'name' => $invoice->contract->room->name ?? 'N/A',
                         'motel_name' => $invoice->contract->room->motel->name ?? 'N/A',
                     ],
-
-                    // Chi tiết chi phí
                     'fees' => [
                         'room_fee' => number_format($invoice->room_fee ?? $invoice->contract->room->price, 0, ',', '.'),
                         'electricity_fee' => number_format($invoice->electricity_fee ?? 0, 0, ',', '.'),
@@ -91,17 +91,19 @@ class InvoiceController extends Controller
                         'service_fee' => number_format($invoice->service_fee ?? 0, 0, ',', '.'),
                         'total_amount' => number_format($invoice->total_amount ?? 0, 0, ',', '.'),
                     ],
-
-                    // Thông tin chỉ số điện nước
                     'meter_reading' => [
                         'electricity_kwh' => $invoice->meterReading->electricity_kwh ?? 0,
                         'water_m3' => $invoice->meterReading->water_m3 ?? 0,
+                        'electricity_consumption' => $consumptionData['electricity_consumption'],
+                        'water_consumption' => $consumptionData['water_consumption'],
+                        'previous_electricity_kwh' => $consumptionData['previous_electricity_kwh'],
+                        'previous_water_m3' => $consumptionData['previous_water_m3'],
                     ]
                 ]
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Error in invoice show: ' . $e->getMessage());
+            Log::error('Error in invoice show: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -114,12 +116,10 @@ class InvoiceController extends Controller
     public function updateStatus(Request $request, int $id)
     {
         try {
-            // Validate input
             $request->validate([
                 'status' => 'required|in:Đã trả'
             ]);
 
-            // Gọi service để cập nhật trạng thái
             $this->invoiceService->updateInvoiceStatus($id, $request->status, $request);
 
             return redirect()->route('invoices.index')
@@ -140,5 +140,4 @@ class InvoiceController extends Controller
                 ->with('error', 'Có lỗi xảy ra khi cập nhật trạng thái: ' . $e->getMessage());
         }
     }
-
 }

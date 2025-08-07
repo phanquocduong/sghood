@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}', 'update');
         Route::post('/{id}/sign', 'sign');
         Route::get('/{id}/download-pdf', 'downloadPdf');
+        Route::post('/{id}/early-termination', 'earlyTermination');
     });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);

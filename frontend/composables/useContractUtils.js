@@ -15,12 +15,14 @@ export function useContractUtils() {
         const statusMap = {
             'Chờ xác nhận': 'pending-booking',
             'Chờ duyệt': 'pending-booking',
+            'Chờ duyệt thủ công': 'pending-booking',
             'Chờ chỉnh sửa': 'pending-booking',
             'Chờ ký': 'pending-booking',
             'Chờ thanh toán tiền cọc': 'pending-booking',
             'Hoạt động': 'approved-booking',
             'Kết thúc': 'canceled-booking',
-            'Huỷ bỏ': 'canceled-booking'
+            'Huỷ bỏ': 'canceled-booking',
+            'Kết thúc sớm': 'canceled-booking'
         };
         return statusMap[status] || '';
     };
@@ -30,11 +32,13 @@ export function useContractUtils() {
         const statusMap = {
             'Chờ xác nhận': 'pending',
             'Chờ duyệt': 'pending',
+            'Chờ duyệt thủ công': 'pending',
             'Chờ chỉnh sửa': 'pending',
             'Chờ ký': 'pending',
             'Hoạt động': 'approved',
             'Kết thúc': 'canceled',
-            'Huỷ bỏ': 'canceled'
+            'Huỷ bỏ': 'canceled',
+            'Kết thúc sớm': 'canceled'
         };
         return `${statusClass} ${statusMap[status] || ''}`;
     };
@@ -45,10 +49,12 @@ export function useContractUtils() {
             'Chờ chỉnh sửa': 'Chỉnh sửa thông tin',
             'Chờ ký': 'Ký hợp đồng',
             'Chờ duyệt': 'Xem chi tiết',
+            'Chờ duyệt thủ công': 'Xem chi tiết',
             'Chờ thanh toán tiền cọc': 'Xem chi tiết',
             'Hoạt động': 'Xem chi tiết',
             'Kết thúc': 'Xem chi tiết',
-            'Huỷ bỏ': 'Xem chi tiết'
+            'Huỷ bỏ': 'Xem chi tiết',
+            'Kết thúc sớm': 'Xem chi tiết'
         };
         return statusMap[status] || '';
     };

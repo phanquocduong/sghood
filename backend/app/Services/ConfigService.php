@@ -20,7 +20,9 @@ class ConfigService
             return $query->where('config_key', 'like', "%{$search}%")
                 ->orWhere('config_value', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%");
-        })->paginate($perPage);
+        })
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     /**
@@ -73,6 +75,10 @@ class ConfigService
             elseif ($data['config_type'] === 'BANK' && $jsonData) {
                 $data['config_value'] = $this->processBankData($jsonData);
             }
+            // Xử lý OBJECT - THÊM PHẦN NÀY
+            elseif ($data['config_type'] === 'OBJECT' && $jsonData) {
+                $data['config_value'] = $this->processObjectData($jsonData);
+            }
             // Xử lý TEXT, URL, HTML
             elseif (in_array($data['config_type'], ['TEXT', 'URL', 'HTML'])) {
                 if (empty($data['config_value'])) {
@@ -84,8 +90,7 @@ class ConfigService
             elseif ($data['config_type'] === 'IMAGE' && $id && $config->config_type === 'IMAGE') {
                 // Giữ nguyên ảnh cũ
                 $data['config_value'] = $config->config_value;
-            }
-            else {
+            } else {
                 // Fallback cho các trường hợp khác
                 $data['config_value'] = $data['config_value'] ?? ($config->config_value ?? '');
             }
@@ -112,12 +117,74 @@ class ConfigService
     }
 
     /**
+     * Xử lý dữ liệu JSON cho type OBJECT
+     */
+    protected function processObjectData(array $jsonData): string
+    {
+        if (empty($jsonData)) {
+            throw new \Exception('Vui lòng thêm ít nhất một nhóm đối tượng hợp lệ');
+        }
+
+        $validObjects = [];
+
+        foreach ($jsonData as $objectGroup) {
+            if (!is_array($objectGroup) || empty($objectGroup)) {
+                continue; // Bỏ qua nhóm rỗng
+            }
+
+            $cleanGroup = [];
+            foreach ($objectGroup as $key => $value) {
+                // Kiểm tra key không rỗng
+                if (empty(trim($key))) {
+                    continue;
+                }
+
+                $cleanKey = trim($key);
+
+                // Xử lý value
+                if (is_array($value)) {
+                    // Lọc bỏ các value rỗng
+                    $cleanValues = array_filter($value, function ($v) {
+                        return !empty(trim($v));
+                    });
+
+                    if (!empty($cleanValues)) {
+                        $cleanValues = array_map('trim', $cleanValues);
+                        // Nếu chỉ có 1 giá trị, lưu dưới dạng string
+                        if (count($cleanValues) === 1) {
+                            $cleanGroup[$cleanKey] = reset($cleanValues);
+                        } else {
+                            $cleanGroup[$cleanKey] = array_values($cleanValues);
+                        }
+                    }
+                } else {
+                    // Value là string
+                    $cleanValue = trim($value);
+                    if (!empty($cleanValue)) {
+                        $cleanGroup[$cleanKey] = $cleanValue;
+                    }
+                }
+            }
+
+            if (!empty($cleanGroup)) {
+                $validObjects[] = $cleanGroup;
+            }
+        }
+
+        if (empty($validObjects)) {
+            throw new \Exception('Vui lòng thêm ít nhất một nhóm đối tượng với dữ liệu hợp lệ');
+        }
+
+        return json_encode($validObjects, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
+    /**
      * Xử lý dữ liệu JSON cho type OPTION
      */
     protected function processJsonData(array $jsonData): string
     {
         // Lọc bỏ các giá trị rỗng
-        $filteredData = array_filter($jsonData, function($item) {
+        $filteredData = array_filter($jsonData, function ($item) {
             return !empty(trim($item));
         });
 
@@ -196,13 +263,13 @@ class ConfigService
     public function getConfigByKey(string $key, $default = null)
     {
         $config = Config::where('config_key', $key)->first();
-        
+
         if (!$config) {
             return $default;
         }
 
-        // Trả về dữ liệu đã parse cho JSON và BANK
-        if (in_array($config->config_type, ['JSON', 'BANK'])) {
+        // Trả về dữ liệu đã parse cho JSON, BANK và OBJECT
+        if (in_array($config->config_type, ['JSON', 'BANK', 'OBJECT'])) {
             return json_decode($config->config_value, true) ?? $default;
         }
 
@@ -225,7 +292,7 @@ class ConfigService
 
         // Convert image to WebP using GD
         $image = $this->createImageResource($imageFile);
-        
+
         if (!$image) {
             throw new \Exception('Không thể tạo resource từ file ảnh');
         }

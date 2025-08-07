@@ -1,4 +1,3 @@
-<!-- ReturnModal.vue -->
 <template>
     <div id="edit-schedule-dialog" class="zoom-anim-dialog mfp-hide">
         <div class="small-dialog-header">
@@ -9,11 +8,42 @@
             <div class="booking-form-grid">
                 <div class="form-row">
                     <div class="form-col">
-                        <p><strong>Số hợp đồng:</strong> {{ contract.id }}</p>
+                        <p><strong>Hợp đồng:</strong> #{{ contract.id }}</p>
                         <p><strong>Phòng:</strong> {{ contract.room_name }} - {{ contract.motel_name }}</p>
                         <p><strong>Ngày kết thúc:</strong> {{ formatDate(contract.end_date) }}</p>
                         <p><strong>Tiền cọc:</strong> {{ formatPrice(contract.deposit_amount) }}</p>
                         <hr />
+                        <h5>
+                            <strong
+                                ><em>Phương thức hoàn tiền <span class="text-danger">(*)</span></em></strong
+                            >
+                        </h5>
+                        <div class="form-row">
+                            <label>
+                                <input
+                                    style="margin: 0"
+                                    type="radio"
+                                    v-model="returnForm.is_cash_refunded"
+                                    :value="true"
+                                    @change="updateRefundMethod"
+                                />
+                                Tiền mặt
+                            </label>
+                            <label class="ml-3">
+                                <input
+                                    style="margin: 0"
+                                    type="radio"
+                                    v-model="returnForm.is_cash_refunded"
+                                    :value="false"
+                                    @change="updateRefundMethod"
+                                />
+                                Chuyển khoản
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
                         <h5>
                             <strong
                                 ><em>Thông tin trả phòng <span class="text-danger">(*)</span></em></strong
@@ -36,7 +66,28 @@
                         </small>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" v-if="returnForm.is_cash_refunded">
+                    <div class="form-col cash-method">
+                        <h4 style="color: #007bff; font-weight: bold">
+                            <i class="im im-icon-Money" style="margin-right: 5px"></i> Hướng dẫn nhận tiền hoàn
+                        </h4>
+                        <p>
+                            Vui lòng đến văn phòng SGHood để nhận tiền hoàn sau khi kiểm kê phòng hoàn tất và bạn đã đồng ý với kết quả kiểm
+                            kê.
+                        </p>
+                        <div class="cash-info">
+                            <p><strong>Địa chỉ:</strong> {{ config.office_address }}</p>
+                            <p><strong>Giờ làm việc:</strong> {{ config.working_time }}</p>
+                            <p><strong>Số tiền dự kiến hoàn:</strong> {{ formatPrice(contract.deposit_amount) }}</p>
+                            <p><strong>Mã hợp đồng:</strong> #{{ contract.id }}</p>
+                            <p class="note">
+                                <i class="im im-icon-Information"></i> Lưu ý: Mang theo hợp đồng #<strong>{{ contract.id }}</strong> để xác
+                                nhận nhận tiền hoàn.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" v-if="!returnForm.is_cash_refunded">
                     <div class="form-col">
                         <h5>
                             <strong
@@ -50,7 +101,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" v-if="!returnForm.is_cash_refunded">
                     <div class="form-col">
                         <label><i class="fa fa-credit-card"></i> Số tài khoản:</label>
                         <input
@@ -97,6 +148,7 @@ import 'tom-select/dist/css/tom-select.css';
 const { formatDate } = useFormatDate();
 const { formatPrice } = useFormatPrice();
 const toast = useAppToast();
+const config = useState('configs');
 
 const props = defineProps({
     contract: { type: Object, required: true },
@@ -111,7 +163,8 @@ const returnForm = ref({
     check_out_date: '',
     bank_name: '',
     account_number: '',
-    account_holder: ''
+    account_holder: '',
+    is_cash_refunded: false
 });
 
 const bankSelect = ref(null);
@@ -119,19 +172,43 @@ let tomSelectInstance = null;
 
 const validateReturnForm = () => {
     const form = returnForm.value;
-    return form.check_out_date && form.bank_name && form.account_number && form.account_holder;
+    if (!form.check_out_date) return false;
+    if (!form.is_cash_refunded) {
+        return form.bank_name && form.account_number && form.account_holder;
+    }
+    return true;
 };
 
 const validateAccountNumber = () => {
-    returnForm.value.account_number = returnForm.value.account_number.replace(/[^0-9]/g, '');
+    if (!returnForm.value.is_cash_refunded) {
+        returnForm.value.account_number = returnForm.value.account_number.replace(/[^0-9]/g, '');
+    }
+};
+
+const updateRefundMethod = () => {
+    if (returnForm.value.is_cash_refunded) {
+        returnForm.value.bank_name = '';
+        returnForm.value.account_number = '';
+        returnForm.value.account_holder = '';
+    }
 };
 
 const handleRequestOTP = () => {
     if (!validateReturnForm()) {
-        toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng và tài khoản ngân hàng.');
+        toast.error('Vui lòng nhập đầy đủ và đúng định dạng thông tin trả phòng.');
         return;
     }
-    emit('request-otp', returnForm.value);
+    // Chỉ gửi các trường cần thiết
+    const payload = {
+        check_out_date: returnForm.value.check_out_date,
+        is_cash_refunded: returnForm.value.is_cash_refunded
+    };
+    if (!returnForm.value.is_cash_refunded) {
+        payload.bank_name = returnForm.value.bank_name;
+        payload.account_number = returnForm.value.account_number;
+        payload.account_holder = returnForm.value.account_holder;
+    }
+    emit('request-otp', payload);
 };
 
 const initDatePicker = () => {
@@ -188,14 +265,12 @@ const initDatePicker = () => {
             });
     };
 
-    // Khởi tạo ngay nếu props.contract có sẵn
     if (props.contract && props.contract.end_date) {
         nextTick(() => {
             initialize();
         });
     }
 
-    // Theo dõi props.contract để khởi tạo khi dữ liệu có sẵn
     watch(
         () => props.contract,
         newContract => {
@@ -210,7 +285,7 @@ const initDatePicker = () => {
 };
 
 const initTomSelect = () => {
-    if (!bankSelect.value) return;
+    if (!bankSelect.value || returnForm.value.is_cash_refunded) return;
     tomSelectInstance = new TomSelect(bankSelect.value, {
         plugins: ['dropdown_input'],
         valueField: 'value',
@@ -253,6 +328,21 @@ onMounted(() => {
     });
 });
 
+watch(
+    () => returnForm.value.is_cash_refunded,
+    () => {
+        if (tomSelectInstance) {
+            tomSelectInstance.destroy();
+            tomSelectInstance = null;
+        }
+        if (!returnForm.value.is_cash_refunded) {
+            nextTick(() => {
+                initTomSelect();
+            });
+        }
+    }
+);
+
 onUnmounted(() => {
     if (tomSelectInstance) {
         tomSelectInstance.destroy();
@@ -264,7 +354,36 @@ onUnmounted(() => {
 <style scoped>
 @import '~/public/css/viewing-schedules.css';
 
-/* Tùy chỉnh style cho TomSelect */
+.ml-3 {
+    margin-left: 12px;
+}
+
+.cash-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+    text-align: left;
+}
+
+.cash-info p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.cash-info .note {
+    background: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #555;
+}
+
+.cash-info .note i {
+    color: #007bff;
+}
+
 .tom-select .ts-control {
     border: 2px solid #e2e8f0;
     border-radius: 8px;

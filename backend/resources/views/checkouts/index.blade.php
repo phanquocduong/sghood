@@ -43,22 +43,17 @@
                             <select name="inventory_status" id="inventory_status" class="form-select">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="Chờ kiểm kê"
-                                    {{ request('inventory_status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ
-                                    kiểm kê</option>
+                                    {{ request('inventory_status') == 'Chờ kiểm kê' ? 'selected' : '' }}>Chờ kiểm kê</option>
                                 <option value="Kiểm kê lại"
-                                    {{ request('inventory_status') == 'Kiểm kê lại' ? 'selected' : '' }}>Kiểm kê lại
-                                </option>
+                                    {{ request('inventory_status') == 'Kiểm kê lại' ? 'selected' : '' }}>Kiểm kê lại</option>
                                 <option value="Đã kiểm kê"
-                                    {{ request('inventory_status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm
-                                    kê</option>
+                                    {{ request('inventory_status') == 'Đã kiểm kê' ? 'selected' : '' }}>Đã kiểm kê</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <select name="sort_order" id="sort_order" class="form-select">
-                                <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Mới nhất
-                                </option>
-                                <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Cũ nhất
-                                </option>
+                                <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Mới nhất</option>
+                                <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -77,25 +72,39 @@
                         style="text-align: center">
                         <thead class="table-dark">
                             <tr>
-                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
-                                <th scope="col" style="width: 15%;">Mã HD</th>
-                                <th scope="col" style="width: 15%;" class="text-center">Ngày checkout</th>
+                                <th scope="col" style="width: 7%;" class="text-center">Mã HD</th>
+                                <th scope="col" style="width: 15%;">Người dùng</th>
+                                <th scope="col" style="width: 13%;" class="text-center">Ngày checkout</th>
                                 <th scope="col" style="width: 13%;" class="text-center">Hoàn tiền</th>
                                 <th scope="col" style="width: 10%;" class="text-center">Trạng thái</th>
                                 <th scope="col" style="width: 20%;" class="text-center">Trạng thái người dùng</th>
-                                <th scope="col" style="width: 22%;" class="text-center">Thao tác</th>
+                                <th scope="col" style="width: 24%;" class="text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($checkouts as $checkout)
                                 <tr class="table-row">
-                                    <td class="text-center">{{ $checkouts->firstItem() + $loop->index }}</td>
                                     <td>
                                         <a href="{{ route('contracts.show', $checkout->contract->id) }}"
                                         class="contract-id-clickable"
                                         title="Xem chi tiết hợp đồng">
                                             {{ 'HD'.$checkout->contract->id }}
                                         </a>
+                                    </td>
+                                    <td>
+                                        <span class="user-name-clickable"
+                                              data-user-id="{{ $checkout->contract->user->id ?? '' }}"
+                                              data-user-name="{{ $checkout->contract->user->name ?? 'N/A' }}"
+                                              data-user-email="{{ $checkout->contract->user->email ?? 'N/A' }}"
+                                              data-user-phone="{{ $checkout->contract->user->phone ?? 'N/A' }}"
+                                              data-user-address="{{ $checkout->contract->user->address ?? 'N/A' }}"
+                                              data-user-gender="{{ $checkout->contract->user->gender ?? 'N/A' }}"
+                                              data-user-birthdate="{{ $checkout->contract->user->birthdate ?? 'N/A' }}"
+                                              data-user-created="{{ $checkout->contract->user->created_at ?? 'N/A' }}"
+                                              data-user-avatar="{{ $checkout->contract->user->avatar ? asset($checkout->contract->user->avatar) : asset('img/user.jpg') }}"
+                                              title="Nhấn để xem thông tin chi tiết">
+                                            {{ $checkout->contract->user->name }}
+                                        </span>
                                     </td>
                                     <td class="text-center">
                                         <small class="text-muted">
@@ -364,26 +373,7 @@
                                                     @csrf
                                                     @method('PUT')
 
-                                                    <div class="mb-3">
-                                                        <label for="inventory_status{{ $checkout->id }}"
-                                                            class="form-label">Trạng thái <span
-                                                                style="color: red;">*</span></label>
-                                                        <select class="form-select"
-                                                            id="inventory_status{{ $checkout->id }}" name="status"
-                                                            required>
-                                                            @if ($checkout->inventory_status == 'Chờ kiểm kê')
-                                                                <option value="Đã kiểm kê">Đã kiểm kê</option>
-                                                            @else
-                                                                <option value="Đã kiểm kê"
-                                                                    {{ $checkout->inventory_status == 'Đã kiểm kê' ? 'selected' : '' }}>
-                                                                    Đã kiểm kê
-                                                                </option>
-                                                            @endif
-                                                        </select>
-                                                        @error('inventory_status')
-                                                            <div class="text-danger small">{{ $message }}</div>
-                                                        @enderror
-                                                    </div>
+                                                    <input type="hidden" name="status" value="Đã kiểm kê">
                                                     <p><strong>Tiền cọc:</strong>
                                                         {{ $checkout->contract->deposit_amount ? number_format($checkout->contract->deposit_amount, 0, ',', '.') : 'N/A' }}
                                                         VNĐ</p>
@@ -414,11 +404,9 @@
                                                                         id="images_input_{{ $checkout->id }}" multiple
                                                                         accept="image/*"
                                                                         onchange="previewImages(this, {{ $checkout->id }})">
-                                                                    <small class="text-muted">Có thể chọn nhiều hình
-                                                                        ảnh</small>
+                                                                    <small class="text-muted">Có thể chọn nhiều hình ảnh</small>
                                                                     @error('images.*')
-                                                                        <div class="text-danger small">{{ $message }}
-                                                                        </div>
+                                                                        <div class="text-danger small">{{ $message }}</div>
                                                                     @enderror
                                                                 </div>
 
@@ -459,9 +447,7 @@
                                                                 <div class="mb-3">
                                                                     <label
                                                                         for="deduction_amount_total_{{ $checkout->id }}"
-                                                                        class="form-label">Tổng số tiền khấu trừ
-                                                                        (VNĐ)
-                                                                    </label>
+                                                                        class="form-label">Tổng số tiền khấu trừ (VNĐ)</label>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         id="deduction_amount_total_{{ $checkout->id }}"
@@ -473,9 +459,7 @@
                                                             <div class="col-md-6">
                                                                 <div class="mb-3">
                                                                     <label for="final_refunded_amount_{{ $checkout->id }}"
-                                                                        class="form-label">Số tiền hoàn trả cuối cùng
-                                                                        (VNĐ)
-                                                                    </label>
+                                                                        class="form-label">Số tiền hoàn trả cuối cùng (VNĐ)</label>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         id="final_refunded_amount_{{ $checkout->id }}"
@@ -550,7 +534,113 @@
                 @endif
             </div>
         </div>
+
+        <!-- User Info Modal -->
+        <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="userInfoModalLabel">
+                            <i class="fas fa-user-circle me-2"></i>Thông tin người thuê
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <img id="modalUserAvatar" src="{{ asset('img/user.jpg') }}" alt="User Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-user me-2"></i>Họ và tên:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserName">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-envelope me-2"></i>Email:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserEmail">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-phone me-2"></i>Số điện thoại:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserPhone">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserAddress">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-venus-mars me-2"></i>Giới tính:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserGender">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-birthday-cake me-2"></i>Ngày sinh:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserBirthdate">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">
+                                        <i class="fas fa-calendar-plus me-2"></i>Ngày tạo tài khoản:
+                                    </label>
+                                    <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserCreated">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <style>
+        .contract-id-clickable,
+        .user-name-clickable {
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .table-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-radius: 15px 15px 0 0;
+        }
+
+        .form-control-plaintext {
+            font-weight: 500;
+            color: #495057 !important;
+        }
+    </style>
+
     <script>
         // Truyền dữ liệu inventory từ server xuống JavaScript
         window.existingInventoryData = {
@@ -560,6 +650,70 @@
         };
 
         console.log('Existing inventory data loaded:', window.existingInventoryData);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add animation to table rows
+            const tableRows = document.querySelectorAll('.table-row');
+            tableRows.forEach((row, index) => {
+                // row.style.animationDelay = `${index * 0.1}s`;
+                // row.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+
+            // Handle user name click to show popup
+            const userNameElements = document.querySelectorAll('.user-name-clickable');
+            userNameElements.forEach(element => {
+                element.addEventListener('click', function() {
+                    const userName = this.getAttribute('data-user-name');
+                    const userEmail = this.getAttribute('data-user-email');
+                    const userPhone = this.getAttribute('data-user-phone');
+                    const userAddress = this.getAttribute('data-user-address');
+                    const userGender = this.getAttribute('data-user-gender');
+                    const userBirthdate = this.getAttribute('data-user-birthdate');
+                    const userCreated = this.getAttribute('data-user-created');
+                    const userAvatar = this.getAttribute('data-user-avatar');
+
+                    // Update modal content
+                    document.getElementById('modalUserName').textContent = userName || 'N/A';
+                    document.getElementById('modalUserEmail').textContent = userEmail || 'N/A';
+                    document.getElementById('modalUserPhone').textContent = userPhone || 'N/A';
+                    document.getElementById('modalUserAddress').textContent = userAddress || 'N/A';
+                    document.getElementById('modalUserGender').textContent = userGender || 'N/A';
+                    document.getElementById('modalUserAvatar').src = userAvatar || '{{ asset('img/user.jpg') }}';
+
+                    // Format birthdate if available
+                    if (userBirthdate && userBirthdate !== 'N/A') {
+                        const date = new Date(userBirthdate);
+                        const formattedBirthdate = date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        document.getElementById('modalUserBirthdate').textContent = formattedBirthdate;
+                    } else {
+                        document.getElementById('modalUserBirthdate').textContent = 'N/A';
+                    }
+
+                    // Format created date if available
+                    if (userCreated && userCreated !== 'N/A') {
+                        const date = new Date(userCreated);
+                        const formattedDate = date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        document.getElementById('modalUserCreated').textContent = formattedDate;
+                    } else {
+                        document.getElementById('modalUserCreated').textContent = 'N/A';
+                    }
+
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('userInfoModal'));
+                    modal.show();
+                });
+            });
+        });
     </script>
+    <script src="{{ asset('js/checkout.js') }}"></script>
 @endsection
-<script src="{{ asset('js/checkout.js') }}"></script>

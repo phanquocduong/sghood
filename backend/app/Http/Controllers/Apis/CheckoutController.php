@@ -25,11 +25,14 @@ class CheckoutController extends Controller
         try {
             $validated = $request->validated();
 
-            $bankInfo = [
-                'bank_name' => $validated['bank_name'],
-                'account_number' => $validated['account_number'],
-                'account_holder' => $validated['account_holder'],
-            ];
+            $bankInfo = null;
+            if (!$validated['is_cash_refunded'] && isset($validated['bank_name'], $validated['account_number'], $validated['account_holder'])) {
+                $bankInfo = [
+                    'bank_name' => $validated['bank_name'],
+                    'account_number' => $validated['account_number'],
+                    'account_holder' => $validated['account_holder'],
+                ];
+            }
 
             $check_out_date = \DateTime::createFromFormat('d/m/Y', $validated['check_out_date'])->format('Y-m-d');
 
@@ -142,13 +145,16 @@ class CheckoutController extends Controller
     {
         try {
             $validated = $request->validate([
-                'bank_info' => 'required|array',
-                'bank_info.bank_name' => 'required|string|max:255',
-                'bank_info.account_number' => 'required|string|max:50',
-                'bank_info.account_holder' => 'required|string|max:255',
+                'is_cash_refunded' => 'required|boolean',
+                'bank_info' => 'required_if:is_cash_refunded,false|array|nullable',
+                'bank_info.bank_name' => 'required_if:is_cash_refunded,false|string|max:255',
+                'bank_info.account_number' => 'required_if:is_cash_refunded,false|string|max:50',
+                'bank_info.account_holder' => 'required_if:is_cash_refunded,false|string|max:255',
             ]);
 
-            $result = $this->checkoutService->updateBankInfo($id, $validated['bank_info']);
+            $bankInfo = $validated['is_cash_refunded'] ? null : $validated['bank_info'];
+
+            $result = $this->checkoutService->updateBankInfo($id, $bankInfo);
 
             if (isset($result['error'])) {
                 return response()->json([
@@ -158,16 +164,16 @@ class CheckoutController extends Controller
             }
 
             return response()->json([
-                'message' => 'Cập nhật thông tin chuyển khoản thành công',
+                'message' => 'Cập nhật thông tin hoàn tiền thành công',
                 'data' => $result['data'],
             ], 200);
         } catch (\Throwable $e) {
-            Log::error('Lỗi chỉnh sửa thông tin chuyển khoản', [
+            Log::error('Lỗi chỉnh sửa thông tin hoàn tiền', [
                 'checkout_id' => $id,
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
-            return response()->json(['error' => 'Đã xảy ra lỗi khi chỉnh sửa thông tin chuyển khoản.'], 500);
+            return response()->json(['error' => 'Đã xảy ra lỗi khi chỉnh sửa thông tin hoàn tiền.'], 500);
         }
     }
 }

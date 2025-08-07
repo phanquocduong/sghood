@@ -10,6 +10,7 @@
                     @cancel-contract="cancelContract"
                     @extend-contract="extendContract"
                     @return-contract="returnContract"
+                    @early-termination="earlyTermination"
                 />
             </div>
         </div>
@@ -27,7 +28,7 @@ definePageMeta({
 const contracts = ref([]);
 const isLoading = ref(false);
 
-const { fetchContracts, cancelContract, extendContract, returnContract } = useContractActions({ isLoading, contracts });
+const { fetchContracts, cancelContract, extendContract, returnContract, earlyTermination } = useContractActions({ isLoading, contracts });
 
 onMounted(async () => {
     await fetchContracts();
