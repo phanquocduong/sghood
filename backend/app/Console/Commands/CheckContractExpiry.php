@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\AutoEndContractNotification;
 use App\Models\Contract;
 use App\Models\Checkout;
 use App\Models\Config;
@@ -309,7 +310,7 @@ class CheckContractExpiry extends Command
         // Thêm with() để load relationships
         $expiredContracts = Contract::with(['user', 'room.motel'])
             ->where('status', 'Hoạt động')
-            ->where('end_date', '<', $today)
+            ->where('end_date', '<=', $today)
             ->get();
 
         if ($expiredContracts->isEmpty()) {
@@ -427,24 +428,13 @@ class CheckContractExpiry extends Command
                 return;
             }
 
-            // Kiểm tra và load relationship nếu chưa có
+            // Load relationships nếu chưa có
             if (!$contract->relationLoaded('room')) {
-                $contract->load('room.motel');
+                $contract->load('room.motel.user');
             }
 
-            // Tạo data cho email
-            $emailData = [
-                'contract' => $contract,
-                'user_name' => $contract->user->name,
-                'room_name' => $contract->room->name ?? 'N/A',
-                'motel_name' => $contract->room->motel->name ?? 'N/A',
-                'end_date' => Carbon::parse($contract->end_date)->format('d/m/Y'),
-                'end_reason' => 'Hợp đồng đã hết hạn',
-                'notification_type' => 'auto_end'
-            ];
-
-            // Gửi email
-            Mail::to($contract->user->email)->send(new ContractExpiryNotification($emailData));
+            // ✅ TRUYỀN OBJECT CONTRACT đã load đầy đủ relationships
+            Mail::to($contract->user->email)->send(new AutoEndContractNotification($contract));
 
             $this->info("📧 Đã gửi email thông báo kết thúc hợp đồng tự động cho {$contract->user->email}");
 
@@ -453,16 +443,15 @@ class CheckContractExpiry extends Command
                 'user_id' => $contract->user_id,
                 'email' => $contract->user->email,
                 'end_date' => $contract->end_date,
-                'room_name' => $contract->room->name ?? 'N/A'
+                'room_id' => $contract->room_id,
+                'motel_id' => $contract->room->motel_id ?? null
             ]);
 
         } catch (\Exception $e) {
             $this->error("❌ Lỗi gửi email tự động kết thúc hợp đồng #{$contract->id}: " . $e->getMessage());
-
             Log::error("Error sending auto contract end email", [
                 'contract_id' => $contract->id,
                 'user_id' => $contract->user_id,
-                'email' => $contract->user->email ?? 'N/A',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
