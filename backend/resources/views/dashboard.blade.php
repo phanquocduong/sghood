@@ -65,113 +65,10 @@
                         </ul>
                     </div>
                 </div>
-
-                <!-- Repair Requests -->
+                <!-- Yêu cầu sửa chữa đang thực hiện -->
                 <div class="card mb-4">
-                    <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-semibold text-white">
-                                <i class="fas fa-tools text-warning me-2"></i>
-                                Yêu cầu sửa chữa cần xử lý
-                            </h6>
-                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-white">Xem
-                                tất cả</a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class= fw-semibold">Phòng</th>
-                                        <th class= fw-semibold">Khách hàng</th>
-                                        <th class= fw-semibold">Ngày tạo</th>
-                                        <th class= fw-semibold">Mô tả</th>
-                                        <th class= fw-semibold">Trạng thái</th>
-                                        <th class= fw-semibold">Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @isset($repairRequests)
-                                        @forelse($repairRequests->where('status', 'Chờ xác nhận') as $request)
-                                            <tr>
-                                                <td class= "py-3 text-dark">
-                                                    <span
-                                                        class="fw-semibold text-primary">{{ $request->contract->room->name ?? 'N/A' }}</span>
-                                                </td>
-                                                <td class= "py-3 text-dark">
-                                                    {{ $request->contract->user->name ?? 'N/A' }}</td>
-                                                <td class= "py-3 text-dark">
-                                                    <small
-                                                        class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
-                                                </td>
-                                                <td class= "py-3">
-                                                    <small
-                                                        class="text-muted">{{ Str::limit($request->description ?? ($request->title ?? 'Không có mô tả'), 30) }}</small>
-                                                </td>
-                                                <td class= "py-3">
-                                                    @switch($request->status)
-                                                        @case('Chờ xác nhận')
-                                                            <span class="badge bg-opacity-20 text-warning">
-                                                                <i class="fas fa-clock me-1"></i>Chờ xác nhận
-                                                            </span>
-                                                        @break
-
-                                                        @case('Đang thực hiện')
-                                                            <span class="badge bg-opacity-20 text-info">
-                                                                <i class="fas fa-cog me-1"></i>Đang thực hiện
-                                                            </span>
-                                                        @break
-
-                                                        @case('Hoàn thành')
-                                                            <span class="badge bg-opacity-20 text-success">
-                                                                <i class="fas fa-check me-1"></i>Hoàn thành
-                                                            </span>
-                                                        @break
-
-                                                        @case('Đã hủy')
-                                                            <span class="badge bg-opacity-20 text-danger">
-                                                                <i class="fas fa-times me-1"></i>Đã hủy
-                                                            </span>
-                                                        @break
-
-                                                        @default
-                                                            <span class="badge bg-opacity-20 text-secondary">
-                                                                <i class="fas fa-question me-1"></i>{{ ucfirst($request->status) }}
-                                                            </span>
-                                                    @endswitch
-                                                </td>
-                                                <td class= "py-3">
-                                                    <a class="btn btn-sm btn-outline-primary"
-                                                        href="{{ route('repair_requests.show', $request->id) }}">
-                                                        <i class="fas fa-eye me-1"></i>Chi tiết
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="6" class= text-center text-muted py-4">
-                                                        <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào cần xử
-                                                        lý.
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        @else
-                                            <tr>
-                                                <td colspan="6" class= text-center text-muted py-4">
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu
-                                                    sửa chữa.
-                                                </td>
-                                            </tr>
-                                        @endisset
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card mb-4">
-                    <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
+                    <div class="card-header bg-white py-3"
+                    style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-tools text-warning me-2"></i>
@@ -198,12 +95,91 @@
                                     @isset($repairRequests)
                                         @forelse($repairRequests->where('status', 'Đang thực hiện') as $request)
                                             <tr>
+                                                <td class="py-3 text-dark">
+                                                    <span
+                                                        class="fw-semibold text-primary">{{ $request->contract->room->name ?? 'N/A' }}</span>
+                                                </td>
+                                                <td class="py-3 text-dark">
+                                                    {{ $request->contract->user->name ?? 'N/A' }}
+                                                </td>
+                                                <td class="py-3 text-dark">
+                                                    <small
+                                                        class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
+                                                </td>
+                                                <td class="py-3">
+                                                    <small
+                                                        class="text-muted">{{ Str::limit($request->description ?? ($request->title ?? 'Không có mô tả'), 30) }}</small>
+                                                </td>
+                                                <td class="py-3">
+                                                    <span class="badge bg-opacity-20 text-info">
+                                                        <i class="fas fa-cog me-1"></i>Đang thực hiện
+                                                    </span>
+                                                </td>
+                                                <td class="py-3">
+                                                    <a class="btn btn-sm btn-outline-primary"
+                                                        href="{{ route('repair_requests.show', $request->id) }}">
+                                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-4">
+                                                    <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào đang thực
+                                                    hiện.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    @else
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu sửa
+                                                chữa.
+                                            </td>
+                                        </tr>
+                                    @endisset
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Repair Requests -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3"
+                        style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold text-white">
+                                <i class="fas fa-tools text-warning me-2"></i>
+                                Yêu cầu sửa chữa cần xử lý
+                            </h6>
+                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-white">Xem
+                                tất cả</a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="fw-semibold">Phòng</th>
+                                        <th class="fw-semibold">Khách hàng</th>
+                                        <th class="fw-semibold">Ngày tạo</th>
+                                        <th class="fw-semibold">Mô tả</th>
+                                        <th class="fw-semibold">Trạng thái</th>
+                                        <th class="fw-semibold">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @isset($repairRequests)
+                                        @forelse($repairRequests->where('status', 'Chờ xác nhận') as $request)
+                                            <tr>
                                                 <td class= "py-3 text-dark">
                                                     <span
                                                         class="fw-semibold text-primary">{{ $request->contract->room->name ?? 'N/A' }}</span>
                                                 </td>
                                                 <td class= "py-3 text-dark">
-                                                    {{ $request->contract->user->name ?? 'N/A' }}</td>
+                                                    {{ $request->contract->user->name ?? 'N/A' }}
+                                                </td>
                                                 <td class= "py-3 text-dark">
                                                     <small
                                                         class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
@@ -253,7 +229,7 @@
                                             </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="6" class= text-center text-muted py-4">
+                                                    <td colspan="6" class="text-center text-muted py-4">
                                                         <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào cần xử
                                                         lý.
                                                     </td>
@@ -261,7 +237,7 @@
                                             @endforelse
                                         @else
                                             <tr>
-                                                <td colspan="6" class= "text-center text-muted py-4">
+                                                <td colspan="6" class="text-center text-muted py-4">
                                                     <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu
                                                     sửa chữa.
                                                 </td>
@@ -273,6 +249,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Middle Column -->
                 <div class="col-lg-3">
                     <!-- Contract Management Section -->
@@ -280,7 +257,8 @@
                         <!-- Newly Signed Contracts -->
                         <div class="col-md-12">
                             <div class="card h-100">
-                                <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
+                                <div class="card-header bg-white py-3"
+                                    style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-file-signature text-success me-2"></i>
@@ -324,7 +302,8 @@
                         <!-- Contracts Nearing Expiration -->
                         <div class="col-md-12">
                             <div class="card h-100">
-                                <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);">
+                                <div class="card-header bg-white py-3"
+                                    style="background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-hourglass-half text-warning me-2"></i>
@@ -367,15 +346,17 @@
                         </div>
 
                         <!--  -->
-                         <div class="col-md-12">
+                        <div class="col-md-12">
                             <div class="card h-100">
-                                <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
+                                <div class="card-header bg-white py-3"
+                                    style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-sign-out-alt text-danger me-2"></i>
                                             Yêu cầu trả phòng
                                         </h6>
-                                        <a href="{{ route('checkouts.index') }}" class="text-decoration-none small text-white">Xem tất cả</a>
+                                        <a href="{{ route('checkouts.index') }}"
+                                            class="text-decoration-none small text-white">Xem tất cả</a>
                                     </div>
                                 </div>
                                 <div class="card-body p-0">
@@ -392,7 +373,9 @@
                                                     </div>
                                                     <div>
                                                         <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
-                                                            <a href="{{ route('checkouts.index') }}">{{ $checkout->contract->user->name ?? 'Không xác định' }}</a></div>
+                                                            <a
+                                                                href="{{ route('checkouts.index') }}">{{ $checkout->contract->user->name ?? 'Không xác định' }}</a>
+                                                        </div>
                                                         <small class="text-muted">
                                                             {{ $checkout->contract->room->name ?? 'Không xác định' }} -
                                                             Thời gian: <span
@@ -417,7 +400,8 @@
                 <div class="col-lg-3">
                     <!-- Expired Contracts -->
                     <div class="card mb-4">
-                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);">
+                        <div class="card-header bg-white py-3"
+                            style="background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-message text-danger me-2"></i>
@@ -444,7 +428,7 @@
                                                     {{ $mess->sender_name }}
                                                 </div>
                                                 <div class="text-dark" style="font-size: 13px;">
-                                                    {{ $mess->message ?? '(Không có nội dung)'}}
+                                                    {{ $mess->message ?? '(Không có nội dung)' }}
                                                 </div>
                                                 <small class="text-muted">
                                                     <span class="text-primary">
@@ -465,7 +449,8 @@
 
                     <!-- Check-in Section -->
                     <div class="card mb-4">
-                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
+                        <div class="card-header bg-white py-3"
+                            style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sign-in-alt text-success me-2"></i>
                                 Check-in Sắp Tới
@@ -506,7 +491,8 @@
 
                     <!-- Recently Renewed Contracts -->
                     <div class="card">
-                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
+                        <div class="card-header bg-white py-3"
+                            style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-file-contract text-info text-white me-2"></i>
