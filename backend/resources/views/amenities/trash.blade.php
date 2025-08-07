@@ -73,19 +73,21 @@
                                         {{ $statusText }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="d-flex justify-content-center align-items-center">
                                     <form action="{{ route('amenities.restore', $amenity->id) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('POST')
-                                        <button type="submit" class="btn btn-sm btn-success action-btn me-2" onclick="return confirm('Bạn có chắc muốn khôi phục?')" style="transition: all 0.3s;">
-                                            <i class="fas fa-undo me-1"></i> Khôi phục
+                                        <button type="submit" class="btn btn-sm btn-success action-btn me-2 action-icon" onclick="return confirm('Bạn có chắc muốn khôi phục?')" style="transition: all 0.3s;">
+                                            <i class="fas fa-undo me-1"></i> 
+                                            <span class="d-none d-sm-inline ms-1">Khôi phục</span>
                                         </button>
                                     </form>
                                     <form action="{{ route('amenities.forceDelete', $amenity->id) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger action-btn" onclick="return confirm('Bạn có chắc muốn xóa vĩnh viễn?')" style="transition: all 0.3s;">
-                                            <i class="fas fa-trash me-1"></i> Xóa vĩnh viễn
+                                        <button type="submit" class="btn btn-sm btn-danger action-btn action-icon" onclick="return confirm('Bạn có chắc muốn xóa vĩnh viễn?')" style="transition: all 0.3s;">
+                                            <i class="fas fa-trash me-1"></i>
+                                            <span class="d-none d-sm-inline ms-1">Xóa vĩnh viễn</span>
                                         </button>
                                     </form>
                                 </td>
@@ -104,4 +106,38 @@
         </div>
     </div>
 </div>
+@endsection
+@section('styles')
+        <style>
+            @media (max-width: 576px) {
+
+                /* Nút hành động trên mobile chỉ là icon tròn */
+                .action-icon {
+                    padding: 6px 8px;
+                    /* Nhỏ gọn */
+                    border-radius: 50%;
+                    /* Bo tròn */
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center
+                }
+
+                /* Icon căn giữa */
+                .action-icon i {
+                    margin: 0 !important;
+                    font-size: 14px;
+                }
+
+                .card-header .btn {
+                    font-size: 14px;
+                    padding: 6px 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
+        </style>
 @endsection

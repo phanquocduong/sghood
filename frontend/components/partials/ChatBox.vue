@@ -72,7 +72,6 @@ import { useAuthStore } from '~/stores/auth';
 import { useCookie } from '#app';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useBehaviorStore } from '~/stores/behavior';
-import { questionMap } from '~/utils/questionMap';
 import { uploadImageToFirebase } from '~/utils/uploadImage';
 import { useAppToast } from '~/composables/useToast';
 const { $firebaseStorage } = useNuxtApp();
@@ -183,14 +182,32 @@ watch(newMessage, val => {
 });
 
 const initActions = () => {
-    const path = route.path;
-    const Filter = path.split('/').filter(Boolean);
-    const mathKey = Object.keys(questionMap).find(k => Filter.includes(k)) || '/';
-    const origin = questionMap[mathKey] || questionMap['default'];
+  const configs = useState('configs')?.value;
+  let questionMap = {};
 
-    const raw = localStorage.getItem(local_hint_key.value);
-    const useHints = raw ? JSON.parse(raw) : [];
-    rawAction.value = origin.filter(hint => !useHints.includes(hint));
+  try {
+    const rawMap = configs?.question_map;
+    questionMap = typeof rawMap === 'string' ? JSON.parse(rawMap) : rawMap || {};
+    console.log('✅ Parsed questionMap:', questionMap);
+  } catch (err) {
+    console.error('Lỗi parse question_map:', err);
+    questionMap = {};
+  }
+
+  const path = route.path;
+  const segments = path.split('/').filter(Boolean);
+  const matchedKey = Object.keys(questionMap).find(key => segments.includes(key));
+    console.log('🔍 Segments từ path:', segments);
+  const origin = matchedKey ? questionMap[matchedKey] : questionMap['default'] || [];
+    console.log('🎯 matchedKey:', matchedKey);
+  const raw = localStorage.getItem(local_hint_key.value);
+  const usedHints = raw ? JSON.parse(raw) : [];
+
+  const filtered = origin.filter(hint => !usedHints.includes(hint));
+
+  rawAction.value = filtered;
+
+
 };
 
 const handleClick = (text, index) => {
@@ -348,16 +365,22 @@ const sendMessage = async (payload = null) => {
     }
 };
 
-onMounted(() => {
-    const storeRealtime = localStorage.getItem('lastRealtime');
-    if (!storeRealtime) {
-        lastRealtime.value = 0;
-    } else {
-        lastRealtime.value = parseInt(storeRealtime);
+onMounted(async() => {
+        const storeRealtime = localStorage.getItem('lastRealtime');
+        if (!storeRealtime) {
+            lastRealtime.value = 0;
+        } else {
+            lastRealtime.value = parseInt(storeRealtime);
+        }
+        await initChat();
+       await nextTick(async () => {
+   const question =  initActions();
+    if (question) {
+      sendMessage({ type: 'text', text: question });
+       saveUserHint(question); // Đánh dấu là đã dùng gợi ý này
     }
-    initChat();
-    initActions();
-});
+    });
+    });
 
 onBeforeUnmount(() => {
     if (unsubscribe) unsubscribe();

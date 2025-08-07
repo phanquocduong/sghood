@@ -63,7 +63,8 @@ class DashboardController extends Controller
         $repairRequests = $this->repairRequestService->getPendingRequests(5);
 
         if ($repairRequests->isEmpty()) {
-            $allRepairRequests = RepairRequest::with(['contract.user', 'contract.room'])
+            $allRepairRequests = RepairRequest::whereIn('status', ['Chờ xác nhận', 'Đang thực hiện'])
+                ->with(['contract.user', 'contract.room'])
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();

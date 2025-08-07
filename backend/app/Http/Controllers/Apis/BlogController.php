@@ -33,6 +33,8 @@ class BlogController extends Controller
     }
 
 
+
+
     public function showBlog($slug)
     {
         $blog = $this->blogService->getBlogBySlug($slug);
@@ -64,8 +66,8 @@ class BlogController extends Controller
     {
         $updated = $this->blogService->increaseView($id);
         return response()->json([
-        'message' => 'View increased',
-        'updated' => $updated // số bản ghi update
-    ]);
+            'message' => 'View increased',
+            'updated' => $updated // số bản ghi update
+        ]);
     }
 }

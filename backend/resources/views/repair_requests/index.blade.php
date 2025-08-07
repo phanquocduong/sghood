@@ -16,8 +16,9 @@
 
     <div class="container-fluid py-4">
         <!-- Header -->
-        <div class="d-flex align-items-center mb-4">
-            <h4 class="mb-0 me-3">
+        <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center" 
+        style="background: linear-gradient(90deg, #6a11cb, #2575fc);">
+            <h4 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">
                 <i class="fas fa-tools me-2"></i>Quản lý Yêu Cầu Sửa Chữa
             </h4>
             <span class="badge bg-secondary rounded-pill px-3 py-2">
@@ -80,7 +81,7 @@
                                 <div class="repair-title">
                                     {{ $repair->title ?? 'N/A' }}
                                     @if($repair->note)
-                                        <button type="button" 
+                                        <button type="button"
                                                 class="btn btn-link p-0 ms-2 edit-note-btn"
                                                 data-repair-id="{{ $repair->id }}"
                                                 data-current-note="{{ $repair->note }}"
@@ -88,7 +89,7 @@
                                             <i class="fas fa-edit text-primary"></i>
                                         </button>
                                     @else
-                                        <button type="button" 
+                                        <button type="button"
                                                 class="btn btn-link p-0 ms-2 edit-note-btn"
                                                 data-repair-id="{{ $repair->id }}"
                                                 data-current-note=""
@@ -143,7 +144,7 @@
                                             <ul class="dropdown-menu">
                                                 @foreach ($options as $option)
                                                     <li>
-                                                        <a class="dropdown-item status-option" href="#" 
+                                                        <a class="dropdown-item status-option" href="#"
                                                            data-status="{{ $option }}" data-repair-id="{{ $repair->id }}">
                                                             {{ $option }}
                                                         </a>
@@ -299,12 +300,42 @@
             .table {
                 font-size: 0.875rem;
             }
-            
+
             .btn-sm {
                 padding: 0.25rem 0.5rem;
                 font-size: 0.8rem;
             }
         }
+        @media (max-width: 576px) {
+
+                /* Nút hành động trên mobile chỉ là icon tròn */
+                .action-icon {
+                    padding: 6px 8px;
+                    /* Nhỏ gọn */
+                    border-radius: 50%;
+                    /* Bo tròn */
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center
+                }
+
+                /* Icon căn giữa */
+                .action-icon i {
+                    margin: 0 !important;
+                    font-size: 14px;
+                }
+
+                .card-header .btn {
+                    font-size: 14px;
+                    padding: 6px 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
     </style>
 
     <script>
@@ -364,7 +395,7 @@
                         const repairId = this.action.split('/').slice(-2, -1)[0];
                         const editBtn = document.querySelector(`[data-repair-id="${repairId}"]`);
                         const icon = editBtn.querySelector('i');
-                        
+
                         if (noteContentTextarea.value.trim()) {
                             icon.className = 'fas fa-edit text-primary';
                             editBtn.setAttribute('title', `Chỉnh sửa ghi chú: ${noteContentTextarea.value}`);

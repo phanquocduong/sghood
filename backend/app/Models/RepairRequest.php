@@ -27,4 +27,5 @@ class RepairRequest extends Model
     {
         return $this->belongsTo(Contract::class);
     }
+    
 }

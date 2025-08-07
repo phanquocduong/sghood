@@ -34,6 +34,8 @@ class BlogService
         ];
     }
 
+
+
     public function getBlogBySlug($slug)
     {
         return Blog::select('thumbnail', 'id', 'title', 'slug', 'content', 'created_at')
