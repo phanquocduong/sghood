@@ -66,12 +66,13 @@
                         <select class="form-select shadow-sm" name="status">
                             <option value="">Tất cả trạng thái</option>
                             <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
+                            <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
                             <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
-                            <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh sửa</option>
                             <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
                             <option value="Chờ thanh toán tiền cọc" {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc</option>
                             <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
+                            <option value="Kết thúc sớm" {{ $status == 'Kết thúc sớm' ? 'selected' : '' }}>Kết thúc sớm</option>
                             <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                         </select>
                     </div>
@@ -146,10 +147,11 @@
                                         $badgeClass = match ($calculatedStatus) {
                                             'Chờ xác nhận' => 'primary',
                                             'Chờ duyệt' => 'warning',
-                                            'Chờ chỉnh sửa' => 'danger',
+                                            'Chờ duyệt thủ công' => 'warning',
                                             'Chờ ký' => 'info',
                                             'Hoạt động' => 'success',
                                             'Kết thúc' => 'secondary',
+                                            'Kết thúc sớm' => 'secondary',
                                             'Huỷ bỏ' => 'dark',
                                             'Chờ thanh toán tiền cọc' => 'warning',
                                             default => 'light'
@@ -157,10 +159,12 @@
                                         $iconClass = match ($calculatedStatus) {
                                             'Chờ xác nhận' => 'fas fa-clock',
                                             'Chờ duyệt' => 'fas fa-eye',
-                                            'Chờ chỉnh sửa' => 'fas fa-edit',
+                                            'Chờ duyệt thủ công' => 'fas fa-hourglass-half',
                                             'Chờ ký' => 'fas fa-pen',
                                             'Hoạt động' => 'fas fa-check-circle',
                                             'Kết thúc' => 'fas fa-flag-checkered',
+                                            'Kết thúc sớm' => 'fas fa-flag',
+                                            'Chờ thanh toán tiền cọc' => 'fas fa-money-bill-wave',
                                             'Huỷ bỏ' => 'fas fa-times-circle',
                                             default => 'fas fa-info-circle'
                                         };

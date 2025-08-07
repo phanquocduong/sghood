@@ -169,6 +169,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
         Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
+        Route::match(['put', 'patch'], '/{id}/content', [ContractController::class, 'updateContent'])->name('updateContent');
     });
 
     // Notification routes

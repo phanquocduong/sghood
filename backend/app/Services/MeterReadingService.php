@@ -49,9 +49,7 @@ class MeterReadingService
         return $meterReading;
     }
 
-    /**
-     * Tính toán số điện/nước tiêu thụ và lấy chỉ số tháng trước
-     */
+    //Tính toán số điện/nước tiêu thụ và lấy chỉ số tháng gần nhất
     public function getConsumptionAndPreviousReadings($meterReading)
     {
         $electricityConsumption = $meterReading->electricity_kwh ?? 0;
@@ -59,19 +57,18 @@ class MeterReadingService
         $previousElectricityKwh = 0;
         $previousWaterM3 = 0;
 
-        // Lấy chỉ số tháng trước
+        // Lấy chỉ số tháng gần nhất trước tháng hiện tại
         $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
-            ->where('year', $meterReading->year)
-            ->where('month', $meterReading->month - 1)
+            ->where(function ($query) use ($meterReading) {
+                $query->where('year', '<', $meterReading->year)
+                    ->orWhere(function ($q) use ($meterReading) {
+                        $q->where('year', $meterReading->year)
+                            ->where('month', '<', $meterReading->month);
+                    });
+            })
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
             ->first();
-
-        // Nếu không có tháng trước, kiểm tra tháng 12 năm trước
-        if (!$previousMeterReading && $meterReading->month == 1) {
-            $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
-                ->where('year', $meterReading->year - 1)
-                ->where('month', 12)
-                ->first();
-        }
 
         if ($previousMeterReading) {
             $electricityConsumption = ($meterReading->electricity_kwh ?? 0) - ($previousMeterReading->electricity_kwh ?? 0);

@@ -332,7 +332,7 @@ class ContractService
                 ];
             }
 
-            $contract->update(['status' => 'Chờ chỉnh sửa']);
+            $contract->update(['status' => 'Chờ xác nhận']);
 
             SendContractRevisionNotification::dispatch($contract, $revisionReason);
 
@@ -358,5 +358,61 @@ class ContractService
                 'status' => 500
             ];
         }
+    }
+
+    public function updateContractContent(Contract $contract, array $data): string
+    {
+        // Get the current content
+        $newContent = $contract->content ?? '';
+
+        // If no data is provided, return the original content
+        if (empty($data)) {
+            return $newContent;
+        }
+
+        // Use DOMDocument to parse and update the HTML content
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true); // Suppress warnings for malformed HTML
+        if (!$dom->loadHTML('<?xml encoding="UTF-8">' . $newContent, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD)) {
+            Log::warning('Failed to load HTML content', ['contract_id' => $contract->id, 'content' => $newContent]);
+            return $newContent; // Return original if parsing fails
+        }
+
+        // Find all input elements
+        $inputs = $dom->getElementsByTagName('input');
+        foreach ($inputs as $input) {
+            $name = $input->getAttribute('name');
+            if (isset($data[$name]) && $data[$name] !== null) {
+                // Preserve existing attributes and update only the value
+                $newValue = htmlspecialchars($data[$name], ENT_QUOTES, 'UTF-8');
+                $input->setAttribute('value', $newValue);
+
+                // Ensure class and style attributes are not lost
+                $class = $input->getAttribute('class');
+                $style = $input->getAttribute('style');
+                if ($class) $input->setAttribute('class', $class);
+                if ($style) $input->setAttribute('style', $style);
+            }
+        }
+
+        // Get the updated HTML content
+        $updatedHtml = $dom->saveHTML();
+
+        // Remove the DOCTYPE, XML declaration, and extra HTML/body tags
+        $newContent = preg_replace('/^<!DOCTYPE.*?(?=>)>|<html>|<body>|<\/body>|<\/html>/i', '', $updatedHtml);
+        $newContent = trim($newContent);
+
+        // Log before and after for debugging
+        Log::info('Contract content updated', [
+            'contract_id' => $contract->id,
+            'original_content' => $contract->content,
+            'new_content' => $newContent
+        ]);
+
+        // Update the contract in the database
+        $contract->content = $newContent;
+        $contract->save();
+
+        return $newContent;
     }
 }
