@@ -15,8 +15,8 @@
             <!-- Left Column -->
             <div class="col-lg-6">
                 <!-- Notes Section -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card mb-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sticky-note me-2"></i>
@@ -32,7 +32,7 @@
                         <ul class="list-group list-group-flush">
                             @isset($notes)
                                 @forelse($notes->take(4) as $note)
-                                    <li class="list-group-item border-0 py-3" data-id-user="{{ $note->user_id }}"
+                                    <li class="list-group-item "py-3" data-id-user="{{ $note->user_id }}"
                                         data-note-id="{{ $note->id }}">
                                         <div class="d-flex">
                                             <div class="flex-shrink-0 me-3">
@@ -52,12 +52,12 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 text-center text-muted py-4">
+                                    <li class="list-group-item text-center text-muted py-4">
                                         <i class="fas fa-info-circle me-2"></i>Chưa có ghi chú nào.
                                     </li>
                                 @endforelse
                             @else
-                                <li class="list-group-item border-0 text-center text-muted py-4">
+                                <li class="list-group-item text-center text-muted py-4">
                                     <i class="fas fa-exclamation-triangle me-2"></i>Chưa tải được ghi chú:
                                     {{ session('error') ?? 'Lỗi không xác định' }}
                                 </li>
@@ -67,8 +67,8 @@
                 </div>
 
                 <!-- Repair Requests -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
+                <div class="card mb-4">
+                    <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-tools text-warning me-2"></i>
@@ -83,33 +83,33 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="border-0 fw-semibold">Phòng</th>
-                                        <th class="border-0 fw-semibold">Khách hàng</th>
-                                        <th class="border-0 fw-semibold">Ngày tạo</th>
-                                        <th class="border-0 fw-semibold">Mô tả</th>
-                                        <th class="border-0 fw-semibold">Trạng thái</th>
-                                        <th class="border-0 fw-semibold">Hành động</th>
+                                        <th class= fw-semibold">Phòng</th>
+                                        <th class= fw-semibold">Khách hàng</th>
+                                        <th class= fw-semibold">Ngày tạo</th>
+                                        <th class= fw-semibold">Mô tả</th>
+                                        <th class= fw-semibold">Trạng thái</th>
+                                        <th class= fw-semibold">Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @isset($repairRequests)
-                                        @forelse($repairRequests as $request)
+                                        @forelse($repairRequests->where('status', 'Chờ xác nhận') as $request)
                                             <tr>
-                                                <td class="border-0 py-3 text-dark">
+                                                <td class= "py-3 text-dark">
                                                     <span
                                                         class="fw-semibold text-primary">{{ $request->contract->room->name ?? 'N/A' }}</span>
                                                 </td>
-                                                <td class="border-0 py-3 text-dark">
+                                                <td class= "py-3 text-dark">
                                                     {{ $request->contract->user->name ?? 'N/A' }}</td>
-                                                <td class="border-0 py-3 text-dark">
+                                                <td class= "py-3 text-dark">
                                                     <small
                                                         class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
                                                 </td>
-                                                <td class="border-0 py-3">
+                                                <td class= "py-3">
                                                     <small
                                                         class="text-muted">{{ Str::limit($request->description ?? ($request->title ?? 'Không có mô tả'), 30) }}</small>
                                                 </td>
-                                                <td class="border-0 py-3">
+                                                <td class= "py-3">
                                                     @switch($request->status)
                                                         @case('Chờ xác nhận')
                                                             <span class="badge bg-opacity-20 text-warning">
@@ -141,7 +141,7 @@
                                                             </span>
                                                     @endswitch
                                                 </td>
-                                                <td class="border-0 py-3">
+                                                <td class= "py-3">
                                                     <a class="btn btn-sm btn-outline-primary"
                                                         href="{{ route('repair_requests.show', $request->id) }}">
                                                         <i class="fas fa-eye me-1"></i>Chi tiết
@@ -150,7 +150,7 @@
                                             </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="6" class="border-0 text-center text-muted py-4">
+                                                    <td colspan="6" class= text-center text-muted py-4">
                                                         <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào cần xử
                                                         lý.
                                                     </td>
@@ -158,7 +158,7 @@
                                             @endforelse
                                         @else
                                             <tr>
-                                                <td colspan="6" class="border-0 text-center text-muted py-4">
+                                                <td colspan="6" class= text-center text-muted py-4">
                                                     <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu
                                                     sửa chữa.
                                                 </td>
@@ -170,15 +170,117 @@
                         </div>
                     </div>
                 </div>
+                <div class="card mb-4">
+                    <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold text-white">
+                                <i class="fas fa-tools text-warning me-2"></i>
+                                Yêu cầu sửa chữa đang thực hiện
+                            </h6>
+                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-white">Xem
+                                tất cả</a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="fw-semibold">Phòng</th>
+                                        <th class="fw-semibold">Khách hàng</th>
+                                        <th class="fw-semibold">Ngày tạo</th>
+                                        <th class="fw-semibold">Mô tả</th>
+                                        <th class="fw-semibold">Trạng thái</th>
+                                        <th class="fw-semibold">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @isset($repairRequests)
+                                        @forelse($repairRequests->where('status', 'Đang thực hiện') as $request)
+                                            <tr>
+                                                <td class= "py-3 text-dark">
+                                                    <span
+                                                        class="fw-semibold text-primary">{{ $request->contract->room->name ?? 'N/A' }}</span>
+                                                </td>
+                                                <td class= "py-3 text-dark">
+                                                    {{ $request->contract->user->name ?? 'N/A' }}</td>
+                                                <td class= "py-3 text-dark">
+                                                    <small
+                                                        class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
+                                                </td>
+                                                <td class= "py-3">
+                                                    <small
+                                                        class="text-muted">{{ Str::limit($request->description ?? ($request->title ?? 'Không có mô tả'), 30) }}</small>
+                                                </td>
+                                                <td class= "py-3">
+                                                    @switch($request->status)
+                                                        @case('Chờ xác nhận')
+                                                            <span class="badge bg-opacity-20 text-warning">
+                                                                <i class="fas fa-clock me-1"></i>Chờ xác nhận
+                                                            </span>
+                                                        @break
 
+                                                        @case('Đang thực hiện')
+                                                            <span class="badge bg-opacity-20 text-info">
+                                                                <i class="fas fa-cog me-1"></i>Đang thực hiện
+                                                            </span>
+                                                        @break
+
+                                                        @case('Hoàn thành')
+                                                            <span class="badge bg-opacity-20 text-success">
+                                                                <i class="fas fa-check me-1"></i>Hoàn thành
+                                                            </span>
+                                                        @break
+
+                                                        @case('Đã hủy')
+                                                            <span class="badge bg-opacity-20 text-danger">
+                                                                <i class="fas fa-times me-1"></i>Đã hủy
+                                                            </span>
+                                                        @break
+
+                                                        @default
+                                                            <span class="badge bg-opacity-20 text-secondary">
+                                                                <i class="fas fa-question me-1"></i>{{ ucfirst($request->status) }}
+                                                            </span>
+                                                    @endswitch
+                                                </td>
+                                                <td class= "py-3">
+                                                    <a class="btn btn-sm btn-outline-primary"
+                                                        href="{{ route('repair_requests.show', $request->id) }}">
+                                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="6" class= text-center text-muted py-4">
+                                                        <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào cần xử
+                                                        lý.
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        @else
+                                            <tr>
+                                                <td colspan="6" class= "text-center text-muted py-4">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu
+                                                    sửa chữa.
+                                                </td>
+                                            </tr>
+                                        @endisset
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Middle Column -->
                 <div class="col-lg-3">
                     <!-- Contract Management Section -->
                     <div class="row g-4">
                         <!-- Newly Signed Contracts -->
                         <div class="col-md-12">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
+                            <div class="card h-100">
+                                <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-file-signature text-success me-2"></i>
@@ -190,7 +292,7 @@
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
                                         @forelse($justSignedContracts as $contract)
-                                            <li class="list-group-item border-0 py-2">
+                                            <li class="list-group-item py-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="flex-shrink-0 me-3">
                                                         <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -211,7 +313,7 @@
                                                 </div>
                                             </li>
                                         @empty
-                                            <li class="list-group-item border-0 text-center text-muted py-4">
+                                            <li class="list-group-item text-center text-muted py-4">
                                                 <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào vừa ký.
                                             </li>
                                         @endforelse
@@ -221,8 +323,8 @@
                         </div>
                         <!-- Contracts Nearing Expiration -->
                         <div class="col-md-12">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);">
+                            <div class="card h-100">
+                                <div class="card-header bg-white "py-3" style="background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-hourglass-half text-warning me-2"></i>
@@ -234,7 +336,7 @@
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
                                         @forelse($contracts as $contract)
-                                            <li class="list-group-item border-0 py-2">
+                                            <li class="list-group-item py-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="flex-shrink-0 me-3">
                                                         <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -255,7 +357,7 @@
                                                 </div>
                                             </li>
                                         @empty
-                                            <li class="list-group-item border-0 text-center text-muted py-4">
+                                            <li class="list-group-item text-center text-muted py-4">
                                                 <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào sắp hết hạn.
                                             </li>
                                         @endforelse
@@ -266,8 +368,8 @@
 
                         <!--  -->
                          <div class="col-md-12">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
+                            <div class="card h-100">
+                                <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
                                             <i class="fas fa-sign-out-alt text-danger me-2"></i>
@@ -279,7 +381,7 @@
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
                                         @forelse($checkouts as $checkout)
-                                            <li class="list-group-item border-0 py-2">
+                                            <li class="list-group-item py-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="flex-shrink-0 me-3">
                                                         <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -300,7 +402,7 @@
                                                 </div>
                                             </li>
                                         @empty
-                                            <li class="list-group-item border-0 text-center text-muted py-4">
+                                            <li class="list-group-item text-center text-muted py-4">
                                                 <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào sắp hết hạn.
                                             </li>
                                         @endforelse
@@ -314,8 +416,8 @@
                 <!-- Right Column -->
                 <div class="col-lg-3">
                     <!-- Expired Contracts -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-message text-danger me-2"></i>
@@ -328,7 +430,7 @@
                         <div class="card-body p-0 fw-bold">
                             <ul class="list-group list-group-flush">
                                 @forelse ($messages as $mess)
-                                    <li class="list-group-item border-0 py-2">
+                                    <li class="list-group-item py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -353,7 +455,7 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted">
+                                    <li class="list-group-item py-2 text-muted">
                                         Không có tin nhắn nào.
                                     </li>
                                 @endforelse
@@ -362,8 +464,8 @@
                     </div>
 
                     <!-- Check-in Section -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sign-in-alt text-success me-2"></i>
                                 Check-in Sắp Tới
@@ -372,7 +474,7 @@
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @forelse($schedules as $schedule)
-                                    <li class="list-group-item border-0 py-2">
+                                    <li class="list-group-item py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -394,7 +496,7 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 text-center text-muted py-4">
+                                    <li class="list-group-item text-center text-muted py-4">
                                         <i class="fas fa-info-circle me-2"></i>Không có lịch check-in sắp tới.
                                     </li>
                                 @endforelse
@@ -403,8 +505,8 @@
                     </div>
 
                     <!-- Recently Renewed Contracts -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-0 py-3" style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
+                    <div class="card">
+                        <div class="card-header bg-white py-3" style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-file-contract text-info text-white me-2"></i>
@@ -416,7 +518,7 @@
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @forelse($contractExtensions as $extension)
-                                    <li class="list-group-item border-0 py-2">
+                                    <li class="list-group-item py-2">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
@@ -437,7 +539,7 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 text-center text-muted py-4">
+                                    <li class="list-group-item text-center text-muted py-4">
                                         <i class="fas fa-info-circle me-2"></i>Không có yêu cầu gia hạn hợp đồng nào.
                                     </li>
                                 @endforelse
