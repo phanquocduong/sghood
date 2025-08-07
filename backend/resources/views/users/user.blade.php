@@ -122,10 +122,20 @@
                                     </td>
                                     <td>
                                         @php
-                                            $canEditStatus =
-                                                Auth::user()->role === 'Quản trị viên' ||
-                                                $user->role !== 'Quản trị viên';
+                                            $authUser = Auth::user();
+                                            $targetRole = $user->role;
+
+                                            $canEditStatus = false;
+
+                                            if ($authUser->role === 'Super admin') {
+                                                // Super Admin được sửa tất cả
+                                                $canEditStatus = true;
+                                            } elseif ($authUser->role === 'Quản trị viên') {
+                                                // Quản trị viên chỉ sửa được người dùng
+                                                $canEditStatus = $targetRole === 'Người thuê' || $targetRole === 'Người đăng ký';
+                                            }
                                         @endphp
+
 
                                         @if (Auth::id() !== $user->id && $canEditStatus)
                                             <form action="{{ route('users.updateStatus', $user->id) }}" method="POST"
@@ -204,9 +214,9 @@
     @endsection
 
 
-<!-- User Info Modal -->
-<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
+    <!-- User Info Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="userModalLabel">
@@ -268,8 +278,8 @@
     </script>
 
 
-<!-- User Info Modal -->
-<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <!-- User Info Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 650px;">
             <div class="modal-content">
                 <div class="modal-header">
