@@ -19,7 +19,7 @@
         @endif
 
         <!-- DIV CHA 1: PHẦN HỢP ĐỒNG -->
-        {!! $contract->content ?? '' !!}
+        <div id="contractContent">{!! $contract->content ?? '' !!}</div>
 
         <!-- DIV PHỤ LỤC: PHẦN GIA HẠN HỢP ĐỒNG -->
         @if(isset($contractExtensions) && $contractExtensions->count() > 0)
@@ -182,10 +182,16 @@
                                 @php
                                     $currentStatus = $contract->status ?? '';
                                     $badgeClass = match ($currentStatus) {
-                                        'Chờ xác nhận' => 'warning',
-                                        'Đã ký' => 'success',
-                                        'Đã hủy' => 'danger',
-                                        'Hết hạn' => 'secondary',
+                                        'Chờ xác nhận' => 'primary',
+                                        'Chờ duyệt' => 'warning',
+                                        'Chờ duyệt thủ công' => 'warning',
+                                        'Chờ chỉnh sửa' => 'danger',
+                                        'Chờ ký' => 'info',
+                                        'Hoạt động' => 'success',
+                                        'Kết thúc' => 'secondary',
+                                        'Kết thúc sớm' => 'danger',
+                                        'Huỷ bỏ' => 'dark',
+                                        'Chờ thanh toán tiền cọc' => 'warning',
                                         default => 'info',
                                     };
                                 @endphp
@@ -260,6 +266,52 @@
                     </div>
                 </div>
 
+                <!-- Modal cho Kết thúc hợp đồng sớm -->
+                <div class="modal fade" id="earlyTerminationModal" tabindex="-1" aria-labelledby="earlyTerminationModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="earlyTerminationModalLabel">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận kết thúc hợp đồng sớm
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <ul class="list-group list-group-flush mb-4">
+                                    @forelse ($terminationRights as $term)
+                                        <li class="list-group-item d-flex align-items-start">
+                                            <i class="fas fa-circle text-danger me-2 mt-1" style="font-size: 8px;"></i>
+                                            <span>{{ $term }}</span>
+                                        </li>
+                                    @empty
+                                        <li class="list-group-item text-muted">
+                                            Không có điều khoản kết thúc hợp đồng sớm nào được cấu hình.
+                                        </li>
+                                    @endforelse
+                                </ul>
+                                <form id="earlyTerminationForm" action="{{ route('contracts.terminateEarly', $contract->id) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label for="terminationReason" class="form-label fw-bold">
+                                            <i class="fas fa-comment me-1"></i>Lý do kết thúc hợp đồng sớm
+                                        </label>
+                                        <textarea class="form-control" id="terminationReason" name="termination_reason" rows="5" placeholder="Vui lòng nhập lý do kết thúc hợp đồng sớm..."></textarea>
+                                        <small class="text-muted">Lý do này sẽ được gửi đến người thuê qua email</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i>Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-stop-circle me-1"></i>Xác nhận kết thúc sớm
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Cập nhật phần Status Update Form -->
                 @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hết hạn')
                     <div class="card border-0 bg-white shadow-sm">
@@ -274,15 +326,15 @@
                                     <label class="form-label fw-bold">
                                         <i class="fas fa-tasks me-1"></i>Chọn trạng thái mới
                                     </label>
-                                    <div class="d-flex flex-wrap gap-3 mt-2">
-                                        @if ($currentStatus === 'Chờ duyệt')
+                                    <div class="d-flex flex-wrap gap-3 mt-2" id="statusButtons">
+                                        @if ($currentStatus === 'Chờ duyệt' || $currentStatus === 'Chờ duyệt thủ công')
                                             <!-- Nút Chờ chỉnh sửa mở modal -->
-                                            <button type="button" class="btn btn-warning shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#revisionModal">
+                                            <button type="button" class="btn btn-warning shadow-sm px-4 py-2 status-btn" data-bs-toggle="modal" data-bs-target="#revisionModal">
                                                 <i class="fas fa-edit me-2"></i>Chờ chỉnh sửa
                                             </button>
 
                                             <form action="{{ route('contracts.updateStatus', $contract->id) }}" method="POST"
-                                                onsubmit="return confirmStatusChange('Chờ ký')" class="d-inline">
+                                                onsubmit="return confirmStatusChange('Chờ ký')" class="d-inline status-btn">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="Chờ ký">
@@ -290,17 +342,24 @@
                                                     <i class="fas fa-pen-fancy me-2"></i>Chờ ký
                                                 </button>
                                             </form>
+
+                                            <!-- Nút Chỉnh sửa thủ công -->
+                                            <button type="button" class="btn btn-primary shadow-sm px-4 py-2 status-btn" id="manualEditBtn" onclick="confirmManualEdit()">
+                                                <i class="fas fa-edit me-2"></i>Chỉnh sửa thủ công                                          </button>
                                         @elseif($currentStatus === 'Hoạt động')
-                                            <form action="{{ route('contracts.updateStatus', $contract->id) }}" method="POST"
-                                                onsubmit="return confirmStatusChange('Kết thúc')" class="d-inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="Kết thúc">
-                                                <button type="submit" class="btn btn-danger shadow-sm px-4 py-2">
-                                                    <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-danger shadow-sm px-4 py-2 status-btn" data-bs-toggle="modal" data-bs-target="#earlyTerminationModal">
+                                                <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng sớm
+                                            </button>
                                         @endif
+                                    </div>
+                                    <!-- Nút Hủy bỏ và Xác nhận (ẩn mặc định) -->
+                                    <div id="editControls" class="d-flex flex-wrap gap-3 mt-2 d-none">
+                                        <button type="button" class="btn btn-secondary shadow-sm px-4 py-2" onclick="cancelEdit()">
+                                            <i class="fas fa-times me-2"></i>Hủy bỏ
+                                        </button>
+                                        <button type="button" class="btn btn-success shadow-sm px-4 py-2" onclick="confirmEdit()">
+                                            <i class="fas fa-check me-2"></i>Xác nhận
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -390,6 +449,77 @@
             return confirm(message);
         }
 
+        function confirmManualEdit() {
+            if (confirm('Bạn có chắc muốn bắt đầu chỉnh sửa thủ công?')) {
+                enableManualEdit();
+            }
+        }
+
+        function enableManualEdit() {
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.removeAttribute('readonly');
+                input.style.pointerEvents = 'auto';
+                input.style.backgroundColor = 'lightgrey';
+            });
+
+            // Hide original status buttons and show edit controls
+            document.querySelectorAll('.status-btn').forEach(element => {
+                element.classList.add('d-none');
+            });
+            document.getElementById('editControls').classList.remove('d-none');
+
+            // Scroll to top of page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.value = input.defaultValue; // Reset to original value
+                input.setAttribute('readonly', 'readonly');
+                input.style.pointerEvents = 'none';
+                input.style.backgroundColor = '#ffffff';
+            });
+
+            // Show original status buttons and hide edit controls
+            document.querySelectorAll('.status-btn').forEach(element => {
+                element.classList.remove('d-none');
+            });
+            document.getElementById('editControls').classList.add('d-none');
+        }
+
+        function confirmEdit() {
+            const inputs = document.querySelectorAll('.form-control');
+            const updatedData = {};
+            inputs.forEach(input => {
+                updatedData[input.name] = input.value;
+            });
+
+            fetch("{{ route('contracts.updateContent', $contract->id) }}", {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ content: updatedData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('contractContent').innerHTML = data.newContent;
+                    alert('Cập nhật hợp đồng thành công!');
+                    location.reload();
+                } else {
+                    alert('Cập nhật thất bại: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi cập nhật hợp đồng.');
+            });
+        }
+
         // Handle image zoom modal
         document.addEventListener('DOMContentLoaded', function() {
             const zoomButtons = document.querySelectorAll('.zoom-image');
@@ -401,19 +531,25 @@
                     modalImage.src = imageUrl;
                 });
             });
-        });
 
-        // Handle image zoom modal
-        document.addEventListener('DOMContentLoaded', function() {
-            const zoomButtons = document.querySelectorAll('.zoom-image');
-            const modalImage = document.getElementById('modalImage');
+            // Handle early termination form
+            const earlyTerminationForm = document.getElementById('earlyTerminationForm');
+            if (earlyTerminationForm) {
+                earlyTerminationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
 
-            zoomButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const imageUrl = this.getAttribute('data-image');
-                    modalImage.src = imageUrl;
+                    const reason = document.getElementById('terminationReason').value;
+                    let confirmMessage = 'Bạn có chắc chắn muốn kết thúc hợp đồng sớm?';
+
+                    if (reason.trim()) {
+                        confirmMessage += '\n\nLý do: ' + reason;
+                    }
+
+                    if (confirm(confirmMessage)) {
+                        this.submit();
+                    }
                 });
-            });
+            }
         });
     </script>
 @endsection

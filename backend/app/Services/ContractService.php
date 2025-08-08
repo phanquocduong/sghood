@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\User;
+use App\Models\Invoice;
+use App\Models\Config;
 use App\Jobs\SendContractRevisionNotification;
 use App\Jobs\SendContractSignNotification;
 use App\Jobs\SendContractConfirmNotification;
+use App\Jobs\SendContractEarlyTerminationNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -146,7 +149,8 @@ class ContractService
                     // Update user role to "Người đăng ký"
                     $contract->user->update(['role' => 'Người đăng ký']);
 
-                    // Remove identity documents from user and storage
+                    // Remove identity docume
+                    $contract->room->update(['status' => 'Sửa chữa']);
                     if ($contract->user->identity_document) {
                         $imagePaths = explode('|', $contract->user->identity_document);
                         foreach ($imagePaths as $index => $imagePath) {
@@ -332,7 +336,7 @@ class ContractService
                 ];
             }
 
-            $contract->update(['status' => 'Chờ chỉnh sửa']);
+            $contract->update(['status' => 'Chờ xác nhận']);
 
             SendContractRevisionNotification::dispatch($contract, $revisionReason);
 
@@ -359,4 +363,168 @@ class ContractService
             ];
         }
     }
+
+    public function terminateContractEarly($contractId, string $terminationReason = null): array
+    {
+        try {
+            $contract = Contract::with(['user', 'room', 'booking'])->findOrFail($contractId);
+
+            if (!$contract->user || !$contract->user->email) {
+                Log::error('User or email not found for contract early termination', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin người dùng hoặc email.',
+                    'status' => 404
+                ];
+            }
+
+            // Cập nhật trạng thái hợp đồng thành "Kết thúc sớm"
+            $contract->update(['status' => 'Kết thúc sớm']);
+
+            // Xử lý khi kết thúc hợp đồng sớm
+            if ($contract->user) {
+                // Update user role to "Người đăng ký"
+                $contract->user->update(['role' => 'Người đăng ký']);
+
+                // Update room status
+                if ($contract->room) {
+                    $contract->room->update(['status' => 'Sửa chữa']);
+                }
+
+                // Remove identity documents from user and storage
+                if ($contract->user->identity_document) {
+                    $imagePaths = explode('|', $contract->user->identity_document);
+                    foreach ($imagePaths as $index => $imagePath) {
+                        // Delete the file from storage
+                        if (Storage::disk('public')->exists($imagePath)) {
+                            Storage::disk('public')->delete($imagePath);
+                            Log::info('Deleted identity document file', [
+                                'user_id' => $contract->user->id,
+                                'file_path' => $imagePath
+                            ]);
+                        }
+                    }
+                    // Clear the identity_document field in the user model
+                    $contract->user->update(['identity_document' => null]);
+                    Log::info('User identity document cleared', [
+                        'user_id' => $contract->user->id,
+                        'contract_id' => $contract->id
+                    ]);
+                }
+
+                Log::info('User status updated to "Người đăng ký"', [
+                    'user_id' => $contract->user->id,
+                    'contract_id' => $contract->id
+                ]);
+            }
+
+            // Gửi thông báo kết thúc hợp đồng sớm bằng Job
+            SendContractEarlyTerminationNotification::dispatch($contract, $terminationReason);
+
+            Log::info('Contract early termination notification job dispatched', [
+                'contract_id' => $contract->id,
+                'user_id' => $contract->user_id,
+                'termination_reason' => $terminationReason
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Hợp đồng đã được kết thúc sớm và email thông báo đã được gửi thành công!'
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Error terminating contract early: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'termination_reason' => $terminationReason,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi kết thúc hợp đồng sớm.',
+                'status' => 500
+            ];
+        }
+    }
+
+    public function updateContractContent(Contract $contract, array $data): string
+    {
+        // Get the current content
+        $newContent = $contract->content ?? '';
+
+        // If no data is provided, return the original content
+        if (empty($data)) {
+            return $newContent;
+        }
+
+        // Use DOMDocument to parse and update the HTML content
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true); // Suppress warnings for malformed HTML
+        if (!$dom->loadHTML('<?xml encoding="UTF-8">' . $newContent, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD)) {
+            Log::warning('Failed to load HTML content', ['contract_id' => $contract->id, 'content' => $newContent]);
+            return $newContent; // Return original if parsing fails
+        }
+
+        // Find all input elements
+        $inputs = $dom->getElementsByTagName('input');
+        foreach ($inputs as $input) {
+            $name = $input->getAttribute('name');
+            if (isset($data[$name]) && $data[$name] !== null) {
+                // Preserve existing attributes and update only the value
+                $newValue = htmlspecialchars($data[$name], ENT_QUOTES, 'UTF-8');
+                $input->setAttribute('value', $newValue);
+
+                // Ensure class and style attributes are not lost
+                $class = $input->getAttribute('class');
+                $style = $input->getAttribute('style');
+                if ($class) $input->setAttribute('class', $class);
+                if ($style) $input->setAttribute('style', $style);
+            }
+        }
+
+        // Get the updated HTML content
+        $updatedHtml = $dom->saveHTML();
+
+        // Remove the DOCTYPE, XML declaration, and extra HTML/body tags
+        $newContent = preg_replace('/^<!DOCTYPE.*?(?=>)>|<html>|<body>|<\/body>|<\/html>/i', '', $updatedHtml);
+        $newContent = trim($newContent);
+
+        // Log before and after for debugging
+        Log::info('Contract content updated', [
+            'contract_id' => $contract->id,
+            'original_content' => $contract->content,
+            'new_content' => $newContent
+        ]);
+
+        // Update the contract in the database
+        $contract->content = $newContent;
+        $contract->save();
+
+        return $newContent;
+    }
+    public function checkOverdueInvoices($contractId): bool
+    {
+        try {
+            $today = Carbon::today();
+            // Giả định có model Config để lấy ngày quá hạn
+            $overdueDays = (int) Config::getValue('date_end_contract');
+            $overdueDate = $today->subDays($overdueDays);
+            // $overdueDate = $today->subDays(30);
+
+            // Giả định có model Invoice liên kết với Contract
+            $overdueInvoices = Invoice::where('contract_id', $contractId)
+                ->where('status', 'Chưa trả')
+                ->whereDate('created_at', '<=', $overdueDate)
+                ->exists();
+
+            return $overdueInvoices;
+        } catch (\Throwable $e) {
+            Log::error('Error checking overdue invoices: ' . $e->getMessage(), [
+                'contract_id' => $contractId
+            ]);
+            return false;
+        }
+    }
+
+
 }

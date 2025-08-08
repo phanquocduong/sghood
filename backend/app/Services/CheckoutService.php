@@ -397,6 +397,7 @@ class CheckoutService
                 }
 
                 // Gửi thông báo bằng Job
+                
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 
