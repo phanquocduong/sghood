@@ -139,16 +139,16 @@ class CheckContractExpiry extends Command
     private function processAutoConfirmedCheckouts($debug)
     {
         $this->info("🔍 === KIỂM TRA KIỂM KÊ TỰ ĐỘNG XÁC NHẬN ===");
-
+        $notificationDays = (int) Config::getValue('date_confirm_checkout');
         $today = Carbon::today();
-        $sevenDaysAgo = $today->copy()->subDays(7);
+        $sevenDaysAgo = $today->copy()->subDays($notificationDays);
 
         $pendingCheckouts = Checkout::with(['contract.user', 'contract.room'])
             ->where('user_confirmation_status', 'Chưa xác nhận')
             ->where('updated_at', '<=', $sevenDaysAgo)
             ->get();
 
-        $this->info("📊 Tìm thấy {$pendingCheckouts->count()} kiểm kê chưa xác nhận quá 7 ngày");
+        $this->info("📊 Tìm thấy {$pendingCheckouts->count()} kiểm kê chưa xác nhận quá {$notificationDays}");
 
         if ($debug) {
             $this->showCheckoutDebugInfo($pendingCheckouts, $today); // Thêm debug cho checkout
