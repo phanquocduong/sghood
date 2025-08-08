@@ -28,6 +28,12 @@ class MeterReadingSeeder extends Seeder
             $previous_water_m3 = 0;
             $is_first_month = true;
 
+            // Kiểm tra nếu start_date từ ngày 27 đến cuối tháng thì bỏ qua tháng đầu tiên
+            if (Carbon::parse($contract->start_date)->day >= 27) {
+                $current_date->addMonth(1);
+                $is_first_month = false;
+            }
+
             // Lặp qua từng tháng từ start_date đến limit_date
             while ($current_date->year < $limit_date->year || ($current_date->year == $limit_date->year && $current_date->month <= $limit_date->month)) {
                 $month = $current_date->month;
@@ -45,7 +51,7 @@ class MeterReadingSeeder extends Seeder
                     } else {
                         // Tháng cuối cùng
                         $days_in_month = $end_date->copy()->endOfMonth()->diffInDays($end_date->copy()->startOfMonth()) + 1;
-                        $days_used = $end_date->copy()->diffInDays($end_date->copy()->startOfMonth()) + 1;
+                        $days_used = Carbon::parse($contract->end_date)->diffInDays($end_date->copy()->startOfMonth()) + 1;
                     }
                     $ratio = $days_used / $days_in_month;
 

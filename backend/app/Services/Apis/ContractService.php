@@ -54,6 +54,7 @@ class ContractService
                     'early_terminated_at' => $contract->early_terminated_at?->toDateTimeString(),
                     'invoice_id' => $contract->invoices->first()?->id,
                     'latest_extension_status' => $contract->extensions->first()?->status,
+                    'has_checkout' => $contract->checkouts->first()?->id,
                     'latest_checkout_status' => $contract->checkouts->first()?->canceled_at,
                 ])
                 ->toArray();

@@ -29,7 +29,7 @@ class MeterReadingController extends Controller
 
         // Kiểm tra thời gian đầu tiên
         $today = now();
-        $startDate = $today->copy()->day(28);
+        $startDate = $today->copy()->day(2);
         $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
         $isInMeterReadingPeriod = $today->between($startDate, $endDate);
 

@@ -188,7 +188,7 @@ class MeterReadingService
         $year = $today->year;
 
         // Logic thời gian từ ngày 28 đến 10 tháng sau
-        $startDate = $today->copy()->day(28);
+        $startDate = $today->copy()->day(2);
         $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
         $isInSpecialPeriod = $today->between($startDate, $endDate);
 
