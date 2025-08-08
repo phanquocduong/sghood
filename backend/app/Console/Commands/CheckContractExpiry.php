@@ -105,12 +105,12 @@ class CheckContractExpiry extends Command
         $today = Carbon::today();
         $currentDay = $today->day;
 
-        if ($currentDay <= 5) {
-            $this->info("📅 Hiện tại đang trong thời hạn thanh toán (ngày 1-5), bỏ qua kiểm tra hóa đơn quá hạn.");
+        if ($currentDay <= 10) {
+            $this->info("📅 Hiện tại đang trong thời hạn thanh toán (ngày 1-10), bỏ qua kiểm tra hóa đơn quá hạn.");
             return;
         }
 
-        $paymentDeadline = Carbon::create($today->year, $today->month, 5);
+        $paymentDeadline = Carbon::create($today->year, $today->month, 10);
 
         $this->info("⏰ Hạn thanh toán: {$paymentDeadline->format('d/m/Y')}");
         $this->info("📆 Hôm nay: {$today->format('d/m/Y')}");
