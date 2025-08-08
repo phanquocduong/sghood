@@ -68,28 +68,30 @@ class BookingService
                     'error' => 'Phòng không tồn tại.'
                 ], 404));
             }
-            $motelId = $room->motel_id;
 
-            $existingBooking = Booking::where('user_id', $data['user_id'])
-                ->whereHas('room', function ($query) use ($motelId) {
-                    $query->where('motel_id', $motelId);
+            // Kiểm tra xem người dùng có bất kỳ hợp đồng còn hiệu lực nào không
+            $existingActiveContract = Booking::where('user_id', $data['user_id'])
+                ->whereHas('contract', function ($query) {
+                    $query->where('status', 'Hoạt động')
+                          ->where('end_date', '>=', Carbon::now());
                 })
-                ->whereNotIn('status', [Booking::STATUS_REFUSED, Booking::STATUS_CANCELED])
+                ->first();
+
+            if ($existingActiveContract) {
+                throw new HttpResponseException(response()->json([
+                    'error' => 'Bạn đã có một hợp đồng thuê phòng còn hiệu lực. Vui lòng chờ đến khi hợp đồng hết hạn trước khi đặt phòng mới.'
+                ], 422));
+            }
+
+            // Kiểm tra xem người dùng có bất kỳ đặt phòng chưa hoàn thành nào không
+            $existingBooking = Booking::where('user_id', $data['user_id'])
+                ->where('status', Booking::STATUS_PENDING)
                 ->first();
 
             if ($existingBooking) {
-                if ($existingBooking->status === Booking::STATUS_ACCEPTED) {
-                    $contract = $existingBooking->contract;
-                    if ($contract && Carbon::now()->lte($contract->end_date)) {
-                        throw new HttpResponseException(response()->json([
-                            'error' => 'Bạn đã có một hợp đồng thuê phòng còn hiệu lực trong nhà trọ này. Vui lòng chờ đến khi hợp đồng hết hạn hoặc hủy trước khi đặt phòng mới.'
-                        ], 422));
-                    }
-                } else {
-                    throw new HttpResponseException(response()->json([
-                        'error' => 'Bạn đã có một đặt phòng chưa hoàn thành trong nhà trọ này. Vui lòng hoàn thành hoặc hủy trước khi đặt phòng mới.'
-                    ], 422));
-                }
+                throw new HttpResponseException(response()->json([
+                    'error' => 'Bạn đã có một đặt phòng chưa hoàn thành. Vui lòng chờ admin xử lý hoặc hủy trước khi đặt phòng mới.'
+                ], 422));
             }
 
             return Booking::create([

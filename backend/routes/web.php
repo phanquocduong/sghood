@@ -167,9 +167,11 @@ Route::middleware('admin')->group(function () {
         Route::post('/contract-extensions/{id}/status', [ContractExtensionController::class, 'updateExtensionStatus'])->name('contract_extensions.update_status');
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{id}/terminate-early', [ContractController::class, 'terminateEarly'])->name('terminateEarly');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
         Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
+        Route::match(['put', 'patch'], '/{id}/content', [ContractController::class, 'updateContent'])->name('updateContent');
     });
 
     // Notification routes

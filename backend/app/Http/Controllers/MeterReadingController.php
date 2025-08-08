@@ -22,16 +22,45 @@ class MeterReadingController extends Controller
 
     public function index(Request $request)
     {
-        $rooms = $this->meterReadingService->getRoomsWithMotel();
         $search = (string) $request->query('search', '');
         $perPage = (int) $request->query('perPage', 10);
         $meterReadings = $this->meterReadingService->getAllMeterReadings($search, $perPage);
-        $isFiltering = $request->hasAny(['room_id', 'month', 'year', 'sortOption']);
+        $isFiltering = $request->hasAny(['search', 'room_id', 'month', 'year', 'sortOption']);
+
+        // Kiểm tra thời gian đầu tiên
+        $today = now();
+        $startDate = $today->copy()->day(28);
+        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+        $isInMeterReadingPeriod = $today->between($startDate, $endDate);
+
+        if ($isInMeterReadingPeriod) {
+            // Trong thời gian nhập chỉ số (28 -> 10): hiển thị phòng cần nhập chỉ số
+            $rooms = $this->meterReadingService->getRoomsWithMotel();
+            $shouldDisplayTable = true;
+            $displayMode = 'time_based';
+        } else {
+            // Ngoài thời gian: chỉ hiển thị phòng gần hết hạn hợp đồng (3 ngày)
+            $roomsWithActiveContracts = $this->meterReadingService->getRoomsWithActiveContracts();
+
+            if ($roomsWithActiveContracts && $roomsWithActiveContracts->isNotEmpty()) {
+                $rooms = $roomsWithActiveContracts;
+                $shouldDisplayTable = true;
+                $displayMode = 'active_contracts';
+            } else {
+                $rooms = collect();
+                $shouldDisplayTable = false;
+                $displayMode = 'none';
+            }
+        }
 
         $data = [
             'rooms' => $rooms,
             'meterReadings' => $meterReadings,
             'isFiltering' => $isFiltering,
+            'shouldDisplayTable' => $shouldDisplayTable,
+            'displayMode' => $displayMode,
+            'search' => $search,
+            'perPage' => $perPage,
         ];
 
         if ($request->ajax()) {

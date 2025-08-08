@@ -10,7 +10,7 @@
                     >{{ item.transfer_type === 'in' ? '-' : '+' }}{{ formatPrice(item.transfer_amount) }}</strong
                 >
                 <ul style="margin-top: 5px">
-                    <li>Thời gian: {{ formatDate(item.transaction_date) }}</li>
+                    <li>Thời gian: {{ formatDateTime(item.transaction_date) }}</li>
                     <li>Hoá đơn: {{ item.invoice_code }}</li>
                     <li>Mã tham chiếu: {{ item.reference_code }}</li>
                 </ul>
@@ -24,7 +24,7 @@ import { useFormatPrice } from '~/composables/useFormatPrice';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { formatPrice } = useFormatPrice();
-const { formatDate } = useFormatDate();
+const { formatDateTime } = useFormatDate();
 
 const props = defineProps({
     items: {

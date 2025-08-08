@@ -173,6 +173,7 @@ class InvoiceService
                     'type',
                     'month',
                     'year',
+                    'room_fee',
                     'electricity_fee',
                     'water_fee',
                     'parking_fee',

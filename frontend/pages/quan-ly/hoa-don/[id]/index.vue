@@ -76,7 +76,7 @@
                         <strong>Tiền phòng</strong>
                         <div class="service-note">Phí thuê phòng hàng tháng</div>
                     </td>
-                    <td class="item-amount">{{ formatPrice(invoice.contract.rental_price) }}</td>
+                    <td class="item-amount">{{ formatPrice(invoice.room_fee) }}</td>
                 </tr>
 
                 <tr v-else>

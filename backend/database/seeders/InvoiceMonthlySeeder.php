@@ -20,26 +20,29 @@ class InvoiceMonthlySeeder extends Seeder
         // Lặp qua tất cả bản ghi MeterReading
         MeterReading::all()->each(function ($meterReading) {
             // Lấy thông tin contract và motel liên quan
-            $contract = $meterReading->room->activeContract;
-            if (!$contract) {
-                return; // Bỏ qua nếu không có hợp đồng hoạt động
-            }
+            $contract = $meterReading->room->contract;
             $motel = $meterReading->room->motel;
 
             // Tính toán month và year cho invoice
-            $month = $meterReading->month + 1;
+            $month = $meterReading->month;
             $year = $meterReading->year;
-            if ($month > 12) {
-                $month = 1;
-                $year += 1;
-            }
 
-            // Tính tỷ lệ cho tháng đầu nếu cần
+            // Tính tỷ lệ cho tháng đầu hoặc tháng cuối
             $startDate = Carbon::parse($contract->start_date);
+            $endDate = Carbon::parse($contract->end_date);
             $isFirstMonth = $meterReading->month === $startDate->month && $meterReading->year === $startDate->year;
-            $daysInMonth = $startDate->daysInMonth;
-            $remainingDays = $isFirstMonth ? $daysInMonth - $startDate->day + 1 : $daysInMonth;
-            $ratio = $isFirstMonth ? $remainingDays / $daysInMonth : 1;
+            $isLastMonth = $meterReading->month === $endDate->month && $meterReading->year === $endDate->year && $endDate->lt(Carbon::now()->startOfMonth());
+
+            $ratio = 1;
+            if ($isFirstMonth) {
+                $daysInMonth = $startDate->daysInMonth;
+                $remainingDays = $daysInMonth - $startDate->day + 1;
+                $ratio = $remainingDays / $daysInMonth;
+            } elseif ($isLastMonth) {
+                $daysInMonth = $endDate->daysInMonth;
+                $remainingDays = $endDate->day;
+                $ratio = $remainingDays / $daysInMonth;
+            }
 
             // Tính room_fee
             $roomFee = $contract->rental_price * $ratio;
@@ -56,17 +59,17 @@ class InvoiceMonthlySeeder extends Seeder
                 ->where('year', $previousYear)
                 ->first();
             $electricityKwh = $previousMeterReading
-                ? $meterReading->electricity_kwh - $previousMeterReading->electricity_kwh
-                : $meterReading->electricity_kwh;
+                ? ($meterReading->electricity_kwh - $previousMeterReading->electricity_kwh) * $ratio
+                : $meterReading->electricity_kwh * $ratio;
             $electricityFee = $electricityKwh * $motel->electricity_fee;
 
             // Tính water_fee
             $waterM3 = $previousMeterReading
-                ? $meterReading->water_m3 - $previousMeterReading->water_m3
-                : $meterReading->water_m3;
+                ? ($meterReading->water_m3 - $previousMeterReading->water_m3) * $ratio
+                : $meterReading->water_m3 * $ratio;
             $waterFee = $waterM3 * $motel->water_fee;
 
-            // Tính các phí khác với tỷ lệ nếu là tháng đầu
+            // Tính các phí khác với tỷ lệ
             $parkingFee = $motel->parking_fee * $ratio;
             $junkFee = $motel->junk_fee * $ratio;
             $internetFee = $motel->internet_fee * $ratio;
@@ -76,7 +79,13 @@ class InvoiceMonthlySeeder extends Seeder
             $totalAmount = $roomFee + $electricityFee + $waterFee + $parkingFee + $junkFee + $internetFee + $serviceFee;
 
             // Tạo mã invoice duy nhất
-            $code = 'INV' . $contract->id . Carbon::now()->format('YmdHis') . $meterReading->id;
+            $code = 'INV' . $contract->id . $meterReading->created_at->format('YmdHis');
+
+            // Gán trạng thái ngẫu nhiên cho tháng 7/2025
+            $status = 'Đã trả';
+            if ($month == 7 && $year == 2025) {
+                $status = (mt_rand(1, 100) <= 80) ? 'Đã trả' : 'Chưa trả';
+            }
 
             // Tạo bản ghi Invoice
             Invoice::create([
@@ -94,7 +103,7 @@ class InvoiceMonthlySeeder extends Seeder
                 'internet_fee' => $internetFee,
                 'service_fee' => $serviceFee,
                 'total_amount' => $totalAmount,
-                'status' => 'Đã trả',
+                'status' => $status,
                 'refunded_at' => null,
                 'created_at' => $meterReading->created_at,
                 'updated_at' => $meterReading->updated_at,

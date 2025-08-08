@@ -66,6 +66,7 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const { $api } = useNuxtApp();
+const config = useState('configs');
 
 const sortOption = ref('Sắp xếp mặc định');
 const currentPage = ref(0);
@@ -84,23 +85,8 @@ const filters = ref({
 });
 
 const districts = ref([]);
-const priceOptions = ref([
-    { value: '', label: 'Tất cả mức giá' },
-    { value: 'under_1m', label: 'Dưới 1 triệu' },
-    { value: '1m_2m', label: '1 - 2 triệu' },
-    { value: '2m_3m', label: '2 - 3 triệu' },
-    { value: '3m_5m', label: '3 - 5 triệu' },
-    { value: 'over_5m', label: 'Trên 5 triệu' }
-]);
-
-const areaRangeOptions = ref([
-    { value: '', label: 'Tất cả diện tích' },
-    { value: 'under_20', label: 'Dưới 20m²' },
-    { value: '20_30', label: 'Từ 20m² đến 30m²' },
-    { value: '30_50', label: 'Từ 30m² đến 50m²' },
-    { value: 'over_50', label: 'Trên 50m²' }
-]);
-
+const priceOptions = ref([]);
+const areaRangeOptions = ref([]);
 const amenitiesOptions = ref([]);
 
 const fetchMotels = async () => {
@@ -150,6 +136,14 @@ const fetchMotels = async () => {
 onMounted(async () => {
     isLoading.value = true;
     try {
+        if (config.value?.price_filter_options) {
+            priceOptions.value = JSON.parse(config.value.price_filter_options) || [];
+        }
+
+        if (config.value?.area_filter_options) {
+            areaRangeOptions.value = JSON.parse(config.value.area_filter_options) || [];
+        }
+
         const districtsResponse = await $api('/districts', { method: 'GET' });
         districts.value = districtsResponse.data.map(d => d.name);
 

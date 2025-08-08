@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Services\ContractService;
+use App\Models\Contract;
 use App\Models\ContractExtension;
+use App\Models\Config;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -46,15 +48,23 @@ class ContractController extends Controller
             return redirect()->route('contracts.index')->with('error', $result['error']);
         }
 
-        // Lấy các gia hạn hợp đồng đã được duyệt cho hợp đồng này
+        // Lấy các gia hạn hợp đồng đã được duyệt
         $contractExtensions = ContractExtension::where('contract_id', $id)
             ->where('status', 'Hoạt động')
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Kiểm tra hóa đơn chưa thanh toán quá 30 ngày
+        $hasOverdueInvoices = $this->contractService->checkOverdueInvoices($id);
+
+        $config = Config::where('config_key', 'rental_contract_terms')->first();
+        $terminationRights = $config ? json_decode($config->config_value, true)[0]['termination_rights'] : [];
+
         return view('contracts.detail-contracts', [
             'contract' => $result['data'],
-            'contractExtensions' => $contractExtensions
+            'contractExtensions' => $contractExtensions,
+            'hasOverdueInvoices' => $hasOverdueInvoices,
+            'terminationRights' => $terminationRights
         ]);
     }
 
@@ -77,6 +87,21 @@ class ContractController extends Controller
         }
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function terminateEarly(Request $request, $id)
+    {
+        $request->validate([
+            'termination_reason' => 'nullable|string|max:1000',
+        ]);
+
+        $result = $this->contractService->terminateContractEarly($id, $request->input('termination_reason'));
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
     }
 
     public function download($id)
@@ -205,5 +230,39 @@ class ContractController extends Controller
         }
 
         return redirect()->back()->with('error', $result['message']);
+    }
+
+    public function updateContent(Request $request, $id)
+    {
+        try {
+            $contract = Contract::findOrFail($id);
+            $data = $request->input('content', []);
+
+            // Ensure data is an array
+            if (!is_array($data)) {
+                throw new \Exception('Dữ liệu nhập vào không hợp lệ');
+            }
+
+            // Update the contract content using the service
+            $newContent = $this->contractService->updateContractContent($contract, $data);
+
+            $statusResult = $this->contractService->updateContractStatus($id, 'Chờ ký');
+
+            if (isset($statusResult['error'])) {
+                throw new \Exception($statusResult['error']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'newContent' => $newContent,
+                'message' => 'Cập nhật hợp đồng thành công'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating contract content: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Cập nhật hợp đồng thất bại: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

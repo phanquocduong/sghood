@@ -19,8 +19,6 @@
                     :save-loading="saveLoading"
                     :signature-data="signatureData"
                 />
-
-                <ContractSaveButton v-if="contract?.status === 'Chờ chỉnh sửa'" @save-contract="saveContract" :save-loading="saveLoading" />
             </div>
 
             <IdentityUpload

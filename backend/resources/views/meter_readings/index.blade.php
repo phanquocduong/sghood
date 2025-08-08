@@ -109,145 +109,144 @@
 
                 <!-- Display Logic -->
                 @php
-                    $today = now();
-                    $month = $today->month;
-                    $year = $today->year;
+    $today = now();
+    $periodInfo = app('App\Services\MeterReadingService')->getDisplayPeriodInfo();
+    $displayMonth = $periodInfo['display_month'];
+    $displayYear = $periodInfo['display_year'];
+    $isInSpecialPeriod = $periodInfo['is_in_special_period'];
+@endphp
 
-                    // Special time range: from 24th of current month to 5th of next month
-                    $startDate = $today->copy()->day(28);
-                    $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+@if ($isFiltering)
+    <!-- Show filtered results -->
+    <div id="displayResults" style="display: block;">
+        @include('meter_readings._meter_readings_table', ['meterReadings' => $meterReadings])
+    </div>
+@elseif($shouldDisplayTable && $rooms && $rooms->isNotEmpty())
+    <!-- Show rooms available for meter reading input -->
+    <div class="accordion d-block" id="displayIndex">
+        @if(isset($displayMode) && $displayMode === 'active_contracts')
+            <div class="alert alert-warning mb-3">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Có {{ $rooms->flatten()->count() }} phòng có hợp đồng sắp hết hạn (trong 3 ngày) cần nhập chỉ số điện nước.</strong>
+                <br><small>Vui lòng nhập chỉ số trước khi hợp đồng hết hạn để tạo hóa đơn thanh toán.</small>
+            </div>
+        @else
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-calendar-alt me-2"></i>
+                <strong>Đang trong thời gian nhập chỉ số điện nước (từ ngày 28 đến ngày 10 tháng sau).</strong>
+                <br><small>Có {{ $rooms->flatten()->count() }} phòng cần nhập chỉ số.</small>
+            </div>
+        @endif
 
-                    $shouldDisplayTable = $today->between($startDate, $endDate);
-
-                    if ($shouldDisplayTable) {
-                        if ($today->day >= 24 && $today->day <= 31) {
-                            // If we're in the 24-31 range of current month -> display current month
-                            $displayMonth = $today->month;
-                            $displayYear = $today->year;
-                        } else {
-                            // If we're in first 5 days of next month -> display previous month
-                            $previousMonth = $today->copy()->subMonthNoOverflow();
-                            $displayMonth = $previousMonth->month;
-                            $displayYear = $previousMonth->year;
-                        }
-                    } else {
-                        // Outside special range -> display current month
-                        $displayMonth = $month;
-                        $displayYear = $year;
-                    }
-                @endphp
-
-                @if ($isFiltering || $shouldDisplayTable)
-                    <div class="accordion d-block" id="displayIndex">
-                        @forelse ($rooms as $motelId => $groupedRooms)
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="motelHeading{{ $motelId }}">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#motelCollapse{{ $motelId }}" aria-expanded="true"
-                                        aria-controls="motelCollapse{{ $motelId }}">
-                                        🏠 {{ $groupedRooms->first()->motel->name ?? 'Không xác định' }}
-                                    </button>
-                                </h2>
-                                <div id="motelCollapse{{ $motelId }}" class="accordion-collapse collapse show"
-                                    aria-labelledby="motelHeading{{ $motelId }}" data-bs-parent="#motelAccordion">
-                                    <div class="accordion-body">
-                                        <div class="d-flex justify-content-end mb-3">
-                                            @php
-                                                $motelData = [
-                                                    'motel_id' => $motelId,
-                                                    'motel_name' => $groupedRooms->first()->motel->name,
-                                                    'month' => $displayMonth,
-                                                    'year' => $displayYear,
-                                                    'rooms' => collect($groupedRooms)->map(fn($r) => [
-                                                        'id' => $r->id,
-                                                        'name' => $r->name,
-                                                        'electricity_kwh' => $r->electricity_kwh,
-                                                        'water_m3' => $r->water_m3
-                                                    ])->values()
-                                                ];
-                                            @endphp
-                                            <button class="btn btn-warning btn-sm" data-motel-button='@json($motelData)'>
-                                                <i class="fas fa-edit"></i> Cập nhật tất cả
-                                            </button>
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover table-bordered align-middle">
-                                                <thead class="table-success">
-                                                    <tr>
-                                                        <th class="text-center" style="width: 5%;">STT</th>
-                                                        <th class="text-center" style="width: 15%;">Phòng</th>
-                                                        <th class="text-center" style="width: 12%;">Tháng/Năm</th>
-                                                        <th class="text-center" style="width: 15%;">Điện (kWh)</th>
-                                                        <th class="text-center" style="width: 15%;">Nước (m³)</th>
-                                                        <th class="text-center" style="width: 15%;">Ngày ghi</th>
-                                                        <th class="text-center" style="width: 18%;">Thao tác</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($groupedRooms as $index => $room)
-                                                        @php
-                                                            $electricity = $room->electricity_kwh ?? 0;
-                                                            $water = $room->water_m3 ?? 0;
-                                                        @endphp
-                                                        <tr>
-                                                            <td class="text-center">{{ $index + 1 }}</td>
-                                                            <td class="text-center">{{ $room->name }}</td>
-                                                            <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
-                                                            <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
-                                                            <td class="text-center">{{ number_format($water, 2) }} m³</td>
-                                                            <td class="text-center">{{ now()->format('d/m/Y') }}</td>
-                                                            <td class="text-center">
-                                                                @php
-                                                                    $roomData = [
-                                                                        'motel_id' => $motelId,
-                                                                        'motel_name' => $groupedRooms->first()->motel->name,
-                                                                        'id' => $room->id,
-                                                                        'name' => $room->name,
-                                                                        'electricity_kwh' => $electricity,
-                                                                        'water_m3' => $water,
-                                                                        'month' => $displayMonth,
-                                                                        'year' => $displayYear,
-                                                                    ];
-                                                                @endphp
-                                                                <button class="btn btn-warning btn-sm edit-room"
-                                                                    data-room='@json($roomData)'>
-                                                                    <i class="fas fa-plus"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center text-muted py-4">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Không có dữ liệu phù hợp với bộ lọc
-                            </div>
-                        @endforelse
+        @forelse ($rooms as $motelId => $groupedRooms)
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="motelHeading{{ $motelId }}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#motelCollapse{{ $motelId }}" aria-expanded="true"
+                        aria-controls="motelCollapse{{ $motelId }}">
+                        🏠 {{ $groupedRooms->first()->motel->name ?? 'Không xác định' }}
+                        <small class="ms-2 text-muted">({{ $groupedRooms->count() }} phòng)</small>
+                        @if(isset($displayMode) && $displayMode === 'active_contracts')
+                            <span class="badge bg-warning ms-2">Sắp hết hạn</span>
+                        @endif
+                    </button>
+                </h2>
+                <div id="motelCollapse{{ $motelId }}" class="accordion-collapse collapse show"
+                    aria-labelledby="motelHeading{{ $motelId }}" data-bs-parent="#motelAccordion">
+                    <div class="accordion-body">
+                        <!-- ...existing table code... -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered align-middle">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th class="text-center" style="width: 5%;">STT</th>
+                                        <th class="text-center" style="width: 15%;">Phòng</th>
+                                        <th class="text-center" style="width: 12%;">Tháng/Năm</th>
+                                        <th class="text-center" style="width: 15%;">Điện (kWh)</th>
+                                        <th class="text-center" style="width: 15%;">Nước (m³)</th>
+                                        <th class="text-center" style="width: 15%;">Hợp đồng</th>
+                                        <th class="text-center" style="width: 18%;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($groupedRooms as $index => $room)
+                                        @php
+                                            $electricity = $room->electricity_kwh ?? 0;
+                                            $water = $room->water_m3 ?? 0;
+                                            $contract = $room->contracts->first();
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center">
+                                                <strong>{{ $room->name }}</strong>
+                                            </td>
+                                            <td class="text-center">{{ $displayMonth }}/{{ $displayYear }}</td>
+                                            <td class="text-center">{{ number_format($electricity, 2) }} kWh</td>
+                                            <td class="text-center">{{ number_format($water, 2) }} m³</td>
+                                            <td class="text-center">
+                                                @if($contract)
+                                                    <small class="text-success">{{ $contract->end_date->format('d/m/Y') }}</small>
+                                                    @if(isset($displayMode) && $displayMode === 'active_contracts')
+                                                        <br><span class="badge bg-warning text-dark">{{ $contract->end_date->diffInDays(now()) }} ngày</span>
+                                                    @endif
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                @php
+                                                    $roomData = [
+                                                        'motel_id' => $motelId,
+                                                        'motel_name' => $groupedRooms->first()->motel->name,
+                                                        'id' => $room->id,
+                                                        'name' => $room->name,
+                                                        'electricity_kwh' => $electricity,
+                                                        'water_m3' => $water,
+                                                        'month' => $displayMonth,
+                                                        'year' => $displayYear,
+                                                    ];
+                                                @endphp
+                                                <button class="btn btn-warning btn-sm edit-room"
+                                                    data-room='@json($roomData)'>
+                                                    <i class="fas fa-plus"></i> Nhập
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                @else
-                    <div class="alert alert-info text-center" style="display: block;" id="displayIndex">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Chỉ số điện nước chỉ được cập nhật vào cuối tháng.
-                        Vui lòng kiểm tra sau ngày 27.
-                    </div>
-                @endif
-
-                <!-- Filtered Results -->
-                <div id="displayResults" style="display: none;">
-                    @include('meter_readings._meter_readings_table', ['meterReadings' => $meterReadings])
                 </div>
+            </div>
+        @empty
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-info-circle me-2"></i>
+                Không có phòng nào cần cập nhật chỉ số điện nước
+            </div>
+        @endforelse
+    </div>
+@else
+    <div class="alert alert-info text-center" id="displayIndex">
+        <i class="fas fa-info-circle me-2"></i>
+        @if(isset($displayMode) && $displayMode === 'active_contracts')
+            Không có phòng nào có hợp đồng sắp hết hạn cần nhập chỉ số.
+        @else
+            Chỉ số điện nước chỉ được cập nhật vào cuối tháng (từ ngày 28 đến ngày 10 tháng sau).
+            <br><small>Hoặc khi có phòng với hợp đồng sắp hết hạn trong 3 ngày.</small>
+        @endif
+    </div>
+@endif
+
+<!-- Filtered Results -->
+<div id="displayResults" style="display: none;">
+    @include('meter_readings._meter_readings_table', ['meterReadings' => $meterReadings])
+</div>
 
                 <!-- Pagination -->
                 <!-- @if(isset($meterReadings) && $meterReadings instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                    <div class="mt-4">
-                        {{ $meterReadings->appends(request()->query())->links('pagination::bootstrap-4') }}
-                    </div>
-                @endif -->
+                        <div class="mt-4">
+                            {{ $meterReadings->appends(request()->query())->links('pagination::bootstrap-4') }}
+                        </div>
+                    @endif -->
             </div>
         </div>
     </div>
@@ -366,15 +365,15 @@
                     const expanded = hasError || groupIndex === 0;
 
                     const groupHtml = `
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="heading${groupIndex}">
-                                        <button class="accordion-button ${!expanded ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${groupIndex}" aria-expanded="${expanded}" aria-controls="collapse${groupIndex}">
-                                            Phòng ${group[0].name} - ${group[group.length - 1].name}
-                                        </button>
-                                    </h2>
-                                    <div id="collapse${groupIndex}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${groupIndex}">
-                                        <div class="accordion-body">
-                                             ${group.map((room, index) => {
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading${groupIndex}">
+                                            <button class="accordion-button ${!expanded ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${groupIndex}" aria-expanded="${expanded}" aria-controls="collapse${groupIndex}">
+                                                Phòng ${group[0].name} - ${group[group.length - 1].name}
+                                            </button>
+                                        </h2>
+                                        <div id="collapse${groupIndex}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${groupIndex}">
+                                            <div class="accordion-body">
+                                                 ${group.map((room, index) => {
                         const globalIndex = groupIndex * roomsPerGroup + index;
                         const electricityError = window.readingErrors?.[`readings.${globalIndex}.electricity_kwh`]?.[0] || "";
                         const waterError = window.readingErrors?.[`readings.${globalIndex}.water_m3`]?.[0] || "";
@@ -382,36 +381,36 @@
                         const oldWater = window.oldInput[globalIndex]?.water_m3 ?? room.water_m3 ?? "";
 
                         return `
-                                                                    <div class="mb-2">
-                                                                        <div class="fw-bold text-primary">${room.name}</div>
-                                                                        <input type="hidden" name="readings[${globalIndex}][room_id]" value="${room.id}">
-                                                                        <div class="row g-2">
-                                                                            <div class="col-md-6">
-                                                                                <div class="input-group input-group-sm">
-                                                                                    <span class="input-group-text bg-warning text-dark">
-                                                                                        <i class="fas fa-bolt"></i>
-                                                                                    </span>
-                                                                                    <input type="number" step="0.01" min="0" name="readings[${globalIndex}][electricity_kwh]" class="form-control ${electricityError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}">
+                                                                        <div class="mb-2">
+                                                                            <div class="fw-bold text-primary">${room.name}</div>
+                                                                            <input type="hidden" name="readings[${globalIndex}][room_id]" value="${room.id}">
+                                                                            <div class="row g-2">
+                                                                                <div class="col-md-6">
+                                                                                    <div class="input-group input-group-sm">
+                                                                                        <span class="input-group-text bg-warning text-dark">
+                                                                                            <i class="fas fa-bolt"></i>
+                                                                                        </span>
+                                                                                        <input type="number" step="0.01" min="0" name="readings[${globalIndex}][electricity_kwh]" class="form-control ${electricityError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldElectricity}" required aria-label="Chỉ số điện cho phòng ${room.name}">
+                                                                                    </div>
+                                                                                    ${electricityError ? `<div class="invalid-feedback d-block">${electricityError}</div>` : ""}
                                                                                 </div>
-                                                                                ${electricityError ? `<div class="invalid-feedback d-block">${electricityError}</div>` : ""}
-                                                                            </div>
-                                                                            <div class="col-md-6">
-                                                                                <div class="input-group input-group-sm">
-                                                                                    <span class="input-group-text bg-info text-white">
-                                                                                        <i class="fas fa-tint"></i>
-                                                                                    </span>
-                                                                                    <input type="number" step="0.01" min="0" name="readings[${globalIndex}][water_m3]" class="form-control ${waterError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                                                <div class="col-md-6">
+                                                                                    <div class="input-group input-group-sm">
+                                                                                        <span class="input-group-text bg-info text-white">
+                                                                                            <i class="fas fa-tint"></i>
+                                                                                        </span>
+                                                                                        <input type="number" step="0.01" min="0" name="readings[${globalIndex}][water_m3]" class="form-control ${waterError ? 'is-invalid' : ''}" placeholder="0.00" value="${oldWater}" required aria-label="Chỉ số nước cho phòng ${room.name}">
+                                                                                    </div>
+                                                                                    ${waterError ? `<div class="invalid-feedback d-block">${waterError}</div>` : ""}
                                                                                 </div>
-                                                                                ${waterError ? `<div class="invalid-feedback d-block">${waterError}</div>` : ""}
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                `;
+                                                                    `;
                     }).join('')}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
                     roomInputsContainer.insertAdjacentHTML("beforeend", groupHtml);
                 });
 
@@ -493,10 +492,10 @@
                             const successAlert = document.createElement('div');
                             successAlert.className = 'alert alert-success alert-dismissible fade show';
                             successAlert.innerHTML = `
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    ${data.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                `;
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        ${data.message}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    `;
                             document.querySelector('.container-fluid').prepend(successAlert);
 
                             setTimeout(() => {

@@ -311,9 +311,6 @@
                 @elseif ($type == 'bypass_pending')
                     <span class="status-badge status-bypass-pending">Chờ duyệt thủ công</span><br>
                     Hợp đồng đã được gửi với thông tin CCCD nhập tay và ảnh tải lên. Vui lòng kiểm tra thông tin và ảnh để duyệt thủ công.
-                @elseif ($type == 'updated')
-                    <span class="status-badge status-updated">Đã chỉnh sửa</span><br>
-                    Thông tin hợp đồng vừa được cập nhật trong hệ thống. Vui lòng kiểm tra các thay đổi mới nhất.
                 @elseif ($type == 'signed')
                     <span class="status-badge status-signed">Đã ký</span><br>
                     Hợp đồng vừa được ký bởi người dùng và đang chờ thanh toán tiền cọc.

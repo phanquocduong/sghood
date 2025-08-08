@@ -1,5 +1,6 @@
 import { nextTick, ref } from 'vue';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
+import { useApi } from '~/composables/useApi';
 
 export function useContract({
     contract,
@@ -17,6 +18,7 @@ export function useContract({
 }) {
     const { $api } = useNuxtApp();
     const { sendOTP, verifyOTP } = useFirebaseAuth();
+    const { handleBackendError } = useApi();
 
     const phoneNumber = ref(null);
     const otpCode = ref('');
@@ -28,7 +30,7 @@ export function useContract({
 
         let processedContent = contract.value.content;
 
-        if (contract.value.status === 'Chờ chỉnh sửa') {
+        if (contract.value.status === 'Chờ xác nhận') {
             processedContent = processedContent.replace(/\s*readonly\s*(?=\s|>|\/)/gi, '');
             processedContent = processedContent.replace(/<input([^>]*type="text"[^>]*)>/gi, (match, attributes) => {
                 const cleanAttributes = attributes.replace(/\s*readonly\s*/gi, '');
@@ -55,19 +57,6 @@ export function useContract({
         });
     };
 
-    const handleBackendError = error => {
-        const data = error.response?._data;
-        if (data?.error) {
-            toast.error(data.error);
-            return;
-        }
-        if (data?.errors) {
-            Object.values(data.errors).forEach(err => toast.error(err[0]));
-            return;
-        }
-        toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
-    };
-
     const fetchContract = async () => {
         loading.value = true;
         try {
@@ -81,8 +70,8 @@ export function useContract({
             router.push('/quan-ly/hop-dong');
         } finally {
             loading.value = false;
-            await nextTick();
-            syncIdentityData();
+            // await nextTick();
+            // syncIdentityData();
         }
     };
 
@@ -105,14 +94,24 @@ export function useContract({
             identityDocument.value = response.data;
             identityImages.value = files;
             toast.success(response.message);
-            extractErrorCount.value = 0; // Reset lỗi khi quét thành công
+            extractErrorCount.value = 0;
 
             if (dropzoneInstance.value && identityDocument.value.has_valid) {
                 dropzoneInstance.value.disable();
             }
         } catch (error) {
-            extractErrorCount.value += 1;
-            handleBackendError(error);
+            if (error.response?.status === 422 && error.response?._data?.error) {
+                const errorMessage = error.response._data.error;
+                if (
+                    errorMessage.includes('Lỗi xử lý ảnh CCCD') ||
+                    errorMessage.includes('Không thể xác định mặt trước hoặc mặt sau') ||
+                    errorMessage.includes('Không tìm thấy văn bản trong ảnh CCCD')
+                ) {
+                    extractErrorCount.value += 1;
+                }
+            }
+
+            handleBackendError(error, toast);
             identityDocument.value = {
                 full_name: '',
                 year_of_birth: '',
@@ -280,7 +279,7 @@ export function useContract({
             router.push(`/quan-ly/hoa-don/${response.invoice_code}/thanh-toan`);
         } catch (error) {
             console.error('Lỗi khi ký hợp đồng:', error);
-            handleBackendError(error);
+            handleBackendError(error, toast);
         } finally {
             saveLoading.value = false;
         }
@@ -318,7 +317,7 @@ export function useContract({
             const updatedHtml = updateContractHtml();
             const formData = new FormData();
             formData.append('contract_content', updatedHtml);
-            formData.append('bypass_extract', bypassExtract);
+            formData.append('bypass_extract', bypassExtract.value);
 
             if (contract.value.status === 'Chờ xác nhận') {
                 identityImages.value.forEach(file => formData.append('identity_images[]', file));
@@ -335,7 +334,7 @@ export function useContract({
             await fetchContract();
         } catch (error) {
             console.error('Lỗi khi lưu hợp đồng:', error);
-            handleBackendError(error);
+            handleBackendError(error, toast);
         } finally {
             saveLoading.value = false;
         }

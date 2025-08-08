@@ -32,7 +32,8 @@
                                 <ClientOnly>
                                     <div class="main-search-input-item">
                                         <select name="priceRange" :value="search.priceRange" class="chosen-select">
-                                            <option v-for="option in priceOptions" :key="option.value" :value="option.value">
+                                            <option value="">Tất cả mức giá</option>
+                                            <option v-for="option in priceOptions" :key="option.key" :value="option.key">
                                                 {{ option.label }}
                                             </option>
                                         </select>

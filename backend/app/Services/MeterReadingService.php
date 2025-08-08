@@ -25,22 +25,197 @@ class MeterReadingService
         })->paginate($perPage);
     }
 
+    /**
+     * Lấy phòng cần nhập chỉ số trong thời gian quy định (28 -> 10)
+     */
     public function getRoomsWithMotel()
     {
-        $today = now();
+        try {
+            $today = now();
+            $currentMonth = $today->month;
+            $currentYear = $today->year;
 
-        $startDate = $today->copy()->subMonthNoOverflow()->day(28)->startOfDay();
-        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+            // Xác định tháng cần nhập chỉ số
+            if ($today->day >= 28) {
+                // Từ ngày 28 của tháng hiện tại
+                $targetMonth = $currentMonth;
+                $targetYear = $currentYear;
+            } else {
+                // Từ ngày 1-10 của tháng sau (nhập chỉ số tháng trước)
+                $previousMonth = $today->copy()->subMonthNoOverflow();
+                $targetMonth = $previousMonth->month;
+                $targetYear = $previousMonth->year;
+            }
 
-        $rooms = Room::with('motel')
+            Log::info('Getting rooms for meter reading period', [
+                'current_date' => $today->toDateString(),
+                'target_month' => $targetMonth,
+                'target_year' => $targetYear
+            ]);
+
+            $rooms = Room::with([
+                'motel',
+                'contracts' => function ($query) {
+                    $query->where('status', 'Hoạt động')
+                        ->orderBy('end_date', 'desc');
+                }
+            ])
+                ->where('status', 'Đã Thuê')
+                ->whereHas('contracts', function ($query) {
+                    $query->where('status', 'Hoạt động')
+                        ->where('end_date', '>', now()); // Hợp đồng còn hiệu lực
+                })
+                ->whereDoesntHave('meterReadings', function ($query) use ($targetMonth, $targetYear) {
+                    // Chưa có chỉ số cho tháng target
+                    $query->where('month', $targetMonth)
+                        ->where('year', $targetYear);
+                })
+                ->get()
+                ->groupBy('motel_id');
+
+            Log::info('Found rooms for meter reading', [
+                'total_motels' => $rooms->count(),
+                'total_rooms' => $rooms->flatten()->count()
+            ]);
+
+            return $rooms;
+
+        } catch (\Exception $e) {
+            Log::error('Error getting rooms for meter reading', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return collect();
+        }
+    }
+
+    /**
+     * Lấy phòng có hợp đồng gần hết hạn (trong 3 ngày) và chưa nhập chỉ số tháng hiện tại
+     */
+    public function getRoomsWithActiveContracts()
+    {
+        try {
+            $today = now();
+            $threeDaysFromNow = $today->copy()->addDays(3); // 3 ngày tới
+            $currentMonth = $today->month;
+            $currentYear = $today->year;
+
+            Log::info('Getting rooms with contracts expiring soon', [
+                'current_date' => $today->toDateString(),
+                'expiry_check_date' => $threeDaysFromNow->toDateString(),
+                'current_month' => $currentMonth,
+                'current_year' => $currentYear
+            ]);
+
+            $rooms = Room::with([
+                'motel',
+                'contracts' => function ($query) {
+                    $query->where('status', 'Hoạt động')
+                        ->orderBy('end_date', 'desc');
+                }
+            ])
+                ->where('status', 'Đã Thuê')
+                ->whereHas('contracts', function ($query) use ($today, $threeDaysFromNow) {
+                    $query->where('status', 'Hoạt động')
+                        ->where('end_date', '>', $today) // Hợp đồng còn hiệu lực
+                        ->where('end_date', '<=', $threeDaysFromNow); // Hết hạn trong 3 ngày
+                })
+                ->whereDoesntHave('meterReadings', function ($query) use ($currentMonth, $currentYear) {
+                    // Chưa có chỉ số cho tháng hiện tại
+                    $query->where('month', $currentMonth)
+                        ->where('year', $currentYear);
+                })
+                ->get()
+                ->groupBy('motel_id');
+
+            Log::info('Found rooms with contracts expiring soon', [
+                'total_motels' => $rooms->count(),
+                'total_rooms' => $rooms->flatten()->count()
+            ]);
+
+            return $rooms;
+
+        } catch (\Exception $e) {
+            Log::error('Error getting rooms with expiring contracts', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return collect();
+        }
+    }
+
+
+    /**
+     * Kiểm tra xem có thể tạo meter reading không (cho validation)
+     */
+    public function canCreateMeterReadingForRoom($roomId, $month = null, $year = null)
+    {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        // Kiểm tra đã có chỉ số cho tháng này chưa
+        $existingReading = MeterReading::where('room_id', $roomId)
+            ->where('month', $month)
+            ->where('year', $year)
+            ->exists();
+
+        if ($existingReading) {
+            return false;
+        }
+
+        // Kiểm tra phòng có hợp đồng hoạt động không
+        $room = Room::with('contracts')
+            ->where('id', $roomId)
             ->where('status', 'Đã Thuê')
-            ->whereDoesntHave('meterReadings', function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
+            ->whereHas('contracts', function ($query) {
+                $query->where('status', 'Hoạt động')
+                    ->where('end_date', '>', now());
             })
-            ->get()
-            ->groupBy('motel_id');
+            ->first();
 
-        return $rooms;
+        return $room !== null;
+    }
+
+    /**
+     * Lấy thông tin thời gian hiển thị cho view
+     */
+    public function getDisplayPeriodInfo()
+    {
+        $today = now();
+        $month = $today->month;
+        $year = $today->year;
+
+        // Logic thời gian từ ngày 28 đến 10 tháng sau
+        $startDate = $today->copy()->day(28);
+        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+        $isInSpecialPeriod = $today->between($startDate, $endDate);
+
+        if ($isInSpecialPeriod) {
+            if ($today->day >= 28 && $today->day <= 31) {
+                // Trong khoảng 28-31 của tháng hiện tại
+                $displayMonth = $today->month;
+                $displayYear = $today->year;
+            } else {
+                // Trong 10 ngày đầu tháng sau
+                $previousMonth = $today->copy()->subMonthNoOverflow();
+                $displayMonth = $previousMonth->month;
+                $displayYear = $previousMonth->year;
+            }
+        } else {
+            // Ngoài thời gian đặc biệt
+            $displayMonth = $month;
+            $displayYear = $year;
+        }
+
+        return [
+            'display_month' => $displayMonth,
+            'display_year' => $displayYear,
+            'is_in_special_period' => $isInSpecialPeriod,
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ];
     }
 
     public function createMeterReading(array $data)
@@ -49,9 +224,7 @@ class MeterReadingService
         return $meterReading;
     }
 
-    /**
-     * Tính toán số điện/nước tiêu thụ và lấy chỉ số tháng trước
-     */
+    //Tính toán số điện/nước tiêu thụ và lấy chỉ số tháng gần nhất
     public function getConsumptionAndPreviousReadings($meterReading)
     {
         $electricityConsumption = $meterReading->electricity_kwh ?? 0;
@@ -59,19 +232,18 @@ class MeterReadingService
         $previousElectricityKwh = 0;
         $previousWaterM3 = 0;
 
-        // Lấy chỉ số tháng trước
+        // Lấy chỉ số tháng gần nhất trước tháng hiện tại
         $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
-            ->where('year', $meterReading->year)
-            ->where('month', $meterReading->month - 1)
+            ->where(function ($query) use ($meterReading) {
+                $query->where('year', '<', $meterReading->year)
+                    ->orWhere(function ($q) use ($meterReading) {
+                        $q->where('year', $meterReading->year)
+                            ->where('month', '<', $meterReading->month);
+                    });
+            })
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
             ->first();
-
-        // Nếu không có tháng trước, kiểm tra tháng 12 năm trước
-        if (!$previousMeterReading && $meterReading->month == 1) {
-            $previousMeterReading = MeterReading::where('room_id', $meterReading->room_id)
-                ->where('year', $meterReading->year - 1)
-                ->where('month', 12)
-                ->first();
-        }
 
         if ($previousMeterReading) {
             $electricityConsumption = ($meterReading->electricity_kwh ?? 0) - ($previousMeterReading->electricity_kwh ?? 0);
@@ -121,7 +293,7 @@ class MeterReadingService
                     $query->where('year', '<', $invoiceYear)
                         ->orWhere(function ($q) use ($invoiceMonth, $invoiceYear) {
                             $q->where('year', $invoiceYear)
-                              ->where('month', '<', $invoiceMonth);
+                                ->where('month', '<', $invoiceMonth);
                         });
                 })
                 ->exists();

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\AutoEndContractNotification;
 use App\Models\Contract;
 use App\Models\Checkout;
 use App\Models\Config;
@@ -10,8 +11,11 @@ use App\Models\Invoice;
 use App\Jobs\SendContractExpiryNotification;
 use App\Jobs\SendOverdueInvoiceNotification;
 use App\Jobs\SendCheckoutAutoConfirmedNotification;
+use App\Models\Room;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 use Mail;
 use App\Mail\ContractExpiryNotification;
 use Illuminate\Support\Facades\Log;
@@ -101,12 +105,12 @@ class CheckContractExpiry extends Command
         $today = Carbon::today();
         $currentDay = $today->day;
 
-        if ($currentDay <= 5) {
-            $this->info("📅 Hiện tại đang trong thời hạn thanh toán (ngày 1-5), bỏ qua kiểm tra hóa đơn quá hạn.");
+        if ($currentDay <= 10) {
+            $this->info("📅 Hiện tại đang trong thời hạn thanh toán (ngày 1-10), bỏ qua kiểm tra hóa đơn quá hạn.");
             return;
         }
 
-        $paymentDeadline = Carbon::create($today->year, $today->month, 5);
+        $paymentDeadline = Carbon::create($today->year, $today->month, 10);
 
         $this->info("⏰ Hạn thanh toán: {$paymentDeadline->format('d/m/Y')}");
         $this->info("📆 Hôm nay: {$today->format('d/m/Y')}");
@@ -135,16 +139,17 @@ class CheckContractExpiry extends Command
     private function processAutoConfirmedCheckouts($debug)
     {
         $this->info("🔍 === KIỂM TRA KIỂM KÊ TỰ ĐỘNG XÁC NHẬN ===");
-
+        $notificationDays = (int) Config::getValue('date_confirm_checkout');
         $today = Carbon::today();
-        $sevenDaysAgo = $today->copy()->subDays(7);
+        $sevenDaysAgo = $today->copy()->subDays($notificationDays);
 
         $pendingCheckouts = Checkout::with(['contract.user', 'contract.room'])
+            ->where('inventory_status', 'Đã kiểm kê')
             ->where('user_confirmation_status', 'Chưa xác nhận')
             ->where('updated_at', '<=', $sevenDaysAgo)
             ->get();
 
-        $this->info("📊 Tìm thấy {$pendingCheckouts->count()} kiểm kê chưa xác nhận quá 7 ngày");
+        $this->info("📊 Tìm thấy {$pendingCheckouts->count()} kiểm kê chưa xác nhận quá {$notificationDays}");
 
         if ($debug) {
             $this->showCheckoutDebugInfo($pendingCheckouts, $today); // Thêm debug cho checkout
@@ -188,9 +193,10 @@ class CheckContractExpiry extends Command
         $completedCheckouts = Checkout::with(['contract.user', 'contract.room.motel'])
             ->where('inventory_status', 'Đã kiểm kê')
             ->where('user_confirmation_status', 'Đồng ý')
-            ->where('refund_status', 'Đã xử lí')
+            ->where('refund_status', 'Đã xử lý')
             ->whereHas('contract', function ($query) {
-                $query->where('status', '!=', 'Kết thúc'); // Chỉ lấy hợp đồng chưa kết thúc
+                $query->where('status', '=', 'Hoạt động') // Chỉ lấy hợp đồng chưa kết thúc
+                    ->where('end_date', '<=', Carbon::today()); // Chỉ lấy hợp đồng chưa kết thúc
             })
             ->get();
 
@@ -309,7 +315,7 @@ class CheckContractExpiry extends Command
         // Thêm with() để load relationships
         $expiredContracts = Contract::with(['user', 'room.motel'])
             ->where('status', 'Hoạt động')
-            ->where('end_date', '<', $today)
+            ->where('end_date', '<=', $today)
             ->get();
 
         if ($expiredContracts->isEmpty()) {
@@ -395,6 +401,40 @@ class CheckContractExpiry extends Command
 
         $contract->status = 'Kết thúc';
         $contract->save();
+        $checkout = Checkout::where('contract_id', $contract->id)->first();
+
+        Room::where('id', $checkout->contract->room_id)->update([
+                        'status' => 'Sửa chữa',
+                    ]);
+
+                    // Cập nhật vai trò người dùng thành "Người đăng ký"
+                    $user = $checkout->contract->user;
+                    if ($user) {
+                        // Xóa identity_document nếu tồn tại
+                        if ($user->identity_document && Storage::disk('private')->exists($user->identity_document)) {
+                            Storage::disk('private')->delete($user->identity_document);
+                            Log::info('Identity document deleted', [
+                                'user_id' => $user->id,
+                                'document_path' => $user->identity_document,
+                            ]);
+                        }
+
+                        User::where('id', $user->id)->update([
+                            'role' => 'Người đăng ký',
+                            'identity_document' => null,
+                        ]);
+
+                        Log::info('User role updated to Người đăng ký and identity_document cleared', [
+                            'user_id' => $user->id,
+                            'checkout_id' => $checkout->id,
+                            'contract_id' => $checkout->contract->id,
+                        ]);
+                    } else {
+                        Log::warning('User not found for role update', [
+                            'checkout_id' => $checkout->id,
+                            'contract_id' => $checkout->contract->id,
+                        ]);
+                    }
 
         $this->info("✅ Hợp đồng #{$contract->id} đã được kết thúc");
 
@@ -427,24 +467,13 @@ class CheckContractExpiry extends Command
                 return;
             }
 
-            // Kiểm tra và load relationship nếu chưa có
+            // Load relationships nếu chưa có
             if (!$contract->relationLoaded('room')) {
-                $contract->load('room.motel');
+                $contract->load('room.motel.user');
             }
 
-            // Tạo data cho email
-            $emailData = [
-                'contract' => $contract,
-                'user_name' => $contract->user->name,
-                'room_name' => $contract->room->name ?? 'N/A',
-                'motel_name' => $contract->room->motel->name ?? 'N/A',
-                'end_date' => Carbon::parse($contract->end_date)->format('d/m/Y'),
-                'end_reason' => 'Hợp đồng đã hết hạn',
-                'notification_type' => 'auto_end'
-            ];
-
-            // Gửi email
-            Mail::to($contract->user->email)->send(new ContractExpiryNotification($emailData));
+            // ✅ TRUYỀN OBJECT CONTRACT đã load đầy đủ relationships
+            Mail::to($contract->user->email)->send(new AutoEndContractNotification($contract));
 
             $this->info("📧 Đã gửi email thông báo kết thúc hợp đồng tự động cho {$contract->user->email}");
 
@@ -453,16 +482,15 @@ class CheckContractExpiry extends Command
                 'user_id' => $contract->user_id,
                 'email' => $contract->user->email,
                 'end_date' => $contract->end_date,
-                'room_name' => $contract->room->name ?? 'N/A'
+                'room_id' => $contract->room_id,
+                'motel_id' => $contract->room->motel_id ?? null
             ]);
 
         } catch (\Exception $e) {
             $this->error("❌ Lỗi gửi email tự động kết thúc hợp đồng #{$contract->id}: " . $e->getMessage());
-
             Log::error("Error sending auto contract end email", [
                 'contract_id' => $contract->id,
                 'user_id' => $contract->user_id,
-                'email' => $contract->user->email ?? 'N/A',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
