@@ -144,6 +144,7 @@ class CheckContractExpiry extends Command
         $sevenDaysAgo = $today->copy()->subDays(7);
 
         $pendingCheckouts = Checkout::with(['contract.user', 'contract.room'])
+            ->where('inventory_status', 'Đã kiểm kê')
             ->where('user_confirmation_status', 'Chưa xác nhận')
             ->where('updated_at', '<=', $sevenDaysAgo)
             ->get();
