@@ -128,7 +128,7 @@
                                                     <i class="fas fa-door-open me-1"></i> {{ $motel->rooms_count ?? 0 }} phòng
                                                     <i class="fas fa-arrow-right ms-1 small"></i>
                                                 </button>
-                                                <small class="text-muted">
+                                                <small class="text-muted mt-1">
                                                     <span
                                                         class="badge bg-success me-1">{{ $motel->rooms->where('status', 'Trống')->count() }}
                                                         Trống</span>
@@ -145,7 +145,7 @@
                                             {{ $motel->status == 'Hoạt động' ? 'Hoạt động' : 'Không hoạt động' }}
                                         </span>
                                     </td>
-                                    <td class="d-flex justify-content-center align-items-center">
+                                    <td class="d-flex justify-content-center align-items-center action">
                                         <a href="{{ route('motels.edit', $motel->id) }}"
                                             class="btn btn-sm btn-primary action-btn me-2 action-icon" style="transition: all 0.3s;">
                                             <i class="fas fa-edit me-1"></i>
@@ -181,7 +181,7 @@
     @section('styles')
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
         <style>
-            @media (max-width: 576px) {
+            @media (max-width: 480px) {
 
                 /* Nút hành động trên mobile chỉ là icon tròn */
                 .action-icon {
@@ -210,6 +210,10 @@
                     justify-content: center;
                     align-items: center;
                 }
+                .action td {
+                    padding: 0.5rem;
+                }
+
             }
         </style>
     @endsection

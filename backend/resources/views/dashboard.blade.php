@@ -13,7 +13,7 @@
         <!-- Main Content Grid -->
         <div class="row g-4">
             <!-- Left Column -->
-            <div class="col-lg-6">
+            <div class="col-lg-5">
                 <!-- Notes Section -->
                 <div class="card mb-4">
                     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -68,7 +68,7 @@
                 <!-- Yêu cầu sửa chữa đang thực hiện -->
                 <div class="card mb-4">
                     <div class="card-header bg-white py-3"
-                    style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
+                        style="background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-tools text-warning me-2"></i>
@@ -118,14 +118,15 @@
                                                 <td class="py-3">
                                                     <a class="btn btn-sm btn-outline-primary"
                                                         href="{{ route('repair_requests.show', $request->id) }}">
-                                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                                        <i class="fas fa-eye me-1"></i>
                                                     </a>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
                                                 <td colspan="6" class="text-center text-muted py-4">
-                                                    <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào đang thực
+                                                    <i class="fas fa-info-circle me-2"></i>Không có yêu cầu sửa chữa nào đang
+                                                    thực
                                                     hiện.
                                                 </td>
                                             </tr>
@@ -133,7 +134,8 @@
                                     @else
                                         <tr>
                                             <td colspan="6" class="text-center text-muted py-4">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu sửa
+                                                <i class="fas fa-exclamation-triangle me-2"></i>Không thể tải dữ liệu yêu cầu
+                                                sửa
                                                 chữa.
                                             </td>
                                         </tr>
@@ -152,7 +154,8 @@
                                 <i class="fas fa-tools text-warning me-2"></i>
                                 Yêu cầu sửa chữa cần xử lý
                             </h6>
-                            <a href="{{ route('repair_requests.index') }}" class="text-decoration-none small text-white">Xem
+                            <a href="{{ route('repair_requests.index') }}"
+                                class="text-decoration-none small text-white">Xem
                                 tất cả</a>
                         </div>
                     </div>
@@ -223,7 +226,7 @@
                                                 <td class= "py-3">
                                                     <a class="btn btn-sm btn-outline-primary"
                                                         href="{{ route('repair_requests.show', $request->id) }}">
-                                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                                        <i class="fas fa-eye me-1"></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -251,7 +254,7 @@
                 </div>
 
                 <!-- Middle Column -->
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <!-- Contract Management Section -->
                     <div class="row g-4">
                         <!-- Newly Signed Contracts -->
@@ -345,7 +348,7 @@
                             </div>
                         </div>
 
-                        <!--  -->
+                        <!--Yêu cầu trả phòng  -->
                         <div class="col-md-12">
                             <div class="card h-100">
                                 <div class="card-header bg-white py-3"
@@ -387,6 +390,56 @@
                                         @empty
                                             <li class="list-group-item text-center text-muted py-4">
                                                 <i class="fas fa-info-circle me-2"></i>Không có hợp đồng nào sắp hết hạn.
+                                            </li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Phòng đang sửa chữa-->
+                        <div class="col-md-12">
+                            <div class="card h-100">
+                                <div class="card-header bg-white py-3"
+                                    style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0 fw-semibold text-white">
+                                            <i class="fas fa-sign-out-alt text-danger me-2"></i>
+                                            Phòng đang sửa chữa
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        @forelse($roomsUnderRepair as $room)
+                                            <li class="list-group-item py-2" id="room-item-{{ $room->id }}">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-shrink-0 me-3">
+                                                        <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                            style="width: 32px; height: 32px;">
+                                                            <i class="fas fa-tools text-warning" style="font-size: 12px;"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
+                                                            {{ $room->name ?? 'Không xác định' }}
+                                                        </div>
+                                                        <small class="text-muted" style="margin-right: 50px;">
+                                                            Trạng thái: <span class="text-danger"
+                                                                name="status">{{ $room->status ?? 'Không xác định' }}</span>
+                                                        </small>
+                                                        <input type="hidden" name="status" class="form-control"
+                                                            value="{{ $room->status ?? 'Không xác định' }}">
+                                                        <button class="btn btn-sm btn-outline-success confirm-repair-btn"
+                                                            data-room-id="{{ $room->id }}"
+                                                            data-status="{{ $room->status ?? 'Không xác định' }}">
+                                                            <i class="fas fa-check me-2"></i>Xác nhận
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @empty
+                                            <li class="list-group-item text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>Không có phòng nào đang sửa chữa.
                                             </li>
                                         @endforelse
                                     </ul>
@@ -535,4 +588,75 @@
                 </div>
             </div>
         </div>
+    @endsection
+
+    @section('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Lấy CSRF token từ meta tag (Laravel đặt sẵn trong layout)
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                document.querySelectorAll('.confirm-repair-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const roomId = this.dataset.roomId;
+                        const roomStatus = this.dataset.status;
+                        if (!roomId) return;
+                        // Xác nhận với user
+                        if (!confirm(
+                                'Bạn có chắc muốn xác nhận kết thúc sửa chữa và chuyển phòng sang "Phòng trống"?'
+                            )) {
+                            return;
+                        }
+
+                        // Disable button tạm thời
+                        this.setAttribute('disabled', 'disabled');
+                        this.innerHTML =
+                            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý';
+
+                        try {
+                            const res = await fetch(`/rooms/${roomId}/confirm-repair`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    status: "Trống"
+                                })
+                            });
+
+                            const data = await res.json();
+
+                            if (!res.ok || !data.status) {
+                                alert(data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+                                // khôi phục nút
+                                this.removeAttribute('disabled');
+                                this.innerHTML = '<i class="fas fa-check me-2"></i>Xác nhận';
+                                return;
+                            }
+
+                            // Thành công: loại bỏ item khỏi danh sách hoặc cập nhật trạng thái
+                            const item = document.getElementById('room-item-' + roomId);
+                            if (item) {
+                                // animation nhỏ rồi remove
+                                item.style.transition = 'opacity 0.25s ease';
+                                item.style.opacity = 0;
+                                setTimeout(() => item.remove(), 260);
+                            }
+
+                            // (Tùy) hiển thị toast / alert
+                            alert(data.message || 'Cập nhật thành công.');
+
+                        } catch (err) {
+                            console.error(err);
+                            alert('Lỗi mạng hoặc server. Vui lòng thử lại sau.');
+                            this.removeAttribute('disabled');
+                            this.innerHTML = '<i class="fas fa-check me-2"></i>Xác nhận';
+                        }
+                    });
+                });
+            });
+        </script>
     @endsection

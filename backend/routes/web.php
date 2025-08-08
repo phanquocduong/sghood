@@ -100,6 +100,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/trash/{id}', [RoomController::class, 'showTrashed'])->name('showTrashed');
         Route::post('/restore/{id}', [RoomController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [RoomController::class, 'forceDelete'])->name('forceDelete');
+        Route::put('/{roomId}/confirm-repair', [RoomController::class, 'confirmRepair'])->name('confirmRepair');
 
         // Image management routes
         Route::post('/{roomId}/images/{imageId}/delete', [RoomController::class, 'deleteImage'])->name('image.delete');
