@@ -10,6 +10,7 @@ use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
 use App\Models\Motel;
 use App\Models\Amenity;
+use App\Models\Room;
 
 class RoomController extends Controller
 {
@@ -36,7 +37,11 @@ class RoomController extends Controller
         }
 
         $result = $this->roomService->getRoomsByMotelId(
-            $motelId, $querySearch, $status, $sortOption, $perPage
+            $motelId,
+            $querySearch,
+            $status,
+            $sortOption,
+            $perPage
         );
 
         if (isset($result['error'])) {
@@ -82,8 +87,8 @@ class RoomController extends Controller
     private function getActiveRoomAmenities()
     {
         return Amenity::where('status', 'Hoạt động')
-                      ->where('type', 'Phòng trọ')
-                      ->get();
+            ->where('type', 'Phòng trọ')
+            ->get();
     }
 
     // Hiển thị chi tiết phòng.
@@ -250,7 +255,11 @@ class RoomController extends Controller
         }
 
         $result = $this->roomService->getTrashedRoomsByMotelId(
-            $motelId, $querySearch, $status, $sortOption, $perPage
+            $motelId,
+            $querySearch,
+            $status,
+            $sortOption,
+            $perPage
         );
 
         if (isset($result['error'])) {
@@ -332,5 +341,29 @@ class RoomController extends Controller
         }
 
         return response()->json($result);
+    }
+    public function confirmRepair(Request $request, Room $room): JsonResponse
+    {
+        // Nếu request là JSON, dùng $request->json()->all()
+        $data = $request->isJson() ? $request->json()->all() : $request->all();
+
+        $validator = \Validator::make($data, [
+            'status' => 'required|in:Sửa chữa,Trống',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first('status')
+            ], 422);
+        }
+
+        $result = $this->roomService->confirmRepair($room, $data['status']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Đã xác nhận. Trạng thái phòng được chuyển thành "' . $request->input('status') . '".',
+            'room' => $result['data']
+        ]);
     }
 }
