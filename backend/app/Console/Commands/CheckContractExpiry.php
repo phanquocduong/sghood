@@ -193,9 +193,10 @@ class CheckContractExpiry extends Command
         $completedCheckouts = Checkout::with(['contract.user', 'contract.room.motel'])
             ->where('inventory_status', 'Đã kiểm kê')
             ->where('user_confirmation_status', 'Đồng ý')
-            ->where('refund_status', 'Đã xử lí')
+            ->where('refund_status', 'Đã xử lý')
             ->whereHas('contract', function ($query) {
-                $query->where('status', '!=', 'Kết thúc'); // Chỉ lấy hợp đồng chưa kết thúc
+                $query->where('status', '=', 'Hoạt động') // Chỉ lấy hợp đồng chưa kết thúc
+                    ->where('end_date', '<=', Carbon::today()); // Chỉ lấy hợp đồng chưa kết thúc
             })
             ->get();
 
