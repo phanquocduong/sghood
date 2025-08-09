@@ -26,29 +26,37 @@ class MeterReadingService
     }
 
     /**
-     * Lấy phòng cần nhập chỉ số trong thời gian quy định (28 -> 10)
+     * Lấy phòng cần nhập chỉ số trong thời gian quy định (28 -> 5)
      */
     public function getRoomsWithMotel()
     {
         try {
             $today = now();
-            $currentMonth = $today->month;
-            $currentYear = $today->year;
+            $currentDay = $today->day;
 
-            // Xác định tháng cần nhập chỉ số
-            if ($today->day >= 28) {
-                // Từ ngày 28 của tháng hiện tại
-                $targetMonth = $currentMonth;
-                $targetYear = $currentYear;
-            } else {
-                // Từ ngày 1-10 của tháng sau (nhập chỉ số tháng trước)
+            // Xác định tháng cần nhập chỉ số một cách rõ ràng
+            if ($currentDay >= 28) {
+                // Từ ngày 28 trở đi của tháng hiện tại -> nhập chỉ số cho tháng hiện tại
+                $targetMonth = $today->month;
+                $targetYear = $today->year;
+            } elseif ($currentDay <= 5) {
+                // Từ ngày 1-5 của tháng hiện tại -> nhập chỉ số cho tháng trước
                 $previousMonth = $today->copy()->subMonthNoOverflow();
                 $targetMonth = $previousMonth->month;
                 $targetYear = $previousMonth->year;
+            } else {
+                // Ngoài thời gian cho phép (11-27) -> không có phòng nào cần nhập
+                Log::info('Outside meter reading period', [
+                    'current_date' => $today->toDateString(),
+                    'current_day' => $currentDay,
+                    'message' => 'Not in allowed period (28th-5th next month)'
+                ]);
+                return collect();
             }
 
             Log::info('Getting rooms for meter reading period', [
                 'current_date' => $today->toDateString(),
+                'current_day' => $currentDay,
                 'target_month' => $targetMonth,
                 'target_year' => $targetYear
             ]);
@@ -146,7 +154,6 @@ class MeterReadingService
         }
     }
 
-
     /**
      * Kiểm tra xem có thể tạo meter reading không (cho validation)
      */
@@ -184,37 +191,67 @@ class MeterReadingService
     public function getDisplayPeriodInfo()
     {
         $today = now();
-        $month = $today->month;
-        $year = $today->year;
+        $currentDay = $today->day;
 
-        // Logic thời gian từ ngày 28 đến 10 tháng sau
-        $startDate = $today->copy()->day(2);
-        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
-        $isInSpecialPeriod = $today->between($startDate, $endDate);
+        // Xác định khoảng thời gian được phép và tháng hiển thị
+        $isInAllowedPeriod = ($currentDay >= 28) || ($currentDay <= 5);
 
-        if ($isInSpecialPeriod) {
-            if ($today->day >= 28 && $today->day <= 31) {
-                // Trong khoảng 28-31 của tháng hiện tại
-                $displayMonth = $today->month;
-                $displayYear = $today->year;
-            } else {
-                // Trong 10 ngày đầu tháng sau
-                $previousMonth = $today->copy()->subMonthNoOverflow();
-                $displayMonth = $previousMonth->month;
-                $displayYear = $previousMonth->year;
-            }
+        if ($currentDay >= 28) {
+            // Từ ngày 28 trở đi -> nhập chỉ số cho tháng hiện tại
+            $displayMonth = $today->month;
+            $displayYear = $today->year;
+            $periodDescription = "Nhập chỉ số tháng {$displayMonth}/{$displayYear}";
+
+            $startDate = $today->copy()->day(28)->startOfDay();
+            $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+
+        } elseif ($currentDay <= 5) {
+            // Từ ngày 1-5 -> nhập chỉ số cho tháng trước
+            $previousMonth = $today->copy()->subMonthNoOverflow();
+            $displayMonth = $previousMonth->month;
+            $displayYear = $previousMonth->year;
+            $periodDescription = "Nhập chỉ số tháng {$displayMonth}/{$displayYear}";
+
+            $startDate = $previousMonth->copy()->day(28)->startOfDay();
+            $endDate = $today->copy()->day(5)->endOfDay();
+
         } else {
-            // Ngoài thời gian đặc biệt
-            $displayMonth = $month;
-            $displayYear = $year;
+            // Ngoài thời gian cho phép
+            $displayMonth = $today->month;
+            $displayYear = $today->year;
+            $periodDescription = "Ngoài thời gian nhập chỉ số (chỉ từ 28 - 5 tháng sau)";
+
+            // Tính toán kỳ tiếp theo
+            $nextPeriodStart = $today->copy()->day(28);
+            $startDate = $nextPeriodStart;
+            $endDate = $nextPeriodStart->copy()->addMonthNoOverflow()->day(5)->endOfDay();
+        }
+
+        // ✅ Thêm validation cho edge cases
+        try {
+            // Kiểm tra xem ngày 28 có tồn tại trong tháng không
+            $testDate = $today->copy();
+            if ($testDate->day > 28) {
+                $testDate->day(28); // Có thể throw exception nếu tháng không có ngày 28
+            }
+        } catch (\Exception $e) {
+            Log::warning('Date calculation issue, using end of month instead', [
+                'current_date' => $today->toDateString(),
+                'error' => $e->getMessage()
+            ]);
+
+            $startDate = $today->copy()->endOfMonth()->startOfDay();
         }
 
         return [
             'display_month' => $displayMonth,
             'display_year' => $displayYear,
-            'is_in_special_period' => $isInSpecialPeriod,
+            'is_in_special_period' => $isInAllowedPeriod,
+            'current_day' => $currentDay,
+            'period_description' => $periodDescription,
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date' => $endDate,
+            'readable_period' => "Từ {$startDate->format('d/m/Y')} đến {$endDate->format('d/m/Y')}"
         ];
     }
 

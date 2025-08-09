@@ -133,7 +133,7 @@
         @else
             <div class="alert alert-info mb-3">
                 <i class="fas fa-calendar-alt me-2"></i>
-                <strong>Đang trong thời gian nhập chỉ số điện nước (từ ngày 28 đến ngày 10 tháng sau).</strong>
+                <strong>Đang trong thời gian nhập chỉ số điện nước (từ ngày 28 đến ngày 5 tháng sau).</strong>
                 <br><small>Có {{ $rooms->flatten()->count() }} phòng cần nhập chỉ số.</small>
             </div>
         @endif
@@ -230,7 +230,7 @@
         @if(isset($displayMode) && $displayMode === 'active_contracts')
             Không có phòng nào có hợp đồng sắp hết hạn cần nhập chỉ số.
         @else
-            Chỉ số điện nước chỉ được cập nhật vào cuối tháng (từ ngày 28 đến ngày 10 tháng sau).
+            Chỉ số điện nước chỉ được cập nhật vào cuối tháng (từ ngày 28 đến ngày 5 tháng sau).
             <br><small>Hoặc khi có phòng với hợp đồng sắp hết hạn trong 3 ngày.</small>
         @endif
     </div>
