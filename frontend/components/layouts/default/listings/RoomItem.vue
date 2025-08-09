@@ -30,7 +30,13 @@ defineEmits(['open-modal']);
     cursor: pointer;
     transition: transform 0.2s;
 }
+
 .listing-item-container:hover {
     transform: scale(1.02);
+}
+
+.listing-item-details li:before {
+    content: '✔ '; /* Thêm dấu tích để làm nổi bật */
+    color: #28a745; /* Màu xanh lá cho dấu tích */
 }
 </style>
