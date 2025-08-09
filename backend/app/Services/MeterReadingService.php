@@ -146,7 +146,6 @@ class MeterReadingService
         }
     }
 
-
     /**
      * Kiểm tra xem có thể tạo meter reading không (cho validation)
      */
@@ -279,15 +278,16 @@ class MeterReadingService
         ];
     }
 
-    private function calculateFirstMonthFees($contract, $room, $meterReading, $motel)
+    private function calculateProportionalFees($contract, $room, $meterReading, $motel)
     {
         try {
             $contractStartDate = Carbon::parse($contract->start_date);
+            $contractEndDate = Carbon::parse($contract->end_date);
             $invoiceCreatedDate = now();
-            $invoiceMonth = $meterReading->month;
+            $invoiceMonth = $meterReading->month-1;
             $invoiceYear = $meterReading->year;
 
-            // Kiểm tra xem đã có hóa đơn nào cho hợp đồng này chưa
+            // Kiểm tra xem đây có phải là tháng đầu tiên hoặc tháng cuối cùng của hợp đồng không
             $hasExistingInvoices = Invoice::where('contract_id', $contract->id)
                 ->where(function ($query) use ($invoiceMonth, $invoiceYear) {
                     $query->where('year', '<', $invoiceYear)
@@ -305,13 +305,17 @@ class MeterReadingService
             $internetFee = $motel->internet_fee ?? 0;
             $serviceFee = $motel->service_fee ?? 0;
 
-            if ($hasExistingInvoices) {
-                Log::info('Not first month of contract, using full service fees', [
+            // Nếu không phải tháng đầu tiên cũng không phải tháng cuối cùng, trả về phí đầy đủ
+            $isFirstMonth = !$hasExistingInvoices;
+            $isLastMonth = $contractEndDate->year == $invoiceYear && $contractEndDate->month == $invoiceMonth;
+
+            if (!$isFirstMonth && !$isLastMonth) {
+                Log::info('Not first or last month of contract, using full service fees', [
                     'contract_start_date' => $contractStartDate->toDateString(),
+                    'contract_end_date' => $contractEndDate->toDateString(),
                     'invoice_created_date' => $invoiceCreatedDate->toDateString(),
                     'invoice_month' => $invoiceMonth,
-                    'invoice_year' => $invoiceYear,
-                    'has_existing_invoices' => $hasExistingInvoices
+                    'invoice_year' => $invoiceYear
                 ]);
 
                 return [
@@ -323,9 +327,30 @@ class MeterReadingService
                 ];
             }
 
-            // Đây là hóa đơn đầu tiên - tính theo tỷ lệ số ngày từ start_date đến ngày tạo hóa đơn
-            $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1;
-            $percentage = min(1.0, $daysDifference / 30.0);
+            // Tính tỷ lệ phí dựa trên số ngày sử dụng
+            $percentage = 1.0;
+            if ($isFirstMonth) {
+                // Tháng đầu tiên: tính từ start_date đến ngày tạo hóa đơn
+                $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1;
+                $percentage = min(1.0, $daysDifference / 30.0);
+                Log::info('Calculating first month fees with proportional rates', [
+                    'contract_start_date' => $contractStartDate->toDateString(),
+                    'invoice_created_date' => $invoiceCreatedDate->toDateString(),
+                    'days_difference' => $daysDifference,
+                    'percentage' => $percentage
+                ]);
+            } elseif ($isLastMonth) {
+                // Tháng cuối cùng: tính từ đầu tháng đến end_date
+                $monthStart = Carbon::create($invoiceYear, $invoiceMonth, 1);
+                $daysDifference = $monthStart->diffInDays($contractEndDate) + 1;
+                $percentage = min(1.0, $daysDifference / 30.0);
+                Log::info('Calculating last month fees with proportional rates', [
+                    'contract_end_date' => $contractEndDate->toDateString(),
+                    'month_start' => $monthStart->toDateString(),
+                    'days_difference' => $daysDifference,
+                    'percentage' => $percentage
+                ]);
+            }
 
             $calculatedRoomFee = $roomPrice * $percentage;
             $calculatedParkingFee = $parkingFee * $percentage;
@@ -333,10 +358,11 @@ class MeterReadingService
             $calculatedInternetFee = $internetFee * $percentage;
             $calculatedServiceFee = $serviceFee * $percentage;
 
-            Log::info('Calculating first month fees with proportional rates', [
+            Log::info('Calculated proportional fees', [
                 'contract_start_date' => $contractStartDate->toDateString(),
+                'contract_end_date' => $contractEndDate->toDateString(),
                 'invoice_created_date' => $invoiceCreatedDate->toDateString(),
-                'days_difference' => $daysDifference,
+                'days_difference' => $daysDifference ?? null,
                 'percentage' => $percentage,
                 'original_fees' => [
                     'room_price' => $roomPrice,
@@ -364,7 +390,7 @@ class MeterReadingService
                 'service_fee' => round($calculatedServiceFee, 0)
             ];
         } catch (\Exception $e) {
-            Log::error('Error calculating first month fees: ' . $e->getMessage(), [
+            Log::error('Error calculating proportional fees: ' . $e->getMessage(), [
                 'contract_id' => $contract->id ?? null,
                 'room_id' => $room->id ?? null,
                 'meter_reading_month' => $meterReading->month ?? null,
@@ -427,8 +453,8 @@ class MeterReadingService
             $electricityFee = $electricityConsumption * $electricityRate;
             $waterFee = $waterConsumption * $waterRate;
 
-            // Tính các phí dịch vụ với logic tháng đầu tiên
-            $calculatedFees = $this->calculateFirstMonthFees($contract, $room, $meterReading, $motel);
+            // Tính các phí dịch vụ với logic tháng đầu tiên hoặc cuối cùng
+            $calculatedFees = $this->calculateProportionalFees($contract, $room, $meterReading, $motel);
 
             $roomFee = $calculatedFees['room_fee'];
             $parkingFee = $calculatedFees['parking_fee'];
@@ -449,6 +475,7 @@ class MeterReadingService
                 'meter_reading_id' => $meterReadingId,
                 'contract_id' => $contractId,
                 'contract_start_date' => $contract->start_date,
+                'contract_end_date' => $contract->end_date,
                 'electricity_consumption' => $electricityConsumption,
                 'water_consumption' => $waterConsumption,
                 'electricity_fee' => $electricityFee,
