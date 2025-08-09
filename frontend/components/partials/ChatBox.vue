@@ -326,7 +326,7 @@ const sendMessage = async (payload = null) => {
     if (!text || !AdminId.value) return;
 
     try {
-        const chatId = [currentUserId.value, AdminId.value].sort().join('_');
+        const chatId = [AdminId.value, currentUserId.value].sort().join('_');
 
         scrollToBottom();
         newMessage.value = '';
