@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Contract;
-use App\Models\User;
 use App\Models\Invoice;
 use App\Models\Config;
 use App\Jobs\SendContractRevisionNotification;

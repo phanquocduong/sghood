@@ -2,21 +2,11 @@
 
 namespace App\Console\Commands;
 
-
 use App\Models\Contract;
-
 use App\Models\Config;
-use App\Models\Notification;
-
 use App\Jobs\SendContractExpiryNotification;
-
-
-
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-
-
-
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
@@ -41,7 +31,7 @@ class CheckContractExpiry extends Command
 
 
 
-        
+
 
         return 0;
     }
@@ -87,9 +77,9 @@ class CheckContractExpiry extends Command
     }
 
 
-    
 
-   
+
+
 
     //-------------------------------------------------------------------
     // PHƯƠNG THỨC XỬ LÝ
@@ -121,7 +111,7 @@ class CheckContractExpiry extends Command
     }
 
 
-    
+
 
 
 
@@ -218,5 +208,5 @@ class CheckContractExpiry extends Command
 
 
 
-    
+
 }

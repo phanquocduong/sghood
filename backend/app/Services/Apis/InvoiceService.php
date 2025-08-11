@@ -7,7 +7,6 @@ use App\Models\Invoice;
 use App\Models\MeterReading;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 

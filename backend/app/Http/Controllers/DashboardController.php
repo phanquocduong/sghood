@@ -8,7 +8,6 @@ use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
-use App\Models\Contract;
 use App\Models\RepairRequest;
 use App\Services\NoteService;
 use App\Services\RoomService;

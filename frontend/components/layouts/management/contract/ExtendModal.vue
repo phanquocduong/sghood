@@ -21,7 +21,7 @@
                         <label><i class="fa fa-clock-o"></i> Thời gian gia hạn (tháng):</label>
                         <select v-model.number="extendForm.months" class="modal-duration-select" ref="durationSelect" required>
                             <option value="" disabled>Chọn thời gian</option>
-                            <option v-for="month in [1, 3, 6, 12, 24]" :value="month">{{ month }} tháng</option>
+                            <option v-for="month in monthOptions" :key="month" :value="month">{{ month }} tháng</option>
                         </select>
                     </div>
                 </div>
@@ -54,6 +54,7 @@ import { useFormatDate } from '~/composables/useFormatDate';
 const { formatDate } = useFormatDate();
 const { formatPrice } = useFormatPrice();
 const toast = useAppToast();
+const config = useState('configs');
 
 const props = defineProps({
     contract: {
@@ -64,6 +65,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'confirm']);
+const monthOptions = ref([]);
 const extendForm = ref({
     months: 6
 });
@@ -103,6 +105,10 @@ const initChosenSelect = () => {
 };
 
 onMounted(() => {
+    if (config.value?.extend_month_options) {
+        monthOptions.value = JSON.parse(config.value.extend_month_options) || [];
+    }
+
     nextTick(() => {
         initChosenSelect();
     });

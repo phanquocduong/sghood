@@ -10,7 +10,6 @@ use App\Mail\AutoEndContractNotification;
 use App\Models\Notification;
 use App\Models\Room;
 use Illuminate\Support\Facades\Log;
-use App\Mail\ContractExpiryNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mail;
@@ -64,7 +63,7 @@ class CheckEndDateContract extends Command
             $this->info('ℹ️ Không có checkout hoàn tất nào.');
             return false;
         }
-        
+
         if ($debug) {
             $this->showCompletedCheckoutsDebugInfo($completedCheckouts);
         }
@@ -143,7 +142,7 @@ class CheckEndDateContract extends Command
             Room::where('id', $contract->room_id)->update([
                 'status' => 'Sửa chữa',
             ]);
-            
+
             Log::info('Room status updated to repair', [
                 'room_id' => $contract->room_id,
                 'contract_id' => $contract->id,
@@ -274,7 +273,7 @@ class CheckEndDateContract extends Command
             Room::where('id', $contract->room_id)->update([
                 'status' => 'Sửa chữa',
             ]);
-            
+
             Log::info('Room status updated to repair (auto end)', [
                 'room_id' => $contract->room_id,
                 'contract_id' => $contract->id,

@@ -3,7 +3,6 @@ namespace App\Services;
 
 use App\Models\Contract;
 use App\Models\Booking;
-use App\Models\Config;
 use App\Jobs\SendBookingAcceptedNotification;
 use App\Jobs\SendBookingRejectedNotification;
 use Illuminate\Support\Facades\Log;
@@ -351,8 +350,6 @@ class BookingService
                                     }
                                 }
                                 $content .= '
-                                <p class="mb-1">- Trường hợp bên B trả nhà trong thời gian hợp đồng ' . htmlspecialchars($contractData['contract']['contract_duration']) . ' thì chủ nhà không trả lại tiền đặt cọc.</p>
-                                <p class="mb-0">- Trong thời hạn 02 ngày kể từ khi đến ở trọ phải đăng ký tạm trú, đăng ký xe máy để làm thẻ xe.</p>
                             </div>
                         </div>
                     </div>

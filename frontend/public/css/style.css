@@ -6087,14 +6087,14 @@ input#booking-time {
     margin: 0;
     padding: 8px 16px;
     line-height: 15px;
-    letter-spacing: 2.5px;
+    letter-spacing: 2px;
     border-radius: 50px;
     text-transform: uppercase;
     background-color: #fff;
     border: 1px solid #66676b;
     color: #66676b;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: bold;
     position: relative;
     top: -6px;
     margin-left: 10px;

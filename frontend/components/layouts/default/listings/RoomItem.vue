@@ -8,7 +8,15 @@
                 </ul>
             </div>
             <div class="listing-item-content">
-                <span class="tag">{{ item.status }}</span>
+                <span
+                    class="tag"
+                    :class="{
+                        'status-available': item.status === 'Trống',
+                        'status-rented': item.status === 'Đã thuê',
+                        'status-maintenance': item.status === 'Sửa chữa'
+                    }"
+                    >{{ item.status }}</span
+                >
                 <h3>{{ item.name }}</h3>
                 <span>Giá {{ item.price }}/tháng</span>
             </div>
@@ -38,5 +46,25 @@ defineEmits(['open-modal']);
 .listing-item-details li:before {
     content: '✔ '; /* Thêm dấu tích để làm nổi bật */
     color: #28a745; /* Màu xanh lá cho dấu tích */
+}
+
+.tag {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.status-available {
+    background-color: #4caf50 !important; /* Màu xanh lá cho trạng thái Trống */
+}
+
+.status-rented {
+    background-color: #ee3535 !important; /* Màu đỏ cho trạng thái Đã thuê */
+}
+
+.status-maintenance {
+    background-color: #ffc107 !important; /* Màu vàng cho trạng thái Sửa chữa */
 }
 </style>

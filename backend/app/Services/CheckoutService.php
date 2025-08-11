@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Drivers\Gd\Driver;
 
-
 class CheckoutService
 {
     public function getCheckouts($filters = [])
@@ -397,7 +396,7 @@ class CheckoutService
                 }
 
                 // Gửi thông báo bằng Job
-                
+
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 

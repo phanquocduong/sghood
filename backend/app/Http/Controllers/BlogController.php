@@ -7,8 +7,6 @@ use Illuminate\Http\Request;
 use App\Services\BlogService;
 use App\Http\Requests\BlogStoreRequest;
 use App\Http\Requests\BlogUpdateRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class BlogController extends Controller
 {
