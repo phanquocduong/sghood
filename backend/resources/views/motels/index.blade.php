@@ -160,8 +160,8 @@
                                         </span>
                                     </td>
 
-                                    <td>
-                                        <div class="text-center gap-2">
+                                    <td class="text-center">
+                                        <div  class="d-flex justify-content-center align-items-center gap-2">
                                             <a href="{{ route('motels.edit', $motel->id) }}"
                                                 class="btn btn-sm btn-primary me-1">
                                                 <i class="fas fa-edit"></i>

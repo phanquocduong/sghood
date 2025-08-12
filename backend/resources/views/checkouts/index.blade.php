@@ -147,7 +147,7 @@
                                         <button type="button"
                                             class="btn btn-{{ $checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason) ? 'danger' : 'info' }} btn-sm shadow-sm"
                                             data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $checkout->id }}">
-                                            <i class="fas fa-eye me-1"></i>Xem
+                                            <i class="fas fa-eye me-1"></i>
                                         </button>
                                         @if ($checkout->inventory_status !== 'Đã kiểm kê')
                                             <button type="button" class="btn btn-warning btn-sm shadow-sm"
