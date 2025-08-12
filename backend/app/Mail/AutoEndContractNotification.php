@@ -39,20 +39,14 @@ class AutoEndContractNotification extends Mailable
      */
     public function content(): Content
     {
-        // Load motel relationship nếu chưa có
-        if (!$this->contract->room->relationLoaded('motel')) {
-            $this->contract->room->load('motel.user');
-        }
-
         return new Content(
-            view: 'emails.auto-end-contract',
-            with: [
-                'contract' => $this->contract,
-                'property' => $this->contract->room, // Room chính là property
-                'tenant' => $this->contract->user,   // User chính là tenant
-                'landlord' => $this->contract->room->motel->user ?? null, // Landlord qua motel
-            ]
-        );
+        view: 'emails.auto-end-contract',
+        with: [
+            'contract' => $this->contract,
+            'property' => $this->contract->room, // Room chính là property
+            'tenant' => $this->contract->user,   // User chính là tenant
+        ]
+    );
     }
 
     /**

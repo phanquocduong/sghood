@@ -37,7 +37,7 @@ class MeterReadingController extends Controller
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $shouldDisplayTable = true;
             $displayMode = 'time_based';
-            
+
             Log::info('In meter reading period', [
                 'current_day' => $periodInfo['current_day'],
                 'display_month' => $periodInfo['display_month'],
@@ -52,7 +52,7 @@ class MeterReadingController extends Controller
                 $rooms = $roomsWithActiveContracts;
                 $shouldDisplayTable = true;
                 $displayMode = 'active_contracts';
-                
+
                 Log::info('Outside meter reading period, showing expiring contracts', [
                     'current_day' => $periodInfo['current_day'],
                     'period_description' => $periodInfo['period_description'],
@@ -62,7 +62,7 @@ class MeterReadingController extends Controller
                 $rooms = collect();
                 $shouldDisplayTable = false;
                 $displayMode = 'none';
-                
+
                 Log::info('Outside meter reading period, no expiring contracts', [
                     'current_day' => $periodInfo['current_day'],
                     'period_description' => $periodInfo['period_description']
@@ -107,11 +107,11 @@ class MeterReadingController extends Controller
             // ✅ Kiểm tra xem có thể tạo meter reading không
             foreach ($readings as $reading) {
                 $canCreate = $this->meterReadingService->canCreateMeterReadingForRoom(
-                    $reading['room_id'], 
-                    $month, 
+                    $reading['room_id'],
+                    $month,
                     $year
                 );
-                
+
                 if (!$canCreate) {
                     throw new \Exception("Không thể tạo chỉ số cho phòng {$reading['room_id']} trong tháng {$month}/{$year}. Có thể đã tồn tại hoặc phòng không có hợp đồng hoạt động.");
                 }
@@ -241,7 +241,7 @@ class MeterReadingController extends Controller
     public function checkCurrentPeriod()
     {
         $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
-        
+
         return response()->json([
             'current_period' => $periodInfo,
             'can_input_meter_reading' => $periodInfo['is_in_special_period'],
@@ -256,7 +256,7 @@ class MeterReadingController extends Controller
     public function getRoomsByPeriod(Request $request)
     {
         $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
-        
+
         if ($periodInfo['is_in_special_period']) {
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $displayMode = 'time_based';

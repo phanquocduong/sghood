@@ -145,10 +145,6 @@ class ContractService
 
             if ($status === 'Kết thúc' && $oldStatus !== 'Kết thúc') {
                 if ($contract->user) {
-                    // Update user role to "Người đăng ký"
-                    $contract->user->update(['role' => 'Người đăng ký']);
-
-                    // Remove identity docume
                     $contract->room->update(['status' => 'Sửa chữa']);
                     if ($contract->user->identity_document) {
                         $imagePaths = explode('|', $contract->user->identity_document);
@@ -396,9 +392,6 @@ class ContractService
 
             // Xử lý khi kết thúc hợp đồng sớm
             if ($contract->user) {
-                // Update user role to "Người đăng ký"
-                $contract->user->update(['role' => 'Người đăng ký']);
-
                 // Update room status
                 if ($contract->room) {
                     $contract->room->update(['status' => 'Sửa chữa']);
