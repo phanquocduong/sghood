@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('title', 'Quản lý hợp đồng')
@@ -20,26 +19,27 @@
         @endif
 
         <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
+            <div class="card-header bg-gradient text-white align-items-center rounded-top-4"
                 style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                <div class="d-flex align-items-center">
+                {{-- <div class="d-flex align-items-center">
                     <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
                         style="transition: all 0.3s;" title="Quay lại dashboard">
                         <i class="fas fa-arrow-left me-1"></i>
                         <span class="d-none d-sm-inline ms-1">Quay lại</span>
                     </a>
 
-                </div>
-                <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
+                </div> --}}
+                <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-center rounded-top-4"
                     style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                    <h5 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">
+                    <h5 class="mb-2 mb-sm-0 fw-bold text-start">
                         <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
                         <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
                     </h5>
                     <a href="{{ route('contracts.contract-extensions') }}"
-                        class="btn btn-primary me-2 shadow-sm w-100 w-sm-auto" style="transition: all 0.3s;"
-                        title="Xem danh sách hợp đồng gia hạn">
-                        <i class="fas fa-history me-1"></i> Danh sách hợp đồng gia hạn
+                        class="btn btn-primary me-0 shadow-sm w-auto px-2 px-sm-4 d-flex align-items-center justify-content-center"
+                        style="transition: all 0.3s;" title="Xem danh sách hợp đồng gia hạn">
+                        <i class="fas fa-history me-1"></i>
+                        <span class="d-none d-sm-inline">Danh sách hợp đồng gia hạn</span>
                     </a>
                 </div>
             </div>
@@ -59,167 +59,164 @@
                     </ol>
                 </nav>
 
-            <!-- Filter Form -->
-            <div class="mb-4">
-                <form action="{{ route('contracts.index') }}" method="GET" class="row g-3">
-                    <div class="col-md-4">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control shadow-sm" name="querySearch"
-                                placeholder="Tìm kiếm theo tên người thuê hoặc phòng..."
-                                value="{{ $querySearch }}">
+                <!-- Filter Form -->
+                <div class="mb-4">
+                    <form action="{{ route('contracts.index') }}" method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control shadow-sm" name="querySearch"
+                                    placeholder="Tìm kiếm theo tên người thuê hoặc phòng..." value="{{ $querySearch }}">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select shadow-sm" name="status">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                            <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
-                            <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
-                            <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
-                            <option value="Chờ thanh toán tiền cọc" {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc</option>
-                            <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
-                            <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
-                            <option value="Kết thúc sớm" {{ $status == 'Kết thúc sớm' ? 'selected' : '' }}>Kết thúc sớm</option>
-                            <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select shadow-sm" name="sort">
-                            <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }}>Mới nhất</option>
-                            <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary shadow-sm w-100">
-                            <i class="fas fa-search me-1"></i>Tìm kiếm
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        <div class="col-md-3">
+                            <select class="form-select shadow-sm" name="status">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận
+                                </option>
+                                <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
+                                <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh
+                                    sửa</option>
+                                <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
+                                <option value="Chờ thanh toán tiền cọc"
+                                    {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc
+                                </option>
+                                <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
+                                <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
+                                <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select shadow-sm" name="sort">
+                                <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }}>Mới nhất
+                                </option>
+                                <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary shadow-sm w-100">
+                                <i class="fas fa-search me-1"></i>Tìm kiếm
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-            <!-- Contracts Table -->
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden" style="text-align: center">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col" style="width: 5%;" class="text-center">STT</th>
-                            <th scope="col" style="width: 15%;">Người thuê</th>
-                            <th scope="col" style="width: 13%;">Tên phòng</th>
-                            <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
-                            <th scope="col" style="width: 13%;" class="text-center">Giá thuê</th>
-                            <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
-                            <th scope="col" style="width: 14%;" class="text-center">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($contracts as $contractItem)
-                            <tr class="table-row">
-                                <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
-                                <td>
-                                    <span class="user-name-clickable"
-                                          data-user-id="{{ $contractItem->user->id ?? '' }}"
-                                          data-user-name="{{ $contractItem->user->name ?? 'N/A' }}"
-                                          data-user-email="{{ $contractItem->user->email ?? 'N/A' }}"
-                                          data-user-phone="{{ $contractItem->user->phone ?? 'N/A' }}"
-                                          data-user-address="{{ $contractItem->user->address ?? 'N/A' }}"
-                                          data-user-cccd="{{ $contractItem->user->cccd ?? 'N/A' }}"
-                                          data-user-created="{{ $contractItem->user->created_at ?? 'N/A' }}"
-                                          title="Nhấn để xem thông tin chi tiết">
-                                        {{ $contractItem->user->name ?? 'N/A' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="room-name-clickable"
-                                          data-room-id="{{ $contractItem->room->id ?? '' }}"
-                                          title="Nhấn để xem chi tiết phòng">
-                                        {{ $contractItem->room->name ?? 'N/A' }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <small class="text-muted">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        {{ $contractItem->end_date
-                                            ? \Carbon\Carbon::parse($contractItem->end_date)->format('d/m/Y')
-                                            : 'N/A' }}
-                                    </small>
-                                </td>
-                                <td class="text-center">
-                                    <span class="fw-bold text-success">
-                                        {{ number_format($contractItem->rental_price ?? 0, 0, ',', '.') }} VNĐ
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    @php
-                                        $calculatedStatus = $contractItem->calculated_status ?? $contractItem->status;
-                                        $badgeClass = match ($calculatedStatus) {
-                                            'Chờ xác nhận' => 'primary',
-                                            'Chờ duyệt' => 'warning',
-                                            'Chờ duyệt thủ công' => 'warning',
-                                            'Chờ ký' => 'info',
-                                            'Hoạt động' => 'success',
-                                            'Kết thúc' => 'secondary',
-                                            'Kết thúc sớm' => 'secondary',
-                                            'Huỷ bỏ' => 'dark',
-                                            'Chờ thanh toán tiền cọc' => 'warning',
-                                            default => 'light'
-                                        };
-                                        $iconClass = match ($calculatedStatus) {
-                                            'Chờ xác nhận' => 'fas fa-clock',
-                                            'Chờ duyệt' => 'fas fa-eye',
-                                            'Chờ duyệt thủ công' => 'fas fa-hourglass-half',
-                                            'Chờ ký' => 'fas fa-pen',
-                                            'Hoạt động' => 'fas fa-check-circle',
-                                            'Kết thúc' => 'fas fa-flag-checkered',
-                                            'Kết thúc sớm' => 'fas fa-flag',
-                                            'Chờ thanh toán tiền cọc' => 'fas fa-money-bill-wave',
-                                            'Huỷ bỏ' => 'fas fa-times-circle',
-                                            default => 'fas fa-info-circle'
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $badgeClass }} py-2 px-3">
-                                        <i class="{{ $iconClass }} me-1" style="font-size: 8px;"></i>
-                                        {{ $calculatedStatus }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('contracts.show', $contractItem->id) }}"
-                                           class="btn btn-info btn-sm shadow-sm"
-                                           title="Xem chi tiết">
-                                            <i class="fas fa-eye me-1"></i>Xem
-                                        </a>
-                                        @if($contractItem->file && Storage::disk('private')->exists($contractItem->file))
-                                            <a href="{{ route('contracts.download', $contractItem->id) }}"
-                                            class="btn btn-outline-primary btn-sm shadow-sm"
-                                            title="Tải xuống PDF">
-                                                <i class="fas fa-download me-1"></i>PDF
-                                            </a>
-                                        @else
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-sm shadow-sm"
-                                                    disabled
-                                                    title="Không có file">
-                                                <i class="fa-solid fa-rotate-right"></i>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+                <!-- Contracts Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden"
+                        style="text-align: center">
+                        <thead class="table-dark">
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-5">
-                                    <i class="fas fa-file-contract fa-3x mb-3 opacity-50"></i>
-                                    <br>
-                                    <span class="fs-5">Không có hợp đồng nào.</span>
-                                    <br>
-                                    <small>Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo hợp đồng mới.</small>
-                                </td>
+                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
+                                <th scope="col" style="width: 15%;">Người thuê</th>
+                                <th scope="col" style="width: 13%;">Tên phòng</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
+                                <th scope="col" style="width: 13%;" class="text-center">Giá thuê</th>
+                                <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
+                                <th scope="col" style="width: 14%;" class="text-center">Hành động</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @forelse ($contracts as $contractItem)
+                                <tr class="table-row">
+                                    <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
+                                    <td>
+                                        <span class="user-name-clickable"
+                                            data-user-id="{{ $contractItem->user->id ?? '' }}"
+                                            data-user-name="{{ $contractItem->user->name ?? 'N/A' }}"
+                                            data-user-email="{{ $contractItem->user->email ?? 'N/A' }}"
+                                            data-user-phone="{{ $contractItem->user->phone ?? 'N/A' }}"
+                                            data-user-address="{{ $contractItem->user->address ?? 'N/A' }}"
+                                            data-user-cccd="{{ $contractItem->user->cccd ?? 'N/A' }}"
+                                            data-user-created="{{ $contractItem->user->created_at ?? 'N/A' }}"
+                                            title="Nhấn để xem thông tin chi tiết">
+                                            {{ $contractItem->user->name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="room-name-clickable"
+                                            data-room-id="{{ $contractItem->room->id ?? '' }}"
+                                            title="Nhấn để xem chi tiết phòng">
+                                            {{ $contractItem->room->name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ $contractItem->end_date ? \Carbon\Carbon::parse($contractItem->end_date)->format('d/m/Y') : 'N/A' }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-success">
+                                            {{ number_format($contractItem->rental_price ?? 0, 0, ',', '.') }} VNĐ
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $calculatedStatus =
+                                                $contractItem->calculated_status ?? $contractItem->status;
+                                            $badgeClass = match ($calculatedStatus) {
+                                                'Chờ xác nhận' => 'primary',
+                                                'Chờ duyệt' => 'warning',
+                                                'Chờ chỉnh sửa' => 'danger',
+                                                'Chờ ký' => 'info',
+                                                'Hoạt động' => 'success',
+                                                'Kết thúc' => 'secondary',
+                                                'Huỷ bỏ' => 'dark',
+                                                'Chờ thanh toán tiền cọc' => 'warning',
+                                                default => 'light',
+                                            };
+                                            $iconClass = match ($calculatedStatus) {
+                                                'Chờ xác nhận' => 'fas fa-clock',
+                                                'Chờ duyệt' => 'fas fa-eye',
+                                                'Chờ chỉnh sửa' => 'fas fa-edit',
+                                                'Chờ ký' => 'fas fa-pen',
+                                                'Hoạt động' => 'fas fa-check-circle',
+                                                'Kết thúc' => 'fas fa-flag-checkered',
+                                                'Huỷ bỏ' => 'fas fa-times-circle',
+                                                default => 'fas fa-info-circle',
+                                            };
+                                        @endphp
+                                        <span class="badge bg-{{ $badgeClass }} py-2 px-3">
+                                            <i class="{{ $iconClass }} me-1" style="font-size: 8px;"></i>
+                                            {{ $calculatedStatus }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('contracts.show', $contractItem->id) }}"
+                                                class="btn btn-info btn-sm shadow-sm" title="Xem chi tiết">
+                                                <i class="fas fa-eye me-1"></i>Xem
+                                            </a>
+                                            @if ($contractItem->file && Storage::disk('private')->exists($contractItem->file))
+                                                <a href="{{ route('contracts.download', $contractItem->id) }}"
+                                                    class="btn btn-outline-primary btn-sm shadow-sm"
+                                                    title="Tải xuống PDF">
+                                                    <i class="fas fa-download me-1"></i>PDF
+                                                </a>
+                                            @else
+                                                <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm"
+                                                    disabled title="Không có file">
+                                                    <i class="fa-solid fa-rotate-right"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <i class="fas fa-file-contract fa-3x mb-3 opacity-50"></i>
+                                        <br>
+                                        <span class="fs-5">Không có hợp đồng nào.</span>
+                                        <br>
+                                        <small>Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo hợp đồng mới.</small>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Pagination -->
                 @if ($contracts->hasPages())
@@ -244,7 +241,12 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4 text-center">
+                            <img id="modalUserAvatar" src="{{ asset('img/user.jpg') }}" alt="User Avatar"
+                                class="img-fluid rounded-circle mb-3"
+                                style="width: 150px; height: 150px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
                                     <i class="fas fa-user me-2"></i>Họ và tên:
@@ -263,13 +265,24 @@
                                 </label>
                                 <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserPhone">-</p>
                             </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
                                     <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
                                 </label>
                                 <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserAddress">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-venus-mars me-2"></i>Giới tính:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserGender">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-birthday-cake me-2"></i>Ngày sinh:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserBirthdate">-
+                                </p>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
@@ -407,36 +420,6 @@
             font-weight: 500;
             color: #495057 !important;
         }
-        @media (max-width: 576px) {
-
-                /* Nút hành động trên mobile chỉ là icon tròn */
-                .action-icon {
-                    padding: 6px 8px;
-                    /* Nhỏ gọn */
-                    border-radius: 50%;
-                    /* Bo tròn */
-                    width: 36px;
-                    height: 36px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center
-                }
-
-                /* Icon căn giữa */
-                .action-icon i {
-                    margin: 0 !important;
-                    font-size: 14px;
-                }
-
-                .card-header .btn {
-                    font-size: 14px;
-                    padding: 6px 8px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-            }
     </style>
 
     <script>
@@ -458,14 +441,34 @@
                     const userPhone = this.getAttribute('data-user-phone');
                     const userAddress = this.getAttribute('data-user-address');
                     const userCreated = this.getAttribute('data-user-created');
+                    const userGender = this.getAttribute('data-user-gender');
+                    const userBirthdate = this.getAttribute('data-user-birthdate');
+                    const userAvatar = this.getAttribute('data-user-avatar');
 
                     // Update modal content
                     document.getElementById('modalUserName').textContent = userName || 'N/A';
                     document.getElementById('modalUserEmail').textContent = userEmail || 'N/A';
                     document.getElementById('modalUserPhone').textContent = userPhone || 'N/A';
                     document.getElementById('modalUserAddress').textContent = userAddress || 'N/A';
+                    document.getElementById('modalUserGender').textContent = userGender || 'N/A';
+                    document.getElementById('modalUserAvatar').src = userAvatar ||
+                        '{{ asset('img/user.jpg') }}';
 
-                    // Format date if available
+                    // Format birthdate if available
+                    if (userBirthdate && userBirthdate !== 'N/A') {
+                        const date = new Date(userBirthdate);
+                        const formattedBirthdate = date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        document.getElementById('modalUserBirthdate').textContent =
+                            formattedBirthdate;
+                    } else {
+                        document.getElementById('modalUserBirthdate').textContent = 'N/A';
+                    }
+
+                    // Format created date if available
                     if (userCreated && userCreated !== 'N/A') {
                         const date = new Date(userCreated);
                         const formattedDate = date.toLocaleDateString('vi-VN', {
@@ -493,7 +496,7 @@
                     const roomId = this.getAttribute('data-room-id');
                     if (roomId && roomId !== '') {
                         // Navigate to room detail page
-                        window.location.href = `{{ url('rooms') }}/${roomId}`;
+                        window.open(`{{ url('rooms') }}/${roomId}`, '_blank');
                     }
                 });
             });
