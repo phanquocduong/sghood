@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Motel;
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {

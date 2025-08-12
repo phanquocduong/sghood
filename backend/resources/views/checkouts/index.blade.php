@@ -178,10 +178,15 @@
                                                 @endif
                                             @else
                                                 @php
+                                                    // Lấy giá trị từ configs với config_key là date_confirm_checkout
+                                                    $dateConfirmCheckout = DB::table('configs')
+                                                        ->where('config_key', 'date_confirm_checkout')
+                                                        ->value('config_value'); // Mặc định là 7 nếu không tìm thấy config
+
                                                     $updatedAt = \Carbon\Carbon::parse($checkout->updated_at);
                                                     $daysDiff = $updatedAt->diffInDays(now());
                                                 @endphp
-                                                @if ($checkout->user_confirmation_status === 'Chưa xác nhận' && $daysDiff > 7)
+                                                @if ($checkout->user_confirmation_status === 'Chưa xác nhận' && $daysDiff > $dateConfirmCheckout)
                                                     <form action="{{ route('checkouts.forceConfirmUser', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
                                                         onsubmit="return confirm('Bạn có chắc chắn muốn xác nhận đồng ý thay cho người dùng?')">
                                                         @csrf

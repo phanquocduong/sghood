@@ -23,7 +23,6 @@ class Checkout extends Model
         'note',
         'bank_info',
         'refund_status',
-        'receipt_path',
         'canceled_at',
     ];
 

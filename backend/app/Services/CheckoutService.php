@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\Drivers\Gd\Driver;
 
-
 class CheckoutService
 {
     public function getCheckouts($filters = [])
@@ -33,23 +32,23 @@ class CheckoutService
 
         if (!empty($querySearch)) {
             $query->whereHas('contract', function ($q) use ($querySearch) {
-            // If query is exactly "hd" or "HD", show all contracts
-            if (strtolower($querySearch) === 'hd') {
-                // No additional filtering - show all contracts
-                return;
-            }
+                // If query is exactly "hd" or "HD", show all contracts
+                if (strtolower($querySearch) === 'hd') {
+                    // No additional filtering - show all contracts
+                    return;
+                }
 
-            // If query starts with HD or hd, extract the numeric part
-            $numericQuery = $querySearch;
-            if (preg_match('/^hd(\d+)$/i', $querySearch, $matches)) {
-                $numericQuery = $matches[1];
-            }
+                // If query starts with HD or hd, extract the numeric part
+                $numericQuery = $querySearch;
+                if (preg_match('/^hd(\d+)$/i', $querySearch, $matches)) {
+                    $numericQuery = $matches[1];
+                }
 
-            $q->where('id', 'like', '%' . $querySearch . '%')
-              ->orWhere('id', 'like', '%' . $numericQuery . '%')
-              ->orWhereHas('user', function ($userQuery) use ($querySearch) {
-                  $userQuery->where('name', 'like', '%' . $querySearch . '%');
-              });
+                $q->where('id', 'like', '%' . $querySearch . '%')
+                    ->orWhere('id', 'like', '%' . $numericQuery . '%')
+                    ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                        $userQuery->where('name', 'like', '%' . $querySearch . '%');
+                    });
             });
         }
 
@@ -162,7 +161,7 @@ class CheckoutService
                                 $checkout,
                                 $user,
                                 $room,
-                                $data=$checkout->check_out_date,
+                                $data = $checkout->check_out_date,
                             );
 
                             Log::info('Checkout notification job dispatched', [
@@ -361,12 +360,22 @@ class CheckoutService
                     // Cập nhật vai trò người dùng thành "Người đăng ký"
                     $user = $checkout->contract->user;
                     if ($user) {
+                        // Xóa identity_document nếu tồn tại
+                        if ($user->identity_document && Storage::disk('private')->exists($user->identity_document)) {
+                            Storage::disk('private')->delete($user->identity_document);
+                            Log::info('Identity document deleted', [
+                                'user_id' => $user->id,
+                                'document_path' => $user->identity_document,
+                            ]);
+                        }
+
                         User::where('id', $user->id)->update([
                             'role' => 'Người đăng ký',
+                            'identity_document' => null,
                             'updated_at' => $refundedAt,
                         ]);
 
-                        Log::info('User role updated to Người đăng ký', [
+                        Log::info('User role updated to Người đăng ký and identity_document cleared', [
                             'user_id' => $user->id,
                             'checkout_id' => $checkout->id,
                             'contract_id' => $checkout->contract->id,
@@ -387,6 +396,7 @@ class CheckoutService
                 }
 
                 // Gửi thông báo bằng Job
+
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 

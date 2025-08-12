@@ -229,7 +229,7 @@ const send = text => {
     sendMessage(text);
 };
 
-const avatarUrl = computed(() => (user.value?.avatar ? config.public.baseUrl + user.value.avatar : '/images/dashboard-avatar.jpg'));
+const avatarUrl = computed(() => (user.value?.avatar ? config.public.baseUrl + user.value.avatar : '/images/default-avatar.webp'));
 const lastVisitedPage = computed(() => {
     return behavior.visitedPages.at(-1) || '/';
 });

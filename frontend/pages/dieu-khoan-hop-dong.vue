@@ -128,8 +128,13 @@ const error = ref(null);
 const parseTerms = () => {
     try {
         if (config.value?.rental_contract_terms) {
-            terms.value = JSON.parse(config.value.rental_contract_terms);
-            pending.value = false;
+            const termsArray = JSON.parse(config.value.rental_contract_terms);
+            if (Array.isArray(termsArray) && termsArray.length > 0) {
+                terms.value = termsArray[0]; // Lấy object đầu tiên từ mảng
+                pending.value = false;
+            } else {
+                throw new Error('Dữ liệu điều khoản hợp đồng không đúng định dạng');
+            }
         } else {
             throw new Error('Không có dữ liệu điều khoản hợp đồng');
         }

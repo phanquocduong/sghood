@@ -3,14 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CommentBlog extends Model
 {
     use HasFactory;
-    // Nếu bạn muốn hỗ trợ xóa mềm
-    // use SoftDeletes;
 
     protected $fillable = [
         'blog_id',

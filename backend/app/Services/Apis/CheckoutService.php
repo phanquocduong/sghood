@@ -117,7 +117,6 @@ class CheckoutService
                 'bank_info' => $checkout->bank_info,
                 'qr_code_path' => $checkout->qr_code_path,
                 'refund_status' => $checkout->refund_status,
-                'receipt_path' => $checkout->receipt_path,
                 'room_name' => $checkout->contract->room->name,
                 'motel_name' => $checkout->contract->room->motel->name,
                 'room_image' => $checkout->contract->room->main_image->image_url,

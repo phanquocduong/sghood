@@ -59,164 +59,167 @@
                     </ol>
                 </nav>
 
-                <!-- Filter Form -->
-                <div class="mb-4">
-                    <form action="{{ route('contracts.index') }}" method="GET" class="row g-3">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control shadow-sm" name="querySearch"
-                                    placeholder="Tìm kiếm theo tên người thuê hoặc phòng..." value="{{ $querySearch }}">
-                            </div>
+            <!-- Filter Form -->
+            <div class="mb-4">
+                <form action="{{ route('contracts.index') }}" method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control shadow-sm" name="querySearch"
+                                placeholder="Tìm kiếm theo tên người thuê hoặc phòng..."
+                                value="{{ $querySearch }}">
                         </div>
-                        <div class="col-md-3">
-                            <select class="form-select shadow-sm" name="status">
-                                <option value="">Tất cả trạng thái</option>
-                                <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận
-                                </option>
-                                <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
-                                <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh
-                                    sửa</option>
-                                <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
-                                <option value="Chờ thanh toán tiền cọc"
-                                    {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc
-                                </option>
-                                <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
-                                <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
-                                <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select shadow-sm" name="sort">
-                                <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }}>Mới nhất
-                                </option>
-                                <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary shadow-sm w-100">
-                                <i class="fas fa-search me-1"></i>Tìm kiếm
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select shadow-sm" name="status">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
+                            <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
+                            <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
+                            <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
+                            <option value="Chờ thanh toán tiền cọc" {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc</option>
+                            <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
+                            <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
+                            <option value="Kết thúc sớm" {{ $status == 'Kết thúc sớm' ? 'selected' : '' }}>Kết thúc sớm</option>
+                            <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select shadow-sm" name="sort">
+                            <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }}>Mới nhất</option>
+                            <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary shadow-sm w-100">
+                            <i class="fas fa-search me-1"></i>Tìm kiếm
+                        </button>
+                    </div>
+                </form>
+            </div>
 
-                <!-- Contracts Table -->
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden"
-                        style="text-align: center">
-                        <thead class="table-dark">
-                            <tr>
-                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
-                                <th scope="col" style="width: 15%;">Người thuê</th>
-                                <th scope="col" style="width: 13%;">Tên phòng</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
-                                <th scope="col" style="width: 13%;" class="text-center">Giá thuê</th>
-                                <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
-                                <th scope="col" style="width: 14%;" class="text-center">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($contracts as $contractItem)
-                                <tr class="table-row">
-                                    <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
-                                    <td>
-                                        <span class="user-name-clickable"
-                                            data-user-id="{{ $contractItem->user->id ?? '' }}"
-                                            data-user-name="{{ $contractItem->user->name ?? 'N/A' }}"
-                                            data-user-email="{{ $contractItem->user->email ?? 'N/A' }}"
-                                            data-user-phone="{{ $contractItem->user->phone ?? 'N/A' }}"
-                                            data-user-address="{{ $contractItem->user->address ?? 'N/A' }}"
-                                            data-user-cccd="{{ $contractItem->user->cccd ?? 'N/A' }}"
-                                            data-user-created="{{ $contractItem->user->created_at ?? 'N/A' }}"
-                                            title="Nhấn để xem thông tin chi tiết">
-                                            {{ $contractItem->user->name ?? 'N/A' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="room-name-clickable"
-                                            data-room-id="{{ $contractItem->room->id ?? '' }}"
-                                            title="Nhấn để xem chi tiết phòng">
-                                            {{ $contractItem->room->name ?? 'N/A' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            {{ $contractItem->end_date ? \Carbon\Carbon::parse($contractItem->end_date)->format('d/m/Y') : 'N/A' }}
-                                        </small>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="fw-bold text-success">
-                                            {{ number_format($contractItem->rental_price ?? 0, 0, ',', '.') }} VNĐ
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        @php
-                                            $calculatedStatus =
-                                                $contractItem->calculated_status ?? $contractItem->status;
-                                            $badgeClass = match ($calculatedStatus) {
-                                                'Chờ xác nhận' => 'primary',
-                                                'Chờ duyệt' => 'warning',
-                                                'Chờ chỉnh sửa' => 'danger',
-                                                'Chờ ký' => 'info',
-                                                'Hoạt động' => 'success',
-                                                'Kết thúc' => 'secondary',
-                                                'Huỷ bỏ' => 'dark',
-                                                'Chờ thanh toán tiền cọc' => 'warning',
-                                                default => 'light',
-                                            };
-                                            $iconClass = match ($calculatedStatus) {
-                                                'Chờ xác nhận' => 'fas fa-clock',
-                                                'Chờ duyệt' => 'fas fa-eye',
-                                                'Chờ chỉnh sửa' => 'fas fa-edit',
-                                                'Chờ ký' => 'fas fa-pen',
-                                                'Hoạt động' => 'fas fa-check-circle',
-                                                'Kết thúc' => 'fas fa-flag-checkered',
-                                                'Huỷ bỏ' => 'fas fa-times-circle',
-                                                default => 'fas fa-info-circle',
-                                            };
-                                        @endphp
-                                        <span class="badge bg-{{ $badgeClass }} py-2 px-3">
-                                            <i class="{{ $iconClass }} me-1" style="font-size: 8px;"></i>
-                                            {{ $calculatedStatus }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('contracts.show', $contractItem->id) }}"
-                                                class="btn btn-info btn-sm shadow-sm" title="Xem chi tiết">
-                                                <i class="fas fa-eye me-1"></i>Xem
+            <!-- Contracts Table -->
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden" style="text-align: center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col" style="width: 5%;" class="text-center">STT</th>
+                            <th scope="col" style="width: 15%;">Người thuê</th>
+                            <th scope="col" style="width: 13%;">Tên phòng</th>
+                            <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
+                            <th scope="col" style="width: 13%;" class="text-center">Giá thuê</th>
+                            <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
+                            <th scope="col" style="width: 14%;" class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($contracts as $contractItem)
+                            <tr class="table-row">
+                                <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
+                                <td>
+                                    <span class="user-name-clickable"
+                                          data-user-id="{{ $contractItem->user->id ?? '' }}"
+                                          data-user-name="{{ $contractItem->user->name ?? 'N/A' }}"
+                                          data-user-email="{{ $contractItem->user->email ?? 'N/A' }}"
+                                          data-user-phone="{{ $contractItem->user->phone ?? 'N/A' }}"
+                                          data-user-address="{{ $contractItem->user->address ?? 'N/A' }}"
+                                          data-user-cccd="{{ $contractItem->user->cccd ?? 'N/A' }}"
+                                          data-user-created="{{ $contractItem->user->created_at ?? 'N/A' }}"
+                                          title="Nhấn để xem thông tin chi tiết">
+                                        {{ $contractItem->user->name ?? 'N/A' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="room-name-clickable"
+                                          data-room-id="{{ $contractItem->room->id ?? '' }}"
+                                          title="Nhấn để xem chi tiết phòng">
+                                        {{ $contractItem->room->name ?? 'N/A' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ $contractItem->end_date
+                                            ? \Carbon\Carbon::parse($contractItem->end_date)->format('d/m/Y')
+                                            : 'N/A' }}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold text-success">
+                                        {{ number_format($contractItem->rental_price ?? 0, 0, ',', '.') }} VNĐ
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @php
+                                        $calculatedStatus = $contractItem->calculated_status ?? $contractItem->status;
+                                        $badgeClass = match ($calculatedStatus) {
+                                            'Chờ xác nhận' => 'primary',
+                                            'Chờ duyệt' => 'warning',
+                                            'Chờ duyệt thủ công' => 'warning',
+                                            'Chờ ký' => 'info',
+                                            'Hoạt động' => 'success',
+                                            'Kết thúc' => 'secondary',
+                                            'Kết thúc sớm' => 'secondary',
+                                            'Huỷ bỏ' => 'dark',
+                                            'Chờ thanh toán tiền cọc' => 'warning',
+                                            default => 'light'
+                                        };
+                                        $iconClass = match ($calculatedStatus) {
+                                            'Chờ xác nhận' => 'fas fa-clock',
+                                            'Chờ duyệt' => 'fas fa-eye',
+                                            'Chờ duyệt thủ công' => 'fas fa-hourglass-half',
+                                            'Chờ ký' => 'fas fa-pen',
+                                            'Hoạt động' => 'fas fa-check-circle',
+                                            'Kết thúc' => 'fas fa-flag-checkered',
+                                            'Kết thúc sớm' => 'fas fa-flag',
+                                            'Chờ thanh toán tiền cọc' => 'fas fa-money-bill-wave',
+                                            'Huỷ bỏ' => 'fas fa-times-circle',
+                                            default => 'fas fa-info-circle'
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $badgeClass }} py-2 px-3">
+                                        <i class="{{ $iconClass }} me-1" style="font-size: 8px;"></i>
+                                        {{ $calculatedStatus }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ route('contracts.show', $contractItem->id) }}"
+                                           class="btn btn-info btn-sm shadow-sm"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye me-1"></i>Xem
+                                        </a>
+                                        @if($contractItem->file && Storage::disk('private')->exists($contractItem->file))
+                                            <a href="{{ route('contracts.download', $contractItem->id) }}"
+                                            class="btn btn-outline-primary btn-sm shadow-sm"
+                                            title="Tải xuống PDF">
+                                                <i class="fas fa-download me-1"></i>PDF
                                             </a>
-                                            @if ($contractItem->file && Storage::disk('private')->exists($contractItem->file))
-                                                <a href="{{ route('contracts.download', $contractItem->id) }}"
-                                                    class="btn btn-outline-primary btn-sm shadow-sm"
-                                                    title="Tải xuống PDF">
-                                                    <i class="fas fa-download me-1"></i>PDF
-                                                </a>
-                                            @else
-                                                <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm"
-                                                    disabled title="Không có file">
-                                                    <i class="fa-solid fa-rotate-right"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted py-5">
-                                        <i class="fas fa-file-contract fa-3x mb-3 opacity-50"></i>
-                                        <br>
-                                        <span class="fs-5">Không có hợp đồng nào.</span>
-                                        <br>
-                                        <small>Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo hợp đồng mới.</small>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                        @else
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary btn-sm shadow-sm"
+                                                    disabled
+                                                    title="Không có file">
+                                                <i class="fa-solid fa-rotate-right"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i class="fas fa-file-contract fa-3x mb-3 opacity-50"></i>
+                                    <br>
+                                    <span class="fs-5">Không có hợp đồng nào.</span>
+                                    <br>
+                                    <small>Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo hợp đồng mới.</small>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
                 <!-- Pagination -->
                 @if ($contracts->hasPages())

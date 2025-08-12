@@ -24,9 +24,7 @@ use App\Http\Controllers\CKEditorController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContractExtensionController;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\RefundController;
 use App\Models\Contract;
-use App\Models\ContractExtension;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -100,6 +98,7 @@ Route::middleware('admin')->group(function () {
         Route::get('/trash/{id}', [RoomController::class, 'showTrashed'])->name('showTrashed');
         Route::post('/restore/{id}', [RoomController::class, 'restore'])->name('restore');
         Route::delete('/force-delete/{id}', [RoomController::class, 'forceDelete'])->name('forceDelete');
+        Route::put('/{roomId}/confirm-repair', [RoomController::class, 'confirmRepair'])->name('confirmRepair');
 
         // Image management routes
         Route::post('/{roomId}/images/{imageId}/delete', [RoomController::class, 'deleteImage'])->name('image.delete');
@@ -166,9 +165,11 @@ Route::middleware('admin')->group(function () {
         Route::post('/contract-extensions/{id}/status', [ContractExtensionController::class, 'updateExtensionStatus'])->name('contract_extensions.update_status');
         Route::get('/{id}', [ContractController::class, 'show'])->name('show');
         Route::match(['put', 'patch'], '/{id}/update-status', [ContractController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{id}/terminate-early', [ContractController::class, 'terminateEarly'])->name('terminateEarly');
         Route::get('/{id}/download', [ContractController::class, 'download'])->name('download');
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
         Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
+        Route::match(['put', 'patch'], '/{id}/content', [ContractController::class, 'updateContent'])->name('updateContent');
     });
 
     // Notification routes

@@ -3,6 +3,7 @@
 namespace App\Services\Apis;
 
 use App\Jobs\Apis\SendContractExtensionNotification;
+use App\Models\Config;
 use App\Models\Contract;
 use App\Models\ContractExtension;
 use Carbon\Carbon;
@@ -46,13 +47,19 @@ class ContractExtensionService
 
             $endDate = Carbon::parse($contract->end_date);
             $today = Carbon::today();
-            $diffInDays = $endDate->diffInDays($today);
 
-            if ($diffInDays > 15) {
-                return [
-                    'error' => 'Hợp đồng chưa đến thời điểm có thể gia hạn (cần trong vòng 15 ngày trước khi hết hạn)',
-                    'status' => 400,
-                ];
+            // Lấy giá trị config is_near_expiration
+            $isNearExpiration = Config::getValue('is_near_expiration', 15);
+
+            // Chỉ kiểm tra điều kiện ngày nếu is_near_expiration không phải -1
+            if ($isNearExpiration !== -1) {
+                $diffInDays = $endDate->diffInDays($today);
+                if ($diffInDays > $isNearExpiration) {
+                    return [
+                        'error' => "Hợp đồng chưa đến thời điểm có thể gia hạn (cần trong vòng {$isNearExpiration} ngày trước khi hết hạn)",
+                        'status' => 400,
+                    ];
+                }
             }
 
             if ($months < 1) {

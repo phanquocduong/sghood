@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Apis;
 
+use App\Models\Config;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBookingRequest extends FormRequest
@@ -21,10 +22,48 @@ class StoreBookingRequest extends FormRequest
      */
     public function rules(): array
     {
-       return [
+        // Lấy danh sách durations từ Config
+        $durations = Config::getValue('booking_durations', [
+            '1 năm',
+            '2 năm',
+            '3 năm',
+            '4 năm',
+            '5 năm'
+        ]);
+
+        // Đảm bảo durations là mảng
+        if (!is_array($durations)) {
+            try {
+                $durations = json_decode($durations, true);
+                if (!is_array($durations)) {
+                    // Nếu vẫn không phải mảng, sử dụng danh sách mặc định
+                    $durations = [
+                        '1 năm',
+                        '2 năm',
+                        '3 năm',
+                        '4 năm',
+                        '5 năm'
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Nếu parse JSON thất bại, sử dụng danh sách mặc định
+                $durations = [
+                    '1 năm',
+                    '2 năm',
+                    '3 năm',
+                    '4 năm',
+                    '5 năm'
+                ];
+            }
+        }
+
+        // Chuyển mảng durations thành chuỗi phân tách bằng dấu phẩy
+        $durationsString = implode(',', $durations);
+
+        return [
             'room_id' => 'required|exists:rooms,id',
             'start_date' => 'required|date_format:d/m/Y',
-            'duration' => 'required|string|in:1 năm,2 năm,3 năm,4 năm,5 năm',
+            'duration' => 'required|string|in:' . $durationsString,
             'note' => 'nullable|string|max:500'
         ];
     }
@@ -37,7 +76,7 @@ class StoreBookingRequest extends FormRequest
             'start_date.required' => 'Vui lòng chọn ngày bắt đầu',
             'start_date.date_format' => 'Ngày bắt đầu phải có định dạng DD/MM/YYYY.',
             'duration.required' => 'Vui lòng chọn thời gian thuê',
-            'duration.in' => 'Thời gian thuê phải là 1 năm, 2 năm, 3 năm, 4 năm hoặc 5 năm',
+            'duration.in' => 'Thời gian thuê phải là một trong các giá trị hợp lệ.',
             'note.max' => 'Ghi chú không được vượt quá 500 ký tự'
         ];
     }

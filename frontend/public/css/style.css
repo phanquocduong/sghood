@@ -235,7 +235,6 @@ a:hover {
 }
 img {
     max-width: 100%;
-    
 }
 
 /* ---------------------------------- */
@@ -6088,14 +6087,14 @@ input#booking-time {
     margin: 0;
     padding: 8px 16px;
     line-height: 15px;
-    letter-spacing: 2.5px;
+    letter-spacing: 2px;
     border-radius: 50px;
     text-transform: uppercase;
     background-color: #fff;
     border: 1px solid #66676b;
     color: #66676b;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: bold;
     position: relative;
     top: -6px;
     margin-left: 10px;
@@ -13619,14 +13618,14 @@ section.fullwidth .listing-item-container.list-layout,
     font-size: 20px;
     bottom: -1px;
     position: relative;
-    font-weight: 500;
+    font-weight: bold;
     margin: 0;
     line-height: 31px;
 }
 
 .listing-item-content span {
     font-size: 16px;
-    font-weight: 300;
+    font-weight: 500;
     display: inline-block;
     color: rgba(255, 255, 255, 0.7);
 }
@@ -13634,15 +13633,15 @@ section.fullwidth .listing-item-container.list-layout,
 .listing-item-container.list-layout span.tag,
 .listing-item-content span.tag {
     text-transform: uppercase;
-    font-size: 9px;
-    letter-spacing: 2.5px;
+    font-size: 10px;
+    letter-spacing: 2px;
     font-weight: 60;
     background: #66676b;
     border-radius: 50px;
     padding: 4px 16px;
     line-height: 20px;
     color: #fff;
-    font-weight: 400;
+    font-weight: bold;
     margin-bottom: 9px;
 }
 
@@ -13793,7 +13792,7 @@ section.fullwidth .listing-item-container.list-layout,
 }
 
 .rating-counter {
-    color: #909090;
+    color: #333;
     padding-left: 5px;
     display: inline-block;
     font-size: 15px;
@@ -13907,7 +13906,7 @@ span.like-icon {
     position: absolute;
     transform: rotate(45deg);
     right: -64px;
-    top: 22px;
+    top: 28px;
     text-align: center;
     width: 200px;
     font-size: 12.5px;
@@ -14330,7 +14329,7 @@ header.fullwidth.dashboard .container {
 }
 .dashboard #logo a.dashboard-logo {
     display: inline-block;
-        margin-left: 70px;
+    margin-left: 70px;
 }
 
 /* ---------------------------------- */
@@ -17785,14 +17784,14 @@ text-overflow: ellipsis; */
     color: #fff;
     font-size: 18px;
     padding: 0 0 2px 0;
-    font-weight: 500;
+    font-weight: bold;
     margin: 0;
     line-height: 27px;
 }
 
 .map-box .listing-item-content span {
     font-size: 15px;
-    font-weight: 300;
+    font-weight: 500;
     display: inline-block;
     color: rgba(255, 255, 255, 0.7);
 }

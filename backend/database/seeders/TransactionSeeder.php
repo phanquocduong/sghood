@@ -18,7 +18,7 @@ class TransactionSeeder extends Seeder
     public function run()
     {
         // Lấy tất cả các invoice có type là 'Đặt cọc'
-        $invoices = Invoice::where('type', 'Hàng tháng')->get();
+        $invoices = Invoice::where('type', 'Hàng tháng')->where('status', 'Đã trả')->get();
 
         foreach ($invoices as $invoice) {
             // Tạo reference_code ngẫu nhiên và unique

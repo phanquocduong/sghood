@@ -76,7 +76,8 @@ class ContractController extends Controller
     {
         try {
             $contract = Contract::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
-            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id, $request->input('bypass_extract'));
+            $bypassExtract = filter_var($request->input('bypass_extract'), FILTER_VALIDATE_BOOLEAN);
+            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id, $bypassExtract);
 
             if ($contract->status === 'Chờ xác nhận' && $request->hasFile('identity_images')) {
                 $this->userService->extractAndSaveIdentityImages(
@@ -86,9 +87,7 @@ class ContractController extends Controller
             }
 
             return response()->json([
-                'message' => $contract->status === 'Chờ xác nhận'
-                    ? 'Hợp đồng đã được lưu và đang chờ duyệt'
-                    : 'Hợp đồng đã được chỉnh sửa và gửi lại để duyệt',
+                'message' => 'Hợp đồng đã được lưu và đang chờ duyệt',
                 'data' => $updatedContract,
             ]);
         } catch (ModelNotFoundException $e) {
@@ -137,13 +136,11 @@ class ContractController extends Controller
                 return response()->json(['error' => 'Hợp đồng chưa thể tải PDF.'], 400);
             }
 
-            // Tạo và lưu PDF nếu chưa có
             if (!$contract->file) {
                 $this->contractService->generateAndSaveContractPdf($id);
                 $contract->refresh();
             }
 
-            // Trả về URL của file (sử dụng route để phục vụ file private)
             $fileUrl = url('/contract/pdf/' . $id);
 
             return response()->json(['data' => ['file_url' => $fileUrl]]);

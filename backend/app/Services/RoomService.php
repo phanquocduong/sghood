@@ -12,19 +12,28 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Throwable;
 
 class RoomService
 {
     // Tiêu chuẩn hóa phản hồi thành công
     protected function successResponse($data)
     {
-        return ['data' => $data];
+        return [
+            'status' => true,
+            'data' => $data,
+            'error' => null
+        ];
     }
 
-    // Tiêu chuẩn hóa phản hồi lỗi
-    protected function errorResponse($message, $status = 400)
+    protected function errorResponse($message, $code = 500)
     {
-        return ['error' => $message, 'status' => $status];
+        return [
+            'status' => false,
+            'data' => collect(), // ✅ trả về collection rỗng để không lỗi
+            'error' => $message,
+            'code' => $code
+        ];
     }
 
     // Xác thực và lấy thông tin nhà trọ
@@ -521,5 +530,46 @@ class RoomService
             ->selectRaw('motel_id, COUNT(*) as total_rooms, COUNT(CASE WHEN status = "Trống" THEN 1 END) as available_rooms')
             ->groupBy('motel_id')
             ->get();
+    }
+    public function getRoomsUnderRepair()
+    {
+        try {
+            $rooms = Room::where('status', 'Sửa chữa')
+                ->orderBy('created_at', 'desc') // Lấy mới nhất trước
+                ->get();
+
+            return $this->successResponse($rooms);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return $this->errorResponse('Đã xảy ra lỗi khi lấy danh sách phòng đang sửa chữa', 500);
+        }
+    }
+
+    public function confirmRepair($roomOrId, $status): array
+    {
+        try {
+            $room = $roomOrId instanceof Room ? $roomOrId : Room::find($roomOrId);
+
+            if (! $room) {
+                return $this->errorResponse('Không tìm thấy phòng.', 404);
+            }
+
+            if ($room->status !== 'Sửa chữa') {
+                return $this->errorResponse('Phòng không ở trạng thái "Sửa chữa".', 422);
+            }
+
+            DB::beginTransaction();
+
+            $room->status = $status; // ✅ lấy đúng từ Controller
+            $room->save();
+
+            DB::commit();
+
+            return $this->successResponse($room);
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('RoomService@confirmRepair: ' . $e->getMessage());
+            return $this->errorResponse('Có lỗi khi cập nhật trạng thái phòng.', 500);
+        }
     }
 }

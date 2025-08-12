@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Http\Requests\SendMessageRequest;
 use Illuminate\Support\Facades\Auth;
 use Kreait\Firebase\Factory;
-use Kreait\Firebase\Firestore;
 
 class MessageController extends Controller
 {

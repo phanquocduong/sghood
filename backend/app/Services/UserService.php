@@ -3,13 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class UserService

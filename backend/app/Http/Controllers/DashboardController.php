@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Services\CheckoutService;
@@ -7,7 +8,6 @@ use App\Services\ContractService;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
-use App\Models\Contract;
 use App\Models\RepairRequest;
 use App\Services\NoteService;
 use App\Services\RoomService;
@@ -25,8 +25,9 @@ class DashboardController extends Controller
     protected $contractService;
     protected $contractExtensionsService;
     protected $checkoutService;
+    protected $roomService;
 
-    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionService $contractExtensionsService, CheckoutService $checkoutService)
+    public function __construct(NoteService $noteService, RepairRequestService $repairRequestService, ScheduleService $scheduleService, ContractService $contractService, ContractExtensionService $contractExtensionsService, CheckoutService $checkoutService, RoomService $roomService)
     {
         $this->noteService = $noteService;
         $this->repairRequestService = $repairRequestService;
@@ -34,6 +35,7 @@ class DashboardController extends Controller
         $this->contractService = $contractService;
         $this->contractExtensionsService = $contractExtensionsService;
         $this->checkoutService = $checkoutService;
+        $this->roomService = $roomService;
     }
 
     public function index(): View|RedirectResponse
@@ -57,7 +59,16 @@ class DashboardController extends Controller
         $contracts = collect($contracts['data'])->take(3);
         $justSignedContracts = collect($justSignedContracts['data'])->take(3);
         $contractExtensions = collect($contractExtensions)->take(3);
-       $checkouts = collect($checkouts)->take(3);
+        $checkouts = collect($checkouts)->take(3);
+        // Lấy danh sách phòng đang sửa chữa
+        $roomsUnderRepairResult = $this->roomService->getRoomsUnderRepair();
+
+        if (isset($roomsUnderRepairResult['error'])) {
+            Log::error('Error fetching rooms under repair: ' . $roomsUnderRepairResult['error']);
+            return redirect()->route('dashboard')->with('error', 'Đã xảy ra lỗi khi lấy danh sách phòng đang sửa chữa.');
+        }
+
+        $roomsUnderRepair = $roomsUnderRepairResult['data'];
 
         // Lấy repair requests cần xử lý (pending và in_progress) - chỉ lấy 5 cái mới nhất
         $repairRequests = $this->repairRequestService->getPendingRequests(5);
@@ -82,7 +93,6 @@ class DashboardController extends Controller
         }
 
         $messages = $messages['data'];
-        return view('dashboard', compact('notes', 'repairRequests','schedules','contracts','justSignedContracts', 'contractExtensions', 'messages', 'checkouts'));
+        return view('dashboard', compact('notes', 'repairRequests', 'schedules', 'contracts', 'justSignedContracts', 'contractExtensions', 'messages', 'checkouts', 'roomsUnderRepair'));
     }
-
 }

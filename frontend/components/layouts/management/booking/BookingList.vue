@@ -7,7 +7,7 @@
         <li v-for="item in bookings" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank">
+                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
                         <img :src="config.public.baseUrl + item.room_image" :alt="item.room_name - item.motel_name" />
                     </NuxtLink>
                 </div>
@@ -19,10 +19,10 @@
                                 item.status === 'Chấp nhận' ? 'Đã được chấp nhận' : item.status
                             }}</span>
                         </h3>
-                        <div v-if="item.cancellation_reason && item.status === 'Từ chối'" class="inner-booking-list">
+                        <div v-if="item.rejection_reason && item.status === 'Từ chối'" class="inner-booking-list">
                             <h5>Lý do QTV từ chối:</h5>
                             <ul class="booking-list">
-                                <li>{{ item.cancellation_reason }}</li>
+                                <li>{{ item.rejection_reason }}</li>
                             </ul>
                         </div>
                         <div class="inner-booking-list">

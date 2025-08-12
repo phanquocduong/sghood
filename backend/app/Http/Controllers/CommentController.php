@@ -6,9 +6,7 @@ use App\Http\Requests\ReplyCommentRequest;
 use App\Models\Blog;
 use App\Models\CommentBlog;
 use App\Services\CommentService;
-
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
