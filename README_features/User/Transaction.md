@@ -2,12 +2,10 @@
 
 -   **Mô tả**: Người dùng có thể xem toàn bộ lịch sử giao dịch liên quan đến các hóa đơn của mình.
 -   **Chi tiết**:
-    -   Hiển thị thông tin mỗi giao dịch bao gồm: số tiền (với dấu "+" cho giao dịch thu, "-" cho giao dịch chi), thời gian giao dịch, mã hóa đơn liên quan, mã tham chiếu.
+    -   GIao diện hiển thị thông tin mỗi giao dịch bao gồm: số tiền (với dấu "+" cho giao dịch thu, "-" cho giao dịch chi), thời gian giao dịch, mã hóa đơn liên quan, mã tham chiếu.
     -   Giao dịch được trình bày trong danh sách với biểu tượng ví tiền (wallet) để dễ nhận diện.
     -   Hỗ trợ phân trang để người dùng dễ dàng duyệt qua danh sách dài.
     -   Hiển thị thông báo “Chưa có giao dịch nào” nếu danh sách trống.
-
----
 
 ### 2. Lọc và sắp xếp giao dịch
 
