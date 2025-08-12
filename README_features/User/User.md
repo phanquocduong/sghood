@@ -1,18 +1,7 @@
-1. **Cập nhật thông tin cá nhân**
+-   **Xem thông tin hồ sơ cá nhân**: Người dùng có thể truy cập trang "Hồ sơ cá nhân" để xem các thông tin hiện tại của mình, bao gồm họ tên, số điện thoại, email, giới tính, ngày sinh, địa chỉ và ảnh đại diện. Thông tin được hiển thị rõ ràng và thân thiện với người dùng.
 
-    - Người dùng có thể chỉnh sửa thông tin cá nhân như họ tên, giới tính (Nam, Nữ, Khác), ngày sinh và địa chỉ.
-    - Hệ thống kiểm tra tính hợp lệ của thông tin (tên không vượt quá 255 ký tự, ngày sinh phải đúng định dạng, giới tính phải thuộc các lựa chọn hợp lệ).
-    - Sau khi cập nhật thành công, thông tin mới được lưu và trả về cho người dùng.
+-   **Cập nhật thông tin cá nhân**: Người dùng có thể chỉnh sửa các thông tin cá nhân như họ tên, giới tính (chọn từ các tùy chọn: Nam, Nữ, Khác), ngày sinh (với định dạng lịch dễ sử dụng), và địa chỉ. Hệ thống tự động lưu các thay đổi này và hiển thị thông báo thành công khi cập nhật hoàn tất.
 
-2. **Thay đổi ảnh đại diện**
+-   **Tải lên và thay đổi ảnh đại diện**: Người dùng có thể tải lên ảnh đại diện mới từ thiết bị của mình. Ảnh sẽ được hiển thị trước (preview) để người dùng xem trước khi lưu. Hệ thống tự động chuyển đổi ảnh sang định dạng WebP để tối ưu hóa dung lượng và lưu trữ an toàn.
 
-    - Người dùng có thể tải lên ảnh đại diện mới (hỗ trợ định dạng ảnh, kích thước tối đa 2MB).
-    - Ảnh được tự động chuyển đổi sang định dạng WebP với chất lượng tối ưu (85%) để tiết kiệm dung lượng.
-    - Ảnh đại diện mới được lưu vào hệ thống và hiển thị trong thông tin người dùng.
-
-3. **Đổi mật khẩu**
-
-    - Người dùng có thể thay đổi mật khẩu bằng cách nhập mật khẩu hiện tại và mật khẩu mới.
-    - Mật khẩu mới phải có ít nhất 8 ký tự và khớp với xác nhận mật khẩu.
-    - Hệ thống kiểm tra mật khẩu hiện tại để đảm bảo tính bảo mật trước khi cập nhật mật khẩu mới.
-    - Người dùng nhận được thông báo “Đổi mật khẩu thành công” khi hoàn tất.
+-   **Thay đổi mật khẩu**: Người dùng có thể đổi mật khẩu bằng cách nhập mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu mới. Hệ thống kiểm tra tính khớp giữa mật khẩu mới và xác nhận, đồng thời đảm bảo mật khẩu hiện tại đúng trước khi thực hiện thay đổi. Thông báo thành công sẽ hiển thị khi đổi mật khẩu hoàn tất.

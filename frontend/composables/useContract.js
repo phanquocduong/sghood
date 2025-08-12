@@ -70,8 +70,8 @@ export function useContract({
             router.push('/quan-ly/hop-dong');
         } finally {
             loading.value = false;
-            // await nextTick();
-            // syncIdentityData();
+            await nextTick();
+            syncIdentityData();
         }
     };
 

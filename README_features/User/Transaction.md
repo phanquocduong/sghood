@@ -1,15 +1,24 @@
-1. **Xem danh sách lịch sử giao dịch với phân trang**
+### 1. Xem danh sách giao dịch
 
--   Người dùng có thể xem toàn bộ danh sách giao dịch cá nhân, bao gồm thông tin chi tiết như mã giao dịch, thời gian giao dịch, nội dung, loại giao dịch, số tiền chuyển, mã tham chiếu, và mã hóa đơn liên quan.
--   Hỗ trợ phân trang với thông tin tổng số trang, tổng giao dịch, trang hiện tại, và số lượng mỗi trang.
--   Đảm bảo chỉ hiển thị giao dịch thuộc hợp đồng của người dùng đang đăng nhập, thông qua liên kết với hóa đơn và hợp đồng.
+-   **Mô tả**: Người dùng có thể xem toàn bộ lịch sử giao dịch liên quan đến các hóa đơn của mình.
+-   **Chi tiết**:
+    -   Hiển thị thông tin mỗi giao dịch bao gồm: số tiền (với dấu "+" cho giao dịch thu, "-" cho giao dịch chi), thời gian giao dịch, mã hóa đơn liên quan, mã tham chiếu.
+    -   Giao dịch được trình bày trong danh sách với biểu tượng ví tiền (wallet) để dễ nhận diện.
+    -   Hỗ trợ phân trang để người dùng dễ dàng duyệt qua danh sách dài.
+    -   Hiển thị thông báo “Chưa có giao dịch nào” nếu danh sách trống.
 
-2. **Lọc danh sách giao dịch theo loại chuyển khoản**
+---
 
--   Người dùng có thể lọc giao dịch theo loại giao dịch, ví dụ: chỉ xem các giao dịch chi ra hoặc thu vào.
--   Kết hợp với phân trang để tập trung vào các giao dịch liên quan, tránh hiển thị dữ liệu thừa.
+### 2. Lọc và sắp xếp giao dịch
 
-3. **Sắp xếp danh sách giao dịch theo thời gian**
-
--   Người dùng có thể sắp xếp giao dịch theo các tùy chọn: cũ nhất (theo ngày giao dịch tăng dần), mới nhất (theo ngày giao dịch giảm dần), hoặc mặc định (theo thời gian tạo giảm dần).
--   Tích hợp với lọc và phân trang để tạo trải nghiệm tùy chỉnh, dễ quản lý lịch sử dài hạn.
+-   **Mô tả**: Người dùng có thể lọc và sắp xếp danh sách giao dịch để tìm kiếm nhanh chóng.
+-   **Chi tiết**:
+    -   Lọc theo loại giao dịch:
+        -   Tất cả (hiển thị cả giao dịch thu và chi).
+        -   Giao dịch chi (transfer_type = 'in').
+        -   Giao dịch thu (transfer_type = 'out').
+    -   Sắp xếp theo:
+        -   Mặc định (mới nhất theo thời gian tạo).
+        -   Cũ nhất (theo thời gian giao dịch tăng dần).
+        -   Mới nhất (theo thời gian giao dịch giảm dần).
+    -   Bộ lọc được áp dụng tự động khi thay đổi, và danh sách giao dịch được cập nhật ngay lập tức.

@@ -23,7 +23,7 @@ _(Hiển thị danh sách: Phan Quốc Dương - Trưởng nhóm; Nguyễn Gia B
 **Slide 3: Chi tiết thành viên - Phan Quốc Dương**  
 _(Hiển thị thông tin: Chức vụ, nhiệm vụ chính. Thời lượng: 30 giây)_
 
-"Bạn Phan Quốc Dương, với vai trò trưởng nhóm, đã xây dựng chức năng quản lý tài khoản, tìm kiếm và đặt thuê phòng, quản lý hợp đồng và hóa đơn. Ngoài ra, bạn còn triển khai tính năng đặt lịch xem phòng, thanh toán trực tuyến và tải hợp đồng PDF, nhằm đảm bảo hệ thống mượt mà và tiện lợi cho người dùng."
+"Em xin chào quý thầy cô, em xin tự giới thiệu, em tên là Phan Quốc Dương, với vai trò trưởng nhóm và đảm nhận phần frontend trong ự án, đã xây dựng chức năng quản lý tài khoản, tìm kiếm và đặt thuê phòng, quản lý hợp đồng và hóa đơn. Ngoài ra, em còn triển khai tính năng đặt lịch xem phòng, thanh toán trực tuyến và tải hợp đồng PDF, nhằm đảm bảo hệ thống mượt mà và tiện lợi cho người dùng."
 
 ---
 
@@ -87,24 +87,17 @@ _(Hiển thị sơ đồ chi tiết cho Admin. Thời lượng: 45 giây)_
 
 ---
 
-**Slide 12: Sơ đồ ERD**  
-_(Hiển thị sơ đồ ERD tổng quát. Thời lượng: 30 giây)_
-
-"Tiếp theo là sơ đồ ERD, mô tả mối quan hệ giữa các thực thể như User, Room, Contract, Invoice và Notification. ERD được thiết kế để đảm bảo tính nhất quán dữ liệu và dễ mở rộng."
-
----
-
 **Slide 13: ERD cấp 1**  
 _(Hiển thị ERD cấp 1. Thời lượng: 30 giây)_
 
-"ERD cấp 1 tập trung vào các thực thể chính và mối quan hệ cơ bản, như User liên kết với Contract, và Contract liên kết với Invoice. Chúng em sử dụng ERD này để xây dựng mô hình cơ sở dữ liệu ban đầu."
+"Tiếp theo là phần sơ đồ ERD, đầu tiên là ERD cấp 1 sẽ tập trung vào các thực thể chính và mối quan hệ. Chúng em sử dụng ERD này để xây dựng mô hình cơ sở dữ liệu ban đầu."
 
 ---
 
 **Slide 14: ERD cấp 2**  
 _(Hiển thị ERD cấp 2. Thời lượng: 30 giây)_
 
-"ERD cấp 2 chi tiết hơn do thêm các thuộc tính đầy đủ cho thực thể."
+"ERD cấp 2 sẽ là ERD chi tiết, đầy đủ các thuộc tính cho các thực thể."
 
 ---
 
@@ -126,7 +119,7 @@ _(Hiển thị các hình ảnh giao diện user site, có thể chia thành nhi
 -   Slide 19: Tin nhắn thời gian thực và thông báo.
 -   Slide 20: Dashboard cá nhân cho người thuê, hiển thị lịch sử giao dịch và yêu cầu sửa chữa.  
     ...
-    Chúng em sẽ demo trực tiếp trên website nếu quý thầy cô cho phép, để minh họa giao diện và tính năng thực tế mà chúng em đã xây dựng được."
+    Chúng em sẽ demo trực tiếp trên website, để minh họa giao diện và tính năng thực tế mà chúng em đã xây dựng được."
 
 ---
 

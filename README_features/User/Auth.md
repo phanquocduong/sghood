@@ -1,30 +1,11 @@
-1. **Đăng ký tài khoản**
+-   **Đăng ký tài khoản mới**: Người dùng có thể bắt đầu bằng cách nhập số điện thoại (định dạng Việt Nam, tự động chuẩn hóa thành +84 nếu bắt đầu bằng 0), nhận mã OTP qua SMS để xác minh danh tính, sau đó nhập mã OTP để tiếp tục. Tiếp theo, người dùng nhập họ và tên, địa chỉ email, mật khẩu (với yêu cầu bảo mật cao: ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt), và xác nhận mật khẩu. Sau khi hoàn tất, hệ thống gửi email xác minh để kích hoạt tài khoản.
 
-    - Người dùng có thể tạo tài khoản mới bằng cách cung cấp thông tin như số điện thoại, tên, email và mật khẩu.
-    - Hệ thống kiểm tra tính hợp lệ của thông tin (ví dụ: email và số điện thoại chưa được sử dụng, mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt).
-    - Sau khi đăng ký thành công, người dùng nhận được email xác minh để kích hoạt tài khoản.
+-   **Xác minh email sau đăng ký**: Người dùng nhận email chứa liên kết xác minh (có thời hạn 60 phút), nhấn vào liên kết để xác nhận địa chỉ email là hợp lệ, đảm bảo tài khoản được kích hoạt và có thể đăng nhập.
 
-2. **Xác minh email**
+-   **Đăng nhập vào hệ thống**: Người dùng có thể đăng nhập bằng số điện thoại (tự động chuẩn hóa định dạng +84) hoặc địa chỉ email, kết hợp với mật khẩu. Hệ thống kiểm tra xác thực và chỉ cho phép truy cập nếu email đã được xác minh.
 
-    - Người dùng nhận được một liên kết xác minh qua email sau khi đăng ký.
-    - Nhấp vào liên kết để xác minh email, kích hoạt tài khoản và cho phép đăng nhập.
-    - Hệ thống thông báo nếu liên kết không hợp lệ hoặc email đã được xác minh trước đó.
+-   **Quên mật khẩu và đặt lại mật khẩu**: Nếu quên mật khẩu, người dùng nhập số điện thoại để nhận mã OTP qua SMS, sau đó nhập mã OTP để xác minh. Tiếp theo, người dùng có thể đặt mật khẩu mới (với yêu cầu bảo mật tương tự đăng ký) và xác nhận mật khẩu để hoàn tất quá trình.
 
-3. **Đăng nhập**
+-   **Đăng xuất khỏi hệ thống**: Người dùng có thể đăng xuất an toàn, hệ thống sẽ xóa toàn bộ session, token xác thực và cookie liên quan, đảm bảo không còn truy cập trái phép.
 
-    - Người dùng có thể đăng nhập bằng email hoặc số điện thoại cùng với mật khẩu.
-    - Hệ thống kiểm tra thông tin đăng nhập và yêu cầu email phải được xác minh trước khi cho phép truy cập.
-    - Sau khi đăng nhập thành công, người dùng nhận được một mã token để duy trì phiên đăng nhập an toàn.
-    - Người dùng sẽ được lưu một mã FCM (Firebase Cloud Messaging) token để hỗ trợ nhận thông báo đẩy từ ứng dụng.
-    - Hệ thống cập nhật mã FCM token vào thông tin người dùng, đảm bảo ứng dụng có thể gửi thông báo chính xác.
-
-4. **Đăng xuất**
-
-    - Người dùng có thể đăng xuất khỏi hệ thống.
-    - Hệ thống xóa toàn bộ phiên đăng nhập và token liên quan, đảm bảo bảo mật khi người dùng rời khỏi ứng dụng.
-
-5. **Đặt lại mật khẩu**
-
-    - Người dùng có thể đặt lại mật khẩu bằng cách cung cấp số điện thoại và mật khẩu mới.
-    - Mật khẩu mới phải tuân thủ các quy tắc bảo mật (ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt).
-    - Hệ thống xác minh số điện thoại và cập nhật mật khẩu mới sau khi thông tin được xác thực.
+-   **Bảo mật khi gửi OTP**: Người dùng thấy hệ thống sử dụng reCAPTCHA để chống bot và lạm dụng khi yêu cầu gửi mã OTP, giúp bảo vệ khỏi các cuộc tấn công tự động.
