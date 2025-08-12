@@ -123,6 +123,7 @@ const { $api } = useNuxtApp();
 const { handleBackendError } = useApi();
 const toast = useAppToast();
 const router = useRouter();
+const config = useState('configs');
 
 const schedules = ref([]);
 const filter = ref({ sort: 'default', status: '' });
@@ -133,19 +134,9 @@ const editFormData = ref({ id: null, date: '', timeSlot: '', message: '' });
 const rooms = ref([]);
 const roomSelect = ref(null);
 const timeSelect = ref(null);
-const durations = ref(['1 năm', '2 năm', '3 năm', '4 năm', '5 năm']);
+const durations = ref([]);
 const durationSelect = ref(null);
-const timeSlots = ref([
-    '8:00 sáng - 8:30 sáng',
-    '9:00 sáng - 9:30 sáng',
-    '10:00 sáng - 10:30 sáng',
-    '11:00 sáng - 11:30 sáng',
-    '13:00 chiều - 13:30 chiều',
-    '14:00 chiều - 14:30 chiều',
-    '15:00 chiều - 15:30 chiều',
-    '16:00 chiều - 16:30 chiều',
-    '17:00 chiều - 17:30 chiều'
-]);
+const timeSlots = ref([]);
 
 const fetchSchedules = async () => {
     isLoading.value = true;
@@ -185,7 +176,6 @@ const fetchRooms = async motelId => {
 };
 
 const submitBooking = async () => {
-    console.log(formData.value);
     if (!formData.value.room_id || !formData.value.date || !formData.value.duration) {
         return toast.error('Vui lòng chọn phòng, ngày bắt đầu và thời gian thuê');
     }
@@ -400,6 +390,14 @@ const formatTimeSlot = scheduledAt => {
 };
 
 onMounted(() => {
+    if (config.value?.time_slots_viewing_schedule) {
+        timeSlots.value = JSON.parse(config.value.time_slots_viewing_schedule) || [];
+    }
+
+    if (config.value?.booking_durations) {
+        durations.value = JSON.parse(config.value.booking_durations) || [];
+    }
+
     fetchSchedules();
     nextTick(() => {
         initDatePicker('date-picker', formData);

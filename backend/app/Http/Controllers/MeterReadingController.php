@@ -27,17 +27,23 @@ class MeterReadingController extends Controller
         $meterReadings = $this->meterReadingService->getAllMeterReadings($search, $perPage);
         $isFiltering = $request->hasAny(['search', 'room_id', 'month', 'year', 'sortOption']);
 
-        // Kiểm tra thời gian đầu tiên
-        $today = now();
-        $startDate = $today->copy()->day(28);
-        $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
-        $isInMeterReadingPeriod = $today->between($startDate, $endDate);
+        // ✅ Sử dụng service để lấy thông tin thời gian thay vì tính toán thủ công
+        $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
+        $isInMeterReadingPeriod = $periodInfo['is_in_special_period'];
 
+        // ✅ Logic đồng bộ với service
         if ($isInMeterReadingPeriod) {
-            // Trong thời gian nhập chỉ số (28 -> 10): hiển thị phòng cần nhập chỉ số
+            // Trong thời gian nhập chỉ số (28 -> 5): hiển thị phòng cần nhập chỉ số
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $shouldDisplayTable = true;
             $displayMode = 'time_based';
+            
+            Log::info('In meter reading period', [
+                'current_day' => $periodInfo['current_day'],
+                'display_month' => $periodInfo['display_month'],
+                'display_year' => $periodInfo['display_year'],
+                'period_description' => $periodInfo['period_description']
+            ]);
         } else {
             // Ngoài thời gian: chỉ hiển thị phòng gần hết hạn hợp đồng (3 ngày)
             $roomsWithActiveContracts = $this->meterReadingService->getRoomsWithActiveContracts();
@@ -46,10 +52,21 @@ class MeterReadingController extends Controller
                 $rooms = $roomsWithActiveContracts;
                 $shouldDisplayTable = true;
                 $displayMode = 'active_contracts';
+                
+                Log::info('Outside meter reading period, showing expiring contracts', [
+                    'current_day' => $periodInfo['current_day'],
+                    'period_description' => $periodInfo['period_description'],
+                    'rooms_count' => $roomsWithActiveContracts->flatten()->count()
+                ]);
             } else {
                 $rooms = collect();
                 $shouldDisplayTable = false;
                 $displayMode = 'none';
+                
+                Log::info('Outside meter reading period, no expiring contracts', [
+                    'current_day' => $periodInfo['current_day'],
+                    'period_description' => $periodInfo['period_description']
+                ]);
             }
         }
 
@@ -61,6 +78,12 @@ class MeterReadingController extends Controller
             'displayMode' => $displayMode,
             'search' => $search,
             'perPage' => $perPage,
+            // ✅ Thêm thông tin period để view sử dụng
+            'periodInfo' => $periodInfo,
+            'isInMeterReadingPeriod' => $isInMeterReadingPeriod,
+            'currentDay' => $periodInfo['current_day'],
+            'periodDescription' => $periodInfo['period_description'],
+            'readablePeriod' => $periodInfo['readable_period']
         ];
 
         if ($request->ajax()) {
@@ -69,6 +92,7 @@ class MeterReadingController extends Controller
 
         return view('meter_readings.index', $data);
     }
+
     public function store(MeterReadingRequest $request)
     {
         try {
@@ -79,6 +103,19 @@ class MeterReadingController extends Controller
             $month = $request->input('month');
             $year = $request->input('year');
             $createdInvoices = [];
+
+            // ✅ Kiểm tra xem có thể tạo meter reading không
+            foreach ($readings as $reading) {
+                $canCreate = $this->meterReadingService->canCreateMeterReadingForRoom(
+                    $reading['room_id'], 
+                    $month, 
+                    $year
+                );
+                
+                if (!$canCreate) {
+                    throw new \Exception("Không thể tạo chỉ số cho phòng {$reading['room_id']} trong tháng {$month}/{$year}. Có thể đã tồn tại hoặc phòng không có hợp đồng hoạt động.");
+                }
+            }
 
             foreach ($readings as $reading) {
                 $meterReading = $this->meterReadingService->createMeterReading([
@@ -150,9 +187,6 @@ class MeterReadingController extends Controller
         }
     }
 
-
-
-
     public function filter(Request $request)
     {
         $query = MeterReading::query()->with('room');
@@ -199,7 +233,44 @@ class MeterReadingController extends Controller
         if ($request->ajax()) {
             return view('meter_readings._meter_readings_table', compact('meterReadings'));
         }
-
     }
 
+    /**
+     * ✅ Thêm method mới để check thời gian hiện tại (cho API hoặc debugging)
+     */
+    public function checkCurrentPeriod()
+    {
+        $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
+        
+        return response()->json([
+            'current_period' => $periodInfo,
+            'can_input_meter_reading' => $periodInfo['is_in_special_period'],
+            'rooms_available' => $this->meterReadingService->getRoomsWithMotel()->flatten()->count(),
+            'expiring_contracts' => $this->meterReadingService->getRoomsWithActiveContracts()->flatten()->count()
+        ]);
+    }
+
+    /**
+     * ✅ Thêm method để lấy rooms theo thời gian (cho AJAX)
+     */
+    public function getRoomsByPeriod(Request $request)
+    {
+        $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
+        
+        if ($periodInfo['is_in_special_period']) {
+            $rooms = $this->meterReadingService->getRoomsWithMotel();
+            $displayMode = 'time_based';
+        } else {
+            $rooms = $this->meterReadingService->getRoomsWithActiveContracts();
+            $displayMode = 'active_contracts';
+        }
+
+        return response()->json([
+            'rooms' => $rooms,
+            'display_mode' => $displayMode,
+            'period_info' => $periodInfo,
+            'total_rooms' => $rooms->flatten()->count(),
+            'total_motels' => $rooms->count()
+        ]);
+    }
 }

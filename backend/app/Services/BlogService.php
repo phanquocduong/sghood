@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
-
-
 class BlogService
 {
     public function getAllBlogs($querySearch = null, $status = null, $sortOption = 'created_at_desc', $perPage = 10)

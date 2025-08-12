@@ -135,6 +135,7 @@ sudo apt install -y certbot python3-certbot-nginx
 ```
 
 ### 8. Cài `ext-grpc` (cho Firestore)
+
 ```bash
 sudo pecl install protobuf-3.21.12
 sudo pecl install grpc-1.56.0
@@ -278,6 +279,7 @@ sudo systemctl reload nginx
 ```bash
 sudo certbot --nginx -d admin.sghood.com.vn -d www.admin.sghood.com.vn
 ```
+
 ## 8 . Cài Cronjob
 
 ```bash
@@ -302,7 +304,7 @@ Kiểm tra cronjob đã được thêm chưa:
 crontab -l
 ```
 
-## 9 . Cài Suppervison
+## 9 . Cài Suppervisor
 
 # Cài đặt Supervisor:
 

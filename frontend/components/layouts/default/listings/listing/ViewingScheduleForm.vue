@@ -2,12 +2,10 @@
     <div id="booking-widget-anchor" class="boxed-widget booking-widget message-vendor">
         <h3><i class="fa fa-calendar-check-o"></i> Đặt lịch xem trọ</h3>
         <div class="row with-forms margin-top-0">
-            <!-- Date Picker -->
             <div class="col-lg-12">
                 <input type="text" id="date-picker" placeholder="Chọn ngày" readonly="readonly" />
             </div>
 
-            <!-- Time Slots - Desktop Version -->
             <div class="col-lg-12 desktop-time-slot">
                 <div class="panel-dropdown time-slots-dropdown">
                     <a href="#" :class="{ active: isTimeSlotDropdownOpen }" @click.prevent="toggleTimeSlotDropdown">
@@ -20,12 +18,12 @@
                                     type="radio"
                                     :name="'time-slot-' + index"
                                     :id="'time-slot-' + index"
-                                    :value="slot.time"
+                                    :value="slot"
                                     v-model="formData.timeSlot"
-                                    @change="selectTimeSlot(slot.time)"
+                                    @change="selectTimeSlot(slot)"
                                 />
                                 <label :for="'time-slot-' + index">
-                                    <strong>{{ slot.time }}</strong>
+                                    <strong>{{ slot }}</strong>
                                 </label>
                             </div>
                         </div>
@@ -33,17 +31,15 @@
                 </div>
             </div>
 
-            <!-- Time Slots - Mobile/Tablet Version -->
             <div class="col-lg-12 mobile-time-slot">
                 <select v-model="formData.timeSlot" class="custom-select time-slot-select" @change="onMobileTimeSlotChange">
                     <option value="" disabled>Chọn khung giờ</option>
-                    <option v-for="(slot, index) in timeSlots" :key="index" :value="slot.time">
-                        {{ slot.time }}
+                    <option v-for="(slot, index) in timeSlots" :key="index" :value="slot">
+                        {{ slot }}
                     </option>
                 </select>
             </div>
 
-            <!-- Message -->
             <div class="col-lg-12">
                 <textarea cols="10" rows="2" placeholder="Thêm lời nhắn (không bắt buộc)..." v-model="formData.message"></textarea>
             </div>
@@ -61,42 +57,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, watch } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
-import { useRoute } from 'vue-router';
 
 const toast = useAppToast();
 const authStore = useAuthStore();
-const route = useRoute();
 const { $api } = useNuxtApp();
 const loading = ref(false);
+const config = useState('configs');
 
-// Dữ liệu mẫu cho time slots
-const timeSlots = ref([
-    { time: '8:00 sáng - 8:30 sáng' },
-    { time: '9:00 sáng - 9:30 sáng' },
-    { time: '10:00 sáng - 10:30 sáng' },
-    { time: '11:00 sáng - 11:30 sáng' },
-    { time: '13:00 chiều - 13:30 chiều' },
-    { time: '14:00 chiều - 14:30 chiều' },
-    { time: '15:00 chiều - 15:30 chiều' },
-    { time: '16:00 chiều - 16:30 chiều' },
-    { time: '17:00 chiều - 17:30 chiều' }
-]);
-
-// Dữ liệu form
+const timeSlots = ref([]);
 const formData = ref({
     date: '',
     timeSlot: '',
     message: ''
 });
-
-// Trạng thái dropdown cho desktop
 const isTimeSlotDropdownOpen = ref(false);
 const selectedTimeSlot = ref('');
 
-// Props để nhận motel_id từ component cha
 const props = defineProps({
     motelId: {
         type: [Number, String],
@@ -104,24 +83,20 @@ const props = defineProps({
     }
 });
 
-// Hàm toggle dropdown cho desktop
 const toggleTimeSlotDropdown = () => {
     isTimeSlotDropdownOpen.value = !isTimeSlotDropdownOpen.value;
 };
 
-// Hàm chọn time slot cho desktop
 const selectTimeSlot = time => {
     selectedTimeSlot.value = time;
     isTimeSlotDropdownOpen.value = false;
     formData.value.timeSlot = time;
 };
 
-// Hàm xử lý khi chọn time slot trên mobile
 const onMobileTimeSlotChange = () => {
     selectedTimeSlot.value = formData.value.timeSlot;
 };
 
-// Handle click outside để đóng dropdown trên desktop
 const handleClickOutside = event => {
     const dropdown = event.target.closest('.time-slots-dropdown');
     if (!dropdown && isTimeSlotDropdownOpen.value) {
@@ -142,7 +117,6 @@ const handleBackendError = error => {
     toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
 };
 
-// Hàm gửi form
 const submitForm = async () => {
     if (!authStore.user) {
         toast.error('Vui lòng đăng nhập!');
@@ -179,9 +153,23 @@ const submitForm = async () => {
     }
 };
 
-// Khởi tạo date picker
+// Theo dõi config để cập nhật timeSlots
+watch(
+    () => config.value?.time_slots_viewing_schedule,
+    newValue => {
+        if (newValue) {
+            try {
+                timeSlots.value = JSON.parse(newValue) || [];
+            } catch (error) {
+                console.error('Lỗi khi parse time_slots_viewing_schedule:', error);
+                timeSlots.value = [];
+            }
+        }
+    },
+    { immediate: true }
+);
+
 onMounted(() => {
-    // Add click outside listener cho desktop dropdown
     document.addEventListener('click', handleClickOutside);
 
     nextTick(() => {
@@ -241,7 +229,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Desktop styles - giữ nguyên dropdown gốc */
 .desktop-time-slot {
     display: block;
 }
@@ -258,7 +245,6 @@ onMounted(() => {
     z-index: 1000;
 }
 
-/* Custom Select Styling cho Mobile/Tablet */
 .custom-select {
     width: 100%;
     padding: 15px 20px;
@@ -327,7 +313,6 @@ onMounted(() => {
     }
 }
 
-/* Mobile styles */
 @media (max-width: 768px) {
     .custom-select {
         padding: 10px 20px;
@@ -350,18 +335,16 @@ onMounted(() => {
     }
 }
 
-/* Enhanced mobile select for better UX */
 @media (max-width: 480px) {
     .custom-select {
         line-height: 2rem;
-        font-size: 17px; /* Prevents zoom on iOS */
+        font-size: 17px;
         border-radius: 8px;
         min-height: 60px;
         background-position: right 18px center;
     }
 }
 
-/* Loading spinner */
 .spinner {
     display: inline-block;
     width: 16px;
@@ -385,12 +368,10 @@ onMounted(() => {
     cursor: not-allowed;
 }
 
-/* Smooth transitions */
 * {
     transition: all 0.15s ease-in-out;
 }
 
-/* Focus improvements for accessibility */
 .custom-select:focus-visible {
     outline: 2px solid #f91942;
     outline-offset: 2px;

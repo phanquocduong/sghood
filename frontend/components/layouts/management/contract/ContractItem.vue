@@ -67,7 +67,7 @@
                     item.status === 'Hoạt động' &&
                     isNearExpiration(item.end_date) &&
                     item.latest_extension_status !== 'Chờ duyệt' &&
-                    item.latest_checkout_status === null
+                    (item.has_checkout === null || (item.has_checkout !== null && item.latest_checkout_status !== null))
                 "
                 href="#"
                 @click.prevent="openConfirmExtendPopup(item)"
@@ -80,7 +80,7 @@
                     item.status === 'Hoạt động' &&
                     isNearExpiration(item.end_date) &&
                     item.latest_extension_status !== 'Chờ duyệt' &&
-                    item.latest_checkout_status === null
+                    (item.has_checkout === null || (item.has_checkout !== null && item.latest_checkout_status !== null))
                 "
                 href="#"
                 @click.prevent="openReturnModal(item)"
@@ -89,7 +89,12 @@
                 <i class="sl sl-icon-logout"></i> Trả phòng
             </a>
             <a
-                v-if="item.status === 'Hoạt động' && item.latest_extension_status !== 'Chờ duyệt' && item.latest_checkout_status === null"
+                v-if="
+                    item.status === 'Hoạt động' &&
+                    !isNearExpiration(item.end_date) &&
+                    item.latest_extension_status !== 'Chờ duyệt' &&
+                    (item.has_checkout === null || (item.has_checkout !== null && item.latest_checkout_status !== null))
+                "
                 href="#"
                 @click.prevent="openConfirmEarlyTerminationPopup(item.id)"
                 class="button"

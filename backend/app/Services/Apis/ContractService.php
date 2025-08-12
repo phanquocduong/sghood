@@ -54,6 +54,7 @@ class ContractService
                     'early_terminated_at' => $contract->early_terminated_at?->toDateTimeString(),
                     'invoice_id' => $contract->invoices->first()?->id,
                     'latest_extension_status' => $contract->extensions->first()?->status,
+                    'has_checkout' => $contract->checkouts->first()?->id,
                     'latest_checkout_status' => $contract->checkouts->first()?->canceled_at,
                 ])
                 ->toArray();
@@ -282,19 +283,19 @@ class ContractService
             $currentMonth = $currentDate->month;
             $currentYear = $currentDate->year;
 
-            if ($currentDate->day >= 27) {
-                // Nếu ngày hiện tại từ 27 trở đi, kiểm tra hóa đơn tháng hiện tại
+            if ($currentDate->day > 5) {
+                // Nếu ngày hiện tại > 5, kiểm tra hóa đơn tháng hiện tại
                 $hasCurrentMonthInvoice = $contract->invoices()
                     ->where('month', $currentMonth)
                     ->where('year', $currentYear)
                     ->exists();
                 if (!$hasCurrentMonthInvoice) {
                     return [
-                        'error' => 'Hóa đơn cho tháng hiện tại chưa được tạo. Vui lòng chờ đến khi hóa đơn được tạo.',
+                        'error' => 'Hóa đơn cho tháng hiện tại chưa được tạo. Vui lòng chờ đến khi hóa đơn được tạo và thanh toán thành công.',
                         'status' => 400,
                     ];
                 }
-            } elseif ($currentDate->day <= 5) {
+            } else {
                 // Nếu ngày hiện tại từ 1-5, kiểm tra hóa đơn tháng trước
                 $previousMonth = $currentDate->copy()->subMonth();
                 $hasPreviousMonthInvoice = $contract->invoices()
@@ -303,7 +304,7 @@ class ContractService
                     ->exists();
                 if (!$hasPreviousMonthInvoice) {
                     return [
-                        'error' => 'Hóa đơn cho tháng trước chưa được tạo. Vui lòng chờ đến khi hóa đơn được tạo.',
+                        'error' => 'Hóa đơn cho tháng trước chưa được tạo. Vui lòng chờ đến khi hóa đơn được tạo và thanh toán thành công.',
                         'status' => 400,
                     ];
                 }

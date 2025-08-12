@@ -11,7 +11,10 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:check-contract-expiry')->everyMinute()->withoutOverlapping();
+        $schedule->command('app:check-contract-expiry')->dailyAt('8:00')->withoutOverlapping();
+        $schedule->command('app:check-overdue-invoice')->dailyAt('9:00')->withoutOverlapping();
+        $schedule->command('app:process-auto-confirmed-checkout')->dailyAt('10:00')->withoutOverlapping();
+        $schedule->command('app:check-end-date-contract')->dailyAt('11:00')->withoutOverlapping();
         // log để kiểm tra xem có lỗi gì không
         $schedule->call(function () {
             Log::info('Simple closure schedule is running.');

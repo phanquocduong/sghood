@@ -163,7 +163,7 @@ class MotelService
                 'images:id,motel_id,image_url',
                 'rooms' => fn ($query) =>
                     $query->select('id', 'motel_id', 'name', 'price', 'area', 'status', 'description')
-                        ->where('status', 'Trống')
+                        ->where('status', '!=', 'Ẩn')
                         ->with([
                             'amenities:id,name',
                             'images:id,room_id,image_url,is_main'
