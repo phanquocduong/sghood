@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ContractService;
 use Illuminate\Database\Eloquent\Model;
 
 class Contract extends Model
@@ -63,5 +64,10 @@ class Contract extends Model
     public function checkouts()
     {
         return $this->hasMany(Checkout::class, 'contract_id');
+    }
+
+    public function checkOverdueInvoices(): bool
+    {
+        return app(ContractService::class)->checkOverdueInvoices($this->id);
     }
 }
