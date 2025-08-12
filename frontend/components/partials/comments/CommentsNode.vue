@@ -6,10 +6,12 @@
                 class="comment-avatar"
                 style="padding: 0 0 0 0"
                 :src="
-                    authStore.user?.avatar
-                        ? baseUrl + authStore.user.avatar
-                        : comment.user?.avatar
-                        ? baseUrl + comment.user.avatar
+                 (comment.user_id === authStore.user?.id
+                        ? authStore.user.avatar
+                        : comment.user?.avatar)
+                        ? baseUrl + (comment.user_id === authStore.user?.id
+                            ? authStore.user.avatar
+                            : comment.user.avatar)
                         : defaultAvatar
                 "
             />
