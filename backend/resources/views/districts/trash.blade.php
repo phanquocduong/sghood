@@ -9,9 +9,10 @@
                 style="background: linear-gradient(90deg, #ff6f61, #ff9a76); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h3 class="card-title mb-0">{{ __('Thùng rác') }}</h3>
                 <div class="card-tools">
-                    <a href="{{ route('districts.index') }}" class="btn btn-sm btn-light text-dark shadow-sm"
+                    <a href="{{ route('districts.index') }}" class="btn btn-sm btn-light text-dark shadow-sm action-icon"
                         style="transition: all 0.3s;">
-                        <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại') }}
+                        <i class="fas fa-arrow-left me-1"></i>
+                        <span class="d-none d-sm-inline">{{ __('Quay lại') }}</span>
                     </a>
                 </div>
             </div>
@@ -66,20 +67,22 @@
                                         <form action="{{ route('districts.restore', $district->id) }}" method="POST"
                                             class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success me-2 action-btn"
+                                            <button type="submit" class="btn btn-sm btn-success me-2 action-btn action-icon"
                                                 onclick="return confirm('Bạn có chắc chắn muốn khôi phục?')"
                                                 style="transition: all 0.3s;">
-                                                <i class="fas fa-trash-restore me-1"></i> {{ __('Khôi phục') }}
+                                                <i class="fas fa-trash-restore me-1"></i>
+                                                <span class="d-none d-sm-inline">{{ __('Khôi phục') }}</span>
                                             </button>
                                         </form>
                                         <form action="{{ route('districts.forceDelete', $district->id) }}" method="POST"
                                             class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn"
+                                            <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
                                                 onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn?')"
                                                 style="transition: all 0.3s;">
-                                                <i class="fas fa-trash me-1"></i> {{ __('Xóa vĩnh viễn') }}
+                                                <i class="fas fa-trash me-1"></i>
+                                                <span class="d-none d-sm-inline">{{ __('Xóa vĩnh viễn') }}</span>
                                             </button>
                                         </form>
                                     </td>
@@ -113,6 +116,36 @@
 
         .alert-success {
             border-left: 5px solid #28a745;
+        }
+        @media (max-width: 576px) {
+
+            /* Nút hành động trên mobile chỉ là icon tròn */
+            .action-icon {
+                padding: 6px 8px;
+                /* Nhỏ gọn */
+                border-radius: 50%;
+                /* Bo tròn */
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center
+            }
+
+            /* Icon căn giữa */
+            .action-icon i {
+                margin: 0 !important;
+                font-size: 14px;
+            }
+
+            .card-header .btn {
+                font-size: 14px;
+                padding: 6px 8px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
         }
     </style>
 

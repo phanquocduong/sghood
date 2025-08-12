@@ -1,27 +1,38 @@
 <div class="user-info-wrapper">
     <div class="user-info-container">
-        <div class="avatar">
-            <img src="{{ $user->avatar && file_exists(public_path($user->avatar))
-                ? asset($user->avatar)
-                : asset('img/user.jpg') }}"
+        <div class="avatar" style="position: relative;">
+            <img src="{{ $user->avatar && file_exists(public_path($user->avatar)) ? asset($user->avatar) : asset('img/user.jpg') }}"
                 alt="Avatar">
-        </div>
 
-        <div class="info">
-            <h4 class="user-name">{{ $user->name }}</h4>
-            <p><strong>Email:</strong> {{ $user->email }}</p>
-            <p><strong>Số điện thoại:</strong> {{ $user->phone }}</p>
-            <p><strong>Vai trò:</strong> {{ $user->role }}</p>
-            <p><strong>Trạng thái:</strong> {{ $user->status }}</p>
-            <p><strong>Ngày tạo:</strong> {{ $user->created_at->format('d/m/Y H:i') }}</p>
-            <p><strong>Địa chỉ:</strong> {{ $user->address }}</p>
-            <p>
-                <strong>Ngày sinh:</strong>
-                {{ $user->birthdate instanceof \Carbon\Carbon ? $user->birthdate->format('d/m/Y') : 'Chưa cập nhật' }}
-            </p>
-            <p><strong>Giới tính:</strong> {{ $user->gender }}</p>
-        </div>
+            <span
+                style="
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 20px;
+        height: 20px;
+        background: {{ $user->status === 'Khoá' ? 'red' : 'green' }};
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    "></span>
     </div>
+
+    <div class="info">
+        <h4 class="user-name">{{ $user->name }}</h4>
+        <p><strong>Email:</strong> {{ $user->email }}</p>
+        <p><strong>Số điện thoại:</strong> {{ $user->phone }}</p>
+        <p><strong>Vai trò:</strong> {{ $user->role }}</p>
+        <p><strong>Trạng thái:</strong> {{ $user->status }}</p>
+        <p><strong>Ngày tạo:</strong> {{ $user->created_at->format('d/m/Y H:i') }}</p>
+        <p><strong>Địa chỉ:</strong> {{ $user->address }}</p>
+        <p>
+            <strong>Ngày sinh:</strong>
+            {{ $user->birthdate instanceof \Carbon\Carbon ? $user->birthdate->format('d/m/Y') : 'Chưa cập nhật' }}
+        </p>
+        <p><strong>Giới tính:</strong> {{ $user->gender }}</p>
+    </div>
+</div>
 </div>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User Modal</title>
@@ -108,18 +119,18 @@
         box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
     }
 
-    .avatar::after {
+    /* .avatar::after {
         content: '';
         position: absolute;
         bottom: 10px;
         right: 10px;
         width: 20px;
         height: 20px;
-        background: #10b981;
+        background: {{ $user->status === 'Khóa' ? 'red' : 'green' }};
         border-radius: 50%;
         border: 3px solid white;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
+    } */
 
     /* Info Section */
     .info {

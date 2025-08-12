@@ -131,7 +131,7 @@
                             <td>
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('repair_requests.show', $repair->id) }}" class="btn btn-info btn-sm">
-                                        Chi tiết
+                                        <i class="fas fa-eye me-1"></i>
                                     </a>
                                     @php
                                         $isFinal = in_array($repair->status, ['Hoàn thành', 'Huỷ bỏ']);
