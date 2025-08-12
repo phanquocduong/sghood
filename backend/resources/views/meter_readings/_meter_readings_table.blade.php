@@ -32,7 +32,6 @@
         @endforelse
     </tbody>
 </table>
-{{ $meterReadings->links('pagination::bootstrap-4') }}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
