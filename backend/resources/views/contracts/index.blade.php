@@ -20,16 +20,16 @@
         @endif
 
         <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
+            <div class="card-header bg-gradient text-white align-items-center rounded-top-4"
                 style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                <div class="d-flex align-items-center">
+                {{-- <div class="d-flex align-items-center">
                     <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
                         style="transition: all 0.3s;" title="Quay lại dashboard">
                         <i class="fas fa-arrow-left me-1"></i>
                         <span class="d-none d-sm-inline ms-1">Quay lại</span>
                     </a>
 
-                </div>
+                </div> --}}
                 <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
                     style="background: linear-gradient(90deg, #007bff, #00c6ff);">
                     <h5 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">
