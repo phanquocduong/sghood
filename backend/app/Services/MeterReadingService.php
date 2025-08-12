@@ -45,7 +45,7 @@ class MeterReadingService
                 $targetMonth = $previousMonth->month;
                 $targetYear = $previousMonth->year;
             } else {
-                // Ngoài thời gian cho phép (11-27) -> không có phòng nào cần nhập
+                // Ngoài thời gian cho phép (28-27) -> không có phòng nào cần nhập
                 Log::info('Outside meter reading period', [
                     'current_date' => $today->toDateString(),
                     'current_day' => $currentDay,
