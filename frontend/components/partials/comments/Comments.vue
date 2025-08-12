@@ -63,7 +63,8 @@ const fetchComments = async () => {
         const res = await $api(`/blogs/${slug.value}/comments`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+               
             }
         });
         comments.value = res.data || [];
@@ -85,7 +86,8 @@ const AddReplay = async blog_id => {
         const res = await $api(`/blogs/${blog_id}/send-comment`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             },
             body: {
                 content: ReplayContent.value,

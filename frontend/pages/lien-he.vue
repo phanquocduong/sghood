@@ -98,7 +98,7 @@
                                 type="text"
                                 id="subject-contact"
                                 placeholder="Chủ đề"
-                                required="required"
+                          
                                 v-model="subject"
                             />
                         </div>

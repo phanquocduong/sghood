@@ -9,9 +9,7 @@
             <h3 class="sub-title">CHÚNG TÔI LÀ AI</h3>
             <div class="text-box">
               <p>
-                SGHood là nền tảng quản lý thuê trọ thông minh, được phát triển nhằm kết nối người thuê và chủ trọ tại TP. Hồ
-                Chí Minh. Chúng tôi mang đến giải pháp toàn diện, giúp tiết kiệm thời gian, chi phí và công sức trong việc tìm
-                kiếm và quản lý phòng trọ.
+               {{configs.chung_toi_la_ai}}
               </p>
             </div>
           </div>
@@ -26,13 +24,10 @@
         <h2 class="section-title">SỨ MỆNH & TẦM NHÌN</h2>
         <div class="text-box">
           <p>
-            SGHood hướng tới việc số hóa thị trường cho thuê trọ, giúp người dùng dễ dàng tìm được chỗ ở phù hợp, minh bạch và
-            an toàn. Đồng thời, chúng tôi hỗ trợ chủ trọ quản lý thông tin phòng, người thuê, thanh toán và vận hành trơn tru
-            qua nền tảng trực tuyến.
+           {{ configs.su_menh_tam_nhin_1 }}
           </p>
           <p>
-            Trong tương lai, SGHood đặt mục tiêu trở thành hệ sinh thái cho thuê nhà trọ lớn nhất tại Việt Nam, là cầu nối uy
-            tín giữa hàng triệu người thuê trọ và các đơn vị quản lý nhà trọ chuyên nghiệp.
+          {{ configs.su_menh_tam_nhin_2 }}
           </p>
         </div>
       </div>
@@ -44,11 +39,9 @@
         <h2 class="section-title">CHÚNG TÔI LÀM GÌ</h2>
         <div class="flex-row">
           <div class="text-block">
-            <div class="text-box">
-              <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
-              <p>✔ Đặt lịch xem phòng & thanh toán trực tuyến một cách nhanh chóng, an toàn.</p>
-              <p>✔ Kết nối trực tiếp với chủ trọ thông qua tin nhắn hoặc cuộc gọi.</p>
-              <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
+            <div class="text-box" >
+              <p v-html="configs.chung_toi_lam_gi"></p>
+             
             </div>
           </div>
           <img src="/images/Man thinking-pana.png" alt="About" class="image" />
@@ -62,16 +55,17 @@
         <h2 class="section-title">ĐỘI NGŨ PHÁT TRIỂN</h2>
         <div class="text-box">
           <p>
-            SGHood được xây dựng bởi những người từng là sinh viên và người đi thuê trọ. Chúng tôi thấu hiểu nỗi lo, sự phiền
-            phức và bất tiện trong việc tìm chỗ ở phù hợp. Với niềm tin vào công nghệ, đội ngũ phát triển mong muốn thay đổi thị
-            trường thuê trọ theo hướng hiện đại, minh bạch và thuận tiện cho tất cả mọi người.
+         {{configs.doi_ngu_phat_trien}}
           </p>
         </div>
       </div>
     </section>
   </div>
 </template>
+<script setup>
+const configs = useState('configs')
 
+</script>
 <style scoped>
 /* Layout chung */
 .section {

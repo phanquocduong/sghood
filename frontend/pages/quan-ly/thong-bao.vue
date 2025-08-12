@@ -50,7 +50,7 @@
                                 <p>{{ noti.content }}</p>
                             </div>
                         </a>
-                        <button class="delete-btn" @click.stop="removeNotification(index)">✕</button>
+                       <!--  <button class="delete-btn" @click.stop="removeNotification(index)">✕</button> -->
                     </NuxtLink>
                 </div>
             </div>
