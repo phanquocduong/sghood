@@ -95,7 +95,8 @@ const HandleReply = async blog_id => {
         const res = await $api(`/blogs/${blog_id}/replay-comment`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             },
             body: JSON.stringify({
                 content: ReplayContent.value,

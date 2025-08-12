@@ -120,19 +120,16 @@ _(Hiển thị các hình ảnh giao diện user site, có thể chia thành nhi
 
 "Tiếp theo là demo giao diện user site.
 
--   Slide 16: Trang chủ với tìm kiếm phòng thông minh theo khu vực, giá cả và tiện ích.
--   Slide 17: Chi tiết phòng trọ, bao gồm ảnh, mô tả và nút đặt lịch xem.
--   Slide 18: Quản lý hợp đồng và hóa đơn, với tích hợp thanh toán QR.
--   Slide 19: Tin nhắn thời gian thực và thông báo.
--   Slide 20: Dashboard cá nhân cho người thuê, hiển thị lịch sử giao dịch và yêu cầu sửa chữa.  
+-   Slide 16: Trang chủ với tìm kiếm phòng thông minh theo khu vực, giá cả và tiện ích, trang danh sách nhà trọ lọc theo nhu cầu của người sử dụng và trang liên hệ gửi mail đến quản trị viên
+-   Slide 17: Chi tiết dãy trọ và phòng trọ, bao gồm ảnh, mô tả và nút đặt lịch xem, trang giới thiệu 
+-   Slide 18 & Slide 19: đây là sơ lượt về 2 trang trên mobile
+-   Slide 20: Dashboard cá nhân cho người thuê, hiển thị lịch sử giao dịch và yêu cầu sửa chữa, quản lý đặt phòng dùng để duyệt yêu cầu.  
+    Slide 21: Trang quản lý dẫy trọ và người dùng  
     ...
-    Chúng em sẽ demo trực tiếp trên website nếu quý thầy cô cho phép, để minh họa giao diện và tính năng thực tế mà chúng em đã xây dựng được."
-
 ---
 
-**Slide 21: Kết thúc**  
+**Slide 22: Kết thúc**  
 _(Hiển thị: "Cảm ơn thầy cô đã lắng nghe!" Thời lượng: 30 giây)_
 
-"Kính thưa quý thầy cô, đó là toàn bộ nội dung dự án SGHood. Chúng em xin chân thành cảm ơn thầy Nguyễn Văn Long đã hướng dẫn, và cảm ơn quý thầy cô đã lắng nghe. Chúng em sẵn sàng trả lời các câu hỏi từ hội đồng."
-
+"Kính thưa quý thầy cô, đó là toàn bộ nội dung dự án SGHood. Chúng em xin chân thành cảm ơn thầy Nguyễn Văn Long đã hướng dẫn, và cảm ơn quý thầy cô đã lắng nghe. Chúng em sẽ demo trực tiếp trên website, để minh họa giao diện và tính năng thực tế mà chúng em đã xây dựng được.""
 ---

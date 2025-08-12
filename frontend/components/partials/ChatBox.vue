@@ -267,7 +267,7 @@ const initChat = async () => {
         scrollToBottom();
 
         // 3) Lắng nghe realtime từ Firestore
-        const chatId = [currentUserId.value, AdminId.value].sort().join('_');
+        const chatId = `${AdminId.value}_${currentUserId.value}`;
         const msgQuery = query(collection($firebaseDb, 'messages'), where('chatId', '==', chatId), orderBy('createdAt', 'asc'));
 
         unsubscribe = onSnapshot(msgQuery, snapshot => {
@@ -326,7 +326,8 @@ const sendMessage = async (payload = null) => {
     if (!text || !AdminId.value) return;
 
     try {
-        const chatId = [AdminId.value, currentUserId.value].sort().join('_');
+        const chatId = `${AdminId.value}_${currentUserId.value}`;
+
 
         scrollToBottom();
         newMessage.value = '';
