@@ -336,6 +336,20 @@ class MeterReadingService
                 })
                 ->exists();
 
+            // Xác định tháng cuối dựa trên tháng/năm của hóa đơn
+            $isLastMonth = $invoiceYear == $contractEndDate->year && $invoiceMonth == $contractEndDate->month;
+
+            // Kiểm tra điều kiện nhập chỉ số: chỉ cho phép từ 3 ngày trước end_date
+            $allowEntryDate = $contractEndDate->copy()->subDays(3);
+            if ($isLastMonth && $invoiceCreatedDate->lt($allowEntryDate)) {
+                Log::info('Invoice creation not allowed before 3 days prior to contract end date', [
+                    'contract_end_date' => $contractEndDate->toDateString(),
+                    'allow_entry_date' => $allowEntryDate->toDateString(),
+                    'invoice_created_date' => $invoiceCreatedDate->toDateString()
+                ]);
+                throw new \Exception('Không được tạo hóa đơn trước ngày ' . $allowEntryDate->toDateString());
+            }
+
             // Lấy giá gốc các dịch vụ
             $roomPrice = $room->price ?? 0;
             $parkingFee = $motel->parking_fee ?? 0;
@@ -343,44 +357,11 @@ class MeterReadingService
             $internetFee = $motel->internet_fee ?? 0;
             $serviceFee = $motel->service_fee ?? 0;
 
-            // Kiểm tra tháng cuối dựa trên ngày hết hạn và ngày hiện tại + 3 ngày
-            $checkDate = now()->addDays(3); // Ngày kiểm tra là +3 ngày
-            $isLastMonth = $checkDate->year == $contractEndDate->year &&
-                          $checkDate->month == $contractEndDate->month &&
-                          $checkDate->day <= $contractEndDate->day;
-
-            // Nếu không phải tháng đầu tiên cũng không phải tháng cuối cùng, trả về phí đầy đủ
-            if (!$hasExistingInvoices && !$isLastMonth) {
-                Log::info('Not first or last month of contract, using full service fees', [
-                    'contract_start_date' => $contractStartDate->toDateString(),
-                    'contract_end_date' => $contractEndDate->toDateString(),
-                    'invoice_created_date' => $invoiceCreatedDate->toDateString(),
-                    'invoice_month' => $invoiceMonth,
-                    'invoice_year' => $invoiceYear
-                ]);
-
-                return [
-                    'room_fee' => $roomPrice,
-                    'parking_fee' => $parkingFee,
-                    'junk_fee' => $junkFee,
-                    'internet_fee' => $internetFee,
-                    'service_fee' => $serviceFee
-                ];
-            }
-
             // Tính tỷ lệ phí dựa trên số ngày sử dụng
             $percentage = 1.0;
-            if ($hasExistingInvoices) {
-                // Tháng đầu tiên: tính từ start_date đến ngày tạo hóa đơn
-                $daysDifference = $contractStartDate->diffInDays($invoiceCreatedDate) + 1;
-                $percentage = min(1.0, $daysDifference / 30.0);
-                Log::info('Calculating first month fees with proportional rates', [
-                    'contract_start_date' => $contractStartDate->toDateString(),
-                    'invoice_created_date' => $invoiceCreatedDate->toDateString(),
-                    'days_difference' => $daysDifference,
-                    'percentage' => $percentage
-                ]);
-            } elseif ($isLastMonth) {
+            $daysDifference = null;
+
+            if ($isLastMonth) {
                 // Tháng cuối cùng: tính từ đầu tháng đến end_date
                 $monthStart = Carbon::create($invoiceYear, $invoiceMonth, 1);
                 $daysDifference = $monthStart->diffInDays($contractEndDate) + 1;
@@ -391,6 +372,33 @@ class MeterReadingService
                     'days_difference' => $daysDifference,
                     'percentage' => $percentage
                 ]);
+            } elseif ($hasExistingInvoices) {
+                // Tháng đầu tiên: tính từ start_date đến cuối tháng
+                $monthEnd = Carbon::create($invoiceYear, $invoiceMonth, 1)->endOfMonth();
+                $daysDifference = $contractStartDate->diffInDays($monthEnd) + 1;
+                $percentage = min(1.0, $daysDifference / 30.0);
+                Log::info('Calculating first month fees with proportional rates', [
+                    'contract_start_date' => $contractStartDate->toDateString(),
+                    'month_end' => $monthEnd->toDateString(),
+                    'days_difference' => $daysDifference,
+                    'percentage' => $percentage
+                ]);
+            } else {
+                // Không phải tháng đầu hoặc cuối, trả về phí đầy đủ
+                Log::info('Not first or last month of contract, using full service fees', [
+                    'contract_start_date' => $contractStartDate->toDateString(),
+                    'contract_end_date' => $contractEndDate->toDateString(),
+                    'invoice_created_date' => $invoiceCreatedDate->toDateString(),
+                    'invoice_month' => $invoiceMonth,
+                    'invoice_year' => $invoiceYear
+                ]);
+                return [
+                    'room_fee' => $roomPrice,
+                    'parking_fee' => $parkingFee,
+                    'junk_fee' => $junkFee,
+                    'internet_fee' => $internetFee,
+                    'service_fee' => $serviceFee
+                ];
             }
 
             $calculatedRoomFee = $roomPrice * $percentage;
@@ -403,7 +411,7 @@ class MeterReadingService
                 'contract_start_date' => $contractStartDate->toDateString(),
                 'contract_end_date' => $contractEndDate->toDateString(),
                 'invoice_created_date' => $invoiceCreatedDate->toDateString(),
-                'days_difference' => $daysDifference ?? null,
+                'days_difference' => $daysDifference,
                 'percentage' => $percentage,
                 'original_fees' => [
                     'room_price' => $roomPrice,
