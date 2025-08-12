@@ -379,6 +379,18 @@ class ContractService
                 ];
             }
 
+            // Kiểm tra hóa đơn quá hạn
+            if (!$this->checkOverdueInvoices($contractId)) {
+                Log::warning('Attempt to terminate contract early without overdue invoices', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Hợp đồng không thể kết thúc sớm.',
+                    'status' => 400
+                ];
+            }
+
             // Cập nhật trạng thái hợp đồng thành "Kết thúc sớm"
             $contract->update(['status' => 'Kết thúc sớm']);
 
@@ -508,8 +520,7 @@ class ContractService
             // Giả định có model Config để lấy ngày quá hạn
             $overdueDays = (int) Config::getValue('date_end_contract');
             $overdueDate = $today->subDays($overdueDays);
-            // $overdueDate = $today->subDays(30);
-
+            // dd($overdueDays);
             // Giả định có model Invoice liên kết với Contract
             $overdueInvoices = Invoice::where('contract_id', $contractId)
                 ->where('status', 'Chưa trả')
