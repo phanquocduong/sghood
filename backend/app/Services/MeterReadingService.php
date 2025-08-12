@@ -364,7 +364,7 @@ class MeterReadingService
             if ($isLastMonth) {
                 // Tháng cuối cùng: tính từ đầu tháng đến end_date
                 $monthStart = Carbon::create($invoiceYear, $invoiceMonth, 1);
-                $daysDifference = $monthStart->diffInDays($contractEndDate) + 1;
+                $daysDifference = (int) $monthStart->diffInDays($contractEndDate) + 1;
                 $percentage = min(1.0, $daysDifference / 30.0);
                 Log::info('Calculating last month fees with proportional rates', [
                     'contract_end_date' => $contractEndDate->toDateString(),
@@ -375,7 +375,7 @@ class MeterReadingService
             } elseif ($hasExistingInvoices) {
                 // Tháng đầu tiên: tính từ start_date đến cuối tháng
                 $monthEnd = Carbon::create($invoiceYear, $invoiceMonth, 1)->endOfMonth();
-                $daysDifference = $contractStartDate->diffInDays($monthEnd) + 1;
+                $daysDifference = (int) $contractStartDate->diffInDays($monthEnd) + 1;
                 $percentage = min(1.0, $daysDifference / 30.0);
                 Log::info('Calculating first month fees with proportional rates', [
                     'contract_start_date' => $contractStartDate->toDateString(),
