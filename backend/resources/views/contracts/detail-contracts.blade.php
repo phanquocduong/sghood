@@ -267,50 +267,65 @@
                 </div>
 
                 <!-- Modal cho Kết thúc hợp đồng sớm -->
-                <div class="modal fade" id="earlyTerminationModal" tabindex="-1" aria-labelledby="earlyTerminationModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title" id="earlyTerminationModalLabel">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận kết thúc hợp đồng sớm
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <ul class="list-group list-group-flush mb-4">
-                                    @forelse ($terminationRights as $term)
-                                        <li class="list-group-item d-flex align-items-start">
-                                            <i class="fas fa-circle text-danger me-2 mt-1" style="font-size: 8px;"></i>
-                                            <span>{{ $term }}</span>
-                                        </li>
-                                    @empty
-                                        <li class="list-group-item text-muted">
-                                            Không có điều khoản kết thúc hợp đồng sớm nào được cấu hình.
-                                        </li>
-                                    @endforelse
-                                </ul>
-                                <form id="earlyTerminationForm" action="{{ route('contracts.terminateEarly', $contract->id) }}" method="POST">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="terminationReason" class="form-label fw-bold">
-                                            <i class="fas fa-comment me-1"></i>Lý do kết thúc hợp đồng sớm
-                                        </label>
-                                        <textarea class="form-control" id="terminationReason" name="termination_reason" rows="5" placeholder="Vui lòng nhập lý do kết thúc hợp đồng sớm..."></textarea>
-                                        <small class="text-muted">Lý do này sẽ được gửi đến người thuê qua email</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
-                                            <i class="fas fa-times me-1"></i>Hủy
-                                        </button>
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-stop-circle me-1"></i>Xác nhận kết thúc sớm
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+<div class="modal fade" id="earlyTerminationModal" tabindex="-1" aria-labelledby="earlyTerminationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="earlyTerminationModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận kết thúc hợp đồng sớm
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning mb-4" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Vui lòng cung cấp lý do cụ thể để kết thúc hợp đồng sớm. Thông tin này sẽ được gửi đến người thuê qua email.
                 </div>
+
+                <!-- Danh sách điều khoản -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="fas fa-list-ul me-2"></i>Điều khoản kết thúc sớm
+                    </h6>
+                    <ul class="list-group list-group-flush">
+                        @forelse ($terminationRights as $term)
+                            <li class="list-group-item d-flex align-items-start border-0 py-2">
+                                <i class="fas fa-circle text-danger me-2 mt-1" style="font-size: 8px;"></i>
+                                <span>{{ $term }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-muted border-0 py-2">
+                                Không có điều khoản kết thúc hợp đồng sớm nào được cấu hình.
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+
+                <!-- Form nhập lý do -->
+                <form id="earlyTerminationForm" action="{{ route('contracts.terminateEarly', $contract->id) }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label for="terminationReason" class="form-label fw-bold text-dark">
+                            <i class="fas fa-comment me-2"></i>Lý do kết thúc hợp đồng sớm
+                        </label>
+                        <textarea class="form-control shadow-sm" id="terminationReason" name="termination_reason" rows="6"
+                            placeholder="Vui lòng nhập lý do cụ thể (ví dụ: Vi phạm điều khoản hợp đồng, không thanh toán đúng hạn...)"
+                            required></textarea>
+                        <small class="text-muted mt-1 d-block">Lý do này sẽ được lưu trữ và gửi qua email.</small>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Hủy
+                        </button>
+                        <button type="submit" class="btn btn-danger shadow-sm">
+                            <i class="fas fa-stop-circle me-1"></i>Xác nhận kết thúc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <!-- Cập nhật phần Status Update Form -->
                 @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hết hạn')
@@ -345,8 +360,9 @@
 
                                             <!-- Nút Chỉnh sửa thủ công -->
                                             <button type="button" class="btn btn-primary shadow-sm px-4 py-2 status-btn" id="manualEditBtn" onclick="confirmManualEdit()">
-                                                <i class="fas fa-edit me-2"></i>Chỉnh sửa thủ công                                          </button>
-                                        @elseif($currentStatus === 'Hoạt động')
+                                                <i class="fas fa-edit me-2"></i>Chỉnh sửa thủ công
+                                            </button>
+                                        @elseif($currentStatus === 'Hoạt động' && $contract->checkOverdueInvoices())
                                             <button type="button" class="btn btn-danger shadow-sm px-4 py-2 status-btn" data-bs-toggle="modal" data-bs-target="#earlyTerminationModal">
                                                 <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng sớm
                                             </button>
@@ -441,6 +457,72 @@
         .contract-document {
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        /* Style cho modal kết thúc hợp đồng sớm */
+    #earlyTerminationModal .modal-content {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #earlyTerminationModal .modal-header {
+        border-bottom: none;
+        padding: 1.5rem;
+    }
+
+    #earlyTerminationModal .modal-body {
+        background-color: #f8f9fa;
+    }
+
+    #earlyTerminationModal .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background-color: #fff;
+    }
+
+    #earlyTerminationModal .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        background-color: #fff;
+    }
+
+    #earlyTerminationModal .form-control::placeholder {
+        color: #6c757d;
+        opacity: 0.7;
+    }
+
+    #earlyTerminationModal .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    #earlyTerminationModal .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    #earlyTerminationModal .btn-outline-secondary {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    #earlyTerminationModal .btn-outline-secondary:hover {
+        background-color: #f1f3f5;
+    }
+
+    #earlyTerminationModal .alert {
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+    }
+
+    #earlyTerminationModal .list-group-item {
+        background-color: transparent;
+        padding-left: 0;
+        padding-right: 0;
+    }
     </style>
 
     <script>

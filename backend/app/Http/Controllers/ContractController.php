@@ -54,7 +54,7 @@ class ContractController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Kiểm tra hóa đơn chưa thanh toán quá 30 ngày
+        // Kiểm tra hóa đơn chưa thanh toán quá ngày
         $hasOverdueInvoices = $this->contractService->checkOverdueInvoices($id);
 
         $config = Config::where('config_key', 'rental_contract_terms')->first();
