@@ -90,28 +90,28 @@ _(Hiển thị sơ đồ chi tiết cho Admin. Thời lượng: 45 giây)_
 **Slide 12: Sơ đồ ERD**  
 _(Hiển thị sơ đồ ERD tổng quát. Thời lượng: 30 giây)_
 
-"Đây là sơ đồ ERD tổng quát, mô tả mối quan hệ giữa các thực thể như User, Room, Contract, Invoice và Notification. ERD được thiết kế để đảm bảo tính nhất quán dữ liệu và dễ mở rộng."
+"Tiếp theo là sơ đồ ERD, mô tả mối quan hệ giữa các thực thể như User, Room, Contract, Invoice và Notification. ERD được thiết kế để đảm bảo tính nhất quán dữ liệu và dễ mở rộng."
 
 ---
 
 **Slide 13: ERD cấp 1**  
 _(Hiển thị ERD cấp 1. Thời lượng: 30 giây)_
 
-"ERD cấp 1 tập trung vào các thực thể chính và mối quan hệ cơ bản, như User liên kết với Contract, và Room liên kết với Invoice. Chúng em sử dụng để xây dựng schema cơ sở dữ liệu ban đầu."
+"ERD cấp 1 tập trung vào các thực thể chính và mối quan hệ cơ bản, như User liên kết với Contract, và Contract liên kết với Invoice. Chúng em sử dụng ERD này để xây dựng mô hình cơ sở dữ liệu ban đầu."
 
 ---
 
 **Slide 14: ERD cấp 2**  
 _(Hiển thị ERD cấp 2. Thời lượng: 30 giây)_
 
-"ERD cấp 2 chi tiết hơn, thêm các thuộc tính và mối quan hệ phức tạp như Notification với User, hoặc Payment với Invoice. Điều này giúp tối ưu hóa truy vấn và quản lý dữ liệu hiệu quả."
+"ERD cấp 2 chi tiết hơn do thêm các thuộc tính đầy đủ cho thực thể."
 
 ---
 
 **Slide 15: Figma (Phác thảo)**  
 _(Hiển thị phác thảo thiết kế trên Figma. Thời lượng: 45 giây)_
 
-"Chúng em sử dụng Figma để phác thảo UI/UX. Slide này hiển thị các bản thiết kế ban đầu, bao gồm layout trang chủ, trang tìm kiếm phòng và dashboard. Thiết kế tập trung vào tính đơn giản, responsive và dễ sử dụng trên thiết bị di động."
+"Chúng em sử dụng Figma để phác thảo UI/UX. Các slide hiển thị các bản thiết kế ban đầu, bao gồm layout trang chủ, trang tìm kiếm phòng và dashboard. Thiết kế tập trung vào tính đơn giản, responsive và dễ sử dụng trên thiết bị di động."
 
 ---
 
