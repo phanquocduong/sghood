@@ -1,63 +1,55 @@
-
 @extends('layouts.app')
 
 @section('title', 'Quản lý hợp đồng')
 
 @section('content')
-    <div class="container-fluid py-5 px-4">
-        <!-- Alert Messages -->
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+<div class="container-fluid py-5 px-4">
+    <!-- Alert Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-        <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
-                style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                <div class="d-flex align-items-center">
-                    <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
-                        style="transition: all 0.3s;" title="Quay lại dashboard">
-                        <i class="fas fa-arrow-left me-1"></i>
-                        <span class="d-none d-sm-inline ms-1">Quay lại</span>
-                    </a>
-
-                </div>
-                <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
-                    style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                    <h5 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">
-                        <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
-                        <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
-                    </h5>
-                    <a href="{{ route('contracts.contract-extensions') }}"
-                        class="btn btn-primary me-2 shadow-sm w-100 w-sm-auto" style="transition: all 0.3s;"
-                        title="Xem danh sách hợp đồng gia hạn">
-                        <i class="fas fa-history me-1"></i> Danh sách hợp đồng gia hạn
-                    </a>
-                </div>
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
+            <div class="d-flex align-items-center">
+            <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm" style="transition: all 0.3s;" title="Quay lại dashboard">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
+                <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
+            </h5>
             </div>
+            <div>
+            <a href="{{ route('contracts.contract-extensions') }}" class="btn btn-primary btn-sm shadow-sm text-white" style="transition: all 0.3s;" title="Xem danh sách hợp đồng gia hạn">
+                <i class="fas fa-history me-1"></i> Danh sách hợp đồng gia hạn
+            </a>
+            </div>
+        </div>
 
-            <div class="card-body p-4">
-                <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('dashboard') }}" class="text-decoration-none">
-                                <i class="fas fa-home me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
-                        </li>
-                    </ol>
-                </nav>
+        <div class="card-body p-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
+                    </li>
+                </ol>
+            </nav>
 
             <!-- Filter Form -->
             <div class="mb-4">
@@ -74,13 +66,12 @@
                         <select class="form-select shadow-sm" name="status">
                             <option value="">Tất cả trạng thái</option>
                             <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận</option>
-                            <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
                             <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
+                            <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh sửa</option>
                             <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
                             <option value="Chờ thanh toán tiền cọc" {{ $status == 'Chờ thanh toán tiền cọc' ? 'selected' : '' }}>Chờ thanh toán tiền cọc</option>
                             <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                             <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
-                            <option value="Kết thúc sớm" {{ $status == 'Kết thúc sớm' ? 'selected' : '' }}>Kết thúc sớm</option>
                             <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                         </select>
                     </div>
@@ -155,11 +146,10 @@
                                         $badgeClass = match ($calculatedStatus) {
                                             'Chờ xác nhận' => 'primary',
                                             'Chờ duyệt' => 'warning',
-                                            'Chờ duyệt thủ công' => 'warning',
+                                            'Chờ chỉnh sửa' => 'danger',
                                             'Chờ ký' => 'info',
                                             'Hoạt động' => 'success',
                                             'Kết thúc' => 'secondary',
-                                            'Kết thúc sớm' => 'secondary',
                                             'Huỷ bỏ' => 'dark',
                                             'Chờ thanh toán tiền cọc' => 'warning',
                                             default => 'light'
@@ -167,12 +157,10 @@
                                         $iconClass = match ($calculatedStatus) {
                                             'Chờ xác nhận' => 'fas fa-clock',
                                             'Chờ duyệt' => 'fas fa-eye',
-                                            'Chờ duyệt thủ công' => 'fas fa-hourglass-half',
+                                            'Chờ chỉnh sửa' => 'fas fa-edit',
                                             'Chờ ký' => 'fas fa-pen',
                                             'Hoạt động' => 'fas fa-check-circle',
                                             'Kết thúc' => 'fas fa-flag-checkered',
-                                            'Kết thúc sớm' => 'fas fa-flag',
-                                            'Chờ thanh toán tiền cọc' => 'fas fa-money-bill-wave',
                                             'Huỷ bỏ' => 'fas fa-times-circle',
                                             default => 'fas fa-info-circle'
                                         };
@@ -221,17 +209,17 @@
                 </table>
             </div>
 
-                <!-- Pagination -->
-                @if ($contracts->hasPages())
-                    <div class="mt-4">
-                        {{ $contracts->appends(request()->query())->links('pagination::bootstrap-5') }}
-                    </div>
-                @endif
-            </div>
+            <!-- Pagination -->
+            @if($contracts->hasPages())
+                <div class="mt-4">
+                    {{ $contracts->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
+</div>
 
-    <!-- User Info Modal -->
+<!-- User Info Modal -->
     <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -239,12 +227,14 @@
                     <h5 class="modal-title" id="userInfoModalLabel">
                         <i class="fas fa-user-circle me-2"></i>Thông tin người thuê
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4 text-center">
+                            <img id="modalUserAvatar" src="{{ asset('img/user.jpg') }}" alt="User Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
                                     <i class="fas fa-user me-2"></i>Họ và tên:
@@ -263,13 +253,23 @@
                                 </label>
                                 <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserPhone">-</p>
                             </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
                                     <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
                                 </label>
                                 <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserAddress">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-venus-mars me-2"></i>Giới tính:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserGender">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-birthday-cake me-2"></i>Ngày sinh:
+                                </label>
+                                <p class="form-control-plaintext border rounded p-2 bg-light" id="modalUserBirthdate">-</p>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">
@@ -289,214 +289,200 @@
         </div>
     </div>
 
-    <style>
-        .breadcrumb {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-        }
+<style>
+.breadcrumb {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
 
-        .breadcrumb-item+.breadcrumb-item::before {
-            content: "›";
-            font-weight: bold;
-            color: #6c757d;
-        }
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-weight: bold;
+    color: #6c757d;
+}
 
-        .table td,
-        .table th {
-            vertical-align: middle;
-        }
+.table td,
+.table th {
+    vertical-align: middle;
+}
 
-        .badge {
-            font-size: 0.85rem;
-            border-radius: 15px;
-            font-weight: 500;
-        }
+.badge {
+    font-size: 0.85rem;
+    border-radius: 15px;
+    font-weight: 500;
+}
 
-        .form-select:focus,
-        .form-control:focus {
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
-        }
+.form-select:focus,
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+}
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
-        .table-row:hover {
-            background-color: #f8f9fa;
-        }
+.table-row:hover {
+    background-color: #f8f9fa;
+}
 
-        .avatar-circle {
-            font-size: 14px;
-        }
+.avatar-circle {
+    font-size: 14px;
+}
 
-        .btn-group .btn {
-            margin: 0 1px;
-        }
+.btn-group .btn {
+    margin: 0 1px;
+}
 
-        .user-name-clickable,
-        .room-name-clickable {
-            cursor: pointer;
-            color: #007bff;
-            font-weight: 500;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-        }
+.user-name-clickable,
+.room-name-clickable {
+    cursor: pointer;
+    color: #007bff;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
 
-        /* Thêm biểu tượng nhỏ trước tên người dùng và phòng */
-        .user-name-clickable::before {
-            content: '\f007';
-            /* FontAwesome user icon */
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            margin-right: 6px;
-            font-size: 0.9rem;
-            color: #007bff;
-        }
+/* Thêm biểu tượng nhỏ trước tên người dùng và phòng */
+.user-name-clickable::before {
+    content: '\f007'; /* FontAwesome user icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 6px;
+    font-size: 0.9rem;
+    color: #007bff;
+}
 
-        .room-name-clickable::before {
-            content: '\f015';
-            /* FontAwesome home icon */
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            margin-right: 6px;
-            font-size: 0.9rem;
-            color: #007bff;
-        }
+.room-name-clickable::before {
+    content: '\f015'; /* FontAwesome home icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 6px;
+    font-size: 0.9rem;
+    color: #007bff;
+}
 
-        .user-name-clickable:hover,
-        .room-name-clickable:hover {
-            color: #0056b3;
-            background-color: #e7f1ff;
-            text-decoration: none;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+.user-name-clickable:hover,
+.room-name-clickable:hover {
+    color: #0056b3;
+    background-color: #e7f1ff;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-        /* Đảm bảo tên dài không bị tràn */
-        .user-name-clickable,
-        .room-name-clickable {
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+/* Đảm bảo tên dài không bị tràn */
+.user-name-clickable,
+.room-name-clickable {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-        /* Tăng khoảng cách trong ô bảng */
-        .table td {
-            padding: 12px 8px;
-        }
+/* Tăng khoảng cách trong ô bảng */
+.table td {
+    padding: 12px 8px;
+}
 
-        .modal-content {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
 
-        .modal-header {
-            border-radius: 15px 15px 0 0;
-        }
+.modal-header {
+    border-radius: 15px 15px 0 0;
+}
 
-        .form-control-plaintext {
-            font-weight: 500;
-            color: #495057 !important;
-        }
-        @media (max-width: 576px) {
+.form-control-plaintext {
+    font-weight: 500;
+    color: #495057 !important;
+}
+</style>
 
-                /* Nút hành động trên mobile chỉ là icon tròn */
-                .action-icon {
-                    padding: 6px 8px;
-                    /* Nhỏ gọn */
-                    border-radius: 50%;
-                    /* Bo tròn */
-                    width: 36px;
-                    height: 36px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center
-                }
+<script>
+// Add smooth scroll effect when clicking navigation links
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to table rows
+    const tableRows = document.querySelectorAll('.table-row');
+    tableRows.forEach((row, index) => {
+        row.style.animationDelay = `${index * 0.1}s`;
+        row.classList.add('animate__animated', 'animate__fadeInUp');
+    });
 
-                /* Icon căn giữa */
-                .action-icon i {
-                    margin: 0 !important;
-                    font-size: 14px;
-                }
+    // Handle user name click to show popup
+    const userNameElements = document.querySelectorAll('.user-name-clickable');
+    userNameElements.forEach(element => {
+        element.addEventListener('click', function() {
+            const userName = this.getAttribute('data-user-name');
+            const userEmail = this.getAttribute('data-user-email');
+            const userPhone = this.getAttribute('data-user-phone');
+            const userAddress = this.getAttribute('data-user-address');
+            const userCreated = this.getAttribute('data-user-created');
+            const userGender = this.getAttribute('data-user-gender');
+            const userBirthdate = this.getAttribute('data-user-birthdate');
+            const userAvatar = this.getAttribute('data-user-avatar');
 
-                .card-header .btn {
-                    font-size: 14px;
-                    padding: 6px 8px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
+            // Update modal content
+            document.getElementById('modalUserName').textContent = userName || 'N/A';
+            document.getElementById('modalUserEmail').textContent = userEmail || 'N/A';
+            document.getElementById('modalUserPhone').textContent = userPhone || 'N/A';
+            document.getElementById('modalUserAddress').textContent = userAddress || 'N/A';
+            document.getElementById('modalUserGender').textContent = userGender || 'N/A';
+            document.getElementById('modalUserAvatar').src = userAvatar || '{{ asset('img/user.jpg') }}';
+
+            // Format birthdate if available
+            if (userBirthdate && userBirthdate !== 'N/A') {
+                const date = new Date(userBirthdate);
+                const formattedBirthdate = date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('modalUserBirthdate').textContent = formattedBirthdate;
+            } else {
+                document.getElementById('modalUserBirthdate').textContent = 'N/A';
             }
-    </style>
 
-    <script>
-        // Add smooth scroll effect when clicking navigation links
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add animation to table rows
-            const tableRows = document.querySelectorAll('.table-row');
-            tableRows.forEach((row, index) => {
-                row.style.animationDelay = `${index * 0.1}s`;
-                row.classList.add('animate__animated', 'animate__fadeInUp');
-            });
-
-            // Handle user name click to show popup
-            const userNameElements = document.querySelectorAll('.user-name-clickable');
-            userNameElements.forEach(element => {
-                element.addEventListener('click', function() {
-                    const userName = this.getAttribute('data-user-name');
-                    const userEmail = this.getAttribute('data-user-email');
-                    const userPhone = this.getAttribute('data-user-phone');
-                    const userAddress = this.getAttribute('data-user-address');
-                    const userCreated = this.getAttribute('data-user-created');
-
-                    // Update modal content
-                    document.getElementById('modalUserName').textContent = userName || 'N/A';
-                    document.getElementById('modalUserEmail').textContent = userEmail || 'N/A';
-                    document.getElementById('modalUserPhone').textContent = userPhone || 'N/A';
-                    document.getElementById('modalUserAddress').textContent = userAddress || 'N/A';
-
-                    // Format date if available
-                    if (userCreated && userCreated !== 'N/A') {
-                        const date = new Date(userCreated);
-                        const formattedDate = date.toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        document.getElementById('modalUserCreated').textContent = formattedDate;
-                    } else {
-                        document.getElementById('modalUserCreated').textContent = 'N/A';
-                    }
-
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('userInfoModal'));
-                    modal.show();
+            // Format created date if available
+            if (userCreated && userCreated !== 'N/A') {
+                const date = new Date(userCreated);
+                const formattedDate = date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
-            });
+                document.getElementById('modalUserCreated').textContent = formattedDate;
+            } else {
+                document.getElementById('modalUserCreated').textContent = 'N/A';
+            }
 
-            // Handle room name click to navigate to room detail
-            const roomNameElements = document.querySelectorAll('.room-name-clickable');
-            roomNameElements.forEach(element => {
-                element.addEventListener('click', function() {
-                    const roomId = this.getAttribute('data-room-id');
-                    if (roomId && roomId !== '') {
-                        // Navigate to room detail page
-                        window.location.href = `{{ url('rooms') }}/${roomId}`;
-                    }
-                });
-            });
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('userInfoModal'));
+            modal.show();
         });
-    </script>
+    });
+
+    // Handle room name click to navigate to room detail
+    const roomNameElements = document.querySelectorAll('.room-name-clickable');
+    roomNameElements.forEach(element => {
+        element.addEventListener('click', function() {
+            const roomId = this.getAttribute('data-room-id');
+            if (roomId && roomId !== '') {
+                // Navigate to room detail page
+                window.open(`{{ url('rooms') }}/${roomId}`, '_blank');
+            }
+        });
+    });
+});
+</script>
 @endsection
