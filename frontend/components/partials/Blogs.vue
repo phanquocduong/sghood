@@ -22,7 +22,7 @@
 
                         <ul class="post-meta">
                             <li>{{ post.date }}</li>
-                            <li><a href="#">Chia sẻ kinh nghiệm</a></li>
+                            <li><NuxtLink href="chia-se-kinh-nghiem">Chia sẻ kinh nghiệm</NuxtLink></li>
                         </ul>
 
                         <div class="post-excerpt">
