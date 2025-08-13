@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\Invoice;
+use App\Models\Contract;
+use App\Models\User;
+use App\Models\Room;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -16,35 +19,30 @@ class InvoiceService
      * Lấy danh sách hóa đơn với filter và pagination
      */
     public function getAllInvoices(array $filters = [], int $perPage = 15): LengthAwarePaginator
-{
-    $query = Invoice::with(['contract.user', 'contract.room', 'meterReading'])
-        ->select('id', 'contract_id', 'meter_reading_id', 'code', 'total_amount', 'status', 'month', 'year', 'created_at', 'refunded_at');
+    {
+        $query = Invoice::with(['contract.user', 'contract.room', 'meterReading'])
+            ->select('id', 'contract_id', 'meter_reading_id', 'code', 'total_amount', 'status', 'month', 'year', 'created_at', 'refunded_at');
 
-    // Tìm kiếm theo code hóa đơn
-    if (!empty($filters['search'])) {
-        $query->where('code', 'like', '%' . $filters['search'] . '%');
+        if (!empty($filters['search'])) {
+            $query->where('code', 'like', '%' . $filters['search'] . '%');
+        }
+
+        if (!empty($filters['month'])) {
+            $query->where('month', $filters['month']);
+        }
+
+        if (!empty($filters['year'])) {
+            $query->where('year', $filters['year']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $query->orderBy('created_at', 'desc');
+
+        return $query->paginate($perPage);
     }
-
-    // Lọc theo tháng (chỉ khi user chọn tháng cụ thể)
-    if (!empty($filters['month'])) {
-        $query->where('month', $filters['month']);
-    }
-
-    // Lọc theo năm (chỉ khi user chọn năm cụ thể)
-    if (!empty($filters['year'])) {
-        $query->where('year', $filters['year']);
-    }
-
-    // Lọc theo trạng thái
-    if (!empty($filters['status'])) {
-        $query->where('status', $filters['status']);
-    }
-
-    // Sắp xếp
-    $query->orderBy('created_at', 'desc');
-
-    return $query->paginate($perPage);
-}
 
     /**
      * Lấy chi tiết hóa đơn theo ID
@@ -104,26 +102,18 @@ class InvoiceService
     {
         $query = Invoice::query();
 
-        // Áp dụng filter tháng nếu có (chỉ khi user chọn tháng cụ thể)
         if (!empty($filters['month'])) {
             $query->where('month', $filters['month']);
         }
 
-        // Áp dụng filter năm nếu có (chỉ khi user chọn năm cụ thể)
         if (!empty($filters['year'])) {
             $query->where('year', $filters['year']);
         }
 
-        // Nếu không có filter tháng và năm → lấy tất cả hóa đơn
-        // Nếu có filter tháng/năm → lấy theo filter đó
-        // Không có default filter tháng/năm hiện tại nữa
-
-        // Thêm filter theo trạng thái nếu có
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        // Thêm filter tìm kiếm nếu có
         if (!empty($filters['search'])) {
             $query->where('code', 'like', '%' . $filters['search'] . '%');
         }
@@ -147,6 +137,7 @@ class InvoiceService
             'refunded_amount' => $refundedInvoices->sum('total_amount')
         ];
     }
+
     public function updateInvoiceStatus(int $id, string $newStatus, Request $request): void
     {
         // Lấy hóa đơn
@@ -166,9 +157,32 @@ class InvoiceService
 
         // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
         DB::transaction(function () use ($invoice, $newStatus, $request, $oldStatus) {
-            // Cập nhật trạng thái
+            // Cập nhật trạng thái hóa đơn
             $invoice->status = $newStatus;
             $invoice->save();
+
+            // Kiểm tra nếu hóa đơn có type là "đặt cọc" và trạng thái mới là "Đã trả"
+            if ($invoice->type === 'Đặt cọc' && $newStatus === 'Đã trả') {
+                // Cập nhật trạng thái hợp đồng sang "Hoạt động"
+                $contract = Contract::find($invoice->contract_id);
+                if ($contract) {
+                    $contract->status = 'Hoạt động';
+                    $contract->save();
+
+                    // Cập nhật vai trò người dùng thành "Người thuê"
+                    $user = User::find($contract->user_id);
+                    if ($user) {
+                        $user->role = 'Người thuê';
+                        $user->save();
+                    }
+                    // Cập nhật trạng thái phòng
+                    $room = Room::find($contract->room_id);
+                    if ($room) {
+                        $room->status = 'Đã thuê';
+                        $room->save();
+                    }
+                }
+            }
 
             // Tạo giao dịch nếu trạng thái là "Đã trả"
             if ($newStatus === 'Đã trả') {
