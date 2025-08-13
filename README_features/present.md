@@ -48,7 +48,7 @@ _(Hiển thị thông tin: Chức vụ, nhiệm vụ chính. Thời lượng: 30
 
 ---
 
-**Slide 7: Chi tiết thành viên - Thạch Phận (Shawn Garcia)**  
+**Slide 7: Chi tiết thành viên - Thạch Phận**  
 _(Hiển thị thông tin: Chức vụ, nhiệm vụ chính. Thời lượng: 30 giây)_
 
 "Bạn Thạch Phận phát triển các chức năng quản lý nhà trọ, nhập chỉ số điện nước, quản lý thông báo, lịch xem phòng, bảo trì, cấu hình và khu vực. Bạn còn triển khai và duy trì hệ thống cronjob để tự động gửi thông báo và email, góp phần vào tính tự động hóa của dự án."

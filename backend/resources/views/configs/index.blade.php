@@ -21,9 +21,9 @@
                 style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}</h6>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('configs.create') }}" class="btn btn-success shadow-sm" style="transition: all 0.3s;">
+                    <!-- <a href="{{ route('configs.create') }}" class="btn btn-success shadow-sm" style="transition: all 0.3s;">
                         <i class="fas fa-plus me-1"></i> Thêm cấu hình
-                    </a>
+                    </a> -->
                 </div>
             </div>
             <div class="card-body p-4">
