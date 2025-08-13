@@ -7,9 +7,6 @@ use App\Models\Config;
 use App\Jobs\SendContractExpiryNotification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class CheckContractExpiry extends Command
 {
@@ -28,10 +25,6 @@ class CheckContractExpiry extends Command
 
         // Kiểm tra hợp đồng sắp hết hạn
         $this->checkContractExpiry($debug);
-
-
-
-
 
         return 0;
     }
@@ -76,11 +69,6 @@ class CheckContractExpiry extends Command
         }
     }
 
-
-
-
-
-
     //-------------------------------------------------------------------
     // PHƯƠNG THỨC XỬ LÝ
     //-------------------------------------------------------------------
@@ -108,66 +96,6 @@ class CheckContractExpiry extends Command
         }
 
         $this->info("📈 Kết quả hợp đồng: {$jobsDispatched} jobs đã được dispatch");
-    }
-
-
-
-
-
-
-    /**
-     * Gửi thông báo FCM chung
-     */
-    private function sendFcmNotification($user, $notificationData, $contract, $daysRemaining)
-    {
-        try {
-            // Kiểm tra FCM token
-            if (!$user->fcm_token) {
-                $this->warn("⚠️ User #{$user->id} không có FCM token");
-                return;
-            }
-
-            $messaging = app('firebase.messaging');
-
-            // Tạo message content dựa trên số ngày còn lại
-            $messageBody = $daysRemaining > 0
-                ? "Hợp đồng #{$contract->id} sẽ hết hạn sau {$daysRemaining} ngày"
-                : "Hợp đồng #{$contract->id} đã được kết thúc tự động";
-
-            $fcmMessage = CloudMessage::withTarget('token', $user->fcm_token)
-                ->withNotification(FirebaseNotification::create(
-                    $notificationData['title'],
-                    $messageBody
-                ))
-                ->withData([
-                    'type' => $daysRemaining > 0 ? 'contract_expiry' : 'contract_ended',
-                    'contract_id' => (string) $contract->id,
-                    'days_remaining' => (string) $daysRemaining,
-                    'end_date' => $contract->end_date->format('Y-m-d'),
-                    'room_name' => $contract->room->name ?? '',
-                    'motel_name' => $contract->room->motel->name ?? '',
-                    'action_url' => url("/contracts/{$contract->id}")
-                ]);
-
-            $messaging->send($fcmMessage);
-
-            $this->info("📱 Đã gửi FCM notification cho user #{$user->id}");
-
-            Log::info('Contract FCM sent', [
-                'user_id' => $user->id,
-                'contract_id' => $contract->id,
-                'days_remaining' => $daysRemaining,
-                'fcm_token' => substr($user->fcm_token, 0, 20) . '...'
-            ]);
-
-        } catch (\Exception $e) {
-            $this->warn("⚠️ Không thể gửi FCM cho user #{$user->id}: " . $e->getMessage());
-            Log::error("Error sending FCM notification", [
-                'user_id' => $user->id,
-                'contract_id' => $contract->id,
-                'error' => $e->getMessage()
-            ]);
-        }
     }
 
     //-------------------------------------------------------------------
