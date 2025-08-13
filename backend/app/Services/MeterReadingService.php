@@ -26,7 +26,7 @@ class MeterReadingService
     }
 
     /**
-     * Lấy phòng cần nhập chỉ số trong thời gian quy định (11 -> 5)
+     * Lấy phòng cần nhập chỉ số trong thời gian quy định (28 -> 5)
      */
     public function getRoomsWithMotel()
     {
@@ -35,8 +35,8 @@ class MeterReadingService
             $currentDay = $today->day;
 
             // Xác định tháng cần nhập chỉ số một cách rõ ràng
-            if ($currentDay >= 11) {
-                // Từ ngày 11 trở đi của tháng hiện tại -> nhập chỉ số cho tháng hiện tại
+            if ($currentDay >= 28) {
+                // Từ ngày 28 trở đi của tháng hiện tại -> nhập chỉ số cho tháng hiện tại
                 $targetMonth = $today->month;
                 $targetYear = $today->year;
             } elseif ($currentDay <= 5) {
@@ -45,11 +45,11 @@ class MeterReadingService
                 $targetMonth = $previousMonth->month;
                 $targetYear = $previousMonth->year;
             } else {
-                // Ngoài thời gian cho phép (11-27) -> không có phòng nào cần nhập
+                // Ngoài thời gian cho phép (28-27) -> không có phòng nào cần nhập
                 Log::info('Outside meter reading period', [
                     'current_date' => $today->toDateString(),
                     'current_day' => $currentDay,
-                    'message' => 'Not in allowed period (11th-5th next month)'
+                    'message' => 'Not in allowed period (28th-5th next month)'
                 ]);
                 return collect();
             }
@@ -194,15 +194,15 @@ class MeterReadingService
         $currentDay = $today->day;
 
         // Xác định khoảng thời gian được phép và tháng hiển thị
-        $isInAllowedPeriod = ($currentDay >= 11) || ($currentDay <= 5);
+        $isInAllowedPeriod = ($currentDay >= 28) || ($currentDay <= 5);
 
-        if ($currentDay >= 11) {
-            // Từ ngày 11 trở đi -> nhập chỉ số cho tháng hiện tại
+        if ($currentDay >= 28) {
+            // Từ ngày 28 trở đi -> nhập chỉ số cho tháng hiện tại
             $displayMonth = $today->month;
             $displayYear = $today->year;
             $periodDescription = "Nhập chỉ số tháng {$displayMonth}/{$displayYear}";
 
-            $startDate = $today->copy()->day(11)->startOfDay();
+            $startDate = $today->copy()->day(28)->startOfDay();
             $endDate = $today->copy()->addMonthNoOverflow()->day(5)->endOfDay();
 
         } elseif ($currentDay <= 5) {
@@ -212,27 +212,27 @@ class MeterReadingService
             $displayYear = $previousMonth->year;
             $periodDescription = "Nhập chỉ số tháng {$displayMonth}/{$displayYear}";
 
-            $startDate = $previousMonth->copy()->day(11)->startOfDay();
+            $startDate = $previousMonth->copy()->day(28)->startOfDay();
             $endDate = $today->copy()->day(5)->endOfDay();
 
         } else {
             // Ngoài thời gian cho phép
             $displayMonth = $today->month;
             $displayYear = $today->year;
-            $periodDescription = "Ngoài thời gian nhập chỉ số (chỉ từ 11 - 5 tháng sau)";
+            $periodDescription = "Ngoài thời gian nhập chỉ số (chỉ từ 28 - 5 tháng sau)";
 
             // Tính toán kỳ tiếp theo
-            $nextPeriodStart = $today->copy()->day(11);
+            $nextPeriodStart = $today->copy()->day(28);
             $startDate = $nextPeriodStart;
             $endDate = $nextPeriodStart->copy()->addMonthNoOverflow()->day(5)->endOfDay();
         }
 
         // ✅ Thêm validation cho edge cases
         try {
-            // Kiểm tra xem ngày 11 có tồn tại trong tháng không
+            // Kiểm tra xem ngày 28 có tồn tại trong tháng không
             $testDate = $today->copy();
-            if ($testDate->day > 11) {
-                $testDate->day(11); // Có thể throw exception nếu tháng không có ngày 11
+            if ($testDate->day > 28) {
+                $testDate->day(28); // Có thể throw exception nếu tháng không có ngày 28
             }
         } catch (\Exception $e) {
             Log::warning('Date calculation issue, using end of month instead', [
