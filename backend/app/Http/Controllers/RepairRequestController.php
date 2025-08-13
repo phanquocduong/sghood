@@ -61,23 +61,36 @@ class RepairRequestController extends Controller
     public function updateNote(Request $request, $id)
     {
         try {
+            $repairRequest = RepairRequest::findOrFail($id);
+
             $request->validate([
                 'note' => 'nullable|string|max:1000'
             ]);
 
-            $repairRequest = RepairRequest::findOrFail($id);
-            $repairRequest->update(['note' => $request->note]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật ghi chú thành công',
-                'note' => $request->note
+            $repairRequest->update([
+                'note' => $request->input('note')
             ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Ghi chú đã được cập nhật thành công!'
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Ghi chú đã được cập nhật thành công!');
+
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
-            ], 500);
+            \Log::error('Error updating repair request note: ' . $e->getMessage());
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra khi cập nhật ghi chú: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi cập nhật ghi chú');
         }
     }
 }
