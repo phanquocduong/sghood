@@ -38,12 +38,8 @@
                     <p v-if="checkout.contract?.deposit_amount">
                         <strong>Tiền cọc hợp đồng:</strong> {{ formatPrice(checkout.contract.deposit_amount) }}
                     </p>
-                    <p v-if="checkout.deduction_amount">
-                        <strong>Số tiền khấu hao (Đền bù):</strong> {{ formatPrice(checkout.deduction_amount) }}
-                    </p>
-                    <p v-if="checkout.final_refunded_amount !== null">
-                        <strong>Số tiền hoàn lại cuối cùng:</strong> {{ formatPrice(checkout.final_refunded_amount) }}
-                    </p>
+                    <p><strong>Số tiền khấu hao (Đền bù):</strong> {{ formatPrice(checkout.deduction_amount) }}</p>
+                    <p><strong>Số tiền hoàn lại cuối cùng:</strong> {{ formatPrice(checkout.final_refunded_amount) }}</p>
                 </div>
             </div>
 
