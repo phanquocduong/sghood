@@ -25,7 +25,8 @@
                         style="transition: all 0.3s;">
                         <i class="fas fa-plus me-1"></i> {{ __('Thêm khu vực') }}
                     </a>
-                    <a href="{{ route('districts.trash') }}" class="btn btn-danger shadow-sm w-50 w-sm-auto" style="transition: all 0.3s;">
+                    <a href="{{ route('districts.trash') }}" class="btn btn-danger shadow-sm w-50 w-sm-auto"
+                        style="transition: all 0.3s;">
                         <i class="fas fa-trash me-1"></i> {{ __('Thùng rác') }}
                     </a>
                 </div>
@@ -40,10 +41,6 @@
                                     placeholder="Tìm kiếm khu vực..." value="{{ request('query', '') }}">
                             </div>
                         </div>
-                        <div class="col-md-1">
-                            <button type="submit" class="btn btn-primary w-100 shadow-sm"
-                                style="transition: all 0.3s;">Tìm</button>
-                        </div>
                         <!-- lọc -->
                         <div class="col-md-2">
                             <select name="sortOption" class="form-select shadow-sm" onchange="this.form.submit()">
@@ -56,6 +53,10 @@
                                 <option value="most_motels" {{ request('sortOption') == 'most_motels' ? 'selected' : '' }}>
                                     Nhiều dãy trọ nhất</option>
                             </select>
+                        </div>
+                         <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm"
+                                style="transition: all 0.3s;">Tìm</button>
                         </div>
                     </form>
                 </div>
@@ -86,7 +87,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <p class="text-primary fw-bold text-decoration-none"
+                                        <p class="text-primary fw-bold text-decoration-none text-center"
                                             style="transition: color 0.3s;">
                                             @if (request('sortOption') == 'most_motels')
                                                 {{ $district->name }} ({{ $district->motels_count }} dãy trọ)
@@ -95,23 +96,26 @@
                                             @endif
                                         </p>
                                     </td>
-                                    <td class="d-flex justify-content-center align-items-center">
-                                        <a href="{{ route('districts.edit', $district->id) }}"
-                                            class="btn btn-sm btn-primary action-btn me-2 action-icon" style="transition: all 0.3s;">
-                                            <i class="fas fa-edit me-1"></i>
-                                            <span class="d-none d-sm-inline ms-1">Sửa</span>
-                                        </a>
-                                        <form action="{{ route('districts.destroy', $district->id) }}" method="POST"
-                                            style="display:inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
-                                                onclick="return confirm('Bạn có chắc muốn xóa?')"
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <a href="{{ route('districts.edit', $district->id) }}"
+                                                class="btn btn-sm btn-primary action-btn me-2 action-icon"
                                                 style="transition: all 0.3s;">
-                                                <i class="fas fa-trash me-1"></i>
-                                                <span class="d-none d-sm-inline ms-1">Xóa</span>
-                                            </button>
-                                        </form>
+                                                <i class="fas fa-edit me-1"></i>
+                                                <span class="d-none d-sm-inline ms-1">Sửa</span>
+                                            </a>
+                                            <form action="{{ route('districts.destroy', $district->id) }}" method="POST"
+                                                style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger action-btn action-icon"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa?')"
+                                                    style="transition: all 0.3s;">
+                                                    <i class="fas fa-trash me-1"></i>
+                                                    <span class="d-none d-sm-inline ms-1">Xóa</span>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

@@ -419,21 +419,23 @@
                                                             <i class="fas fa-tools text-warning" style="font-size: 12px;"></i>
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
-                                                            {{ $room->name ?? 'Không xác định' }}
+                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                        <div>
+                                                            <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
+                                                                {{ $room->name ?? 'Không xác định' }}
+                                                            </div>
+                                                            <small class="text-muted">
+                                                                Trạng thái: <span class="text-danger"
+                                                                    name="status">{{ $room->status ?? 'Không xác định' }}</span>
+                                                            </small>
                                                         </div>
-                                                        <small class="text-muted" style="margin-right: 50px;">
-                                                            Trạng thái: <span class="text-danger"
-                                                                name="status">{{ $room->status ?? 'Không xác định' }}</span>
-                                                        </small>
-                                                        <input type="hidden" name="status" class="form-control"
-                                                            value="{{ $room->status ?? 'Không xác định' }}">
-                                                        <button class="btn btn-sm btn-outline-success confirm-repair-btn"
-                                                            data-room-id="{{ $room->id }}"
-                                                            data-status="{{ $room->status ?? 'Không xác định' }}">
-                                                            <i class="fas fa-check me-2"></i>Xác nhận
-                                                        </button>
+                                                        <div>
+                                                            <button class="btn btn-sm btn-outline-success confirm-repair-btn"
+                                                                data-room-id="{{ $room->id }}"
+                                                                data-status="{{ $room->status ?? 'Không xác định' }}">
+                                                                <i class="fas fa-check me-2"></i>Xác nhận
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </li>
@@ -659,4 +661,25 @@
                 });
             });
         </script>
+    @endsection
+    @section('styles')
+        <style>
+            .status-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                /* khoảng cách giữa chữ và nút */
+            }
+
+            .status-row .status-text {
+                color: red;
+                font-weight: 500;
+            }
+
+            .status-row .btn-confirm {
+                padding: 2px 8px;
+                font-size: 0.85rem;
+                border-radius: 4px;
+            }
+        </style>
     @endsection
