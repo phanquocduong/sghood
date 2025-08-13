@@ -27,8 +27,8 @@ class MeterReadingRequest extends FormRequest
         return [
             'readings' => 'required|array|min:1',
             'readings.*.room_id' => 'required|exists:rooms,id',
-            'readings.*.electricity_kwh' => 'required|numeric|min:1|max:2000',
-            'readings.*.water_m3' => 'required|numeric|min:1|max:200',
+            'readings.*.electricity_kwh' => 'required|numeric|min:1',
+            'readings.*.water_m3' => 'required|numeric|min:1',
             'month' => 'required|integer|min:1|max:12',
             'year' => 'required|integer|min:2000|max:2100',
             'motel_id' => 'required|exists:motels,id',

@@ -148,7 +148,7 @@
                                                 data-original-value="{{ $repair->status }}"
                                                 data-repair-id="{{ $repair->id }}">
                                                 Cập nhật trạng thái
-                                            </button>
+                                            </button> 
                                             <form id="status-form-{{ $repair->id }}"
                                                 action="{{ route('repairs.updateStatus', $repair->id) }}" method="POST"
                                                 class="d-none">

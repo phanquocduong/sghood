@@ -33,11 +33,11 @@ class MeterReadingController extends Controller
 
         // ✅ Logic đồng bộ với service
         if ($isInMeterReadingPeriod) {
-            // Trong thời gian nhập chỉ số (28 -> 5): hiển thị phòng cần nhập chỉ số
+            // Trong thời gian nhập chỉ số (28 -> 10): hiển thị phòng cần nhập chỉ số
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $shouldDisplayTable = true;
             $displayMode = 'time_based';
-            
+
             Log::info('In meter reading period', [
                 'current_day' => $periodInfo['current_day'],
                 'display_month' => $periodInfo['display_month'],
@@ -52,7 +52,7 @@ class MeterReadingController extends Controller
                 $rooms = $roomsWithActiveContracts;
                 $shouldDisplayTable = true;
                 $displayMode = 'active_contracts';
-                
+
                 Log::info('Outside meter reading period, showing expiring contracts', [
                     'current_day' => $periodInfo['current_day'],
                     'period_description' => $periodInfo['period_description'],
@@ -62,12 +62,51 @@ class MeterReadingController extends Controller
                 $rooms = collect();
                 $shouldDisplayTable = false;
                 $displayMode = 'none';
-                
+
                 Log::info('Outside meter reading period, no expiring contracts', [
                     'current_day' => $periodInfo['current_day'],
                     'period_description' => $periodInfo['period_description']
                 ]);
             }
+        }
+
+        // ✅ Lấy chỉ số điện nước tháng trước cho tất cả phòng
+        if ($rooms && $rooms->isNotEmpty()) {
+            $displayMonth = $periodInfo['display_month'];
+            $displayYear = $periodInfo['display_year'];
+
+            // Transform rooms collection để thêm thông tin chỉ số tháng trước
+            $rooms = $rooms->map(function ($groupedRooms, $motelId) use ($displayMonth, $displayYear) {
+                return $groupedRooms->map(function ($room) use ($displayMonth, $displayYear) {
+                    // Lấy chỉ số điện nước tháng trước cho từng phòng
+                    $previousReading = MeterReading::where('room_id', $room->id)
+                        ->where(function ($query) use ($displayMonth, $displayYear) {
+                            $query->where('year', '<', $displayYear)
+                                ->orWhere(function ($q) use ($displayMonth, $displayYear) {
+                                    $q->where('year', $displayYear)
+                                        ->where('month', '<', $displayMonth);
+                                });
+                        })
+                        ->orderBy('year', 'desc')
+                        ->orderBy('month', 'desc')
+                        ->first();
+
+                    // Thêm thông tin chỉ số tháng trước vào room object
+                    $room->previous_electricity =  $previousReading ? $previousReading->electricity_kwh : 0;
+                    $room->previous_water = $previousReading ? $previousReading->water_m3 : 0;
+                    $room->previous_month = $previousReading ? $previousReading->month : null;
+                    $room->previous_year = $previousReading ? $previousReading->year : null;
+                    $room->has_previous_reading = $previousReading !== null;
+                        // dd($room); // Debugging line to check room data
+                    return $room;
+                });
+            });
+
+            Log::info('Added previous readings to rooms', [
+                'total_rooms_processed' => $rooms->flatten()->count(),
+                'display_month' => $displayMonth,
+                'display_year' => $displayYear
+            ]);
         }
 
         $data = [
@@ -107,11 +146,11 @@ class MeterReadingController extends Controller
             // ✅ Kiểm tra xem có thể tạo meter reading không
             foreach ($readings as $reading) {
                 $canCreate = $this->meterReadingService->canCreateMeterReadingForRoom(
-                    $reading['room_id'], 
-                    $month, 
+                    $reading['room_id'],
+                    $month,
                     $year
                 );
-                
+
                 if (!$canCreate) {
                     throw new \Exception("Không thể tạo chỉ số cho phòng {$reading['room_id']} trong tháng {$month}/{$year}. Có thể đã tồn tại hoặc phòng không có hợp đồng hoạt động.");
                 }
@@ -187,6 +226,8 @@ class MeterReadingController extends Controller
         }
     }
 
+
+
     public function filter(Request $request)
     {
         $query = MeterReading::query()->with('room');
@@ -241,7 +282,7 @@ class MeterReadingController extends Controller
     public function checkCurrentPeriod()
     {
         $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
-        
+
         return response()->json([
             'current_period' => $periodInfo,
             'can_input_meter_reading' => $periodInfo['is_in_special_period'],
@@ -256,7 +297,7 @@ class MeterReadingController extends Controller
     public function getRoomsByPeriod(Request $request)
     {
         $periodInfo = $this->meterReadingService->getDisplayPeriodInfo();
-        
+
         if ($periodInfo['is_in_special_period']) {
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $displayMode = 'time_based';
