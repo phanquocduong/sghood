@@ -13,7 +13,6 @@ export default defineNuxtPlugin(() => {
         appId: '1:1000506063285:web:47e80b8489d09c8ce8c1fc',
         measurementId: 'G-LRB092W6Y5'
     };
-    console.log('firebase -v', firebaseConfig);
      const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
     const auth = getAuth(app);
     const db = getFirestore(app);

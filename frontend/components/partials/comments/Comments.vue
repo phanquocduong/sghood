@@ -64,7 +64,6 @@ const fetchComments = async () => {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-               
             }
         });
         comments.value = res.data || [];
