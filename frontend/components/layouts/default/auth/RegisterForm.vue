@@ -24,7 +24,6 @@
                             v-model="phone"
                             pattern="^(\+84|0)(3|5|7|8|9)\d{8}$"
                             :disabled="otpSent"
-                            placeholder="+84xxxxxxxxx"
                             required
                             autocomplete="tel"
                         />
@@ -73,10 +72,8 @@
 
                 <div class="form-row form-row-wide">
                     <label for="email">
-                        Email:
-                        <i class="im im-icon-Mail tooltip">
-                            <span class="tooltip-text"> Email phải có định dạng hợp lệ, ví dụ: user@domain.com </span>
-                        </i>
+                        Email <span style="color: #f91942">(định dạng hợp lệ, ví dụ: user@domain.com)</span>:
+                        <i class="im im-icon-Mail"> </i>
                         <input
                             type="email"
                             class="input-text"
@@ -90,12 +87,8 @@
 
                 <div class="form-row form-row-wide">
                     <label for="password2">
-                        Mật khẩu:
-                        <i class="im im-icon-Lock-2 tooltip">
-                            <span class="tooltip-text">
-                                Mật khẩu phải tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&.-)
-                            </span>
-                        </i>
+                        Mật khẩu <span style="color: #f91942">(tối thiểu 8 ký tự, gồm chữ hoa/thường, số và ký tự đặc biệt)</span>:
+                        <i class="im im-icon-Lock-2"></i>
                         <input
                             type="password"
                             class="input-text"
