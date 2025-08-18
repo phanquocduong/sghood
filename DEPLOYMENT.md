@@ -36,11 +36,11 @@ Dự án này bao gồm **backend Laravel 12** (tại `admin.sghood.com.vn`) và
 
 -   Xóa thư mục Laravel:
     ```bash
-    sudo rm -rf /var/www/html/admin.phanquocduong.id.vn
+    sudo rm -rf /var/www/html/admin.sghood.com.vn
     ```
 -   Xóa thư mục Nuxt:
     ```bash
-    sudo rm -rf /var/www/html/phanquocduong.id.vn
+    sudo rm -rf /var/www/html/sghood.com.vn
     ```
 
 ### 3. Xóa cấu hình Nginx
@@ -70,9 +70,9 @@ Dự án này bao gồm **backend Laravel 12** (tại `admin.sghood.com.vn`) và
 
 -   Đảm bảo không còn cache cũ:
     ```bash
-    sudo rm -rf /var/www/html/admin.phanquocduong.id.vn/bootstrap/cache/*
-    sudo rm -rf /var/www/html/phanquocduong.id.vn/.output
-    sudo rm -rf /var/www/html/phanquocduong.id.vn/node_modules
+    sudo rm -rf /var/www/html/admin.sghood.com.vn/bootstrap/cache/*
+    sudo rm -rf /var/www/html/sghood.com.vn/.output
+    sudo rm -rf /var/www/html/sghood.com.vn/node_modules
     ```
 
 ### 6. Kiểm tra dịch vụ
@@ -168,10 +168,14 @@ sudo chmod -R 755 /var/www/html/admin.sghood.com.vn
 -   Clone:
     ```bash
     cd /var/www/html/admin.sghood.com.vn
-    sudo -u www-data git clone https://<your-username>:<your-pat>@github.com/<your-repo>/<laravel-repo>.git .
+    sudo -u www-data git clone https://phanquocduong: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@github.com/phanquocduong/sghood.git .
     ```
 -   Chỉ giữ lại backend/, xoá các folder và file khác
 -   Chuyển source trong backend/ ra ngoài -> xoá backend/
+
+```bash
+mv /var/www/html/admin.sghood.com.vn/backend/* /var/www/html/admin.sghood.com.vn/
+```
 
 ### 3. Cài dependencies
 
