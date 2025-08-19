@@ -21,9 +21,9 @@
                 style="background: linear-gradient(90deg, #007bff, #00c6ff); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <h6 class="mb-0 fw-bold">{{ __('Danh sách cấu hình') }}</h6>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('configs.create') }}" class="btn btn-success shadow-sm" style="transition: all 0.3s;">
+                    <!-- <a href="{{ route('configs.create') }}" class="btn btn-success shadow-sm" style="transition: all 0.3s;">
                         <i class="fas fa-plus me-1"></i> Thêm cấu hình
-                    </a>
+                    </a> -->
                 </div>
             </div>
             <div class="card-body p-4">
@@ -87,8 +87,9 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('configs.edit', $config->id) }}"
-                                            class="btn btn-sm btn-warning action-btn me-2" style="transition: all 0.3s;">
-                                            <i class="fas fa-pen me-1"></i> Sửa
+                                            class="btn btn-sm btn-warning action-btn me-2 action-icon" style="transition: all 0.3s;">
+                                            <i class="fas fa-pen me-1"></i>
+                                            <span class="d-none d-sm-inline action-text">Sửa</span>
                                         </a>
                                     </td>
                                 </tr>
@@ -131,6 +132,36 @@
 
         .alert-danger {
             border-left-color: #dc3545;
+        }
+        @media (max-width: 576px) {
+
+            /* Nút hành động trên mobile chỉ là icon tròn */
+            .action-icon {
+                padding: 6px 8px;
+                /* Nhỏ gọn */
+                border-radius: 50%;
+                /* Bo tròn */
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center
+            }
+
+            /* Icon căn giữa */
+            .action-icon i {
+                margin: 0 !important;
+                font-size: 14px;
+            }
+
+            .card-header .btn {
+                font-size: 14px;
+                padding: 6px 8px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
         }
     </style>
 

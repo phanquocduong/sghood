@@ -41,7 +41,7 @@ class CheckoutService
             }
 
             $existingCheckout = $contract->checkouts()
-                ->where('canceled_at', '==', NULL)
+                ->whereNull('canceled_at')
                 ->first();
 
             if ($existingCheckout) {

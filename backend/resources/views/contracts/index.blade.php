@@ -83,6 +83,7 @@
                                 </option>
                                 <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
                                 <option value="Kết thúc" {{ $status == 'Kết thúc' ? 'selected' : '' }}>Kết thúc</option>
+                                <option value="Kết thúc sớm" {{ $status == 'Kết thúc sớm' ? 'selected' : '' }}>Kết thúc sớm</option>
                                 <option value="Huỷ bỏ" {{ $status == 'Huỷ bỏ' ? 'selected' : '' }}>Huỷ bỏ</option>
                             </select>
                         </div>
@@ -162,6 +163,7 @@
                                                 'Chờ ký' => 'info',
                                                 'Hoạt động' => 'success',
                                                 'Kết thúc' => 'secondary',
+                                                'Kết thúc sớm' => 'secondary',
                                                 'Huỷ bỏ' => 'dark',
                                                 'Chờ thanh toán tiền cọc' => 'warning',
                                                 default => 'light',
@@ -173,6 +175,7 @@
                                                 'Chờ ký' => 'fas fa-pen',
                                                 'Hoạt động' => 'fas fa-check-circle',
                                                 'Kết thúc' => 'fas fa-flag-checkered',
+                                                'Kết thúc sớm' => 'fas fa-flag-checkered',
                                                 'Huỷ bỏ' => 'fas fa-times-circle',
                                                 default => 'fas fa-info-circle',
                                             };

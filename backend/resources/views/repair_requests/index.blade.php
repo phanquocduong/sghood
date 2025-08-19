@@ -13,11 +13,12 @@
             </div>
         @endif
     @endforeach
-
     <div class="container-fluid py-4">
+        
         <!-- Header -->
         <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
             style="background: linear-gradient(90deg, #6a11cb, #2575fc);">
+
             <h4 class="mb-2 mb-sm-0 fw-bold w-100 text-start text-sm-start">
                 <i class="fas fa-tools me-2"></i>Quản lý Yêu Cầu Sửa Chữa
             </h4>
@@ -29,8 +30,8 @@
         <!-- Search Form -->
         <form action="{{ route('repair_requests.index') }}" method="GET" class="row g-3 mb-4">
             <div class="col-lg-4 col-md-6">
-                <input type="text" class="form-control" name="querySearch"
-                    placeholder="Tìm theo tiêu đề, mô tả, ghi chú..." value="{{ request('querySearch') }}">
+                <input type="text" class="form-control" name="querySearch" placeholder="Tìm theo tiêu đề, mô tả, ghi chú..."
+                    value="{{ request('querySearch') }}">
             </div>
             <div class="col-lg-3 col-md-6">
                 <select class="form-select" name="status">
@@ -85,33 +86,18 @@
                             <td>
                                 <div class="repair-title">
                                     {{ $repair->title ?? 'N/A' }}
-                                    @if ($repair->note)
-                                        <button type="button" class="btn btn-link p-0 ms-2 edit-note-btn"
-                                            data-repair-id="{{ $repair->id }}" data-current-note="{{ $repair->note }}"
-                                            title="Chỉnh sửa ghi chú: {{ $repair->note }}">
-                                        </button>
-                                    @else
-                                        <button type="button" class="btn btn-link p-0 ms-2 edit-note-btn"
-                                            data-repair-id="{{ $repair->id }}" data-current-note="" title="Thêm ghi chú">
-                                        </button>
-                                    @endif
                                 </div>
                             </td>
                             <td>
                                 <div class="repair-note d-flex align-items-center">
-                                    {{ $repair->note ?? 'Chưa có ghi chú nào' }}
-                                    @if ($repair->note)
-                                        <button type="button" class="btn btn-link p-0 ms-2 edit-note-btn"
-                                            data-repair-id="{{ $repair->id }}" data-current-note="{{ $repair->note }}"
-                                            title="Chỉnh sửa ghi chú: {{ $repair->note }}">
-                                            <i class="fas fa-edit text-primary"></i>
-                                        </button>
-                                    @else
-                                        <button type="button" class="btn btn-link p-0 ms-2 edit-note-btn"
-                                            data-repair-id="{{ $repair->id }}" data-current-note="" title="Thêm ghi chú">
-                                            <i class="fas fa-plus-circle text-muted"></i>
-                                        </button>
-                                    @endif
+                                    <span
+                                        class="note-text-{{ $repair->id }}">{{ $repair->note ?? 'Chưa có ghi chú nào' }}</span>
+                                    <button type="button" class="btn btn-link p-0 ms-2 edit-note-btn"
+                                        data-repair-id="{{ $repair->id }}" data-current-note="{{ $repair->note ?? '' }}"
+                                        title="{{ $repair->note ? 'Chỉnh sửa ghi chú: ' . $repair->note : 'Thêm ghi chú' }}">
+                                        <i
+                                            class="fas {{ $repair->note ? 'fa-edit text-primary' : 'fa-plus-circle text-muted' }}"></i>
+                                    </button>
                                 </div>
                             </td>
                             <td>
@@ -131,7 +117,7 @@
                             <td>
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('repair_requests.show', $repair->id) }}" class="btn btn-info btn-sm">
-                                        Chi tiết
+                                        <i class="fas fa-eye me-1"></i>
                                     </a>
                                     @php
                                         $isFinal = in_array($repair->status, ['Hoàn thành', 'Huỷ bỏ']);
@@ -145,8 +131,7 @@
                                         <div class="dropdown">
                                             <button type="button" class="btn btn-primary btn-sm dropdown-toggle"
                                                 data-bs-toggle="dropdown" aria-expanded="false"
-                                                data-original-value="{{ $repair->status }}"
-                                                data-repair-id="{{ $repair->id }}">
+                                                data-original-value="{{ $repair->status }}" data-repair-id="{{ $repair->id }}">
                                                 Cập nhật trạng thái
                                             </button>
                                             <form id="status-form-{{ $repair->id }}"
@@ -159,8 +144,7 @@
                                             <ul class="dropdown-menu">
                                                 @foreach ($options as $option)
                                                     <li>
-                                                        <a class="dropdown-item status-option" href="#"
-                                                            data-status="{{ $option }}"
+                                                        <a class="dropdown-item status-option" href="#" data-status="{{ $option }}"
                                                             data-repair-id="{{ $repair->id }}">
                                                             {{ $option }}
                                                         </a>
@@ -176,7 +160,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                                 Không có yêu cầu sửa chữa nào.
                             </td>
@@ -327,13 +311,9 @@
         }
 
         @media (max-width: 576px) {
-
-            /* Nút hành động trên mobile chỉ là icon tròn */
             .action-icon {
                 padding: 6px 8px;
-                /* Nhỏ gọn */
                 border-radius: 50%;
-                /* Bo tròn */
                 width: 36px;
                 height: 36px;
                 display: flex;
@@ -342,7 +322,6 @@
                 text-align: center
             }
 
-            /* Icon căn giữa */
             .action-icon i {
                 margin: 0 !important;
                 font-size: 14px;
@@ -359,31 +338,25 @@
     </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Edit note modal functionality
             const editNoteModal = new bootstrap.Modal(document.getElementById('editNoteModal'));
             const editNoteForm = document.getElementById('editNoteForm');
             const noteContentTextarea = document.getElementById('noteContent');
 
             // Handle edit note button clicks
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const editBtn = e.target.closest('.edit-note-btn');
                 if (editBtn) {
                     e.preventDefault();
 
                     const repairId = editBtn.dataset.repairId;
-                    const currentNote = editBtn.dataset.currentNote;
+                    const currentNote = editBtn.dataset.currentNote || '';
 
-                    // Set form action URL
                     editNoteForm.action = `{{ url('repair-requests') }}/${repairId}/note`;
-
-                    // Set current note content
                     noteContentTextarea.value = currentNote;
-
-                    // Show modal
                     editNoteModal.show();
 
-                    // Focus on textarea
                     setTimeout(() => {
                         noteContentTextarea.focus();
                     }, 500);
@@ -391,39 +364,57 @@
             });
 
             // Handle form submission
-            editNoteForm.addEventListener('submit', function(e) {
+            editNoteForm.addEventListener('submit', function (e) {
                 e.preventDefault();
 
-                // Show loading state
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...';
                 submitBtn.disabled = true;
 
-                // Submit form
-                fetch(this.action, {
-                        method: 'PUT',
-                        body: new FormData(this),
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update note icon and tooltip
-                            const repairId = this.action.split('/').slice(-2, -1)[0];
-                            const editBtn = document.querySelector(`[data-repair-id="${repairId}"]`);
-                            const icon = editBtn.querySelector('i');
+                const formData = new FormData(this);
+                formData.append('_method', 'PUT');
 
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        console.log('Trạng thái response:', response.status);
+                        console.log('URL request:', this.action);
+
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                console.error('Nội dung response:', text);
+                                throw new Error(`Lỗi HTTP! status: ${response.status}`);
+                            });
+                        }
+
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Dữ liệu response:', data);
+
+                        if (data.success) {
+                            const actionParts = this.action.split('/');
+                            const repairId = actionParts[actionParts.length - 2];
+
+                            const noteTextElement = document.querySelector(`.note-text-${repairId}`);
+                            if (noteTextElement) {
+                                noteTextElement.textContent = noteContentTextarea.value.trim() || 'Chưa có ghi chú nào';
+                            }
+
+                            const editBtn = document.querySelector(`[data-repair-id="${repairId}"]`);
                             if (editBtn) {
                                 const icon = editBtn.querySelector('i');
                                 if (icon) {
                                     if (noteContentTextarea.value.trim()) {
                                         icon.className = 'fas fa-edit text-primary';
-                                        editBtn.setAttribute('title',
-                                            `Chỉnh sửa ghi chú: ${noteContentTextarea.value}`);
+                                        editBtn.setAttribute('title', `Chỉnh sửa ghi chú: ${noteContentTextarea.value}`);
                                     } else {
                                         icon.className = 'fas fa-plus-circle text-muted';
                                         editBtn.setAttribute('title', 'Thêm ghi chú');
@@ -432,50 +423,70 @@
                                 editBtn.dataset.currentNote = noteContentTextarea.value;
                             }
 
-                            // Hide modal
                             editNoteModal.hide();
-
-                            // Show success message
-                            showAlert('success', 'Cập nhật ghi chú thành công!');
+                            showAlert('success', data.message || 'Cập nhật ghi chú thành công!');
                         } else {
                             showAlert('error', data.message || 'Có lỗi xảy ra khi cập nhật ghi chú');
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        showAlert('error', 'Có lỗi xảy ra khi cập nhật ghi chú');
+                        console.error('Lỗi fetch:', error);
+                        showAlert('error', `Có lỗi xảy ra khi cập nhật ghi chú: ${error.message}`);
                     })
                     .finally(() => {
-                        // Restore button state
                         submitBtn.innerHTML = originalText;
                         submitBtn.disabled = false;
                     });
             });
 
-            // Helper function to show alerts
+            // ✅ Sửa hàm showAlert để chèn đúng vị trí
             function showAlert(type, message) {
+                // Xóa thông báo cũ nếu có
+                const existingAlert = document.querySelector('.alert:not(.alert-dismissible)');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+
                 const alertHtml = `
-                    <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                        <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show animate__animated animate__fadeIn mb-3" role="alert">
+                            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
 
-                // Insert alert at the top of the container
-                const container = document.querySelector('.container-fluid');
-                container.insertAdjacentHTML('afterbegin', alertHtml);
+                // ✅ Chèn thông báo ở đầu body content, trước container
+                const contentSection = document.querySelector('#app .content') || document.querySelector('main') || document.body;
 
-                // Auto dismiss after 5 seconds
+                // ✅ Nếu không tìm thấy, chèn vào đầu container-fluid
+                const targetElement = contentSection || document.querySelector('.container-fluid');
+
+                if (targetElement) {
+                    targetElement.insertAdjacentHTML('afterbegin', alertHtml);
+                } else {
+                    // Fallback: chèn vào đầu body
+                    document.body.insertAdjacentHTML('afterbegin', alertHtml);
+                }
+
+                // Tự động ẩn sau 5 giây
                 setTimeout(() => {
-                    const alert = container.querySelector('.alert');
+                    const alert = document.querySelector('.alert.alert-dismissible');
                     if (alert) {
-                        alert.remove();
+                        // Sử dụng Bootstrap alert hide
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
                     }
                 }, 5000);
+
+                // ✅ Scroll lên đầu để thấy thông báo
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             }
 
-            // Event delegation for status updates
-            document.addEventListener('click', function(e) {
+            // Event delegation for status updates - giữ nguyên
+            document.addEventListener('click', function (e) {
                 const statusOption = e.target.closest('.status-option');
                 if (statusOption) {
                     e.preventDefault();
@@ -487,7 +498,6 @@
 
                     if (newStatus === originalStatus) return;
 
-                    // Xác nhận cho tất cả trạng thái
                     if (confirm(`Bạn có chắc muốn chuyển trạng thái thành "${newStatus}"?`)) {
                         const form = document.getElementById(`status-form-${repairId}`);
                         if (form) {

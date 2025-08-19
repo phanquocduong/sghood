@@ -247,7 +247,8 @@ Route::middleware('admin')->group(function () {
     Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
     Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
     Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
-    Route::put('repair-requests/{id}/note', [RepairRequestController::class, 'updateNote'])->name('repair_requests.updateNote');
+    Route::put('repair-requests/{repairRequest}/note', [RepairRequestController::class, 'updateNote'])
+    ->name('repair_requests.updateNote');
 });
 
 // File tải file PDF hợp đồng

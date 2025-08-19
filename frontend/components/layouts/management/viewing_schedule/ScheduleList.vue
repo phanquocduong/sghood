@@ -79,7 +79,7 @@
 import Swal from 'sweetalert2';
 import { useFormatDate } from '~/composables/useFormatDate';
 
-const { formatDate, formatTime, formatDateTime } = useFormatDate();
+const { formatDateTime } = useFormatDate();
 const config = useRuntimeConfig();
 const props = defineProps({
     schedules: { type: Array, required: true },

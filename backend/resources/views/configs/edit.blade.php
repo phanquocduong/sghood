@@ -41,7 +41,7 @@
                         <div class="col-12">
                             <label for="config_key" class="form-label fw-bold text-primary">Khóa<span style="color:red;">*</span></label>
                             <input type="text" class="form-control shadow-sm {{ $errors->has('config_key') ? 'is-invalid' : '' }}" 
-                                id="config_key" name="config_key" value="{{ old('config_key', $config->config_key) }}" required>
+                                id="config_key" name="config_key" value="{{ old('config_key', $config->config_key) }}" readonly required>
                             @if ($errors->has('config_key'))
                                 <div class="invalid-feedback">
                                     {{ $errors->first('config_key') }}
@@ -51,8 +51,9 @@
 
                         <div class="col-12">
                             <label for="config_type" class="form-label fw-bold text-primary">Loại<span style="color:red;">*</span></label>
+                            <input type="hidden" name="config_type" value="{{ old('config_type', $config->config_type) }}">
                             <select class="form-select shadow-sm {{ $errors->has('config_type') ? 'is-invalid' : '' }}" 
-                                id="config_type" name="config_type" required onchange="toggleConfigValue()">
+                                id="config_type" name="config_type_display" required onchange="toggleConfigValue()" disabled >
                                 <option value="TEXT" {{ old('config_type', $config->config_type) == 'TEXT' ? 'selected' : '' }}>TEXT</option>
                                 <option value="URL" {{ old('config_type', $config->config_type) == 'URL' ? 'selected' : '' }}>URL</option>
                                 <option value="HTML" {{ old('config_type', $config->config_type) == 'HTML' ? 'selected' : '' }}>HTML</option>

@@ -33,7 +33,7 @@ class MeterReadingController extends Controller
 
         // ✅ Logic đồng bộ với service
         if ($isInMeterReadingPeriod) {
-            // Trong thời gian nhập chỉ số (28 -> 5): hiển thị phòng cần nhập chỉ số
+            // Trong thời gian nhập chỉ số (28 -> 10): hiển thị phòng cần nhập chỉ số
             $rooms = $this->meterReadingService->getRoomsWithMotel();
             $shouldDisplayTable = true;
             $displayMode = 'time_based';
@@ -68,6 +68,45 @@ class MeterReadingController extends Controller
                     'period_description' => $periodInfo['period_description']
                 ]);
             }
+        }
+
+        // ✅ Lấy chỉ số điện nước tháng trước cho tất cả phòng
+        if ($rooms && $rooms->isNotEmpty()) {
+            $displayMonth = $periodInfo['display_month'];
+            $displayYear = $periodInfo['display_year'];
+
+            // Transform rooms collection để thêm thông tin chỉ số tháng trước
+            $rooms = $rooms->map(function ($groupedRooms, $motelId) use ($displayMonth, $displayYear) {
+                return $groupedRooms->map(function ($room) use ($displayMonth, $displayYear) {
+                    // Lấy chỉ số điện nước tháng trước cho từng phòng
+                    $previousReading = MeterReading::where('room_id', $room->id)
+                        ->where(function ($query) use ($displayMonth, $displayYear) {
+                            $query->where('year', '<', $displayYear)
+                                ->orWhere(function ($q) use ($displayMonth, $displayYear) {
+                                    $q->where('year', $displayYear)
+                                        ->where('month', '<', $displayMonth);
+                                });
+                        })
+                        ->orderBy('year', 'desc')
+                        ->orderBy('month', 'desc')
+                        ->first();
+
+                    // Thêm thông tin chỉ số tháng trước vào room object
+                    $room->previous_electricity =  $previousReading ? $previousReading->electricity_kwh : 0;
+                    $room->previous_water = $previousReading ? $previousReading->water_m3 : 0;
+                    $room->previous_month = $previousReading ? $previousReading->month : null;
+                    $room->previous_year = $previousReading ? $previousReading->year : null;
+                    $room->has_previous_reading = $previousReading !== null;
+                        // dd($room); // Debugging line to check room data
+                    return $room;
+                });
+            });
+
+            Log::info('Added previous readings to rooms', [
+                'total_rooms_processed' => $rooms->flatten()->count(),
+                'display_month' => $displayMonth,
+                'display_year' => $displayYear
+            ]);
         }
 
         $data = [
@@ -186,6 +225,8 @@ class MeterReadingController extends Controller
                 ->with('open_update_modal', true);
         }
     }
+
+
 
     public function filter(Request $request)
     {

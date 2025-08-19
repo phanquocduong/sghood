@@ -155,8 +155,7 @@ const blogList = ref([]);
 const popularPosts = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const hasIncreasedView = ref(false);
-const currentPage = ref(1);
-const totalPages = ref(1);
+
 function formatDate(dateStr = '') {
     if (!dateStr) return 'Không rõ ngày';
 

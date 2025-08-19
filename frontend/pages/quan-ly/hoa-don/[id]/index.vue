@@ -162,12 +162,12 @@
                     <td class="item-amount">{{ formatPrice(invoice.junk_fee) }}</td>
                 </tr>
 
-                <!-- TV Cable Fee -->
+                <!-- Internet Fee -->
                 <tr v-if="invoice.type === 'Hàng tháng'">
                     <td class="item-number">6</td>
                     <td class="item-description">
-                        <strong>Tiền cáp TV</strong>
-                        <div class="service-note">Phí truyền hình cáp hàng tháng</div>
+                        <strong>Tiền Internet</strong>
+                        <div class="service-note">Phí internet băng thông rộng hàng tháng</div>
                     </td>
                     <td class="item-amount">{{ formatPrice(invoice.internet_fee) }}</td>
                 </tr>
@@ -176,8 +176,8 @@
                 <tr v-if="invoice.type === 'Hàng tháng'">
                     <td class="item-number">7</td>
                     <td class="item-description">
-                        <strong>Tiền Internet</strong>
-                        <div class="service-note">Phí internet băng thông rộng</div>
+                        <strong>Phí dịch vụ</strong>
+                        <div class="service-note">Phí dịch vụ chung hàng tháng</div>
                     </td>
                     <td class="item-amount">{{ formatPrice(invoice.service_fee) }}</td>
                 </tr>

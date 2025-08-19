@@ -64,7 +64,7 @@
             <div class="col-md-8">
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
-                    <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
+                    <form @keyup.enter="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
                                 <div>
@@ -98,7 +98,7 @@
                                 type="text"
                                 id="subject-contact"
                                 placeholder="Chủ đề"
-                                required="required"
+                          
                                 v-model="subject"
                             />
                         </div>
@@ -123,6 +123,7 @@
                             value="Gửi tin nhắn"
                             :disabled="loading"
                             style="margin-bottom: 10px; margin-top: -10px"
+                            @click="handleSubmit"
                         >
                             <span v-if="loading" class="spinner"></span>
                             {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
@@ -183,14 +184,14 @@ const handleSubmit = async () => {
         });
         console.log(res.value);
         if (res?.status === true) {
-            toast.success('✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
+            toast.success('Gửi thành công! Cảm ơn bạn đã liên hệ.');
             subject.value = '';
             message.value = '';
         } else {
-            toast.error(`❌ Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
+            toast.error(` Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
         }
     } catch (error) {
-        toast.error('❌ Gửi thất bại: Lỗi kết nối đến máy chủ.');
+        toast.error(' Gửi thất bại: Lỗi kết nối đến máy chủ.');
     } finally {
         loading.value = false;
     }

@@ -21,7 +21,7 @@ class EnsureIsAdmin
 
         if ($user->status !== 'Hoạt động') {
             Auth::logout();
-            return redirect()->route('login')->with('error', 'Tài khoản của bạn hiện không hoạt động');
+            return redirect()->route('login')->with('error', 'Tài khoản của bạn hiện đã bị khoá');
         }
 
         return $next($request);

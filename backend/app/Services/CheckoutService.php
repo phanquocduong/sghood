@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Jobs\SendCheckoutStatusUpdatedNotification;
 use App\Jobs\SendCheckoutRefundNotification;
 use App\Jobs\SendCheckoutAutoConfirmedNotification;
+use App\Jobs\SendAutoEndContractNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -370,7 +371,6 @@ class CheckoutService
                         }
 
                         User::where('id', $user->id)->update([
-                            'role' => 'Người đăng ký',
                             'identity_document' => null,
                             'updated_at' => $refundedAt,
                         ]);
@@ -385,6 +385,20 @@ class CheckoutService
                             'checkout_id' => $checkout->id,
                             'contract_id' => $checkout->contract->id,
                         ]);
+                    }
+
+                    $room = $checkout->contract->room;
+                    if ($user && $room) {
+                    SendAutoEndContractNotification::dispatch(
+                        $checkout->contract,
+                        'Hợp đồng kết thúc sớm do hoàn tất quy trình checkout.'
+                    );
+
+                    Log::info('Contract early termination notification job dispatched', [
+                        'checkout_id' => $checkout->id,
+                        'user_id' => $user->id,
+                        'contract_id' => $checkout->contract->id,
+                    ]);
                     }
 
                     Log::info('Contract status updated to Kết thúc', [

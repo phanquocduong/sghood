@@ -9,7 +9,8 @@
             <h6 class="mb-0 fw-bold">{{ __('Thay đổi thứ tự tiện ích') }}</h6>
             <div>
                 <a href="{{ route('amenities.index') }}" class="btn btn-light shadow-sm" style="transition: all 0.3s;">
-                    <i class="fas fa-arrow-left me-1"></i> {{ __('Quay lại danh sách') }}
+                    <i class="fas fa-arrow-left me-1"></i>
+                    <span class="d-none d-sm-inline">{{ __('Quay lại danh sách') }}</span>
                 </a>
             </div>
         </div>

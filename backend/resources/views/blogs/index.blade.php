@@ -3,18 +3,6 @@
 @section('title', 'Trang bài viết')
 
 @section('content')
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
     <div class="container-fluid py-5 px-4">
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
@@ -55,11 +43,11 @@
                 @endif
                 <div class="mb-4">
                     <form action="{{ route('blogs.index') }}" method="GET" class="row g-3 mb-4">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <input type="text" class="form-control rounded-3" name="querySearch"
                                 placeholder="Tìm theo tiêu đề và tác giả" value="{{ request('querySearch') }}">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <select class="form-select rounded-3" name="status">
                                 <option value="">Tất cả trạng thái</option>
                                 @foreach (['Đã xuất bản', 'Nháp'] as $status)
@@ -81,7 +69,7 @@
                                     nhất</option>
                             </select>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-3">
                             <button type="submit" class="btn btn-primary w-100 rounded-3">
                                 <i class="fas fa-search me-2"></i>Tìm
                             </button>
@@ -153,23 +141,25 @@
                                             </form>
                                         </td>
                                         <td>{{ $blog->created_at->format('d/m/Y') }}</td>
-                                        <td class="d-flex justify-content-center align-items-center">
-                                            <a href="{{ route('blogs.edit', $blog->id) }}"
-                                                class="btn btn-sm btn-primary action-btn me-2 action-icon">
-                                                <i class="fas fa-edit"></i>
-                                                <span class="d-none d-sm-inline ms-1">Sửa</span>
-                                            </a>
-                                            <form action="{{ route('blogs.delete', $blog->id) }}" method="POST"
-                                                style="display:inline-block;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-danger action-btn action-icon"
-                                                    onclick="return confirm('Bạn có chắc muốn xóa?')">
-                                                    <i class="fas fa-trash"></i>
-                                                    <span class="d-none d-sm-inline ms-1">Xóa</span>
-                                                </button>
-                                            </form>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center align-items-center">
+                                                <a href="{{ route('blogs.edit', $blog->id) }}"
+                                                    class="btn btn-sm btn-primary action-btn me-2 action-icon">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span class="d-none d-sm-inline ms-1">Sửa</span>
+                                                </a>
+                                                <form action="{{ route('blogs.delete', $blog->id) }}" method="POST"
+                                                    style="display:inline-block;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="btn btn-sm btn-danger action-btn action-icon"
+                                                        onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                                        <i class="fas fa-trash"></i>
+                                                        <span class="d-none d-sm-inline ms-1">Xóa</span>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
 
                                     </tr>

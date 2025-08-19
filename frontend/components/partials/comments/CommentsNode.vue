@@ -6,11 +6,7 @@
                 class="comment-avatar"
                 style="padding: 0 0 0 0"
                 :src="
-                    authStore.user?.avatar
-                        ? baseUrl + authStore.user.avatar
-                        : comment.user?.avatar
-                        ? baseUrl + comment.user.avatar
-                        : defaultAvatar
+                 comment.user?.avatar ? baseUrl + comment.user.avatar : defaultAvatar
                 "
             />
         </div>
@@ -95,7 +91,8 @@ const HandleReply = async blog_id => {
         const res = await $api(`/blogs/${blog_id}/replay-comment`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             },
             body: JSON.stringify({
                 content: ReplayContent.value,

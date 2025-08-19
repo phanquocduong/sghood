@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Apis\ChatBoxAIController;
 use App\Http\Controllers\Apis\RoomController;
 use App\Http\Controllers\Apis\AmenityController;
 use App\Http\Controllers\Apis\AuthController;
@@ -121,6 +120,7 @@ Route::get('/show/{slug}', [BlogController::class, 'showBlog']);
 Route::get('/blogs/{id}/related', [BlogController::class, 'related']);
 Route::get('/blogs/popular', [BlogController::class, 'popular']);
 Route::post('/blogs/{id}/increase-view', [BlogController::class, 'increaseView']);
+
 // Comment blogs route
 Route::get('/blogs/{slug}/comments', [CommentController::class, 'getCommentsByBlog']);
 Route::post('/blogs/{blog}/send-comment', [CommentController::class, 'SendComment']);
@@ -128,7 +128,6 @@ Route::post('/blogs/{blog}/replay-comment', [CommentController::class, 'ReplayCo
 Route::put('/comments/{id}', [CommentController::class, 'editComment']);
 Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
 Route::post('/comments/{comment}/reaction', [CommentController::class, 'react']);
-
 
 // Get all admin users
 Route::get('/users/admins', [UserController::class, 'getAdmins']);
@@ -139,9 +138,4 @@ Route::prefix('notifications')->group(function () {
     Route::get('/user/{userId}', [NotificationController::class, 'getAllNotificationByUser'])->name('notifications.user');
     Route::post('/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::get('/{id}', [NotificationController::class, 'getByNotificationId'])->name('notifications.show');
-});
-
-// Chat Box AI Routes
-Route::prefix('chatbox-ai')->group(function () {
-    Route::get('/', [ChatBoxAIController::class, 'index'])->name('chatbox-ai.index');
 });

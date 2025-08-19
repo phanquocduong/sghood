@@ -38,12 +38,10 @@
             <form @submit.prevent="authStore.resetPassword">
                 <div class="form-row form-row-wide">
                     <label for="password3">
-                        Mật khẩu mới:
-                        <i class="im im-icon-Lock-2 tooltip">
-                            <span class="tooltip-text">
-                                Mật khẩu phải tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&.-)
-                            </span>
-                        </i>
+                        Mật khẩu mới
+                        <span style="color: #f91942">(tối thiểu 8 ký tự, gồm chữ hoa/thường, số và ký tự đặc biệt)</span>:
+                        <i class="im im-icon-Lock-2"></i>
+
                         <input
                             type="password"
                             class="input-text"

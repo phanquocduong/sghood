@@ -1,7 +1,7 @@
 // firebase.js
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import {  getFirestore } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 export default defineNuxtPlugin(() => {
     const firebaseConfig = {
@@ -13,8 +13,7 @@ export default defineNuxtPlugin(() => {
         appId: '1:1000506063285:web:47e80b8489d09c8ce8c1fc',
         measurementId: 'G-LRB092W6Y5'
     };
-    console.log('Initializing Firebase with config:', firebaseConfig);
-     const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
@@ -22,7 +21,7 @@ export default defineNuxtPlugin(() => {
         provide: {
             firebaseApp: app,
             firebaseAuth: auth,
-            firebaseDb :db,
+            firebaseDb: db,
             firebaseStorage: storage
         }
     };

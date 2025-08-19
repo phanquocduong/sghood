@@ -79,8 +79,16 @@
                         <label class="margin-top-0">Mật khẩu hiện tại</label>
                         <input v-model="passwordForm.currentPassword" type="password" required />
 
-                        <label>Mật khẩu mới</label>
-                        <input v-model="passwordForm.newPassword" type="password" required />
+                        <label
+                            >Mật khẩu mới
+                            <span style="color: #f91942">(tối thiểu 8 ký tự, gồm chữ hoa/thường, số và ký tự đặc biệt)</span></label
+                        >
+                        <input
+                            v-model="passwordForm.newPassword"
+                            type="password"
+                            required
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&\.\-]{8,}$"
+                        />
 
                         <label>Xác nhận mật khẩu mới</label>
                         <input v-model="passwordForm.confirmPassword" type="password" required />
