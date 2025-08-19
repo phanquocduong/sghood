@@ -54,8 +54,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useHead } from '#app';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 
 const { $api } = useNuxtApp();
@@ -67,6 +68,54 @@ const isLoading = ref(false);
 
 // Sử dụng composable
 const { formatPrice, formatFees } = useFormatPrice();
+
+// Tính toán tiêu đề và mô tả SEO động dựa trên dữ liệu nhà trọ
+const seoTitle = computed(() => {
+    return motel.value.name ? `SGHood - ${motel.value.name} - Nhà Trọ Tại ${motel.value.district_name}` : 'SGHood - Chi Tiết Nhà Trọ';
+});
+
+const seoDescription = computed(() => {
+    return motel.value.description
+        ? `${motel.value.description.substring(0, 150)}... Tìm hiểu nhà trọ tại ${motel.value.district_name}, TP. Hồ Chí Minh với SGHood.`
+        : `Khám phá nhà trọ tại ${motel.value.district_name}, TP. Hồ Chí Minh với SGHood. Đặt phòng trực tuyến, xem thông tin phòng trống và tiện ích chi tiết.`;
+});
+
+// Cấu hình SEO cho trang chi tiết nhà trọ
+useHead({
+    title: seoTitle,
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content: seoDescription
+        },
+        {
+            name: 'keywords',
+            content: computed(() => {
+                return `SGHood, nhà trọ ${motel.value.district_name}, thuê trọ TP. Hồ Chí Minh, đặt phòng trực tuyến, nhà trọ giá rẻ, ${
+                    motel.value.name || 'nhà trọ'
+                }`;
+            })
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: seoTitle
+        },
+        {
+            property: 'og:description',
+            content: seoDescription
+        },
+        { property: 'og:type', content: 'website' },
+        {
+            property: 'og:url',
+            content: computed(() => `https://sghood.com.vn/danh-sach-nha-tro/${route.params.slug}`)
+        }
+    ]
+});
 
 // Mở modal
 const openModal = room => {

@@ -42,7 +42,7 @@
                         <div class="icon-box-2 with-line">
                             <i class="im im-icon-Mail-withAtSign"></i>
                             <h3>Đặt Lịch Xem Phòng</h3>
-                            <p>Gửi yêu cầu hẹn giờ xem phòng với Trọ Việt ngay trên hệ thống.</p>
+                            <p>Gửi yêu cầu hẹn giờ xem phòng với SGHood ngay trên hệ thống.</p>
                         </div>
                     </div>
 
@@ -71,7 +71,7 @@
                         <Blogs />
 
                         <div class="col-md-12 centered-content">
-                            <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-10"> Xem thêm </NuxtLink>
+                            <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-30"> Xem thêm </NuxtLink>
                         </div>
                     </div>
                 </div>

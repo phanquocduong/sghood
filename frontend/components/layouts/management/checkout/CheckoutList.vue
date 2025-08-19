@@ -4,18 +4,23 @@
     <Loading :is-loading="isLoading" />
 
     <ul v-if="!isLoading">
-        <li v-for="item in items" :key="item.id" :class="getItemClass(item.inventory_status)">
+        <li v-for="item in items" :key="item.id" :class="getItemClass(item.inventory_status, item.canceled_at)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <img :src="config.public.baseUrl + item.room_image" alt="" />
+                    <NuxtLink :to="`/danh-sach-nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
+                        <img :src="config.public.baseUrl + item.room_image" :alt="item.room_name - item.motel_name" />
+                    </NuxtLink>
                 </div>
                 <div class="list-box-listing-content">
                     <div class="inner">
                         <h3>
                             Hợp đồng #{{ item.contract_id }} [{{ item.room_name }} - {{ item.motel_name }}]
-                            <span :class="getInventoryStatusClass(item.inventory_status)">{{ item.inventory_status }}</span>
+                            <span v-if="item.canceled_at" class="booking-status canceled">Huỷ bỏ</span>
+                            <span v-if="!item.canceled_at" :class="getInventoryStatusClass(item.inventory_status)">{{
+                                item.inventory_status
+                            }}</span>
                             <span
-                                v-if="item.inventory_status === 'Đã kiểm kê'"
+                                v-if="!item.canceled_at && item.inventory_status === 'Đã kiểm kê'"
                                 :class="getUserConfirmationStatusClass(item.user_confirmation_status)"
                                 >{{ getUserConfirmationStatusText(item.user_confirmation_status) }}</span
                             >
@@ -83,18 +88,33 @@
                     @click.prevent="emitOpenInventoryPopup(item)"
                     class="button gray approve"
                 >
-                    <i class="im im-icon-Check"></i> Xem kiểm kê
+                    <i class="im im-icon-Check"></i>
+                    {{ item.user_confirmation_status === 'Chưa xác nhận' ? 'Xác nhận kiểm kê' : 'Xem kiểm kê' }}
                 </a>
                 <a
-                    v-if="item.refund_status === 'Chờ xử lý' && item.bank_info !== null"
+                    v-if="
+                        item.inventory_status === 'Đã kiểm kê' &&
+                        item.user_confirmation_status === 'Đồng ý' &&
+                        !item.has_left &&
+                        !item.canceled_at
+                    "
+                    href="#"
+                    @click.prevent="emitConfirmLeftRoom(item)"
+                    class="button gray approve"
+                >
+                    <i class="fa fa-door-open"></i> Xác nhận đã rời phòng
+                </a>
+                <a
+                    v-if="item.refund_status === 'Chờ xử lý' && item.bank_info && !item.canceled_at"
                     href="#"
                     @click.prevent="emitOpenBankInfoPopup(item)"
                     class="button gray"
                 >
                     <i class="im im-icon-Bank"></i> Thông tin chuyển khoản
                 </a>
+
                 <a
-                    v-if="item.inventory_status === 'Chờ kiểm kê'"
+                    v-if="item.inventory_status === 'Chờ kiểm kê' && !item.canceled_at"
                     href="#"
                     @click.prevent="openConfirmCancelPopup(item.id)"
                     class="button gray reject"
@@ -124,9 +144,12 @@ const props = defineProps({
     isLoading: { type: Boolean, required: true }
 });
 
-const emit = defineEmits(['cancelCheckout', 'openInventoryPopup', 'openBankInfoPopup']);
+const emit = defineEmits(['cancelCheckout', 'openInventoryPopup', 'openBankInfoPopup', 'confirmLeftRoom']);
 
-const getItemClass = status => {
+const getItemClass = (status, cancel) => {
+    if (cancel) {
+        return 'canceled-booking';
+    }
     switch (status) {
         case 'Chờ kiểm kê':
         case 'Kiểm kê lại':
@@ -213,6 +236,10 @@ const emitOpenInventoryPopup = item => {
 
 const emitOpenBankInfoPopup = item => {
     emit('openBankInfoPopup', item);
+};
+
+const emitConfirmLeftRoom = item => {
+    emit('confirmLeftRoom', item);
 };
 </script>
 

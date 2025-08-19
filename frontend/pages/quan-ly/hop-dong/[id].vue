@@ -38,12 +38,7 @@
     <div class="row">
         <div class="col-lg-12 col-md-12">
             <div class="dashboard-list-box margin-top-15">
-                <ExtensionList
-                    v-if="contract?.active_extensions.length !== 0"
-                    :contract="contract"
-                    @reject-extension="rejectExtension"
-                    @open-popup="openPopup"
-                />
+                <ExtensionList v-if="contract?.active_extensions.length !== 0" :contract="contract" @open-popup="openPopup" />
             </div>
         </div>
     </div>

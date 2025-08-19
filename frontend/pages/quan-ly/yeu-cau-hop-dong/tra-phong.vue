@@ -9,12 +9,10 @@
             :rejection-reason="rejectionReason"
             :confirm-loading="confirmLoading"
             :reject-loading="rejectLoading"
-            :leave-loading="leaveLoading"
             @update:show-rejection-form="showRejectionForm = $event"
             @update:rejection-reason="rejectionReason = $event"
             @submit-approval="submitApproval"
             @submit-rejection="submitRejection"
-            @confirm-left-room="confirmLeftRoom"
         />
 
         <!-- Bank Info Modal -->
@@ -38,6 +36,7 @@
                         @cancel-checkout="cancelCheckout"
                         @open-inventory-popup="openInventoryPopup"
                         @open-bank-info-popup="openBankInfoPopup"
+                        @confirm-left-room="confirmLeftRoom"
                     />
                 </div>
             </div>
@@ -49,8 +48,6 @@
 import { ref, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
-import { useFormatPrice } from '~/composables/useFormatPrice';
-import { useRuntimeConfig } from '#app';
 import TomSelect from 'tom-select';
 
 definePageMeta({
@@ -63,7 +60,6 @@ const checkouts = ref([]);
 const isLoading = ref(false);
 const toast = useAppToast();
 const { handleBackendError } = useApi();
-const { formatPrice } = useFormatPrice();
 
 const selectedCheckout = ref({});
 const showRejectionForm = ref(false);
@@ -206,10 +202,10 @@ const submitRejection = async () => {
     }
 };
 
-const confirmLeftRoom = async () => {
+const confirmLeftRoom = async item => {
     leaveLoading.value = true;
     try {
-        await $api(`/checkouts/${selectedCheckout.value.id}/left-room`, {
+        await $api(`/checkouts/${item.id}/left-room`, {
             method: 'POST',
             headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
         });
@@ -307,20 +303,10 @@ const handleUpdateBankInfo = async ({ id, bankInfo }) => {
         closeEditBankModal();
         await fetchCheckouts();
     } catch (error) {
-        handleBackendError(error);
+        handleBackendError(error, toast);
     } finally {
         updateLoading.value = false;
     }
-};
-
-const formatBankInfo = bankInfo => {
-    if (!bankInfo || typeof bankInfo !== 'object') return 'Không có thông tin';
-    const fields = [
-        bankInfo.bank_name ? `Ngân hàng: ${bankInfo.bank_name}` : '',
-        bankInfo.account_number ? `Số tài khoản: ${bankInfo.account_number}` : '',
-        bankInfo.account_holder ? `Chủ tài khoản: ${bankInfo.account_holder}` : ''
-    ].filter(Boolean);
-    return fields.join('<br>');
 };
 
 onMounted(() => {

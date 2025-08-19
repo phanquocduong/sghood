@@ -93,14 +93,7 @@
                             </div>
                         </div>
                         <div>
-                            <input
-                                name="subject"
-                                type="text"
-                                id="subject-contact"
-                                placeholder="Chủ đề"
-                          
-                                v-model="subject"
-                            />
+                            <input name="subject" type="text" id="subject-contact" placeholder="Chủ đề" v-model="subject" />
                         </div>
                         <div>
                             <textarea
@@ -141,9 +134,40 @@ import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useToast';
 import { useBehaviorStore } from '~/stores/behavior';
+import { useHead } from '#app';
+
+// Cấu hình SEO cho trang liên hệ
+useHead({
+    title: 'SGHood - Liên Hệ Với Chúng Tôi',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content: 'Liên hệ với SGHood để được hỗ trợ về quản lý nhà trọ, thuê trọ và các dịch vụ liên quan tại TP. Hồ Chí Minh.'
+        },
+        {
+            name: 'keywords',
+            content: 'SGHood, liên hệ, hỗ trợ thuê trọ, nhà trọ TP. Hồ Chí Minh, quản lý nhà trọ, dịch vụ thuê trọ'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Liên Hệ Với Chúng Tôi'
+        },
+        {
+            property: 'og:description',
+            content: 'Liên hệ với SGHood để được hỗ trợ về quản lý nhà trọ, thuê trọ và các dịch vụ liên quan tại TP. Hồ Chí Minh.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/lien-he' }
+    ]
+});
+
 // api config
 const config = useState('configs');
-const baseUrl = useRuntimeConfig().public.baseUrl;
 const behavior = useBehaviorStore();
 const route = useRoute();
 

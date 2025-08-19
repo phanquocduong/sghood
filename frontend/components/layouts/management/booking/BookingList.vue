@@ -7,7 +7,7 @@
         <li v-for="item in bookings" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
+                    <NuxtLink :to="`/danh-sach-nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
                         <img :src="config.public.baseUrl + item.room_image" :alt="item.room_name - item.motel_name" />
                     </NuxtLink>
                 </div>
@@ -62,7 +62,7 @@
                     <i class="sl sl-icon-close"></i> Hủy bỏ
                 </a>
                 <NuxtLink v-if="item.status === 'Chấp nhận'" :to="`/quan-ly/hop-dong/${item.contract_id}`" class="button gray approve">
-                    <i class="sl sl-icon-close"></i> Xem hợp đồng
+                    <i class="im im-icon-Folder-Bookmark"></i> Xem hợp đồng
                 </NuxtLink>
             </div>
         </li>

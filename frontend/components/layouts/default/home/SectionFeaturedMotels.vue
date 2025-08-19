@@ -12,7 +12,7 @@
                     <div class="col-md-12">
                         <div ref="carousel" class="simple-slick-carousel dots-nav">
                             <div v-for="motel in motels" :key="motel.id" class="carousel-item">
-                                <NuxtLink :to="`/nha-tro/${motel.slug}`" class="listing-item-container">
+                                <NuxtLink :to="`/danh-sach-nha-tro/${motel.slug}`" class="listing-item-container">
                                     <div class="listing-item">
                                         <img :src="`${config.public.baseUrl}${motel.main_image}`" :alt="motel.name" />
                                         <div class="listing-badge now-open">Nổi bật</div>

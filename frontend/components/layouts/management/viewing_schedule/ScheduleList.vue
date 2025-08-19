@@ -7,7 +7,7 @@
         <li v-for="item in schedules" :key="item.id" :class="getItemClass(item.status)">
             <div class="list-box-listing bookings">
                 <div class="list-box-listing-img">
-                    <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
+                    <NuxtLink :to="`/danh-sach-nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
                         <img :src="config.public.baseUrl + item.motel_image" :alt="item.motel_name" />
                     </NuxtLink>
                 </div>

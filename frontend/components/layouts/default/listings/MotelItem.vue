@@ -1,5 +1,5 @@
 <template>
-    <NuxtLink :to="`/nha-tro/${item.slug}`" class="listing-item-container">
+    <NuxtLink :to="`/danh-sach-nha-tro/${item.slug}`" class="listing-item-container">
         <div class="listing-item">
             <img :src="`${config.public.baseUrl}${item.mainImage}`" :alt="item.name" />
             <div class="listing-item-details">

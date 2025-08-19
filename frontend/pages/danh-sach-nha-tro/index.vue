@@ -62,6 +62,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useHead } from '#app';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -88,6 +89,39 @@ const districts = ref([]);
 const priceOptions = ref([]);
 const areaRangeOptions = ref([]);
 const amenitiesOptions = ref([]);
+
+// Cấu hình SEO cho trang danh sách nhà trọ
+useHead({
+    title: 'SGHood - Danh Sách Nhà Trọ Tại TP. Hồ Chí Minh',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content:
+                'Tìm nhà trọ tại TP. Hồ Chí Minh với SGHood. Khám phá danh sách nhà trọ chất lượng, minh bạch với giá thuê và tiện ích, hỗ trợ đặt phòng trực tuyến.'
+        },
+        {
+            name: 'keywords',
+            content:
+                'SGHood, nhà trọ TP. Hồ Chí Minh, thuê nhà trọ, tìm phòng trọ, đặt phòng trực tuyến, nhà trọ giá rẻ, nhà trọ chất lượng'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Danh Sách Nhà Trọ Tại TP. Hồ Chí Minh'
+        },
+        {
+            property: 'og:description',
+            content:
+                'Tìm nhà trọ tại TP. Hồ Chí Minh với SGHood. Khám phá danh sách nhà trọ chất lượng, minh bạch với giá thuê và tiện ích, hỗ trợ đặt phòng trực tuyến.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/danh-sach-nha-tro' }
+    ]
+});
 
 const fetchMotels = async () => {
     isLoading.value = true;

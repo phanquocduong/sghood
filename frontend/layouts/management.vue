@@ -8,12 +8,12 @@
                     <div class="left-side">
                         <!-- Logo -->
                         <div id="logo">
-                            <NuxtLink to="/"
-                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
-                            /></NuxtLink>
-                            <NuxtLink to="/" class="dashboard-logo"
-                                ><img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo"
-                            /></NuxtLink>
+                            <NuxtLink to="/">
+                                <img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo" />
+                            </NuxtLink>
+                            <NuxtLink to="/" class="dashboard-logo">
+                                <img v-if="config && config.secondary_logo" :src="baseUrl + config.secondary_logo" alt="SGHood Logo" />
+                            </NuxtLink>
                         </div>
 
                         <!-- Mobile Navigation -->
@@ -53,10 +53,11 @@
 </template>
 
 <script setup>
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter, useRoute, useHead } from '#app';
 import { ref, watch, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useAuthStore } from '~/stores/auth';
+
 const route = useRoute();
 const isLoading = ref(false);
 const config = useState('configs');
@@ -67,6 +68,16 @@ const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const toast = useAppToast();
 const router = useRouter();
+
+// Cấu hình SEO với tiêu đề và noindex
+useHead({
+    title: 'SGHood - Khu Vực Quản Lý',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'robots', content: 'noindex' } // Ngăn công cụ tìm kiếm lập chỉ mục
+    ]
+});
 
 const toggleChat = () => {
     isChatOpen.value = !isChatOpen.value;

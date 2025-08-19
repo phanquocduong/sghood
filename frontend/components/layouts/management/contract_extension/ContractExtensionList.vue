@@ -51,10 +51,10 @@
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
                 </a>
-                <NuxtLink :to="`/quan-ly/hop-dong/${extension.contract_id}`" class="button gray approve">
+                <NuxtLink :to="`/quan-ly/hop-dong/${extension.contract_id}`" class="button gray approve" target="_blank">
                     <i class="im im-icon-File-Download"></i> Xem hợp đồng
                 </NuxtLink>
-                <a href="#" @click.prevent="openExtensionDetailPopup(extension)" class="button gray approve popup-with-zoom-anim">
+                <a href="#" @click.prevent="openExtensionDetailPopup(extension)" class="button gray approve">
                     <i class="im im-icon-Folder-Bookmark"></i> Xem chi tiết
                 </a>
             </div>
