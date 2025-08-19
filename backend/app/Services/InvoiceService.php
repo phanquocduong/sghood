@@ -24,7 +24,30 @@ class InvoiceService
             ->select('id', 'contract_id', 'meter_reading_id', 'code', 'total_amount', 'status', 'month', 'year', 'created_at', 'refunded_at');
 
         if (!empty($filters['search'])) {
-            $query->where('code', 'like', '%' . $filters['search'] . '%');
+            $query->where(function ($q) use ($filters) {
+            $searchTerm = $filters['search'];
+
+            // Search by invoice code
+            $q->where('code', 'like', '%' . $searchTerm . '%');
+
+            // Search by contract ID
+            $q->orWhereHas('contract', function ($contractQuery) use ($searchTerm) {
+                // If query is exactly "hd" or "HD", show all contracts
+                if (strtolower($searchTerm) === 'hd') {
+                // No additional filtering - show all contracts
+                return;
+                }
+
+                // If query starts with HD or hd, extract the numeric part
+                $numericQuery = $searchTerm;
+                if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
+                $numericQuery = $matches[1];
+                }
+
+                $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            });
+            });
         }
 
         if (!empty($filters['month'])) {
@@ -39,7 +62,9 @@ class InvoiceService
             $query->where('status', $filters['status']);
         }
 
-        $query->orderBy('created_at', 'desc');
+        // Sắp xếp để hóa đơn "Chưa trả" hiển thị đầu tiên
+        $query->orderByRaw("CASE WHEN status = 'Chưa trả' THEN 0 ELSE 1 END")
+              ->orderBy('created_at', 'desc');
 
         return $query->paginate($perPage);
     }
@@ -115,7 +140,30 @@ class InvoiceService
         }
 
         if (!empty($filters['search'])) {
-            $query->where('code', 'like', '%' . $filters['search'] . '%');
+            $query->where(function ($q) use ($filters) {
+            $searchTerm = $filters['search'];
+
+            // Search by invoice code
+            $q->where('code', 'like', '%' . $searchTerm . '%');
+
+            // Search by contract ID
+            $q->orWhereHas('contract', function ($contractQuery) use ($searchTerm) {
+                // If query is exactly "hd" or "HD", show all contracts
+                if (strtolower($searchTerm) === 'hd') {
+                // No additional filtering - show all contracts
+                return;
+                }
+
+                // If query starts with HD or hd, extract the numeric part
+                $numericQuery = $searchTerm;
+                if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
+                $numericQuery = $matches[1];
+                }
+
+                $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            });
+            });
         }
 
         $invoices = $query->get(['status', 'total_amount']);

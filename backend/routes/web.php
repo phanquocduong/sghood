@@ -170,6 +170,8 @@ Route::middleware('admin')->group(function () {
         Route::get('/{contractId}/identity-document/{imagePath}', [ContractController::class, 'showIdentityDocument'])->name('showIdentityDocument');
         Route::post('/{contract}/send-revision-email', [ContractController::class, 'sendRevisionEmail'])->name('sendRevisionEmail');
         Route::match(['put', 'patch'], '/{id}/content', [ContractController::class, 'updateContent'])->name('updateContent');
+        Route::post('/{id}/reactivate', [ContractController::class, 'reactivate'])->name('reactivate');
+        Route::delete('{id}/delete-identity', [ContractController::class, 'deleteIdentity'])->name('deleteIdentity');
     });
 
     // Notification routes

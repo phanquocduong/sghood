@@ -86,6 +86,7 @@
                                 <tr class="table-row">
                                     <td>
                                         <a href="{{ route('contracts.show', $checkout->contract->id) }}"
+                                        target="_blank"
                                         class="contract-id-clickable"
                                         title="Xem chi tiết hợp đồng">
                                             {{ 'HD'.$checkout->contract->id }}
@@ -144,62 +145,68 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        <button type="button"
-                                            class="btn btn-{{ $checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason) ? 'danger' : 'info' }} btn-sm shadow-sm"
-                                            data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $checkout->id }}">
-                                            <i class="fas fa-eye me-1"></i>
-                                        </button>
-                                        @if ($checkout->inventory_status !== 'Đã kiểm kê')
-                                            <button type="button" class="btn btn-warning btn-sm shadow-sm"
-                                                data-bs-toggle="modal" data-bs-target="#editModal{{ $checkout->id }}">
-                                                <i class="fas fa-edit me-1"></i>Kiểm kê
-                                            </button>
+                                        @if($checkout->canceled_at)
+                                            <span class="badge bg-secondary py-2 px-3">
+                                                <i class="fas fa-ban me-1"></i>Đã hủy
+                                            </span>
                                         @else
-                                            @if ($checkout->user_confirmation_status === 'Từ chối')
-                                                <button type="button" class="btn btn-danger btn-sm shadow-sm"
-                                                    onclick="changeToReInventory({{ $checkout->id }})">
-                                                    <i class="fas fa-redo me-1"></i>Kiểm kê lại
+                                            <button type="button"
+                                                class="btn btn-{{ $checkout->user_confirmation_status === 'Từ chối' && !empty($checkout->user_rejection_reason) ? 'danger' : 'info' }} btn-sm shadow-sm"
+                                                data-bs-toggle="modal" data-bs-target="#checkoutModal{{ $checkout->id }}">
+                                                <i class="fas fa-eye me-1"></i>
+                                            </button>
+                                            @if ($checkout->inventory_status !== 'Đã kiểm kê')
+                                                <button type="button" class="btn btn-warning btn-sm shadow-sm"
+                                                    data-bs-toggle="modal" data-bs-target="#editModal{{ $checkout->id }}">
+                                                    <i class="fas fa-edit me-1"></i>Kiểm kê
                                                 </button>
-                                            @elseif ($checkout->user_confirmation_status === 'Đồng ý')
-                                                @if ($checkout->refund_status === 'Đã xử lý')
-                                                    @if ($checkout->has_left == 0)
-                                                        <form action="{{ route('checkouts.confirmLeft', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
-                                                            onsubmit="return confirm('Bạn có chắc chắn khách hàng đã rời đi?')">
+                                            @else
+                                                @if ($checkout->user_confirmation_status === 'Từ chối')
+                                                    <button type="button" class="btn btn-danger btn-sm shadow-sm"
+                                                        onclick="changeToReInventory({{ $checkout->id }})">
+                                                        <i class="fas fa-redo me-1"></i>Kiểm kê lại
+                                                    </button>
+                                                @elseif ($checkout->user_confirmation_status === 'Đồng ý')
+                                                    @if ($checkout->refund_status === 'Đã xử lý')
+                                                        @if ($checkout->has_left == 0)
+                                                            <form action="{{ route('checkouts.confirmLeft', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
+                                                                onsubmit="return confirm('Bạn có chắc chắn khách hàng đã rời đi?')">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" class="btn btn-primary btn-sm shadow-sm"
+                                                                    title="Xác nhận khách hàng đã rời đi">
+                                                                    <i class="fas fa-sign-out-alt me-1"></i>Xác nhận rời đi
+                                                                </button>
+                                                            </form>
+                                                        @else
+                                                            <span class="fst-italic">Đã hoàn thành</span>
+                                                        @endif
+                                                    @endif
+                                                @else
+                                                    @php
+                                                        // Lấy giá trị từ configs với config_key là date_confirm_checkout
+                                                        $dateConfirmCheckout = DB::table('configs')
+                                                            ->where('config_key', 'date_confirm_checkout')
+                                                            ->value('config_value'); // Mặc định là 7 nếu không tìm thấy config
+
+                                                        $updatedAt = \Carbon\Carbon::parse($checkout->updated_at);
+                                                        $daysDiff = $updatedAt->diffInDays(now());
+                                                    @endphp
+                                                    @if ($checkout->user_confirmation_status === 'Chưa xác nhận' && $daysDiff > $dateConfirmCheckout)
+                                                        <form action="{{ route('checkouts.forceConfirmUser', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn xác nhận đồng ý thay cho người dùng?')">
                                                             @csrf
                                                             @method('PATCH')
-                                                            <button type="submit" class="btn btn-primary btn-sm shadow-sm"
-                                                                title="Xác nhận khách hàng đã rời đi">
-                                                                <i class="fas fa-sign-out-alt me-1"></i>Xác nhận rời đi
+                                                            <button type="submit" class="btn btn-success btn-sm shadow-sm"
+                                                                title="Xác nhận đồng ý thay người dùng">
+                                                                <i class="fas fa-user-check me-1"></i>Xác nhận
                                                             </button>
                                                         </form>
                                                     @else
-                                                        <span class="fst-italic">Đã hoàn thành</span>
+                                                        <span class="badge bg-warning text-white py-2 px-2">
+                                                            <i class="fas fa-hourglass-half me-1"></i>Chờ xác nhận
+                                                        </span>
                                                     @endif
-                                                @endif
-                                            @else
-                                                @php
-                                                    // Lấy giá trị từ configs với config_key là date_confirm_checkout
-                                                    $dateConfirmCheckout = DB::table('configs')
-                                                        ->where('config_key', 'date_confirm_checkout')
-                                                        ->value('config_value'); // Mặc định là 7 nếu không tìm thấy config
-
-                                                    $updatedAt = \Carbon\Carbon::parse($checkout->updated_at);
-                                                    $daysDiff = $updatedAt->diffInDays(now());
-                                                @endphp
-                                                @if ($checkout->user_confirmation_status === 'Chưa xác nhận' && $daysDiff > $dateConfirmCheckout)
-                                                    <form action="{{ route('checkouts.forceConfirmUser', $checkout->id) }}" method="POST" style="display: inline-block; margin-bottom: -10px;"
-                                                        onsubmit="return confirm('Bạn có chắc chắn muốn xác nhận đồng ý thay cho người dùng?')">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="btn btn-success btn-sm shadow-sm"
-                                                            title="Xác nhận đồng ý thay người dùng">
-                                                            <i class="fas fa-user-check me-1"></i>Xác nhận
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <span class="badge bg-warning text-white py-2 px-2">
-                                                        <i class="fas fa-hourglass-half me-1"></i>Chờ xác nhận
-                                                    </span>
                                                 @endif
                                             @endif
                                         @endif
@@ -502,7 +509,7 @@
                                                 @method('PATCH')
                                                 <div class="modal-body">
                                                     <p>Bạn có chắc chắn muốn xác nhận đã xử lý yêu cầu hoàn tiền này?
-                                                        <span class="fst-italic">Vui lòng truy cập: <a class="text-danger" href="https://my.sepay.vn/transactions">Vào đây</a> để lấy mã tham chiếu!</span>
+                                                        <span class="fst-italic">Vui lòng truy cập: <a class="text-danger" href="https://my.sepay.vn/transactions" target="_blank">Vào đây</a> để lấy mã tham chiếu hoặc sao chép ở ứng dụng banking!</span>
                                                     </p>
                                                     <div class="mb-3">
                                                         <label for="reference_code{{ $checkout->id }}" class="form-label">Mã tham chiếu</label>
