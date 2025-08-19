@@ -265,4 +265,14 @@ class ContractController extends Controller
             ], 500);
         }
     }
+    public function reactivate(Request $request, $id)
+    {
+        $result = $this->contractService->reactivateContract($id);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
+    }
 }

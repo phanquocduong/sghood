@@ -411,27 +411,6 @@ class ContractService
                     $contract->room->update(['status' => 'Sửa chữa']);
                 }
 
-                // Remove identity documents from user and storage
-                if ($contract->user->identity_document) {
-                    $imagePaths = explode('|', $contract->user->identity_document);
-                    foreach ($imagePaths as $index => $imagePath) {
-                        // Delete the file from storage
-                        if (Storage::disk('public')->exists($imagePath)) {
-                            Storage::disk('public')->delete($imagePath);
-                            Log::info('Deleted identity document file', [
-                                'user_id' => $contract->user->id,
-                                'file_path' => $imagePath
-                            ]);
-                        }
-                    }
-                    // Clear the identity_document field in the user model
-                    $contract->user->update(['identity_document' => null]);
-                    Log::info('User identity document cleared', [
-                        'user_id' => $contract->user->id,
-                        'contract_id' => $contract->id
-                    ]);
-                }
-
                 Log::info('User status updated to "Người đăng ký"', [
                     'user_id' => $contract->user->id,
                     'contract_id' => $contract->id
@@ -543,5 +522,80 @@ class ContractService
         }
     }
 
+    public function reactivateContract($contractId): array
+    {
+        try {
+            $contract = Contract::with(['user', 'room', 'booking'])->findOrFail($contractId);
 
+            if ($contract->status !== 'Kết thúc sớm') {
+                Log::warning('Cố gắng tái kích hoạt hợp đồng không ở trạng thái kết thúc sớm', [
+                    'contract_id' => $contractId,
+                    'current_status' => $contract->status
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Hợp đồng không ở trạng thái "Kết thúc sớm" nên không thể tái kích hoạt.',
+                    'status' => 400
+                ];
+            }
+
+            if (!$contract->user || !$contract->user->email) {
+                Log::error('Không tìm thấy người dùng hoặc email cho việc tái kích hoạt hợp đồng', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin người dùng hoặc email.',
+                    'status' => 404
+                ];
+            }
+
+            // Check for unpaid invoices
+            if ($this->checkOverdueInvoices($contractId)) {
+                Log::warning('Cố gắng tái kích hoạt hợp đồng có hóa đơn chưa thanh toán', [
+                    'contract_id' => $contractId
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Hợp đồng không thể tái kích hoạt do vẫn còn hóa đơn chưa thanh toán.',
+                    'status' => 400
+                ];
+            }
+
+            // Update contract status to "Hoạt động"
+            $contract->update(['status' => 'Hoạt động']);
+
+            // Update room status to "Đã thuê"
+            if ($contract->room) {
+                $contract->room->update(['status' => 'Đã thuê']);
+                Log::info('Trạng thái phòng đã được cập nhật thành "Đã thuê"', [
+                    'room_id' => $contract->room->id,
+                    'contract_id' => $contract->id
+                ]);
+            }
+
+            // Dispatch notification job for reactivation
+            SendContractConfirmNotification::dispatch($contract);
+
+            Log::info('Job thông báo tái kích hoạt hợp đồng đã được gửi', [
+                'contract_id' => $contract->id,
+                'user_id' => $contract->user_id
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Hợp đồng đã được tái kích hoạt thành công và email thông báo đã được gửi!'
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi khi tái kích hoạt hợp đồng: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi tái kích hoạt hợp đồng.',
+                'status' => 500
+            ];
+        }
+    }
 }

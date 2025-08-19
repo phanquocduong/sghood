@@ -138,7 +138,7 @@
                                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                         <span class="visually-hidden">Previous</span>
                                     </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#identityCarousel"
+                                    <button class="carousel-control-next" type="batch" data-bs-target="#identityCarousel"
                                         data-bs-slide="next">
                                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                         <span class="visually-hidden">Next</span>
@@ -364,6 +364,14 @@
                                             <button type="button" class="btn btn-danger shadow-sm px-4 py-2 status-btn" data-bs-toggle="modal" data-bs-target="#earlyTerminationModal">
                                                 <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng sớm
                                             </button>
+                                        @elseif($currentStatus === 'Kết thúc sớm')
+                                            <form action="{{ route('contracts.reactivate', $contract->id) }}" method="POST"
+                                                onsubmit="return confirmStatusChange('Hoạt động')" class="d-inline status-btn">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success shadow-sm px-4 py-2">
+                                                    <i class="fas fa-play-circle me-2"></i>Tái kích hoạt
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                     <!-- Nút Hủy bỏ và Xác nhận (ẩn mặc định) -->
@@ -669,7 +677,9 @@
             document.querySelectorAll('.status-btn').forEach(element => {
                 element.classList.add('d-none');
             });
-            document.getElementById('editControls').classList.remove('d-none');
+            document.getElementById('editControls').forEach(element => {
+                element.classList.remove('d-none');
+            });
 
             // Scroll to top of page
             window.scrollTo({ top: 0, behavior: 'smooth' });

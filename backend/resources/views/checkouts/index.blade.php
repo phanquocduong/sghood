@@ -502,7 +502,7 @@
                                                 @method('PATCH')
                                                 <div class="modal-body">
                                                     <p>Bạn có chắc chắn muốn xác nhận đã xử lý yêu cầu hoàn tiền này?
-                                                        <span class="fst-italic">Vui lòng truy cập: <a class="text-danger" href="https://my.sepay.vn/transactions">Vào đây</a> để lấy mã tham chiếu!</span>
+                                                        <span class="fst-italic">Vui lòng truy cập: <a class="text-danger" href="https://my.sepay.vn/transactions" target="_blank">Vào đây</a> để lấy mã tham chiếu hoặc sao chép ở ứng dụng banking!</span>
                                                     </p>
                                                     <div class="mb-3">
                                                         <label for="reference_code{{ $checkout->id }}" class="form-label">Mã tham chiếu</label>
