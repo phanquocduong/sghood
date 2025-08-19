@@ -372,6 +372,14 @@
                                                     <i class="fas fa-play-circle me-2"></i>Tái kích hoạt
                                                 </button>
                                             </form>
+                                            <form action="{{ route('contracts.deleteIdentity', $contract->id) }}" method="POST"
+                                                onsubmit="return confirmDeleteIdentity()" class="d-inline status-btn">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger shadow-sm px-4 py-2">
+                                                    <i class="fas fa-trash-alt me-2"></i>Xóa toàn bộ thông tin
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                     <!-- Nút Hủy bỏ và Xác nhận (ẩn mặc định) -->
@@ -763,5 +771,8 @@
                 });
             }
         });
+        function confirmDeleteIdentity() {
+            return confirm('Bạn có chắc chắn muốn xóa toàn bộ thông tin căn cước công dân? Hành động này không thể hoàn tác.');
+        }
     </script>
 @endsection

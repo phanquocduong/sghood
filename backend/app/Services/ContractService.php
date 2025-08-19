@@ -598,4 +598,71 @@ class ContractService
             ];
         }
     }
+
+    public function deleteIdentityDocument($contractId): array
+    {
+        try {
+            $contract = Contract::with(['user'])->findOrFail($contractId);
+
+            if ($contract->status !== 'Kết thúc sớm') {
+                Log::warning('Attempt to delete identity document for non-terminated contract', [
+                    'contract_id' => $contractId,
+                    'current_status' => $contract->status
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Chỉ có thể xóa thông tin căn cước công dân khi hợp đồng ở trạng thái "Kết thúc sớm".',
+                    'status' => 400
+                ];
+            }
+
+            if (!$contract->user || !$contract->user->identity_document) {
+                Log::warning('No identity document found for user', [
+                    'contract_id' => $contractId,
+                    'user_id' => $contract->user ? $contract->user->id : null
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin căn cước công dân để xóa.',
+                    'status' => 404
+                ];
+            }
+
+            // Lấy danh sách file căn cước công dân
+            $imagePaths = explode('|', $contract->user->identity_document);
+
+            // Xóa từng file từ storage
+            foreach ($imagePaths as $imagePath) {
+                if (Storage::disk('private')->exists($imagePath)) {
+                    Storage::disk('private')->delete($imagePath);
+                    Log::info('Deleted identity document file', [
+                        'user_id' => $contract->user->id,
+                        'file_path' => $imagePath
+                    ]);
+                }
+            }
+
+            // Cập nhật trường identity_document của user thành null
+            $contract->user->update(['identity_document' => null]);
+            Log::info('User identity document cleared', [
+                'user_id' => $contract->user->id,
+                'contract_id' => $contract->id
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Thông tin căn cước công dân đã được xóa thành công!'
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Error deleting identity document: ' . $e->getMessage(), [
+                'contract_id' => $contractId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi khi xóa thông tin căn cước công dân.',
+                'status' => 500
+            ];
+        }
+    }
 }
