@@ -43,9 +43,7 @@
                                             <i class="fas fa-check-circle me-1"></i>Đã duyệt
                                             {{ $extension->created_at ? $extension->created_at->format('d/m/Y H:i') : 'N/A' }}
                                         </div>
-                                        <div class="text-muted small">
-
-                                        </div>
+                                        <div class="text-muted small"></div>
                                     </div>
                                 </div>
 
@@ -267,65 +265,65 @@
                 </div>
 
                 <!-- Modal cho Kết thúc hợp đồng sớm -->
-<div class="modal fade" id="earlyTerminationModal" tabindex="-1" aria-labelledby="earlyTerminationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="earlyTerminationModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận kết thúc hợp đồng sớm
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-warning mb-4" role="alert">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Vui lòng cung cấp lý do cụ thể để kết thúc hợp đồng sớm. Thông tin này sẽ được gửi đến người thuê qua email.
-                </div>
+                <div class="modal fade" id="earlyTerminationModal" tabindex="-1" aria-labelledby="earlyTerminationModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="earlyTerminationModalLabel">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Xác nhận kết thúc hợp đồng sớm
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="alert alert-warning mb-4" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Vui lòng cung cấp lý do cụ thể để kết thúc hợp đồng sớm. Thông tin này sẽ được gửi đến người thuê qua email.
+                                </div>
 
-                <!-- Danh sách điều khoản -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-dark mb-3">
-                        <i class="fas fa-list-ul me-2"></i>Điều khoản kết thúc sớm
-                    </h6>
-                    <ul class="list-group list-group-flush">
-                        @forelse ($terminationRights as $term)
-                            <li class="list-group-item d-flex align-items-start border-0 py-2">
-                                <i class="fas fa-circle text-danger me-2 mt-1" style="font-size: 8px;"></i>
-                                <span>{{ $term }}</span>
-                            </li>
-                        @empty
-                            <li class="list-group-item text-muted border-0 py-2">
-                                Không có điều khoản kết thúc hợp đồng sớm nào được cấu hình.
-                            </li>
-                        @endforelse
-                    </ul>
-                </div>
+                                <!-- Danh sách điều khoản -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-dark mb-3">
+                                        <i class="fas fa-list-ul me-2"></i>Điều khoản kết thúc sớm
+                                    </h6>
+                                    <ul class="list-group list-group-flush">
+                                        @forelse ($terminationRights as $term)
+                                            <li class="list-group-item d-flex align-items-start border-0 py-2">
+                                                <i class="fas fa-circle text-danger me-2 mt-1" style="font-size: 8px;"></i>
+                                                <span>{{ $term }}</span>
+                                            </li>
+                                        @empty
+                                            <li class="list-group-item text-muted border-0 py-2">
+                                                Không có điều khoản kết thúc hợp đồng sớm nào được cấu hình.
+                                            </li>
+                                        @endforelse
+                                    </ul>
+                                </div>
 
-                <!-- Form nhập lý do -->
-                <form id="earlyTerminationForm" action="{{ route('contracts.terminateEarly', $contract->id) }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="terminationReason" class="form-label fw-bold text-dark">
-                            <i class="fas fa-comment me-2"></i>Lý do kết thúc hợp đồng sớm
-                        </label>
-                        <textarea class="form-control shadow-sm" id="terminationReason" name="termination_reason" rows="6"
-                            placeholder="Vui lòng nhập lý do cụ thể (ví dụ: Vi phạm điều khoản hợp đồng, không thanh toán đúng hạn...)"
-                            required></textarea>
-                        <small class="text-muted mt-1 d-block">Lý do này sẽ được lưu trữ và gửi qua email.</small>
+                                <!-- Form nhập lý do -->
+                                <form id="earlyTerminationForm" action="{{ route('contracts.terminateEarly', $contract->id) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-4">
+                                        <label for="terminationReason" class="form-label fw-bold text-dark">
+                                            <i class="fas fa-comment me-2"></i>Lý do kết thúc hợp đồng sớm
+                                        </label>
+                                        <textarea class="form-control shadow-sm" id="terminationReason" name="termination_reason" rows="6"
+                                            placeholder="Vui lòng nhập lý do cụ thể (ví dụ: Vi phạm điều khoản hợp đồng, không thanh toán đúng hạn...)"
+                                            required></textarea>
+                                        <small class="text-muted mt-1 d-block">Lý do này sẽ được lưu trữ và gửi qua email.</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i>Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-danger shadow-sm">
+                                            <i class="fas fa-stop-circle me-1"></i>Xác nhận kết thúc
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-1"></i>Hủy
-                        </button>
-                        <button type="submit" class="btn btn-danger shadow-sm">
-                            <i class="fas fa-stop-circle me-1"></i>Xác nhận kết thúc
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+                </div>
 
                 <!-- Cập nhật phần Status Update Form -->
                 @if ($currentStatus !== 'Đã hủy' && $currentStatus !== 'Hết hạn')
@@ -405,6 +403,93 @@
                 @endif
             </div>
         </div>
+
+        <!-- DIV DANH SÁCH HÓA ĐƠN -->
+        <div class="invoices-wrapper mt-5">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient text-white py-3 rounded-top-4" style="background: linear-gradient(90deg, #007bff, #00c4ff);">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>DANH SÁCH HÓA ĐƠN
+                        <span class="badge bg-light text-primary ms-2">{{ $contract->invoices->count() }} hóa đơn</span>
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if($contract->invoices->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered align-middle">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th scope="col" class="text-center">Mã hóa đơn</th>
+                                        <th scope="col">Ngày lập</th>
+                                        <th scope="col">Tổng tiền</th>
+                                        <th scope="col">Trạng thái</th>
+                                        <th scope="col" class="text-center">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        // Sắp xếp hóa đơn: hóa đơn chưa thanh toán lên đầu
+                                        $sortedInvoices = $contract->invoices->sortBy(function($invoice) {
+                                            $status = $invoice->status ?? 'Chưa trả';
+                                            if ($status === 'Chưa trả' || $status === 'Quá hạn') {
+                                                return 0; // Ưu tiên cao
+                                            }
+                                            return 1; // Ưu tiên thấp
+                                        });
+
+                                        // Giới hạn chỉ hiển thị 5 hóa đơn đầu tiên
+                                        $limitedInvoices = $sortedInvoices->take(5);
+                                    @endphp
+                                    @foreach($limitedInvoices as $invoice)
+                                        <tr>
+                                            <td class="text-center">{{ $invoice->code ?? 'N/A' }}</td>
+                                            <td>{{ $invoice->created_at ? \Carbon\Carbon::parse($invoice->created_at)->format('d/m/Y') : 'N/A' }}</td>
+                                            <td>{{ number_format($invoice->total_amount ?? 0, 0, ',', '.') }} VNĐ</td>
+                                            <td>
+                                                @php
+                                                    $invoiceStatus = $invoice->status ?? 'Chưa trả';
+                                                    $invoiceBadgeClass = match ($invoiceStatus) {
+                                                        'Đã trả' => 'success',
+                                                        'Chưa trả' => 'warning',
+                                                        'Quá hạn' => 'danger',
+                                                        default => 'secondary',
+                                                    };
+                                                @endphp
+                                                <span class="badge bg-{{ $invoiceBadgeClass }} py-2 px-3">
+                                                    <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
+                                                    {{ $invoiceStatus }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ url('invoices?search=' . $invoice->code) }}"
+                                                   target="_blank"
+                                                   class="btn btn-outline-primary btn-sm shadow-sm">
+                                                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if($contract->invoices->count() > 5)
+                            <div class="text-center mt-3">
+                                <a href="{{ url('invoices?search=HD' . $contract->id) }}"
+                                   target="_blank"
+                                   class="btn btn-primary shadow-sm">
+                                    <i class="fas fa-list me-2"></i>Xem tất cả {{ $contract->invoices->count() }} hóa đơn
+                                </a>
+                            </div>
+                        @endif
+                    @else
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>Không có hóa đơn nào liên quan đến hợp đồng này.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -425,6 +510,10 @@
 
         .identity-image {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .contract-document{
+            box-shadow: none;
         }
 
         .identity-image:hover {
@@ -454,75 +543,106 @@
         .zoom-image:hover {
             background-color: #0052cc;
         }
-        .contract-document {
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
         /* Style cho modal kết thúc hợp đồng sớm */
-    #earlyTerminationModal .modal-content {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
+        #earlyTerminationModal .modal-content {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
 
-    #earlyTerminationModal .modal-header {
-        border-bottom: none;
-        padding: 1.5rem;
-    }
+        #earlyTerminationModal .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
 
-    #earlyTerminationModal .modal-body {
-        background-color: #f8f9fa;
-    }
+        #earlyTerminationModal .modal-body {
+            background-color: #f8f9fa;
+        }
 
-    #earlyTerminationModal .form-control {
-        border: 1px solid #ced4da;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        background-color: #fff;
-    }
+        #earlyTerminationModal .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
 
-    #earlyTerminationModal .form-control:focus {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-        background-color: #fff;
-    }
+        #earlyTerminationModal .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            background-color: #fff;
+        }
 
-    #earlyTerminationModal .form-control::placeholder {
-        color: #6c757d;
-        opacity: 0.7;
-    }
+        #earlyTerminationModal .form-control::placeholder {
+            color: #6c757d;
+            opacity: 0.7;
+        }
 
-    #earlyTerminationModal .btn-danger {
-        background-color: #dc3545;
-        border: none;
-        padding: 0.5rem 1.5rem;
-        border-radius: 8px;
-        transition: background-color 0.3s ease;
-    }
+        #earlyTerminationModal .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
 
-    #earlyTerminationModal .btn-danger:hover {
-        background-color: #c82333;
-    }
+        #earlyTerminationModal .btn-danger:hover {
+            background-color: #c82333;
+        }
 
-    #earlyTerminationModal .btn-outline-secondary {
-        border-radius: 8px;
-        padding: 0.5rem 1.5rem;
-        transition: all 0.3s ease;
-    }
+        #earlyTerminationModal .btn-outline-secondary {
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
 
-    #earlyTerminationModal .btn-outline-secondary:hover {
-        background-color: #f1f3f5;
-    }
+        #earlyTerminationModal .btn-outline-secondary:hover {
+            background-color: #f1f3f5;
+        }
 
-    #earlyTerminationModal .alert {
-        border-radius: 8px;
-        border-left: 4px solid #ffc107;
-    }
+        #earlyTerminationModal .alert {
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
 
-    #earlyTerminationModal .list-group-item {
-        background-color: transparent;
-        padding-left: 0;
-        padding-right: 0;
-    }
+        #earlyTerminationModal .list-group-item {
+            background-color: transparent;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Style cho danh sách hóa đơn */
+        .invoices-wrapper .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .invoices-wrapper .table th,
+        .invoices-wrapper .table td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .invoices-wrapper .table thead th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #343a40;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .invoices-wrapper .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .invoices-wrapper .btn-outline-primary {
+            transition: all 0.3s ease;
+        }
+
+        .invoices-wrapper .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
     </style>
 
     <script>

@@ -25,12 +25,26 @@ class ContractService
             if ($querySearch) {
                 $querySearch = trim($querySearch);
                 $query->where(function ($q) use ($querySearch) {
-                    $q->orWhereHas('user', function ($userQuery) use ($querySearch) {
-                        $userQuery->where('name', 'like', "%{$querySearch}%");
-                    })
-                        ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
-                            $roomQuery->where('name', 'like', "%{$querySearch}%");
-                        });
+                    // Search by contract ID
+                    if (strtolower($querySearch) === 'hd') {
+                        // If query is exactly "hd" or "HD", show all contracts
+                        return;
+                    }
+
+                    // If query starts with HD or hd, extract the numeric part
+                    $numericQuery = $querySearch;
+                    if (preg_match('/^hd(\d+)$/i', $querySearch, $matches)) {
+                        $numericQuery = $matches[1];
+                    }
+
+                    $q->where('id', 'like', '%' . $querySearch . '%')
+                      ->orWhere('id', 'like', '%' . $numericQuery . '%')
+                      ->orWhereHas('user', function ($userQuery) use ($querySearch) {
+                          $userQuery->where('name', 'like', "%{$querySearch}%");
+                      })
+                      ->orWhereHas('room', function ($roomQuery) use ($querySearch) {
+                          $roomQuery->where('name', 'like', "%{$querySearch}%");
+                      });
                 });
             }
 

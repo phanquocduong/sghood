@@ -29,7 +29,7 @@ class InvoiceController extends Controller
             'status' => $request->get('status'),
         ];
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->get('per_page', 20);
         $invoices = $this->invoiceService->getAllInvoices($filters, $perPage);
         $stats = $this->invoiceService->getInvoiceStats($filters);
 
@@ -44,73 +44,82 @@ class InvoiceController extends Controller
     }
 
     // Hiển thị chi tiết hóa đơn
-    public function show(int $id): JsonResponse
-    {
-        try {
-            $invoice = $this->invoiceService->getInvoiceById($id);
+public function show(int $id): JsonResponse
+{
+    try {
+        $invoice = $this->invoiceService->getInvoiceById($id);
 
-            if (!$invoice) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Không tìm thấy hóa đơn'
-                ], 404);
-            }
-
-            // Đảm bảo các relationship được load
-            $invoice->load(['contract.user', 'contract.room.motel', 'meterReading']);
-
-            // Lấy số tiêu thụ và chỉ số tháng trước từ MeterReadingService
-            $consumptionData = $this->meterReadingService->getConsumptionAndPreviousReadings($invoice->meterReading);
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'id' => $invoice->id,
-                    'code' => $invoice->code,
-                    'type' => $invoice->type ?? 'Hóa đơn tiền phòng',
-                    'month' => $invoice->month,
-                    'year' => $invoice->year,
-                    'status' => $invoice->status,
-                    'created_at' => $invoice->created_at->format('d/m/Y H:i'),
-                    'customer' => [
-                        'name' => $invoice->contract->user->name ?? 'N/A',
-                        'email' => $invoice->contract->user->email ?? 'N/A',
-                        'phone' => $invoice->contract->user->phone ?? 'N/A',
-                    ],
-                    'room' => [
-                        'name' => $invoice->contract->room->name ?? 'N/A',
-                        'motel_name' => $invoice->contract->room->motel->name ?? 'N/A',
-                    ],
-                    'fees' => [
-                        'room_fee' => number_format($invoice->room_fee ?? $invoice->contract->room->price, 0, ',', '.'),
-                        'electricity_fee' => number_format($invoice->electricity_fee ?? 0, 0, ',', '.'),
-                        'water_fee' => number_format($invoice->water_fee ?? 0, 0, ',', '.'),
-                        'parking_fee' => number_format($invoice->parking_fee ?? 0, 0, ',', '.'),
-                        'junk_fee' => number_format($invoice->junk_fee ?? 0, 0, ',', '.'),
-                        'internet_fee' => number_format($invoice->internet_fee ?? 0, 0, ',', '.'),
-                        'service_fee' => number_format($invoice->service_fee ?? 0, 0, ',', '.'),
-                        'total_amount' => number_format($invoice->total_amount ?? 0, 0, ',', '.'),
-                    ],
-                    'meter_reading' => [
-                        'electricity_kwh' => $invoice->meterReading->electricity_kwh ?? 0,
-                        'water_m3' => $invoice->meterReading->water_m3 ?? 0,
-                        'electricity_consumption' => $consumptionData['electricity_consumption'],
-                        'water_consumption' => $consumptionData['water_consumption'],
-                        'previous_electricity_kwh' => $consumptionData['previous_electricity_kwh'],
-                        'previous_water_m3' => $consumptionData['previous_water_m3'],
-                    ]
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error in invoice show: ' . $e->getMessage());
-
+        if (!$invoice) {
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi tải thông tin hóa đơn'
-            ], 500);
+                'message' => 'Không tìm thấy hóa đơn'
+            ], 404);
         }
+
+        // Đảm bảo các relationship được load
+        $invoice->load(['contract.user', 'contract.room.motel', 'meterReading']);
+
+        // Lấy số tiêu thụ và chỉ số tháng trước từ MeterReadingService
+        $consumptionData = $invoice->type !== 'Đặt cọc' && $invoice->meterReading
+            ? $this->meterReadingService->getConsumptionAndPreviousReadings($invoice->meterReading)
+            : [
+                'electricity_consumption' => 0,
+                'water_consumption' => 0,
+                'previous_electricity_kwh' => 0,
+                'previous_water_m3' => 0,
+            ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $invoice->id,
+                'code' => $invoice->code,
+                'type' => $invoice->type ?? 'Hóa đơn tiền phòng',
+                'month' => $invoice->month,
+                'year' => $invoice->year,
+                'status' => $invoice->status,
+                'created_at' => $invoice->created_at->format('d/m/Y H:i'),
+                'refunded_at' => $invoice->refunded_at ? \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : null,
+                'customer' => [
+                    'name' => $invoice->contract->user->name ?? 'N/A',
+                    'email' => $invoice->contract->user->email ?? 'N/A',
+                    'phone' => $invoice->contract->user->phone ?? 'N/A',
+                ],
+                'room' => [
+                    'id' => $invoice->contract->id ?? 'N/A',
+                    'name' => $invoice->contract->room->name ?? 'N/A',
+                    'motel_name' => $invoice->contract->room->motel->name ?? 'N/A',
+                ],
+                'fees' => [
+                    'room_fee' => number_format($invoice->room_fee ?? $invoice->contract->room->price ?? 0, 0, ',', '.'),
+                    'electricity_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->electricity_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'water_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->water_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'parking_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->parking_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'junk_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->junk_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'internet_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->internet_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'service_fee' => $invoice->type !== 'Đặt cọc' ? number_format($invoice->service_fee ?? 0, 0, ',', '.') : 'N/A',
+                    'total_amount' => number_format($invoice->total_amount ?? 0, 0, ',', '.'),
+                ],
+                'meter_reading' => $invoice->type !== 'Đặt cọc' && $invoice->meterReading ? [
+                    'electricity_kwh' => $invoice->meterReading->electricity_kwh ?? 0,
+                    'water_m3' => $invoice->meterReading->water_m3 ?? 0,
+                    'electricity_consumption' => $consumptionData['electricity_consumption'],
+                    'water_consumption' => $consumptionData['water_consumption'],
+                    'previous_electricity_kwh' => $consumptionData['previous_electricity_kwh'],
+                    'previous_water_m3' => $consumptionData['previous_water_m3'],
+                ] : null
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error in invoice show: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Có lỗi xảy ra khi tải thông tin hóa đơn'
+        ], 500);
     }
+}
 
     // Cập nhật trạng thái hóa đơn
     public function updateStatus(Request $request, int $id)

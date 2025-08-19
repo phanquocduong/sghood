@@ -18,33 +18,28 @@
             </div>
         @endif
 
-        <div class="card shadow-lg border-0 rounded-4">
+        <div class="card shadow-lg border-0 rounded-4" style="overflow: hidden;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
-                style="background: linear-gradient(90deg, #007bff, #00c6ff);">
+                style="background: linear-gradient(90deg, #1e3a8a, #3b82f6);">
                 <div class="d-flex align-items-center">
                     <a href="{{ route('contracts.index') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
-                        style="transition: all 0.3s;" title="Quay lại danh sách hợp đồng">
+                        style="transition: all 0.3s; border-radius: 8px;" title="Quay lại danh sách hợp đồng">
                         <i class="fas fa-arrow-left me-1"></i>
                         <span class="d-none d-sm-inline ms-1">Quay lại</span>
                     </a>
                     <h5 class="mb-0 fw-bold">
                         <i class="fas fa-history me-2"></i>Quản lý gia hạn hợp đồng
-                        <span class="badge bg-light text-primary ms-2">{{ $contractExtensions->total() }} gia hạn</span>
+                        <span class="badge bg-white text-primary ms-2 shadow-sm">{{ $contractExtensions->total() }} gia hạn</span>
                     </h5>
                 </div>
             </div>
 
-            <div class="card-body p-4">
+            <div class="card-body p-4 bg-light">
                 <!-- Breadcrumb -->
                 <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb">
+                    <ol class="breadcrumb bg-white shadow-sm rounded-3 p-3">
                         <li class="breadcrumb-item">
-                            <a href="{{ route('dashboard') }}" class="text-decoration-none">
-                                <i class="fas fa-home me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('contracts.index') }}" class="text-decoration-none">
+                            <a href="{{ route('contracts.index') }}" class="text-decoration-none text-primary">
                                 <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
                             </a>
                         </li>
@@ -56,16 +51,16 @@
 
                 <!-- Filter Form -->
                 <div class="mb-4">
-                    <form action="{{ route('contracts.contract-extensions') }}" method="GET" class="row g-3">
+                    <form action="{{ route('contracts.contract-extensions') }}" method="GET" class="row g-3 align-items-center">
                         <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control shadow-sm" name="querySearch"
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-primary"></i></span>
+                                <input type="text" class="form-control border-0" name="querySearch"
                                     placeholder="Tìm kiếm theo tên phòng..." value="{{ $querySearch }}">
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select shadow-sm" name="status">
+                            <select class="form-select shadow-sm rounded-3" name="status">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
                                 <option value="Hoạt động" {{ $status == 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
@@ -74,13 +69,13 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <select class="form-select shadow-sm" name="sort">
+                            <select class="form-select shadow-sm rounded-3" name="sort">
                                 <option value="desc" {{ $sort == 'desc' ? 'selected' : '' }}>Mới nhất</option>
                                 <option value="asc" {{ $sort == 'asc' ? 'selected' : '' }}>Cũ nhất</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary shadow-sm w-100">
+                            <button type="submit" class="btn btn-primary shadow-sm w-100 rounded-3">
                                 <i class="fas fa-search me-1"></i>Tìm kiếm
                             </button>
                         </div>
@@ -90,8 +85,8 @@
                 <!-- Contract Extensions Table -->
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered align-middle shadow-sm rounded-3 overflow-hidden"
-                        style="text-align: center">
-                        <thead class="table-dark">
+                        style="text-align: center; background: #fff;">
+                        <thead class="table-dark" style="background: linear-gradient(90deg, #1e3a8a, #3b82f6);">
                             <tr>
                                 <th scope="col" style="width: 5%;" class="text-center">STT</th>
                                 <th scope="col" style="width: 15%;">Mã HD</th>
@@ -108,14 +103,16 @@
                                     <td class="text-center">{{ $contractExtensions->firstItem() + $loop->index }}</td>
                                     <td>
                                         <a href="{{ route('contracts.show', $extension->contract->id) }}"
-                                            class="contract-id-clickable" title="Xem chi tiết hợp đồng">
+                                            target="_blank"
+                                            class="contract-id-clickable text-primary text-decoration-none fw-bold"
+                                            title="Xem chi tiết hợp đồng">
                                             {{ 'HD' . $extension->contract->id }}
                                         </a>
                                     </td>
                                     <td>{{ \Carbon\Carbon::parse($extension->new_end_date)->format('d/m/Y') }}</td>
                                     <td>{{ number_format($extension->new_rental_price, 0, ',', '.') }} VNĐ</td>
                                     <td>
-                                        <a href="#" class="content-popup text-primary text-decoration-underline"
+                                        <a href="#" class="content-popup text-primary text-decoration-underline fw-bold"
                                             data-bs-toggle="modal" data-bs-target="#contentModal{{ $extension->id }}">
                                             Xem chi tiết
                                         </a>
@@ -127,7 +124,7 @@
                                                 action="{{ route('contracts.contract_extensions.update_status', $extension->id) }}"
                                                 method="POST" class="status-form">
                                                 @csrf
-                                                <select class="form-select form-select-sm status-select" name="status"
+                                                <select class="form-select form-select-sm status-select shadow-sm rounded-3" name="status"
                                                     onchange="handleStatusChange(this, {{ $extension->id }})">
                                                     <option value="Chờ duyệt" selected>Chờ duyệt</option>
                                                     <option value="Hoạt động">Chấp nhận</option>
@@ -152,7 +149,7 @@
                                                 };
                                             @endphp
                                             <span
-                                                class="badge bg-{{ $badgeClass }} py-2 px-3">{{ $statusText }}</span>
+                                                class="badge bg-{{ $badgeClass }} py-2 px-3 rounded-pill">{{ $statusText }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -161,18 +158,18 @@
                                 <div class="modal fade" id="contentModal{{ $extension->id }}" tabindex="-1"
                                     aria-labelledby="contentModalLabel{{ $extension->id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-primary text-white">
+                                        <div class="modal-content rounded-4 shadow-lg">
+                                            <div class="modal-header bg-primary text-white rounded-top-4">
                                                 <h5 class="modal-title" id="contentModalLabel{{ $extension->id }}">Chi
                                                     tiết nội dung gia hạn</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
-                                            <div class="modal-body">
+                                            <div class="modal-body p-4">
                                                 {!! $extension->content !!}
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
+                                                <button type="button" class="btn btn-outline-secondary rounded-3"
                                                     data-bs-dismiss="modal">Đóng</button>
                                             </div>
                                         </div>
@@ -183,30 +180,30 @@
                                 <div class="modal fade" id="rejectionModal{{ $extension->id }}" tabindex="-1"
                                     aria-labelledby="rejectionModalLabel{{ $extension->id }}" aria-hidden="true">
                                     <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
+                                        <div class="modal-content rounded-4 shadow-lg">
+                                            <div class="modal-header bg-danger text-white rounded-top-4">
                                                 <h5 class="modal-title text-white"
                                                     id="rejectionModalLabel{{ $extension->id }}">Lý do từ chối</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <form
                                                 action="{{ route('contracts.contract_extensions.update_status', $extension->id) }}"
                                                 method="POST">
                                                 @csrf
-                                                <div class="modal-body">
+                                                <div class="modal-body p-4">
                                                     <input type="hidden" name="status" value="Từ chối">
                                                     <div class="mb-3">
                                                         <label for="rejection_reason_{{ $extension->id }}"
-                                                            class="form-label">Hãy nhập lý do từ chối</label>
-                                                        <textarea class="form-control" id="rejection_reason_{{ $extension->id }}" name="rejection_reason" rows="4"
+                                                            class="form-label fw-bold">Hãy nhập lý do từ chối</label>
+                                                        <textarea class="form-control shadow-sm rounded-3" id="rejection_reason_{{ $extension->id }}" name="rejection_reason" rows="4"
                                                             required></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
+                                                    <button type="button" class="btn btn-outline-secondary rounded-3"
                                                         data-bs-dismiss="modal">Hủy</button>
-                                                    <button type="submit" class="btn btn-danger">Xác nhận từ
+                                                    <button type="submit" class="btn btn-danger rounded-3">Xác nhận từ
                                                         chối</button>
                                                 </div>
                                             </form>
@@ -230,7 +227,7 @@
 
                 <!-- Pagination -->
                 @if ($contractExtensions->hasPages())
-                    <div class="mt-4">
+                    <div class="mt-4 d-flex justify-content-center">
                         {{ $contractExtensions->appends(request()->query())->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
@@ -240,9 +237,10 @@
 
     <style>
         .breadcrumb {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .breadcrumb-item+.breadcrumb-item::before {
@@ -254,61 +252,82 @@
         .table td,
         .table th {
             vertical-align: middle;
+            transition: background-color 0.3s ease;
         }
 
         .badge {
-            font-size: 0.85rem;
-            border-radius: 15px;
+            font-size: 0.9rem;
+            border-radius: 20px;
             font-weight: 500;
+            padding: 8px 16px;
         }
 
         .form-select:focus,
         .form-control:focus {
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .table-row:hover {
-            background-color: #f8f9fa;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
         }
 
         .form-select-sm {
-            width: 120px;
+            width: 140px;
             margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-footer {
+            border-top: none;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+            border: none;
         }
 
         @media (max-width: 576px) {
-
-            /* Nút hành động trên mobile chỉ là icon tròn */
             .action-icon {
-                padding: 6px 8px;
-                /* Nhỏ gọn */
+                padding: 8px;
                 border-radius: 50%;
-                /* Bo tròn */
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                text-align: center
+                text-align: center;
             }
 
-            /* Icon căn giữa */
             .action-icon i {
                 margin: 0 !important;
-                font-size: 14px;
+                font-size: 16px;
             }
 
             .card-header .btn {
                 font-size: 14px;
-                padding: 6px 8px;
+                padding: 8px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+            }
+
+            .table th,
+            .table td {
+                font-size: 0.9rem;
+            }
+
+            .form-select-sm {
+                width: 100%;
             }
         }
     </style>
@@ -321,26 +340,34 @@
                 row.style.animationDelay = `${index * 0.1}s`;
                 row.classList.add('animate__animated', 'animate__fadeInUp');
             });
+
+            // Add animation to modals
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.addEventListener('show.bs.modal', function () {
+                    this.querySelector('.modal-content').classList.add('animate__animated', 'animate__zoomIn');
+                });
+                modal.addEventListener('hide.bs.modal', function () {
+                    this.querySelector('.modal-content').classList.remove('animate__zoomIn');
+                    this.querySelector('.modal-content').classList.add('animate__zoomOut');
+                });
+            });
         });
 
         function handleStatusChange(select, extensionId) {
             const status = select.value;
 
             if (status === 'Từ chối') {
-                // Reset select về giá trị cũ
                 select.value = 'Chờ duyệt';
-                // Show rejection reason modal
                 const modal = new bootstrap.Modal(document.getElementById('rejectionModal' + extensionId));
                 modal.show();
             } else if (status === 'Hoạt động') {
                 if (confirm('Bạn có chắc chắn muốn chấp nhận yêu cầu gia hạn này?')) {
                     select.closest('form').submit();
                 } else {
-                    // Reset về giá trị cũ nếu hủy
                     select.value = 'Chờ duyệt';
                 }
             } else {
-                // Submit form directly for other statuses
                 select.closest('form').submit();
             }
         }
