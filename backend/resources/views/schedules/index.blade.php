@@ -291,8 +291,8 @@
                         </table>
                     </div>
 
-                    <div class="d-flex justify-content-center mt-4 pagination">
-                        {{ $schedules->onEachSide(0)->links('vendor.pagination.custom') }}
+                    <div class="mt-4">
+                    {{ $schedules->appends(request()->query())->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
             </div>
