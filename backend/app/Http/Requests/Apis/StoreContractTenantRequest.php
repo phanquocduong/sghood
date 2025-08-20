@@ -31,8 +31,6 @@ class StoreContractTenantRequest extends FormRequest
             'birthdate' => 'nullable|date_format:d/m/Y',
             'address' => 'nullable|string|max:500',
             'relation_with_primary' => 'required|string|max:255',
-            'identity_document' => 'required|string|regex:/^\d{9,12}$/',
-            'bypass_extract' => 'boolean',
             'identity_images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'identity_images' => ['required', 'array', function ($attribute, $value, $fail) {
                 if (count($value) !== 2) {
@@ -62,24 +60,10 @@ class StoreContractTenantRequest extends FormRequest
             'address.max' => 'Địa chỉ không được vượt quá 500 ký tự.',
             'relation_with_primary.required' => 'Mối quan hệ với người thuê chính là bắt buộc.',
             'relation_with_primary.max' => 'Mối quan hệ không được vượt quá 255 ký tự.',
-            'identity_document.required' => 'Số CCCD là bắt buộc.',
-            'identity_document.regex' => 'Số CCCD phải có từ 9 đến 12 chữ số.',
-            'bypass_extract.boolean' => 'Bypass extract phải là giá trị boolean.',
             'identity_images.required' => 'Vui lòng tải lên ảnh CCCD.',
             'identity_images.*.image' => 'Tệp tải lên phải là ảnh.',
             'identity_images.*.mimes' => 'Ảnh CCCD phải có định dạng JPEG hoặc PNG.',
             'identity_images.*.max' => 'Ảnh CCCD không được vượt quá 2MB.',
         ];
-    }
-
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        // Chuyển bypass_extract thành boolean nếu cần
-        $this->merge([
-            'bypass_extract' => filter_var($this->input('bypass_extract'), FILTER_VALIDATE_BOOLEAN),
-        ]);
     }
 }

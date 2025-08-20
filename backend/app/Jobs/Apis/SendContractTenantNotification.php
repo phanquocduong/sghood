@@ -40,11 +40,14 @@ class SendContractTenantNotification implements ShouldQueue
         try {
             $admins = User::where('role', 'Quản trị viên')->orWhere('role', 'Super admin')->get();
             if ($admins->isEmpty()) {
-                Log::warning('Không tìm thấy admin với role Quản trị viên');
+                Log::warning('Không tìm thấy admin với role Quản trị viên hoặc Super admin');
                 return;
             }
 
+            // Gửi email
             Mail::to($admins->pluck('email'))->send(new ContractTenantEmail($this->contract, $this->tenant, $this->type, $this->title));
+
+            // Gửi thông báo đẩy và lưu vào database
             $messaging = app('firebase.messaging');
             $baseUrl = config('app.url');
             $link = "$baseUrl/contracts/{$this->contract->id}";
@@ -69,6 +72,7 @@ class SendContractTenantNotification implements ShouldQueue
             Log::error("Lỗi gửi thông báo người ở cùng: {$this->title}", [
                 'contract_id' => $this->contract->id,
                 'tenant_id' => $this->tenant->id,
+                'type' => $this->type,
                 'error' => $e->getMessage(),
             ]);
         }

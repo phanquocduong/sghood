@@ -1,4 +1,3 @@
-<!-- nguoi-o-cung.vue -->
 <template>
     <Titlebar title="Hợp đồng - Người ở cùng" />
 
@@ -9,8 +8,10 @@
                     :tenants="tenants"
                     :is-loading="isLoading"
                     :contract-id="route.params.id"
+                    :max-occupants="max_occupants"
                     @cancel-tenant="cancelTenant"
                     @add-tenant="fetchTenants()"
+                    @confirm-tenant="confirmTenant"
                 />
             </div>
         </div>
@@ -34,13 +35,15 @@ const toast = useAppToast();
 const route = useRoute();
 
 const tenants = ref([]);
+const max_occupants = ref(0);
 const isLoading = ref(false);
 
 const fetchTenants = async () => {
     isLoading.value = true;
     try {
         const response = await $api(`/contracts/${route.params.id}/tenants`, { method: 'GET' });
-        tenants.value = response.data;
+        tenants.value = response.data.tenants;
+        max_occupants.value = response.data.max_occupants;
     } catch (error) {
         handleBackendError(error, toast);
     } finally {
@@ -59,6 +62,24 @@ const cancelTenant = async tenantId => {
         });
         await fetchTenants();
         toast.success('Hủy người ở cùng thành công');
+    } catch (error) {
+        handleBackendError(error, toast);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const confirmTenant = async tenantId => {
+    isLoading.value = true;
+    try {
+        await $api(`/contracts/${route.params.id}/tenants/${tenantId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+            }
+        });
+        await fetchTenants();
+        toast.success('Xác nhận người ở cùng vào ở thành công');
     } catch (error) {
         handleBackendError(error, toast);
     } finally {

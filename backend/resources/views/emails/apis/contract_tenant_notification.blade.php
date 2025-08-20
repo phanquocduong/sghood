@@ -122,6 +122,11 @@
             color: #dc2626;
         }
 
+        .status-tenant-confirmed {
+            background: #b3e5fc;
+            color: #0288d amplitude1;
+        }
+
         .details-card {
             background: #f8fafc;
             border-radius: 12px;
@@ -301,6 +306,9 @@
                 @elseif ($type == 'tenant_canceled')
                     <span class="status-badge status-tenant-canceled">Đã hủy đăng ký</span><br>
                     Người ở cùng vừa bị người dùng hủy đăng ký trong hệ thống.
+                @elseif ($type == 'tenant_confirmed')
+                    <span class="status-badge status-tenant-confirmed">Đã xác nhận vào ở</span><br>
+                    Người ở cùng đã được xác nhận vào ở chính thức trong hợp đồng.
                 @else
                     <span class="status-badge">Thông báo</span><br>
                     Có một thông báo quan trọng liên quan đến người ở cùng cần sự chú ý của bạn.

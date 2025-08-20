@@ -62,6 +62,9 @@
             <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve">
                 <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
             </NuxtLink>
+            <NuxtLink :to="`/quan-ly/hop-dong/${item.id}/nguoi-o-cung`" class="button gray approve">
+                <i class="im im-icon-Folder-Bookmark"></i> Quản lý người ở cùng
+            </NuxtLink>
             <a
                 v-if="
                     item.status === 'Hoạt động' &&

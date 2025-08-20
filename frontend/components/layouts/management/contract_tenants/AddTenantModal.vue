@@ -1,4 +1,3 @@
-<!-- AddTenantModal.vue -->
 <template>
     <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
         <div class="small-dialog-header">
@@ -46,7 +45,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-col">
-                        <label><i class="fa fa-id-card"></i> Mối quan hệ với người thuê chính (*):</label>
+                        <label><i class="fa fa-users"></i> Mối quan hệ với người thuê chính (*):</label>
                         <select v-model="formData.relation_with_primary" class="modal-relation-select" ref="relationSelect" required>
                             <option value="">Chọn mối quan hệ</option>
                             <option value="Vợ/Chồng">Vợ/Chồng</option>
@@ -59,7 +58,7 @@
                 </div>
             </div>
             <div class="booking-note-section">
-                <label><i class="fa fa-id-card"></i> Giấy tờ tùy thân (*):</label>
+                <label><i class="fa fa-credit-card"></i> Giấy tờ tùy thân (*):</label>
                 <div class="upload-instructions">
                     <h5>Hướng dẫn tải ảnh CCCD</h5>
                     <ul>
@@ -74,12 +73,16 @@
                 <p v-else-if="bypassExtract" class="bypass-message">
                     Quét CCCD thất bại nhiều lần. Vui lòng tải ảnh lên để admin xác nhận.
                 </p>
-                <div class="edit-profile-photo">
+                <div class="edit-profile-photo" style="position: relative">
                     <form
                         id="tenant-dropzone-upload"
                         class="dropzone"
                         :class="{ 'dropzone-disabled': formData.identity_document.has_valid }"
                     ></form>
+                    <div v-if="extractLoading" class="loading-overlay">
+                        <div class="spinner"></div>
+                        <p>Đang quét căn cước công dân...</p>
+                    </div>
                 </div>
             </div>
             <div class="booking-actions">
@@ -330,11 +333,10 @@ const openModal = async () => {
 const handleSubmitTenant = async () => {
     buttonLoading.value = true;
     try {
-        await submitTenant(); // Chỉ gọi submitTenant, không cần newTenant
-        emit('addTenant'); // Phát sự kiện addTenant để báo cho parent
+        await submitTenant();
+        emit('addTenant');
         closeModal();
     } catch (error) {
-        // Lỗi đã được xử lý trong submitTenant
         console.error('Error submitting tenant:', error);
     } finally {
         buttonLoading.value = false;
@@ -408,5 +410,44 @@ defineExpose({ openModal });
 
 .upload-instructions li {
     margin-bottom: 8px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-overlay .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #f91942;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+.loading-overlay p {
+    font-size: 1.4rem;
+    color: #333;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>

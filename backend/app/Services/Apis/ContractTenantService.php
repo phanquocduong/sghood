@@ -31,7 +31,8 @@ class ContractTenantService
 
             // Lấy danh sách người ở cùng
             $tenants = ContractTenant::where('contract_id', $contractId)
-                ->select('id', 'contract_id', 'name', 'phone', 'email', 'gender', 'birthdate', 'address', 'identity_document', 'relation_with_primary', 'status', 'rejection_reason', 'created_at')
+                ->select('id', 'contract_id', 'name', 'phone', 'email', 'gender', 'birthdate', 'address', 'relation_with_primary', 'status', 'rejection_reason', 'created_at')
+                ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function (ContractTenant $tenant) {
                     return [
@@ -43,7 +44,6 @@ class ContractTenantService
                         'gender' => $tenant->gender,
                         'birthdate' => $tenant->birthdate?->toDateString(),
                         'address' => $tenant->address,
-                        'identity_document' => $tenant->identity_document,
                         'relation_with_primary' => $tenant->relation_with_primary,
                         'status' => $tenant->status,
                         'rejection_reason' => $tenant->rejection_reason,
@@ -52,7 +52,10 @@ class ContractTenantService
                 })
                 ->toArray();
 
-            return $tenants;
+            return [
+                'tenants' => $tenants,
+                'max_occupants' => $contract->room->max_occupants ?? 0
+            ];
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy danh sách người ở cùng: ' . $e->getMessage());
             throw $e;
@@ -71,6 +74,20 @@ class ContractTenantService
                 return [
                     'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền thêm',
                     'status' => 404,
+                ];
+            }
+
+            // Kiểm tra số lượng người ở
+            $currentTenantsCount = ContractTenant::where('contract_id', $contractId)
+                ->where('status', 'Đang ở')
+                ->count();
+            $currentOccupants = $currentTenantsCount + 1; // +1 cho người thuê chính
+            $maxOccupants = $contract->room->max_occupants ?? 0;
+
+            if ($currentOccupants + 1 > $maxOccupants) {
+                return [
+                    'error' => 'Số lượng người ở đã đạt tối đa cho phòng này',
+                    'status' => 400,
                 ];
             }
 
@@ -110,8 +127,8 @@ class ContractTenantService
                 $contract,
                 $tenant,
                 'tenant_added',
-                "Người ở cùng #{$tenant->id} đã được thêm",
-                "Người dùng {$contract->user->name} đã thêm người ở cùng {$tenant->name} (ID: {$tenant->id}) vào hợp đồng #{$contract->id}."
+                "Người ở cùng #{$tenant->id} đã được đăng ký thêm",
+                "Người dùng {$contract->user->name} đã đăng ký thêm người ở cùng {$tenant->name} (ID: {$tenant->id}) vào hợp đồng #{$contract->id}."
             );
 
             return [
@@ -124,7 +141,6 @@ class ContractTenantService
                     'gender' => $tenant->gender,
                     'birthdate' => $tenant->birthdate?->toDateString(),
                     'address' => $tenant->address,
-                    'identity_document' => $tenant->identity_document,
                     'relation_with_primary' => $tenant->relation_with_primary,
                     'status' => $tenant->status,
                     'rejection_reason' => $tenant->rejection_reason,
@@ -186,6 +202,58 @@ class ContractTenantService
             return ['data' => $tenant->fresh()];
         } catch (\Throwable $e) {
             Log::error('Lỗi hủy người ở cùng: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function confirmTenant(int $contractId, int $tenantId, int $userId): array
+    {
+        try {
+            // Kiểm tra hợp đồng
+            $contract = Contract::where('id', $contractId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if (!$contract) {
+                return [
+                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền xác nhận',
+                    'status' => 404,
+                ];
+            }
+
+            // Kiểm tra người ở cùng
+            $tenant = ContractTenant::where('id', $tenantId)
+                ->where('contract_id', $contractId)
+                ->first();
+
+            if (!$tenant) {
+                return [
+                    'error' => 'Không tìm thấy người ở cùng hoặc bạn không có quyền xác nhận',
+                    'status' => 404,
+                ];
+            }
+
+            if ($tenant->status !== 'Đã duyệt') {
+                return [
+                    'error' => 'Người ở cùng không ở trạng thái có thể xác nhận vào ở',
+                    'status' => 400,
+                ];
+            }
+
+            $tenant->update(['status' => 'Đang ở']);
+
+            // Gửi thông báo
+            SendContractTenantNotification::dispatch(
+                $contract,
+                $tenant,
+                'tenant_confirmed',
+                "Người ở cùng #{$tenant->id} đã được xác nhận vào ở",
+                "Người dùng {$contract->user->name} đã xác nhận người ở cùng {$tenant->name} (ID: {$tenant->id}) vào ở chính thức trong hợp đồng #{$contract->id}."
+            );
+
+            return ['data' => $tenant->fresh()];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi xác nhận người ở cùng: ' . $e->getMessage());
             throw $e;
         }
     }

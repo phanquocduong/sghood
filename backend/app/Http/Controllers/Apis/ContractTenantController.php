@@ -74,4 +74,23 @@ class ContractTenantController extends Controller
             return response()->json(['error' => 'Đã xảy ra lỗi khi hủy đăng ký người ở cùng'], 500);
         }
     }
+
+    public function confirm(int $contractId, int $tenantId): JsonResponse
+    {
+        try {
+            $result = $this->contractTenantService->confirmTenant($contractId, $tenantId, Auth::id());
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json(['message' => 'Xác nhận người ở cùng vào ở thành công'], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi xác nhận người ở cùng: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã xảy ra lỗi khi xác nhận người ở cùng'], 500);
+        }
+    }
 }

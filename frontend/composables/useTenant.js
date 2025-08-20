@@ -92,8 +92,6 @@ export function useTenant({
         if (formData.value.birthdate) formDataToSend.append('birthdate', formData.value.birthdate);
         if (formData.value.address) formDataToSend.append('address', formData.value.address);
         formDataToSend.append('relation_with_primary', formData.value.relation_with_primary);
-        formDataToSend.append('identity_document', formData.value.identity_document.identity_number || '');
-        formDataToSend.append('bypass_extract', bypassExtract.value ? '1' : '0');
         identityImages.value.forEach(file => formDataToSend.append('identity_images[]', file));
 
         try {

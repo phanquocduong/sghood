@@ -1,9 +1,14 @@
-<!-- ContractTenantList.vue -->
 <template>
     <h4>
         <div style="display: flex; align-items: center; justify-content: space-between">
             Quản lý hợp đồng - Người ở cùng
-            <a href="#" @click.prevent="openAddTenantPopup" class="button border with-icon">
+            <span>(Hiện tại: {{ currentOccupants }} / {{ maxOccupants }})</span>
+            <a
+                href="#"
+                @click.prevent="openAddTenantPopup"
+                class="button border with-icon"
+                :class="{ disabled: currentOccupants >= maxOccupants }"
+            >
                 Thêm người ở cùng <i class="sl sl-icon-plus"></i>
             </a>
         </div>
@@ -60,6 +65,9 @@
                 >
                     <i class="sl sl-icon-close"></i> Hủy bỏ
                 </a>
+                <a v-if="item.status === 'Đã duyệt'" href="#" @click.prevent="openConfirmMoveInPopup(item.id)" class="button gray approve">
+                    <i class="sl sl-icon-check"></i> Xác nhận chính thức vào ở
+                </a>
             </div>
         </li>
         <div v-if="!tenants.length" class="col-md-12 text-center">
@@ -70,7 +78,7 @@
 
 <script setup>
 import Swal from 'sweetalert2';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { formatDate } = useFormatDate();
@@ -87,11 +95,19 @@ const props = defineProps({
     contractId: {
         type: [Number, String],
         required: true
+    },
+    maxOccupants: {
+        type: Number,
+        default: 0
     }
 });
 
-const emit = defineEmits(['cancelTenant', 'addTenant']);
+const emit = defineEmits(['cancelTenant', 'addTenant', 'confirmTenant']);
 const addTenantModal = ref(null);
+
+const currentOccupants = computed(() => {
+    return props.tenants.filter(item => item.status === 'Đang ở').length + 1; // +1 cho người thuê chính
+});
 
 const getItemClass = status => {
     switch (status) {
@@ -120,7 +136,7 @@ const getStatusClass = status => {
 const openConfirmRejectPopup = async id => {
     const result = await Swal.fire({
         title: 'Xác nhận hủy người ở cùng',
-        text: 'Bạn có chắc chắn muốn hủy đăng ký người ở cùng này?',
+        text: 'Bạn chắc chắn muốn hủy đăng ký người ở cùng này?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Xác nhận',
@@ -131,6 +147,23 @@ const openConfirmRejectPopup = async id => {
 
     if (result.isConfirmed) {
         emit('cancelTenant', id);
+    }
+};
+
+const openConfirmMoveInPopup = async id => {
+    const result = await Swal.fire({
+        title: 'Xác nhận vào ở chính thức',
+        text: 'Bạn chắc chắn muốn xác nhận người này đã vào ở chính thức?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#e0e0e0'
+    });
+
+    if (result.isConfirmed) {
+        emit('confirmTenant', id);
     }
 };
 
@@ -173,14 +206,28 @@ const openDetailsPopup = async tenant => {
 };
 
 const openAddTenantPopup = () => {
+    if (currentOccupants.value >= props.maxOccupants) {
+        Swal.fire({
+            title: 'Không thể thêm',
+            text: 'Số lượng người ở đã đạt tối đa cho phòng này.',
+            icon: 'warning',
+            confirmButtonText: 'Đóng'
+        });
+        return;
+    }
     if (addTenantModal.value) {
         addTenantModal.value.openModal();
     }
 };
 
 const handleAddTenant = () => {
-    emit('addTenant'); // Chỉ phát sự kiện, không cần truyền newTenant
+    emit('addTenant');
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+</style>

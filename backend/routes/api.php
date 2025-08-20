@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{contractId}/tenants', [ContractTenantController::class, 'index']);
         Route::post('{contractId}/tenants', [ContractTenantController::class, 'store']);
         Route::post('{contractId}/tenants/{tenantId}/cancel', [ContractTenantController::class, 'cancel']);
+        Route::post('{contractId}/tenants/{tenantId}/confirm', [ContractTenantController::class, 'confirm']);
     });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);
