@@ -34,6 +34,7 @@ class RoomRequest extends FormRequest
                 'sometimes|required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/' :
                 'required|numeric|min:0|max:999.99|regex:/^\d{1,3}([\.,]\d{1,2})?$/',
             'description' => 'nullable|string|max:1000',
+            'max_occupants' => $isUpdate ? 'sometimes|required|integer|min:1' : 'required|integer|min:1',
             'status' => $isUpdate ? 'sometimes|required|in:Trống,Đã thuê,Sửa chữa,Ẩn' : 'required|in:Trống,Đã thuê,Sửa chữa,Ẩn',
             'note' => 'nullable|string|max:255',
             'images' => $isUpdate ? 'sometimes|array' : 'required|array',
@@ -55,6 +56,9 @@ class RoomRequest extends FormRequest
             'price.required' => 'Vui lòng nhập giá phòng.',
             'price.integer' => 'Giá phòng phải là số nguyên.',
             'price.min' => 'Giá phòng phải lớn hơn hoặc bằng 0.',
+            'max_occupants.required' => 'Vui lòng nhập số người tối đa.',
+            'max_occupants.integer' => 'Số người tối đa phải là số nguyên.',
+            'max_occupants.min' => 'Số người tối đa phải lớn hơn hoặc bằng 1.',
             'area.required' => 'Vui lòng nhập diện tích phòng.',
             'area.numeric' => 'Diện tích phòng phải là số.',
             'area.min' => 'Diện tích phòng phải lớn hơn hoặc bằng 0.',

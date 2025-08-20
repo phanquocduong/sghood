@@ -403,6 +403,8 @@ class ContractService
 
             // Cập nhật trạng thái hợp đồng thành "Kết thúc sớm"
             $contract->update(['status' => 'Kết thúc sớm']);
+            $contract->update(['early_terminated_at' => now()]);
+
 
             // Xử lý khi kết thúc hợp đồng sớm
             if ($contract->user) {

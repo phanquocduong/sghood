@@ -32,20 +32,25 @@ class InvoiceService
 
             // Search by contract ID
             $q->orWhereHas('contract', function ($contractQuery) use ($searchTerm) {
-                // If query is exactly "hd" or "HD", show all contracts
-                if (strtolower($searchTerm) === 'hd') {
-                // No additional filtering - show all contracts
-                return;
-                }
+            // If query is exactly "hd" or "HD", show all contracts
+            if (strtolower($searchTerm) === 'hd') {
+            // No additional filtering - show all contracts
+            return;
+            }
 
-                // If query starts with HD or hd, extract the numeric part
-                $numericQuery = $searchTerm;
-                if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
-                $numericQuery = $matches[1];
-                }
+            // If query starts with HD or hd, extract the numeric part
+            $numericQuery = $searchTerm;
+            if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
+            $numericQuery = $matches[1];
+            }
 
-                $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            });
+
+            // Search by user name
+            $q->orWhereHas('contract.user', function ($userQuery) use ($searchTerm) {
+            $userQuery->where('name', 'like', '%' . $searchTerm . '%');
             });
             });
         }
@@ -148,20 +153,25 @@ class InvoiceService
 
             // Search by contract ID
             $q->orWhereHas('contract', function ($contractQuery) use ($searchTerm) {
-                // If query is exactly "hd" or "HD", show all contracts
-                if (strtolower($searchTerm) === 'hd') {
-                // No additional filtering - show all contracts
-                return;
-                }
+            // If query is exactly "hd" or "HD", show all contracts
+            if (strtolower($searchTerm) === 'hd') {
+            // No additional filtering - show all contracts
+            return;
+            }
 
-                // If query starts with HD or hd, extract the numeric part
-                $numericQuery = $searchTerm;
-                if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
-                $numericQuery = $matches[1];
-                }
+            // If query starts with HD or hd, extract the numeric part
+            $numericQuery = $searchTerm;
+            if (preg_match('/^hd(\d+)$/i', $searchTerm, $matches)) {
+            $numericQuery = $matches[1];
+            }
 
-                $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            $contractQuery->where('id', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('id', 'like', '%' . $numericQuery . '%');
+            });
+
+            // Search by user name
+            $q->orWhereHas('contract.user', function ($userQuery) use ($searchTerm) {
+            $userQuery->where('name', 'like', '%' . $searchTerm . '%');
             });
             });
         }
