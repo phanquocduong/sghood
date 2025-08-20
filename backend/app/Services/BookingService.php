@@ -5,6 +5,7 @@ use App\Models\Contract;
 use App\Models\Booking;
 use App\Jobs\SendBookingAcceptedNotification;
 use App\Jobs\SendBookingRejectedNotification;
+use App\Models\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -230,13 +231,14 @@ class BookingService
             $contractData = $this->generateContractPreviewData($booking);
         }
 
-        $signaturePath = 'images/signatures/spokesman-signature.png';
+        $signaturePath = ltrim(Config::getValue('spokesman_signature'), '/storage');
         $signatureBase64 = '';
-        if (Storage::disk('private')->exists($signaturePath)) {
-            $signatureContent = Storage::disk('private')->get($signaturePath);
-            $signatureBase64 = 'data:image/png;base64,' . base64_encode($signatureContent);
+
+        if (Storage::disk('public')->exists($signaturePath)) {
+            $signatureContent = Storage::disk('public')->get($signaturePath);
+            $signatureBase64 = 'data:image/webp;base64,' . base64_encode($signatureContent);
         } else {
-            \Log::warning('Signature file not found', ['path' => $signaturePath]);
+            Log::warning('Signature file not found', ['path' => $signaturePath]);
         }
 
         $content = '

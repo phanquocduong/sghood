@@ -60,7 +60,7 @@
                                 <NuxtLink to="/quan-ly/ho-so-ca-nhan"> <i class="sl sl-icon-user"></i> Hồ sơ cá nhân </NuxtLink>
                             </li>
                             <li>
-                                <NuxtLink to="/quan-ly/dat-phong"> <i class="im im-icon-Bookmark"></i> Đặt phòng </NuxtLink>
+                                <NuxtLink to="/quan-ly/hop-dong"> <i class="sl sl-icon-notebook"></i> Hợp đồng </NuxtLink>
                             </li>
                             <li>
                                 <a href="#" @click.prevent="authStore.logout"> <i class="sl sl-icon-power"></i> Đăng xuất </a>

@@ -161,7 +161,14 @@
                                     </td>
                                     <td class="text-center">
                                         @if ($room->status == 'Đã thuê')
-                                            <span class="text-muted">Không có hành động nào.</span>
+                                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                                    <a href="{{ route('rooms.edit', $room->id) }}"
+                                                    class="btn btn-sm btn-primary action-btn me-2"
+                                                    style="transition: all 0.3s;">
+                                                    <i class="fas fa-edit me-1"></i>
+                                                    <span class="action-text d-none d-sm-inline">Sửa</span>
+                                                </a>
+                                            </div>
                                         @else
                                             <div class="d-flex justify-content-center align-items-center gap-2">
                                                 <a href="{{ route('rooms.edit', $room->id) }}"

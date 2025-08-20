@@ -55,7 +55,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function index(Request $request)
+    public function index()
     {
         try {
             $checkouts = $this->checkoutService->getCheckouts();
@@ -145,16 +145,13 @@ class CheckoutController extends Controller
     {
         try {
             $validated = $request->validate([
-                'is_cash_refunded' => 'required|boolean',
                 'bank_info' => 'required_if:is_cash_refunded,false|array|nullable',
                 'bank_info.bank_name' => 'required_if:is_cash_refunded,false|string|max:255',
                 'bank_info.account_number' => 'required_if:is_cash_refunded,false|string|max:50',
                 'bank_info.account_holder' => 'required_if:is_cash_refunded,false|string|max:255',
             ]);
 
-            $bankInfo = $validated['is_cash_refunded'] ? null : $validated['bank_info'];
-
-            $result = $this->checkoutService->updateBankInfo($id, $bankInfo);
+            $result = $this->checkoutService->updateBankInfo($id, $validated['bank_info']);
 
             if (isset($result['error'])) {
                 return response()->json([

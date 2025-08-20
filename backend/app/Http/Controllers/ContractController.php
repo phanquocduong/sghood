@@ -265,4 +265,33 @@ class ContractController extends Controller
             ], 500);
         }
     }
+    public function reactivate(Request $request, $id)
+    {
+        $result = $this->contractService->reactivateContract($id);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
+    }
+
+    public function deleteIdentity(Request $request, $id)
+    {
+        try {
+            $result = $this->contractService->deleteIdentityDocument($id);
+
+            if ($result['success']) {
+                return redirect()->back()->with('success', $result['message']);
+            }
+
+            return redirect()->back()->with('error', $result['message']);
+        } catch (\Throwable $e) {
+            Log::error('Error deleting identity document: ' . $e->getMessage(), [
+                'contract_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xóa thông tin căn cước công dân.');
+        }
+    }
 }

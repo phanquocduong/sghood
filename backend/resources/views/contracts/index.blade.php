@@ -21,14 +21,6 @@
         <div class="card shadow-lg border-0 rounded-4">
             <div class="card-header bg-gradient text-white align-items-center rounded-top-4"
                 style="background: linear-gradient(90deg, #007bff, #00c6ff);">
-                {{-- <div class="d-flex align-items-center">
-                    <a href="{{ route('dashboard') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
-                        style="transition: all 0.3s;" title="Quay lại dashboard">
-                        <i class="fas fa-arrow-left me-1"></i>
-                        <span class="d-none d-sm-inline ms-1">Quay lại</span>
-                    </a>
-
-                </div> --}}
                 <div class="card-header bg-gradient text-white d-flex flex-column flex-sm-row justify-content-between align-items-center rounded-top-4"
                     style="background: linear-gradient(90deg, #007bff, #00c6ff);">
                     <h5 class="mb-2 mb-sm-0 fw-bold text-start">
@@ -45,19 +37,24 @@
             </div>
 
             <div class="card-body p-4">
-                <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('dashboard') }}" class="text-decoration-none">
-                                <i class="fas fa-home me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
-                        </li>
-                    </ol>
-                </nav>
+                <!-- Notification for pending bookings -->
+                <div class="mb-4">
+                    @php
+                        $pendingCount = \App\Models\Contract::where('status', 'Chờ duyệt')->count();
+                        $pendingCountt = \App\Models\Contract::where('status', 'Chờ duyệt thủ công')->count();
+                    @endphp
+                    @if($pendingCount > 0 || $pendingCountt > 0)
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>Có <strong>{{ $pendingCount }}</strong> hợp đồng đang chờ duyệt và <strong>{{ $pendingCountt }}</strong> hợp đồng đang chờ duyệt thủ công</span>
+                        </div>
+                    @else
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span>Không có hợp đồng nào chờ duyệt</span>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- Filter Form -->
                 <div class="mb-4">
@@ -75,6 +72,7 @@
                                 <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận
                                 </option>
                                 <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
+                                <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
                                 <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh
                                     sửa</option>
                                 <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>
@@ -108,7 +106,7 @@
                         style="text-align: center">
                         <thead class="table-dark">
                             <tr>
-                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
+                                <th scope="col" style="width: 8%;" class="text-center">Mã HD</th>
                                 <th scope="col" style="width: 15%;">Người thuê</th>
                                 <th scope="col" style="width: 13%;">Tên phòng</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Ngày kết thúc</th>
@@ -120,7 +118,7 @@
                         <tbody>
                             @forelse ($contracts as $contractItem)
                                 <tr class="table-row">
-                                    <td class="text-center">{{ $contracts->firstItem() + $loop->index }}</td>
+                                    <td class="text-center">{{ 'HD'.$contractItem->id }}</td>
                                     <td>
                                         <span class="user-name-clickable"
                                             data-user-id="{{ $contractItem->user->id ?? '' }}"
@@ -159,6 +157,7 @@
                                             $badgeClass = match ($calculatedStatus) {
                                                 'Chờ xác nhận' => 'primary',
                                                 'Chờ duyệt' => 'warning',
+                                                'Chờ duyệt thủ công' => 'warning',
                                                 'Chờ chỉnh sửa' => 'danger',
                                                 'Chờ ký' => 'info',
                                                 'Hoạt động' => 'success',
@@ -171,6 +170,7 @@
                                             $iconClass = match ($calculatedStatus) {
                                                 'Chờ xác nhận' => 'fas fa-clock',
                                                 'Chờ duyệt' => 'fas fa-eye',
+                                                'Chờ duyệt thủ công' => 'fas fa-eye',
                                                 'Chờ chỉnh sửa' => 'fas fa-edit',
                                                 'Chờ ký' => 'fas fa-pen',
                                                 'Hoạt động' => 'fas fa-check-circle',

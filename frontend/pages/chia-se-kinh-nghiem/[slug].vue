@@ -59,7 +59,7 @@
                                         <a href="#">{{ blog.category || 'Chưa phân loại' }}</a>
                                     </li>
                                     <li>
-                                        <a href="#">{{ blog.comments || 0 }} bình luận</a>
+                                        <a href="#" @click.prevent="scrollToBottom">{{ blog.comments || 0 }} bình luận</a>
                                     </li>
                                 </ul>
                                 <p v-html="blog.content"></p>
@@ -92,7 +92,7 @@
                             </div>
                         </div>
 
-                        <Comments :key="commentsKey" />
+                        <Comments id="comments" />
                     </div>
                 </div>
 
@@ -142,19 +142,80 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useNuxtApp, useRuntimeConfig } from '#app';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useHead, useRuntimeConfig, useNuxtApp } from '#app';
 import Comments from '~/components/partials/comments/Comments.vue';
+
 const route = useRoute();
 const blog = ref(null);
 const loading = ref(false);
 const { $api } = useNuxtApp();
 const relatedPosts = ref([]);
 const blogList = ref([]);
+const comments = ref([]);
 const popularPosts = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const hasIncreasedView = ref(false);
+const commentsKey = ref(0);
+
+// Tính toán tiêu đề SEO động dựa trên tiêu đề bài viết
+const seoTitle = computed(() => {
+    return blog.value?.title ? `SGHood - ${blog.value.title}` : 'SGHood - Chi Tiết Bài Viết';
+});
+
+// Cấu hình SEO cho trang chi tiết bài viết
+useHead({
+    title: seoTitle,
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content: computed(() => {
+                return blog.value?.excerpt
+                    ? `${blog.value.excerpt.substring(0, 150)}... Đọc thêm kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood.`
+                    : 'Đọc bài viết chi tiết về kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood. Mẹo hay và thông tin hữu ích.';
+            })
+        },
+        {
+            name: 'keywords',
+            content: computed(() => {
+                return `SGHood, kinh nghiệm thuê trọ, nhà trọ TP. Hồ Chí Minh, mẹo thuê trọ, ${blog.value?.title || 'bài viết chia sẻ'}`;
+            })
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: seoTitle
+        },
+        {
+            property: 'og:description',
+            content: computed(() => {
+                return blog.value?.excerpt
+                    ? `${blog.value.excerpt.substring(0, 150)}... Đọc thêm kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood.`
+                    : 'Đọc bài viết chi tiết về kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood. Mẹo hay và thông tin hữu ích.';
+            })
+        },
+        { property: 'og:type', content: 'article' },
+        {
+            property: 'og:url',
+            content: computed(() => `https://sghood.com.vn/chia-se-kinh-nghiem/${route.params.slug}`)
+        },
+        {
+            property: 'og:image',
+            content: computed(() => blog.value?.thumbnail || 'https://sghood.com.vn/images/og-default.jpg')
+        }
+    ]
+});
+
+const scrollToBottom = () => {
+    const el = document.getElementById('comments');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+    }
+};
 
 function formatDate(dateStr = '') {
     if (!dateStr) return 'Không rõ ngày';
@@ -174,6 +235,7 @@ function formatDate(dateStr = '') {
         year: 'numeric'
     });
 }
+
 const fetchBlogs = async slug => {
     loading.value = true;
     try {
@@ -193,19 +255,18 @@ const fetchBlogs = async slug => {
             content: fixedContent,
             date: res.data.created_at,
             category: res.data.category || 'Tin tức',
+            comments: res.comments.length || [],
             created_at: formatDate(res.data.created_at)
         };
 
         console.log('fetchblogs', res);
         if (!hasIncreasedView.value) {
             try {
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                console.log('CSRF Token:', token);
                 const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token
+                        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
                     }
                 });
                 console.log('Increase view response:', resView);
@@ -224,18 +285,18 @@ const fetchBlogs = async slug => {
             date: g.created_at
         }));
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Lỗi khi lấy dữ liệu bài viết:', e);
     } finally {
         loading.value = false;
     }
 };
-const FetchPopularPosts = async () => {
+
+const fetchPopularPosts = async () => {
     try {
         const res = await $api(`/blogs/popular`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                'Content-Type': 'application/json'
             }
         });
 
@@ -244,12 +305,14 @@ const FetchPopularPosts = async () => {
             title: g.title,
             thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
             excerpt: g.excerpt || stripHtml(g.content).slice(0, 100) + '...',
-            url: `/chia-se-kinh-nghiem/${g.slug}`
+            url: `/chia-se-kinh-nghiem/${g.slug}`,
+            date: formatDate(g.created_at)
         }));
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Lỗi khi lấy bài viết phổ biến:', e);
     }
 };
+
 const fetchRelatedPosts = async id => {
     try {
         const res = await $api(`blogs/${id}/related`, {
@@ -258,7 +321,6 @@ const fetchRelatedPosts = async id => {
                 'Content-Type': 'application/json'
             }
         });
-        console.log('relatedres', res);
         relatedPosts.value = res.slice(0, 2).map(g => ({
             id: g.id,
             category: g.category,
@@ -266,21 +328,22 @@ const fetchRelatedPosts = async id => {
             thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
             excerpt: g.excerpt || (typeof g.content === 'string' ? g.content.slice(0, 100) + '...' : ''),
             url: `/chia-se-kinh-nghiem/${g.slug}`,
-            date: g.created_at
+            date: formatDate(g.created_at)
         }));
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Lỗi khi lấy bài viết liên quan:', e);
     }
 };
 
 onMounted(async () => {
     await fetchBlogs();
-    await FetchPopularPosts();
+    await fetchPopularPosts();
     if (blog.value && blog.value.id) {
         await fetchRelatedPosts(blog.value.id);
         await nextTick();
     }
 });
+
 function stripHtml(html = '') {
     return html.replace(/<[^>]*>/g, '');
 }

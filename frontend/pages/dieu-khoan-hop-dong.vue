@@ -100,20 +100,37 @@
 import { ref, onMounted, nextTick, watch } from 'vue';
 import { useBehaviorStore } from '~/stores/behavior';
 import { useRoute } from 'vue-router';
+import { useHead } from '#app';
 
-// Meta data for SEO
+// Cấu hình SEO cho trang điều khoản hợp đồng
 useHead({
-    title: 'Điều Khoản Hợp Đồng Thuê Trọ - Quản Lý Thuê Trọ Thông Minh',
+    title: 'SGHood - Điều Khoản Hợp Đồng Thuê Trọ',
     meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
+            hid: 'description',
             name: 'description',
             content:
-                'Điều khoản hợp đồng cho thuê nhà trọ chi tiết, quy định trách nhiệm của các bên và quyền đơn phương chấm dứt hợp đồng.'
+                'Điều khoản hợp đồng thuê trọ của SGHood, quy định chi tiết trách nhiệm bên cho thuê, bên thuê và quyền chấm dứt hợp đồng.'
         },
-        { name: 'keywords', content: 'điều khoản, hợp đồng thuê trọ, nhà trọ, quản lý thuê trọ' },
-        { property: 'og:title', content: 'Điều Khoản Hợp Đồng Thuê Trọ' },
-        { property: 'og:description', content: 'Xem chi tiết điều khoản hợp đồng cho thuê nhà trọ' },
-        { property: 'og:type', content: 'website' }
+        {
+            name: 'keywords',
+            content: 'SGHood, điều khoản hợp đồng, thuê trọ, nhà trọ TP. Hồ Chí Minh, hợp đồng thuê nhà, quy định thuê trọ'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Điều Khoản Hợp Đồng Thuê Trọ'
+        },
+        {
+            property: 'og:description',
+            content:
+                'Điều khoản hợp đồng thuê trọ của SGHood, quy định chi tiết trách nhiệm bên cho thuê, bên thuê và quyền chấm dứt hợp đồng.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/dieu-khoan-hop-dong' }
     ]
 });
 

@@ -15,6 +15,7 @@ class Room extends Model
         'name',
         'price',
         'area',
+        'max_occupants',
         'status',
         'motel_id',
         'description',

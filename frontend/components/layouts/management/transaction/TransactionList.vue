@@ -15,6 +15,9 @@
                     <li>Mã tham chiếu: {{ item.reference_code }}</li>
                 </ul>
             </li>
+            <div v-if="!items.length" class="col-md-12 text-center">
+                <p>Chưa có giao dịch nào.</p>
+            </div>
         </ul>
     </div>
 </template>

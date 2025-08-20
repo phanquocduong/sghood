@@ -103,6 +103,20 @@ class NoteController extends Controller
             ->with('success', 'Ghi chú đã được tạo thành công!');
     }
 
+    public function storeDashboard(NoteRequest $request): RedirectResponse
+    {
+        $result = $this->noteService->createNote($request->validated());
+
+        $errorResponse = $this->handleServiceError($result, $request->validated());
+        if ($errorResponse) {
+            return $errorResponse;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Ghi chú đã được tạo thành công!');
+    }
+
     // Xóa ghi chú.
     public function destroy(string $id): RedirectResponse
     {

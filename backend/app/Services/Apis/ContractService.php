@@ -21,7 +21,7 @@ class ContractService
         try {
             return Contract::query()
                 ->where('user_id', Auth::id())
-                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at', 'early_terminated_at')
+                ->select('id', 'room_id', 'start_date', 'end_date', 'status', 'deposit_amount', 'rental_price', 'signed_at', 'early_terminated_at', 'created_at')
                 ->with([
                     'room' => fn($query) => $query->select('id', 'name', 'motel_id', 'price')
                         ->with(['motel' => fn($query) => $query->select('id', 'name', 'slug')]),
@@ -37,6 +37,7 @@ class ContractService
                         'has_left'
                     )->latest(),
                 ])
+                ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(fn (Contract $contract) => [
                     'id' => $contract->id,

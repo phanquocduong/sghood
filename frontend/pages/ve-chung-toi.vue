@@ -72,6 +72,42 @@
     </div>
 </template>
 
+<script setup>
+import { useHead } from '#app';
+
+// Cấu hình SEO cho trang về chúng tôi
+useHead({
+    title: 'SGHood - Về Chúng Tôi',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content:
+                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.'
+        },
+        {
+            name: 'keywords',
+            content: 'SGHood, về chúng tôi, quản lý nhà trọ, thuê trọ TP. Hồ Chí Minh, nền tảng thuê trọ, đội ngũ phát triển'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Về Chúng Tôi'
+        },
+        {
+            property: 'og:description',
+            content:
+                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/ve-chung-toi' }
+    ]
+});
+</script>
+
 <style scoped>
 /* Layout chung */
 .section {

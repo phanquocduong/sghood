@@ -9,7 +9,7 @@
                     <div class="row margin-bottom-25" style="display: flex; align-items: flex-end">
                         <div class="col-md-6 col-xs-12">
                             <h2>Danh sách bài viết</h2>
-                            <span>Gốc chia sẻ</span>
+                            <span>Góc chia sẻ</span>
                         </div>
                         <div class="col-md-6 col-xs-12">
                             <SortByBlogs
@@ -164,7 +164,40 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useHead } from '#app';
 import SortByBlogs from '~/components/partials/SortBy-Blogs.vue';
+
+// Cấu hình SEO cho trang chia sẻ kinh nghiệm
+useHead({
+    title: 'SGHood - Chia Sẻ Kinh Nghiệm Thuê Trọ',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content:
+                'Khám phá kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood. Mẹo tìm phòng trọ, quản lý chi phí và các bài viết hữu ích.'
+        },
+        {
+            name: 'keywords',
+            content: 'SGHood, kinh nghiệm thuê trọ, nhà trọ TP. Hồ Chí Minh, mẹo thuê trọ, bài viết chia sẻ'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Chia Sẻ Kinh Nghiệm Thuê Trọ'
+        },
+        {
+            property: 'og:description',
+            content:
+                'Khám phá kinh nghiệm thuê trọ tại TP. Hồ Chí Minh với SGHood. Mẹo tìm phòng trọ, quản lý chi phí và các bài viết hữu ích.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/chia-se-kinh-nghiem' }
+    ]
+});
 
 const categories = ref([]);
 const loading = ref(false);
@@ -253,7 +286,7 @@ const fetchBlogs = async (page = 1, selectedCategory = '') => {
             url: `/chia-se-kinh-nghiem/${g.slug}`,
             created_at: formatDate(g.created_at)
         }));
-        console.log('fetchBlogs', res);
+        console.log('fetchBlogsIndex', res);
         blogPosts.value = mapped;
         allBlogs.value = [...mapped];
 

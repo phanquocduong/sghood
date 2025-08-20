@@ -73,15 +73,6 @@
                     </button>
                 </div>
             </div>
-            <!-- Confirm Left Room -->
-            <div v-if="!checkout.has_left && checkout.user_confirmation_status === 'Đồng ý'" class="inventory-actions">
-                <div class="booking-actions">
-                    <button @click="$emit('confirm-left-room')" class="button" :disabled="leaveLoading">
-                        <span v-if="leaveLoading" class="spinner"></span>
-                        <i v-else class="fa fa-door-open"></i> {{ leaveLoading ? 'Đang xử lý...' : 'Xác nhận đã rời phòng' }}
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </template>
@@ -95,11 +86,10 @@ defineProps({
     showRejectionForm: { type: Boolean, required: true },
     rejectionReason: { type: String, required: true },
     confirmLoading: { type: Boolean, required: true },
-    rejectLoading: { type: Boolean, required: true },
-    leaveLoading: { type: Boolean, required: true }
+    rejectLoading: { type: Boolean, required: true }
 });
 
-defineEmits(['update:show-rejection-form', 'update:rejection-reason', 'submit-approval', 'submit-rejection', 'confirm-left-room']);
+defineEmits(['update:show-rejection-form', 'update:rejection-reason', 'submit-approval', 'submit-rejection']);
 
 const { formatPrice } = useFormatPrice();
 </script>

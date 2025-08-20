@@ -19,7 +19,7 @@ class NotificationController extends Controller
     {
         $sortOrder = $request->query('sort', 'desc') === 'asc' ? 'asc' : 'desc';
         $status = $request->query('status', '');
-        $perPage = $request->query('per_page', 10);
+        $perPage = $request->query('per_page',5);
 
         $notifications = $this->notificationService->getUserNotifications($userId, $sortOrder, $status, $perPage);
 

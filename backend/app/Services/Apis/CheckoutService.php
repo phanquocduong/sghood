@@ -111,6 +111,7 @@ class CheckoutService
                 'inventory_status' => $checkout->inventory_status,
                 'user_confirmation_status' => $checkout->user_confirmation_status,
                 'user_rejection_reason' => $checkout->user_rejection_reason,
+                'canceled_at' => $checkout->canceled_at,
                 'has_left' => $checkout->has_left,
                 'images' => $checkout->images,
                 'note' => $checkout->note,
@@ -119,6 +120,7 @@ class CheckoutService
                 'refund_status' => $checkout->refund_status,
                 'room_name' => $checkout->contract->room->name,
                 'motel_name' => $checkout->contract->room->motel->name,
+                'motel_slug' => $checkout->contract->room->motel->slug,
                 'room_image' => $checkout->contract->room->main_image->image_url,
                 'contract' => [
                     'deposit_amount' => $checkout->contract->deposit_amount,

@@ -64,7 +64,7 @@
             <div class="col-md-8">
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
-                    <form @keyup.enter="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
+                    <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
                                 <div>
@@ -93,14 +93,7 @@
                             </div>
                         </div>
                         <div>
-                            <input
-                                name="subject"
-                                type="text"
-                                id="subject-contact"
-                                placeholder="Chủ đề"
-                          
-                                v-model="subject"
-                            />
+                            <input name="subject" type="text" id="subject-contact" placeholder="Chủ đề" v-model="subject" />
                         </div>
                         <div>
                             <textarea
@@ -111,7 +104,6 @@
                                 id="contact-Message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
-                                required="required"
                                 style="min-height: 180px; width: 100%"
                             ></textarea>
                         </div>
@@ -123,7 +115,6 @@
                             value="Gửi tin nhắn"
                             :disabled="loading"
                             style="margin-bottom: 10px; margin-top: -10px"
-                            @click="handleSubmit"
                         >
                             <span v-if="loading" class="spinner"></span>
                             {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
@@ -141,9 +132,40 @@ import { useAuthStore } from '~/stores/auth';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useToast';
 import { useBehaviorStore } from '~/stores/behavior';
+import { useHead } from '#app';
+
+// Cấu hình SEO cho trang liên hệ
+useHead({
+    title: 'SGHood - Liên Hệ Với Chúng Tôi',
+    meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+            hid: 'description',
+            name: 'description',
+            content: 'Liên hệ với SGHood để được hỗ trợ về quản lý nhà trọ, thuê trọ và các dịch vụ liên quan tại TP. Hồ Chí Minh.'
+        },
+        {
+            name: 'keywords',
+            content: 'SGHood, liên hệ, hỗ trợ thuê trọ, nhà trọ TP. Hồ Chí Minh, quản lý nhà trọ, dịch vụ thuê trọ'
+        },
+        { name: 'author', content: 'SGHood Team' },
+        // Open Graph
+        {
+            property: 'og:title',
+            content: 'SGHood - Liên Hệ Với Chúng Tôi'
+        },
+        {
+            property: 'og:description',
+            content: 'Liên hệ với SGHood để được hỗ trợ về quản lý nhà trọ, thuê trọ và các dịch vụ liên quan tại TP. Hồ Chí Minh.'
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://sghood.com.vn/lien-he' }
+    ]
+});
+
 // api config
 const config = useState('configs');
-const baseUrl = useRuntimeConfig().public.baseUrl;
 const behavior = useBehaviorStore();
 const route = useRoute();
 
@@ -167,6 +189,10 @@ onMounted(() => {
     }
 });
 const handleSubmit = async () => {
+    if (!name.value) return toast.warning('Vui lòng nhập họ tên');
+    if (!email.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) return toast.warning('Email không hợp lệ');
+    if (!subject.value) return toast.warning('Vui lòng nhập chủ đề');
+    if (!message.value) return toast.warning('Vui lòng nhập lời nhắn');
     loading.value = true;
     try {
         const res = await $api('/contact', {
@@ -182,7 +208,7 @@ const handleSubmit = async () => {
                 message: message.value
             }
         });
-        console.log(res.value);
+
         if (res?.status === true) {
             toast.success('Gửi thành công! Cảm ơn bạn đã liên hệ.');
             subject.value = '';

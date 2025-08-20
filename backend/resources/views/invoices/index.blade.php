@@ -83,23 +83,26 @@
             </div>
         </div>
         @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+            <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         <div class="card shadow-lg border-0" style="border-radius: 15px; background: #fff;">
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center"
-                style="background: linear-gradient(90deg, #28a745, #20c997); border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                 style="background: linear-gradient(90deg, #28a745, #20c997); border-top-left-radius: 15px; border-top-right-radius: 15px;">
                 <div class="d-flex align-items-center">
                     <h6 class="mb-0 fw-bold">{{ __('Danh sách hóa đơn') }}
                         <span class="badge bg-light text-success ms-2">{{ $invoices->total() }} bản ghi</span>
+                        @if(empty($filters['search']))
+                            <span class="badge bg-warning text-dark ms-2">{{ $stats['unpaid'] }} chưa trả</span>
+                        @endif
                     </h6>
                 </div>
             </div>
@@ -116,7 +119,7 @@
                                 <option value="">Tất cả tháng</option>
                                 @foreach($months as $monthValue => $monthLabel)
                                     <option value="{{ $monthValue }}"
-                                        {{ $filters['month'] == $monthValue ? 'selected' : '' }}>
+                                            {{ $filters['month'] == $monthValue ? 'selected' : '' }}>
                                         {{ $monthLabel }}
                                     </option>
                                 @endforeach
@@ -127,7 +130,7 @@
                                 <option value="">Tất cả năm</option>
                                 @foreach($years as $yearValue => $yearLabel)
                                     <option value="{{ $yearValue }}"
-                                        {{ $filters['year'] == $yearValue ? 'selected' : '' }}>
+                                            {{ $filters['year'] == $yearValue ? 'selected' : '' }}>
                                         {{ $yearLabel }}
                                     </option>
                                 @endforeach
@@ -138,7 +141,7 @@
                                 <option value="">Tất cả trạng thái</option>
                                 @foreach($statuses as $statusValue => $statusLabel)
                                     <option value="{{ $statusValue }}"
-                                        {{ $filters['status'] == $statusValue ? 'selected' : '' }}>
+                                            {{ $filters['status'] == $statusValue ? 'selected' : '' }}>
                                         {{ $statusLabel }}
                                     </option>
                                 @endforeach
@@ -157,7 +160,7 @@
                     <table class="table table-hover table-bordered align-middle">
                         <thead class="table-success">
                             <tr>
-                                <th scope="col" style="width: 5%;" class="text-center">ID</th>
+                                <th scope="col" style="width: 5%;" class="text-center">STT</th>
                                 <th scope="col" style="width: 18%;" class="text-center">Mã hóa đơn</th>
                                 <th scope="col" style="width: 15%;" class="text-center">Tổng tiền</th>
                                 <th scope="col" style="width: 12%;" class="text-center">Trạng thái</th>
@@ -169,7 +172,7 @@
                         <tbody>
                             @forelse($invoices as $invoice)
                                 <tr class="table-row">
-                                    <td class="text-center">{{ $invoice->id }}</td>
+                                    <td class="text-center">{{ $loop->iteration }}</td>
                                     <td class="text-center">
                                         <span class="fw-bold text-primary">{{ $invoice->code }}</span>
                                     </td>
@@ -198,7 +201,6 @@
                                                 default => 'clock'
                                             };
                                         @endphp
-                                        <!-- Hiển thị badge thông thường -->
                                         <span class="badge bg-{{ $statusClass }} py-2 px-3">
                                             <i class="fas fa-{{ $statusIcon }} me-1"></i>
                                             {{ $statusText }}
@@ -206,22 +208,21 @@
                                     </td>
                                     <td class="text-center">{{ $invoice->month }}/{{ $invoice->year }}</td>
                                     <td class="text-center">
-                                    @if($invoice->status === 'Chưa trả')
-                                        <!-- Form để cập nhật trạng thái -->
-                                        <form action="{{ route('invoices.updateStatus', $invoice->id) }}" method="POST"
-                                            style="display: inline-block;"
-                                            onsubmit="return confirm('Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang Đã trả?')">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="Đã trả">
-                                            <input type="hidden" name="reference_code" value="CASH_{{ $invoice->id }}_{{ now()->format('YmdHis') }}">
-                                            <button type="submit" class="btn btn-warning btn-sm" title="Cập nhật thành Đã trả">
-                                                <i class="fa-regular fa-money-bill-1"></i> Người dùng thanh toán tiền mặt
-                                            </button>
-                                        </form>
-                                    @else
-                                        {{ $invoice->refunded_at ? 'Đã hoàn tiền vào: ' . \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : 'Hóa đơn đã được thanh toán' }}
-                                    @endif
+                                        @if($invoice->status === 'Chưa trả')
+                                            <form action="{{ route('invoices.updateStatus', $invoice->id) }}" method="POST"
+                                                  style="display: inline-block;"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang Đã trả?')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="Đã trả">
+                                                <input type="hidden" name="reference_code" value="CASH_{{ $invoice->id }}_{{ now()->format('YmdHis') }}">
+                                                <button type="submit" class="btn btn-warning btn-sm" title="Cập nhật thành Đã trả">
+                                                    <i class="fa-regular fa-money-bill-1"></i> Người dùng thanh toán tiền mặt
+                                                </button>
+                                            </form>
+                                        @else
+                                            {{ $invoice->refunded_at ? 'Đã hoàn tiền vào: ' . \Carbon\Carbon::parse($invoice->refunded_at)->format('d/m/Y') : 'Hóa đơn đã được thanh toán' }}
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         <button class="btn btn-info btn-sm" onclick="showInvoiceDetail({{ $invoice->id }})" title="Xem chi tiết hóa đơn">
@@ -247,31 +248,30 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Invoice Detail Modal -->
-    <div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="invoiceDetailModalLabel">
-                        <i class="fas fa-file-invoice me-2"></i>Chi tiết hóa đơn
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="invoiceDetailContent">
-                    <!-- Loading spinner -->
-                    <div class="text-center py-4" id="loadingSpinner">
-                        <div class="spinner-border text-info" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Đang tải thông tin...</p>
+        <!-- Invoice Detail Modal -->
+        <div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title" id="invoiceDetailModalLabel">
+                            <i class="fas fa-file-invoice me-2"></i>Chi tiết hóa đơn
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i>Đóng
-                    </button>
+                    <div class="modal-body" id="invoiceDetailContent">
+                        <div class="text-center py-4" id="loadingSpinner">
+                            <div class="spinner-border text-info" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Đang tải thông tin...</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Đóng
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -343,6 +343,7 @@
             const statusClass = {
                 'Đã trả': 'success',
                 'Chưa trả': 'warning',
+                'Quá hạn': 'danger',
                 'Đã hoàn tiền': 'secondary'
             }[invoice.status] || 'secondary';
 
@@ -359,6 +360,7 @@
                                 <p><strong>Kỳ:</strong> ${invoice.month}/${invoice.year}</p>
                                 <p><strong>Trạng thái:</strong> <span class="badge bg-${statusClass}">${invoice.status}</span></p>
                                 <p><strong>Ngày tạo:</strong> ${invoice.created_at}</p>
+                                ${invoice.refunded_at ? `<p><strong>Ngày hoàn tiền:</strong> ${invoice.refunded_at}</p>` : ''}
                             </div>
                         </div>
                     </div>
@@ -371,14 +373,23 @@
                                 <p><strong>Tên:</strong> ${invoice.customer.name}</p>
                                 <p><strong>Email:</strong> ${invoice.customer.email}</p>
                                 <p><strong>Điện thoại:</strong> ${invoice.customer.phone}</p>
-                                <p><strong>Phòng:</strong> ${invoice.room.name}</p>
-                                <p><strong>Nhà trọ:</strong> ${invoice.room.motel_name}</p>
+                                <p><strong>Phòng:</strong> ${invoice.room.name} ${invoice.room.motel_name}</p>
+                                <p><strong>Mã hợp đồng:</strong>
+                                    <a href="/contracts/${invoice.room.id}"
+                                       target="_blank"
+                                       class="text-primary text-decoration-none fw-bold"
+                                       title="Xem chi tiết hợp đồng">
+                                        HD${invoice.room.id}
+                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                    </a>
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="row mt-3">
+                    ${invoice.meter_reading ? `
                     <div class="col-md-6">
                         <div class="card border-0 bg-light">
                             <div class="card-header bg-warning text-dark">
@@ -394,19 +405,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    ` : ''}
+                    <div class="col-md-${invoice.meter_reading ? '6' : '12'}">
                         <div class="card border-0 bg-light">
                             <div class="card-header bg-info text-white">
                                 <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Chi tiết chi phí</h6>
                             </div>
                             <div class="card-body">
                                 <p><strong>Tiền phòng:</strong> ${invoice.fees.room_fee} VND</p>
-                                <p><strong>Tiền điện:</strong> ${invoice.fees.electricity_fee} VND</p>
-                                <p><strong>Tiền nước:</strong> ${invoice.fees.water_fee} VND</p>
-                                <p><strong>Phí giữ xe:</strong> ${invoice.fees.parking_fee} VND</p>
-                                <p><strong>Phí rác:</strong> ${invoice.fees.junk_fee} VND</p>
-                                <p><strong>Phí internet:</strong> ${invoice.fees.internet_fee} VND</p>
-                                <p><strong>Phí dịch vụ:</strong> ${invoice.fees.service_fee} VND</p>
+                                ${invoice.type !== 'Đặt cọc' ? `
+                                    <p><strong>Tiền điện:</strong> ${invoice.fees.electricity_fee} VND</p>
+                                    <p><strong>Tiền nước:</strong> ${invoice.fees.water_fee} VND</p>
+                                    <p><strong>Phí giữ xe:</strong> ${invoice.fees.parking_fee} VND</p>
+                                    <p><strong>Phí rác:</strong> ${invoice.fees.junk_fee} VND</p>
+                                    <p><strong>Phí internet:</strong> ${invoice.fees.internet_fee} VND</p>
+                                    <p><strong>Phí dịch vụ:</strong> ${invoice.fees.service_fee} VND</p>
+                                ` : ''}
                                 <hr>
                                 <p class="h5 text-success">Tổng cộng: ${invoice.fees.total_amount} VND</p>
                             </div>
@@ -414,42 +428,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        // Update invoice status function
-        function updateInvoiceStatus(invoiceId, newStatus) {
-            if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái hóa đơn sang "${newStatus}"?`)) {
-                return;
-            }
-
-            fetch(`/invoices/${invoiceId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    status: newStatus
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Reload trang để cập nhật giao diện
-                    location.reload();
-                } else {
-                    alert('Lỗi: ' + (data.message || 'Có lỗi xảy ra khi cập nhật trạng thái'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi cập nhật trạng thái: ' + error.message);
-            });
         }
 
         // Optional: Add event listener để reset modal khi đóng
@@ -470,7 +448,7 @@
                 });
             }
 
-            // Auto-submit form when month/year changes
+            // Auto-submit form when month/year/status changes
             const monthSelect = document.querySelector('select[name="month"]');
             const yearSelect = document.querySelector('select[name="year"]');
             const statusSelect = document.querySelector('select[name="status"]');

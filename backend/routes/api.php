@@ -21,6 +21,7 @@ use App\Http\Controllers\Apis\BlogController;
 use App\Http\Controllers\Apis\CheckoutController;
 use App\Http\Controllers\Apis\ContractExtensionController;
 use App\Http\Controllers\Apis\CommentController;
+use App\Http\Controllers\Apis\ContractTenantController;
 use App\Http\Controllers\Apis\IdentityDocumentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +67,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/sign', 'sign');
         Route::get('/{id}/download-pdf', 'downloadPdf');
         Route::post('/{id}/early-termination', 'earlyTermination');
+
+        Route::get('{contractId}/tenants', [ContractTenantController::class, 'index']);
+        Route::post('{contractId}/tenants', [ContractTenantController::class, 'store']);
+        Route::post('{contractId}/tenants/{tenantId}/cancel', [ContractTenantController::class, 'cancel']);
+        Route::post('{contractId}/tenants/{tenantId}/confirm', [ContractTenantController::class, 'confirm']);
     });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);

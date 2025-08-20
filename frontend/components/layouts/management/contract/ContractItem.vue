@@ -2,7 +2,7 @@
     <li :class="getItemClass(item.status)">
         <div class="list-box-listing bookings">
             <div class="list-box-listing-img">
-                <NuxtLink :to="`/nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
+                <NuxtLink :to="`/danh-sach-nha-tro/${item.motel_slug}`" target="_blank" style="height: 150px">
                     <img :src="useRuntimeConfig().public.baseUrl + item.room_image" alt="Room image" />
                 </NuxtLink>
             </div>
@@ -61,6 +61,9 @@
             </NuxtLink>
             <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve">
                 <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
+            </NuxtLink>
+            <NuxtLink :to="`/quan-ly/hop-dong/${item.id}/nguoi-o-cung`" class="button gray approve">
+                <i class="im im-icon-Folder-Bookmark"></i> Quản lý người ở cùng
             </NuxtLink>
             <a
                 v-if="

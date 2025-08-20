@@ -24,6 +24,9 @@
                     >
                 </div>
             </li>
+            <div v-if="!items.length" class="col-md-12 text-center">
+                <p>Chưa có hoá đơn nào.</p>
+            </div>
         </ul>
     </div>
 </template>

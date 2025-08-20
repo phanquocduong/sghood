@@ -22,6 +22,11 @@
                                 <i class="fas fa-sticky-note me-2"></i>
                                 Ghi chú quan trọng
                             </h6>
+                            <button type="button" class="btn btn-link text-white p-0 me-3" data-bs-toggle="modal"
+                                data-bs-target="#addNoteModal">
+                                <i class="fas fa-plus-circle"></i>
+                                <span class="d-none d-sm-inline ms-1">Thêm ghi chú</span>
+                            </button>
                             <form action="{{ route('notes.index') }}" method="GET">
                                 <button type="submit" class="btn btn-link text-decoration-none p-0 small text-white">Xem
                                     tất cả</button>
@@ -84,11 +89,11 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="fw-semibold">Phòng</th>
-                                        <th class="fw-semibold">Khách hàng</th>
-                                        <th class="fw-semibold">Ngày tạo</th>
+                                        <th class="fw-semibold">KH</th>
+
                                         <th class="fw-semibold">Mô tả</th>
                                         <th class="fw-semibold">Trạng thái</th>
-                                        <th class="fw-semibold">Hành động</th>
+                                        <th class="fw-semibold">HĐ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -101,10 +106,6 @@
                                                 </td>
                                                 <td class="py-3 text-dark">
                                                     {{ $request->contract->user->name ?? 'N/A' }}
-                                                </td>
-                                                <td class="py-3 text-dark">
-                                                    <small
-                                                        class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
                                                 </td>
                                                 <td class="py-3">
                                                     <small
@@ -165,11 +166,10 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="fw-semibold">Phòng</th>
-                                        <th class="fw-semibold">Khách hàng</th>
-                                        <th class="fw-semibold">Ngày tạo</th>
+                                        <th class="fw-semibold">KH</th>
                                         <th class="fw-semibold">Mô tả</th>
                                         <th class="fw-semibold">Trạng thái</th>
-                                        <th class="fw-semibold">Hành động</th>
+                                        <th class="fw-semibold">HĐ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -182,10 +182,6 @@
                                                 </td>
                                                 <td class= "py-3 text-dark">
                                                     {{ $request->contract->user->name ?? 'N/A' }}
-                                                </td>
-                                                <td class= "py-3 text-dark">
-                                                    <small
-                                                        class="text-muted">{{ $request->created_at ? $request->created_at->format('d/m/Y') : 'N/A' }}</small>
                                                 </td>
                                                 <td class= "py-3">
                                                     <small
@@ -224,7 +220,7 @@
                                                     @endswitch
                                                 </td>
                                                 <td class= "py-3">
-                                                    <a class="btn btn-sm btn-outline-primary"
+                                                    <a class="btn btn-sm btn-outline-primary" target="_blank"
                                                         href="{{ route('repair_requests.show', $request->id) }}">
                                                         <i class="fas fa-eye me-1"></i>
                                                     </a>
@@ -508,7 +504,7 @@
                             style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sign-in-alt text-success me-2"></i>
-                                Check-in Sắp Tới
+                                Lịch xem trọ sắp tới
                             </h6>
                         </div>
                         <div class="card-body p-0">
@@ -551,7 +547,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-semibold text-white">
                                     <i class="fas fa-file-contract text-info text-white me-2"></i>
-                                    Yêu cầu gia hạn hợp đồng
+                                    Yêu cầu gia hạn
                                 </h6>
                                 <a href="#" class="text-decoration-none small text-white">Xem tất cả</a>
                             </div>
@@ -590,6 +586,69 @@
                 </div>
             </div>
         </div>
+        <!-- Modal Thêm Ghi Chú -->
+        <div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="addNoteModalLabel">
+                            <i class="fas fa-plus me-2"></i>Thêm ghi chú mới
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('notes.storeDashboard') }}" method="POST" id="addNoteForm" novalidate>
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="add_content" class="form-label fw-bold">Nội dung ghi chú <span
+                                        class="text-danger">*</span></label>
+                                <textarea class="form-control @error('content') is-invalid @enderror" id="add_content" name="content" rows="4"
+                                    placeholder="Nhập nội dung ghi chú..." required maxlength="255">{{ old('content') }}</textarea>
+                                @error('content')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Tối đa 255 ký tự</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="add_type" class="form-label fw-bold">Loại ghi chú <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-control @error('type') is-invalid @enderror" id="add_type"
+                                    name="type" required onchange="toggleCustomType(this)">
+                                    <option value="">Chọn loại ghi chú</option>
+                                    @forelse($types as $noteType)
+                                        <option value="{{ $noteType }}" {{ old('type') == $noteType ? 'selected' : '' }}>
+                                            {{ $noteType }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>Không có loại ghi chú nào</option>
+                                    @endforelse
+                                    <option value="{{ old('type') }}" class="custom-option">Khác</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 @error('type') is-invalid @enderror"
+                                    id="custom_type" style="display: {{ $isCustomType ? 'block' : 'none' }};"
+                                    placeholder="Nhập loại ghi chú mới..." maxlength="50" value="{{ old('type') }}"
+                                    oninput="updateTypeValue(this)">
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Tối đa 50 ký tự cho loại ghi chú mới</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Lưu ghi chú
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
     @endsection
 
     @section('scripts')
@@ -660,6 +719,44 @@
                     });
                 });
             });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                @if ($errors->any() || old('content') || old('type'))
+                    var addNoteModal = new bootstrap.Modal(document.getElementById('addNoteModal'));
+                    addNoteModal.show();
+
+                    var select = document.getElementById('add_type');
+                    var customInput = document.getElementById('custom_type');
+                    var selectedValue = "{{ old('type') }}";
+                    var isCustom = {{ $isCustomType ? 'true' : 'false' }};
+
+                    if (isCustom && selectedValue) {
+                        customInput.style.display = 'block';
+                        customInput.value = selectedValue;
+                        select.querySelector('.custom-option').value = selectedValue;
+                        select.value = selectedValue;
+                    }
+                @endif
+            });
+
+            function toggleCustomType(select) {
+                var customInput = document.getElementById('custom_type');
+                var isCustom = select.options[select.selectedIndex].classList.contains('custom-option');
+                customInput.style.display = isCustom ? 'block' : 'none';
+                if (!isCustom) {
+                    select.value = select.options[select.selectedIndex].value;
+                } else {
+                    customInput.focus();
+                }
+            }
+
+            function updateTypeValue(input) {
+                var select = document.getElementById('add_type');
+                var customOption = select.querySelector('.custom-option');
+                customOption.value = input.value;
+                select.value = input.value;
+            }
         </script>
     @endsection
     @section('styles')
