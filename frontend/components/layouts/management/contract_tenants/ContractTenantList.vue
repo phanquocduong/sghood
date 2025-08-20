@@ -1,12 +1,16 @@
+<!-- ContractTenantList.vue -->
 <template>
     <h4>
         <div style="display: flex; align-items: center; justify-content: space-between">
             Quản lý hợp đồng - Người ở cùng
-            <a href="#" class="button border with-icon">Thêm người ở cùng <i class="sl sl-icon-plus"></i></a>
+            <a href="#" @click.prevent="openAddTenantPopup" class="button border with-icon">
+                Thêm người ở cùng <i class="sl sl-icon-plus"></i>
+            </a>
         </div>
     </h4>
 
     <Loading :is-loading="isLoading" />
+    <AddTenantModal ref="addTenantModal" :contract-id="contractId" @add-tenant="handleAddTenant" @close="resetForm" />
 
     <ul>
         <li v-for="item in tenants" :key="item.id" :class="getItemClass(item.status)">
@@ -66,9 +70,11 @@
 
 <script setup>
 import Swal from 'sweetalert2';
+import { ref } from 'vue';
 import { useFormatDate } from '~/composables/useFormatDate';
 
 const { formatDate } = useFormatDate();
+
 const props = defineProps({
     tenants: {
         type: Array,
@@ -77,10 +83,15 @@ const props = defineProps({
     isLoading: {
         type: Boolean,
         required: true
+    },
+    contractId: {
+        type: [Number, String],
+        required: true
     }
 });
 
-const emit = defineEmits(['cancelTenant']);
+const emit = defineEmits(['cancelTenant', 'addTenant']);
+const addTenantModal = ref(null);
 
 const getItemClass = status => {
     switch (status) {
@@ -160,6 +171,16 @@ const openDetailsPopup = async tenant => {
         }
     });
 };
+
+const openAddTenantPopup = () => {
+    if (addTenantModal.value) {
+        addTenantModal.value.openModal();
+    }
+};
+
+const handleAddTenant = () => {
+    emit('addTenant'); // Chỉ phát sự kiện, không cần truyền newTenant
+};
 </script>
 
-<style></style>
+<style scoped></style>

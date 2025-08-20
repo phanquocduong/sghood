@@ -5,7 +5,12 @@ namespace App\Services\Apis;
 use App\Jobs\Apis\SendContractTenantNotification;
 use App\Models\Contract;
 use App\Models\ContractTenant;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Storage;
 
 class ContractTenantService
 {
@@ -50,6 +55,85 @@ class ContractTenantService
             return $tenants;
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy danh sách người ở cùng: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function storeTenant(int $contractId, int $userId, array $data, array $files): array
+    {
+        try {
+            // Kiểm tra hợp đồng
+            $contract = Contract::where('id', $contractId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if (!$contract) {
+                return [
+                    'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền thêm',
+                    'status' => 404,
+                ];
+            }
+
+            // Lưu ảnh CCCD
+            $identityDocumentPaths = [];
+            foreach ($files['identity_images'] as $index => $image) {
+                if ($image instanceof UploadedFile) {
+                    $filename = "images/tenants/tenant-{$contractId}-" . time() . "-{$index}.webp.enc";
+                    $imageContent = (new ImageManager(new Driver()))
+                        ->read($image)
+                        ->toWebp(quality: 85)
+                        ->toString();
+                    $encryptedContent = Crypt::encrypt($imageContent);
+                    Storage::disk('private')->put($filename, $encryptedContent);
+                    $identityDocumentPaths[] = $filename;
+                }
+            }
+
+            // Tạo người ở cùng
+            $tenant = ContractTenant::create([
+                'contract_id' => $contractId,
+                'name' => $data['name'],
+                'phone' => $data['phone'],
+                'email' => $data['email'] ?? null,
+                'gender' => $data['gender'] ?? null,
+                'birthdate' => isset($data['birthdate']) && $data['birthdate']
+                    ? \Carbon\Carbon::createFromFormat('d/m/Y', $data['birthdate'])
+                    : null,
+                'address' => $data['address'] ?? null,
+                'identity_document' => implode('|', $identityDocumentPaths),
+                'relation_with_primary' => $data['relation_with_primary'],
+                'status' => 'Chờ duyệt',
+            ]);
+
+            // Gửi thông báo
+            SendContractTenantNotification::dispatch(
+                $contract,
+                $tenant,
+                'tenant_added',
+                "Người ở cùng #{$tenant->id} đã được thêm",
+                "Người dùng {$contract->user->name} đã thêm người ở cùng {$tenant->name} (ID: {$tenant->id}) vào hợp đồng #{$contract->id}."
+            );
+
+            return [
+                'data' => [
+                    'id' => $tenant->id,
+                    'contract_id' => $tenant->contract_id,
+                    'name' => $tenant->name,
+                    'phone' => $tenant->phone,
+                    'email' => $tenant->email,
+                    'gender' => $tenant->gender,
+                    'birthdate' => $tenant->birthdate?->toDateString(),
+                    'address' => $tenant->address,
+                    'identity_document' => $tenant->identity_document,
+                    'relation_with_primary' => $tenant->relation_with_primary,
+                    'status' => $tenant->status,
+                    'rejection_reason' => $tenant->rejection_reason,
+                    'created_at' => $tenant->created_at->toDateTimeString(),
+                ],
+                'message' => 'Thêm người ở cùng thành công',
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lỗi thêm người ở cùng: ' . $e->getMessage());
             throw $e;
         }
     }

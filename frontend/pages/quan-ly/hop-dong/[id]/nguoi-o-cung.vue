@@ -1,10 +1,17 @@
+<!-- nguoi-o-cung.vue -->
 <template>
     <Titlebar title="Hợp đồng - Người ở cùng" />
 
     <div class="row">
         <div class="col-lg-12 col-md-12">
             <div class="dashboard-list-box margin-top-0">
-                <ContractTenantList :tenants="tenants" :is-loading="isLoading" @cancel-tenant="cancelTenant" />
+                <ContractTenantList
+                    :tenants="tenants"
+                    :is-loading="isLoading"
+                    :contract-id="route.params.id"
+                    @cancel-tenant="cancelTenant"
+                    @add-tenant="fetchTenants()"
+                />
             </div>
         </div>
     </div>
@@ -15,6 +22,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
+import { useCookie } from '#app';
 
 definePageMeta({
     layout: 'management'

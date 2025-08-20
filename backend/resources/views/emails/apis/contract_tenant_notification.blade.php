@@ -112,6 +112,11 @@
             margin-bottom: 24px;
         }
 
+        .status-tenant-added {
+            background: #c3e6cb;
+            color: #28a745;
+        }
+
         .status-tenant-canceled {
             background: #fecaca;
             color: #dc2626;
@@ -290,9 +295,12 @@
             </div>
 
             <div class="message">
-                @if ($type == 'tenant_canceled')
-                    <span class="status-badge status-tenant-canceled">Đã hủy</span><br>
-                    Người ở cùng vừa bị người dùng hủy trong hệ thống.
+                @if ($type == 'tenant_added')
+                    <span class="status-badge status-tenant-added">Đã đăng ký thêm</span><br>
+                    Một người ở cùng mới vừa được đăng ký thêm vào hợp đồng, đang chờ duyệt.
+                @elseif ($type == 'tenant_canceled')
+                    <span class="status-badge status-tenant-canceled">Đã hủy đăng ký</span><br>
+                    Người ở cùng vừa bị người dùng hủy đăng ký trong hệ thống.
                 @else
                     <span class="status-badge">Thông báo</span><br>
                     Có một thông báo quan trọng liên quan đến người ở cùng cần sự chú ý của bạn.

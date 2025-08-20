@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Apis;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Apis\StoreContractTenantRequest;
 use App\Services\Apis\ContractTenantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,28 @@ class ContractTenantController extends Controller
         } catch (\Throwable $e) {
             Log::error('Lỗi lấy danh sách người ở cùng: ' . $e->getMessage());
             return response()->json(['error' => 'Đã xảy ra lỗi khi lấy danh sách người ở cùng'], 500);
+        }
+    }
+
+    public function store(StoreContractTenantRequest $request, int $contractId): JsonResponse
+    {
+        try {
+            $result = $this->contractTenantService->storeTenant($contractId, Auth::id(), $request->validated(), $request->file());
+
+            if (isset($result['error'])) {
+                return response()->json([
+                    'error' => $result['error'],
+                    'status' => $result['status'],
+                ], $result['status']);
+            }
+
+            return response()->json([
+                'message' => 'Đăng ký người ở cùng thành công',
+                'data' => $result['data']
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Lỗi đăng ký người ở cùng: ' . $e->getMessage());
+            return response()->json(['error' => 'Đã xảy ra lỗi khi đăng ký người ở cùng'], 500);
         }
     }
 

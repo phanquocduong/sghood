@@ -67,8 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/sign', 'sign');
         Route::get('/{id}/download-pdf', 'downloadPdf');
         Route::post('/{id}/early-termination', 'earlyTermination');
-        Route::get('/{id}/tenants', [ContractTenantController::class, 'index']);
-        Route::post('/{id}/tenants/{tenantId}/cancel', [ContractTenantController::class, 'cancel']);
+
+        Route::get('{contractId}/tenants', [ContractTenantController::class, 'index']);
+        Route::post('{contractId}/tenants', [ContractTenantController::class, 'store']);
+        Route::post('{contractId}/tenants/{tenantId}/cancel', [ContractTenantController::class, 'cancel']);
     });
 
     Route::post('/contracts/{id}/extend', [ContractExtensionController::class, 'extend']);
