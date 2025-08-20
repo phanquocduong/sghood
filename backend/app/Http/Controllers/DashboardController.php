@@ -45,7 +45,8 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         $result = $this->noteService->getAllNotes();
-        $schedules = $this->scheduleService->getSchedules('', '', 5, 'created_at_desc');
+        $schedules = $this->scheduleService->getSchedulesDashboard();
+        $schedulesConfirmed = $this->scheduleService->getSchedulesConfirmed();
         $contracts = $this->contractService->getContractsEndingSoon();
         $justSignedContracts = $this->contractService->signedContracts();
         $contractExtensions = $this->contractExtensionsService->getPendingApprovals();
@@ -64,6 +65,7 @@ class DashboardController extends Controller
 
         $notes = $result['data']->take(3);
         $schedules = $schedules['data']->take(3);
+        $schedulesConfirmed = $schedulesConfirmed['data']->take(3);
         $contracts = collect($contracts['data'])->take(3);
         $justSignedContracts = collect($justSignedContracts['data'])->take(3);
         $contractExtensions = collect($contractExtensions)->take(3);
@@ -101,6 +103,6 @@ class DashboardController extends Controller
         }
 
         $messages = $messages['data'];
-        return view('dashboard', compact('notes', 'repairRequests', 'schedules', 'contracts', 'justSignedContracts', 'contractExtensions', 'messages', 'checkouts', 'roomsUnderRepair', 'types', 'isCustomType'));
+        return view('dashboard', compact('notes', 'repairRequests', 'schedules', 'contracts', 'justSignedContracts', 'contractExtensions', 'messages', 'checkouts', 'roomsUnderRepair', 'types', 'isCustomType', 'schedulesConfirmed'));
     }
 }

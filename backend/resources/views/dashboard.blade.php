@@ -396,10 +396,10 @@
                         <div class="col-md-12">
                             <div class="card h-100">
                                 <div class="card-header bg-white py-3"
-                                    style="background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);">
+                                    style="background: linear-gradient(135deg, #d660fa 0%, #f6fa2d 100%);">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0 fw-semibold text-white">
-                                            <i class="fas fa-sign-out-alt text-danger me-2"></i>
+                                            <i class="fas fa-wrench text-white me-2"></i>
                                             Phòng đang sửa chữa
                                         </h6>
                                     </div>
@@ -504,7 +504,7 @@
                             style="background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);">
                             <h6 class="mb-0 fw-semibold text-white">
                                 <i class="fas fa-sign-in-alt text-success me-2"></i>
-                                Lịch xem trọ sắp tới
+                                Lịch xem phòng chờ xác nhận
                             </h6>
                         </div>
                         <div class="card-body p-0">
@@ -521,13 +521,69 @@
                                             </div>
                                             <div>
                                                 <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
-                                                    {{ $schedule->user->name ?? 'Không xác định' }}</div>
+                                                    <div class="mb-1 d-block text-truncate">
+                                                        {{ Str::limit($schedule->user->name, 10, '...') ?? 'Không xác định' }}
+                                                    </div>
+                                                </div>
                                                 <small class="text-muted">
                                                     {{ $schedule->scheduled_at ? $schedule->scheduled_at->format('d/m/Y') : 'Không xác định' }}
                                                     -
                                                     <span
-                                                        class="text-primary">{{ $schedule->motel->name ?? 'Không xác định' }}</span>
+                                                        class="text-primary">{{ Str::limit($schedule->motel->name, 10, '...') ?? 'Không xác định' }}</span>
                                                 </small>
+                                                <button class="btn btn-sm btn-outline-success confirm-schedule-btn"
+                                                    data-schedule-id="{{ $schedule->id }}">
+                                                    <i class="fas fa-check me-2"></i>Xác nhận
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item text-center text-muted py-4">
+                                        <i class="fas fa-info-circle me-2"></i>Không có lịch check-in sắp tới.
+                                    </li>
+                                @endforelse
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-white py-3"
+                            style="background: linear-gradient(135deg, #594fc8 0%, #16a34a 100%);">
+                            <h6 class="mb-0 fw-semibold text-white">
+                                <i class="fas fa-sign-in-alt text-white me-2"></i>
+                                Lịch xem phòng đã xác nhận
+                            </h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @forelse($schedulesConfirmed as $schedule)
+                                    <li class="list-group-item py-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                                    style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-calendar-plus text-success text-white"
+                                                        style="font-size: 12px;"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold mb-0 text-dark" style="font-size: 14px;">
+                                                    <div class="mb-1 d-block text-truncate">
+                                                        {{ Str::limit($schedule->user->name, 10, '...') ?? 'Không xác định' }}
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    {{ $schedule->scheduled_at ? $schedule->scheduled_at->format('d/m/Y') : 'Không xác định' }}
+                                                    -
+                                                    <span
+                                                        class="text-primary">{{ Str::limit($schedule->motel->name, 10, '...') ?? 'Không xác định' }}</span>
+                                                </small>
+                                                <button class="btn btn-sm btn-outline-success complete-schedule-btn"
+                                                    data-schedule-id="{{ $schedule->id }}">
+                                                    <i class="fas fa-check me-2"></i>Hoàn thành
+                                                </button>
                                             </div>
                                         </div>
                                     </li>
@@ -757,6 +813,112 @@
                 customOption.value = input.value;
                 select.value = input.value;
             }
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                document.querySelectorAll('.confirm-schedule-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const scheduleId = this.dataset.scheduleId;
+                        if (!scheduleId) return;
+                        if (!confirm('Bạn có chắc muốn xác nhận lịch xem trọ này?')) return;
+
+                        this.setAttribute('disabled', 'disabled');
+                        this.innerHTML =
+                            '<span class="spinner-border spinner-border-sm"></span> Đang xử lý';
+
+                        try {
+                            const res = await fetch(`/schedules/${scheduleId}/confirm`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    status: "Đã xác nhận"
+                                })
+                            });
+                            const data = await res.json();
+                            if (!res.ok || !data.status) {
+                                alert(data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+                                this.removeAttribute('disabled');
+                                this.innerHTML = '<i class="fas fa-check me-2"></i>Xác nhận';
+                                return;
+                            }
+                            // Sau khi xác nhận thành công, reload lại trang
+                            location.reload();
+                            // Cập nhật giao diện
+                            const item = document.getElementById('schedule-item-' + scheduleId);
+                            if (item) {
+                                // Thêm hiệu ứng mờ dần rồi xóa
+                                item.style.transition = 'opacity 0.25s ease';
+                                item.style.opacity = 0;
+                                setTimeout(() => item.remove(), 260);
+                            }
+                            alert(data.message || 'Đã xác nhận thành công.');
+                        } catch (err) {
+                            alert('Lỗi mạng hoặc server. Vui lòng thử lại sau.');
+                            this.removeAttribute('disabled');
+                            this.innerHTML = '<i class="fas fa-check me-2"></i>Xác nhận';
+                        }
+                    });
+                });
+            });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                document.querySelectorAll('.complete-schedule-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const scheduleId = this.dataset.scheduleId;
+                        if (!scheduleId) return;
+                        if (!confirm('Bạn có chắc muốn hoàn thành lịch xem trọ này?')) return;
+
+                        this.setAttribute('disabled', 'disabled');
+                        this.innerHTML =
+                            '<span class="spinner-border spinner-border-sm"></span> Đang xử lý';
+
+                        try {
+                            const res = await fetch(`/schedules/${scheduleId}/complete`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    status: "Hoàn thành"
+                                })
+                            });
+                            const data = await res.json();
+                            if (!res.ok || !data.status) {
+                                alert(data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+                                this.removeAttribute('disabled');
+                                this.innerHTML = '<i class="fas fa-check me-2"></i>Hoàn thành';
+                                return;
+                            }
+                            // Sau khi xác nhận thành công, reload lại trang
+                            location.reload();
+                            // Cập nhật giao diện
+                            const item = document.getElementById('schedule-item-' + scheduleId);
+                            if (item) {
+                                // Thêm hiệu ứng mờ dần rồi xóa
+                                item.style.transition = 'opacity 0.25s ease';
+                                item.style.opacity = 0;
+                                setTimeout(() => item.remove(), 260);
+                            }
+                            alert(data.message || 'Đã hoàn thành thành công.');
+                        } catch (err) {
+                            alert('Lỗi mạng hoặc server. Vui lòng thử lại sau.');
+                            this.removeAttribute('disabled');
+                            this.innerHTML = '<i class="fas fa-check me-2"></i>Hoàn thành';
+                        }
+                    });
+                });
+            });
         </script>
     @endsection
     @section('styles')
