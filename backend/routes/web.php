@@ -158,6 +158,8 @@ Route::middleware('admin')->group(function () {
     Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
         Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
+        Route::put('/{id}/confirm', [ScheduleController::class, 'confirm'])->name('schedules.confirm');
+        Route::put('/{id}/complete', [ScheduleController::class, 'complete'])->name('schedules.complete');
     });
 
     // Contract routes group

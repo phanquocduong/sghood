@@ -48,6 +48,35 @@ class ScheduleService
         }
     }
 
+    public function getSchedulesDashboard(): array
+    {
+        try {
+            $schedules = Schedule::with(['user', 'motel'])
+                ->where('status', 'Chờ xác nhận')
+                ->limit(3)
+                ->get();
+
+            return ['data' => $schedules];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách lịch xem phòng' . $e->getMessage(), 'status' => 500];
+        }
+    }
+    public function getSchedulesConfirmed(): array
+    {
+        try {
+            $schedules = Schedule::with(['user', 'motel'])
+                ->where('status', 'Đã xác nhận')
+                ->limit(3)
+                ->get();
+
+            return ['data' => $schedules];
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return ['error' => 'Đã xảy ra lỗi khi lấy danh sách lịch xem phòng' . $e->getMessage(), 'status' => 500];
+        }
+    }
+
     public function getSchedule($id)
     {
         try {

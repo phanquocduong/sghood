@@ -44,7 +44,10 @@ class CommentController extends Controller
             ->latest()
             ->paginate(10);
 
-        $data = $comments->getCollection()->map(fn($comment) => $this->formatComment($comment));
+        $data = $comments->getCollection()
+            ->map(fn($comment) => $this->formatComment($comment))
+            ->values(); // đảm bảo trả về array tuần tự
+
 
         return response()->json([
             'success' => true,
