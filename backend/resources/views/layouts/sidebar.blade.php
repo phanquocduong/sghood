@@ -21,6 +21,15 @@
             <a href="{{ route('statistics') }}" class="nav-item nav-link {{ request()->is('/') || request()->is('statistics') ? 'active' : '' }}"><i class="fa fa-chart-line me-2"></i>Thống kê</a>
             <a href="{{ route('notifications.index') }}" class="nav-item nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
 
+            <!-- Quản lý nhà trọ -->
+            <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-building me-2"></i>Nhà trọ</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
+                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
+                    <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}">Nhà trọ</a>
+                    <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Tiện ích</a>
+                </div>
+            </div>
 
             <!-- Quản lý đặt phòng -->
             <div class="nav-item dropdown {{ request()->routeIs('schedules.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
@@ -51,8 +60,6 @@
                 </div>
             </div>
 
-            {{-- Quản lý nhà trọ --}}
-            <a href="{{ route('motels.index') }}" class="nav-item nav-link {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}"><i class="fa fa-building me-2"></i>Nhà trọ</a>
 
             <!-- Quản lý hệ thống -->
             <a href="{{ route('checkouts.index') }}" class="nav-item nav-link {{ request()->routeIs('checkouts.*') || request()->routeIs('checkouts.*') ? 'active' : '' }}"><i class="fa-solid fa-handshake-slash"></i>Trả phòng</a>
@@ -60,15 +67,6 @@
             <!-- Quản lý vận hành -->
             <a href="{{ route('repair_requests.index') }}" class="nav-item nav-link {{ request()->routeIs('repair_requests.*') ? 'active' : '' }}"><i class="fa fa-tools me-2"></i>Bảo trì</a>
 
-            <!-- Quản lý hệ thống -->
-            <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-cogs me-2"></i>Hệ thống</a>
-                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
-                    <a href="{{ route('configs.index') }}" class="dropdown-item {{ request()->routeIs('configs.*') ? 'active' : '' }}">Cấu hình</a>
-                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
-                   <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Tiện ích</a>
-                </div>
-            </div>
 
             <!-- Quản lý người dùng -->
             <a href="{{ route('users.user') }}" class="nav-item nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"><i class="fa fa-users me-2"></i>Người dùng</a>
@@ -81,6 +79,8 @@
             {{-- <!-- Quản lý bình luận -->
             <a href="{{ route('comments.index') }}" class="nav-item nav-link {{ request()->routeIs('comments.*') ? 'active' : '' }}"><i class="fa fa-comments me-2"></i>Bình luận</a> --}}
 
+            {{-- Quản lý cấu hình --}}
+            <a href="{{ route('configs.index') }}" class="nav-item nav-link {{ request()->routeIs('configs.*') || request()->routeIs('configs.*') ? 'active' : '' }}"><i class="fa-solid fa-cogs"></i>Cấu hình</a>
         </div>
     </nav>
 </div>
