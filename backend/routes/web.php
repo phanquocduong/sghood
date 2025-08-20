@@ -53,8 +53,10 @@ Route::middleware('admin')->group(function () {
     Route::prefix('notes')->name('notes.')->group(function () {
         Route::get('/', [NoteController::class, 'index'])->name('index');
         Route::post('/', [NoteController::class, 'store'])->name('store');
+        Route::post('/', [NoteController::class, 'storeDashboard'])->name('storeDashboard');
         Route::delete('/{id}', [NoteController::class, 'destroy'])->name('destroy');
         Route::get('/users', [NoteController::class, 'getUsersWithNotes'])->name('users');
+
     });
 
     // Motel Routes Group
@@ -248,6 +250,7 @@ Route::middleware('admin')->group(function () {
     Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
     Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
     Route::put('repair-requests/{id}/note', [RepairRequestController::class, 'updateNote'])->name('repair_requests.updateNote');
+    Route::put('/repair-requests/{id}/update-status-detail', [RepairRequestController::class, 'updateStatusDetail'])->name('repair_requests.updateStatusDetail');
 });
 
 // File tải file PDF hợp đồng

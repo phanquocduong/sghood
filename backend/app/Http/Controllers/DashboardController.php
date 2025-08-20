@@ -14,6 +14,7 @@ use App\Services\RoomService;
 use App\Services\RepairRequestService;
 use App\Services\ScheduleService;
 use App\Services\MessageService;
+use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -50,6 +51,13 @@ class DashboardController extends Controller
         $contractExtensions = $this->contractExtensionsService->getPendingApprovals();
         $checkouts = $this->checkoutService->getCheckoutsByStatus();
 
+        // Lấy danh sách loại ghi chú (distinct)
+        $types = Note::query()
+            ->whereNotNull('type')
+            ->distinct()
+            ->orderBy('type')
+            ->pluck('type'); // trả về Collection các string
+        $isCustomType = old('type') && !$types->contains(old('type'));
         if (isset($result['error'])) {
             return redirect()->route('dashboard')->with('error', $result['error']);
         }
@@ -93,6 +101,6 @@ class DashboardController extends Controller
         }
 
         $messages = $messages['data'];
-        return view('dashboard', compact('notes', 'repairRequests', 'schedules', 'contracts', 'justSignedContracts', 'contractExtensions', 'messages', 'checkouts', 'roomsUnderRepair'));
+        return view('dashboard', compact('notes', 'repairRequests', 'schedules', 'contracts', 'justSignedContracts', 'contractExtensions', 'messages', 'checkouts', 'roomsUnderRepair', 'types', 'isCustomType'));
     }
 }

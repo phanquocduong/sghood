@@ -305,9 +305,9 @@ class ContractService
 
             $daysLeft = $today->diffInDays($endDate, false);
 
-            if ($daysLeft > 7) {
+            if ($daysLeft > 30) {
                 $currentTenants[] = $tenant;
-            } elseif ($daysLeft >= 0 && $daysLeft <= 7) {
+            } elseif ($daysLeft >= 0 && $daysLeft <= 30) {
                 $expiringTenants[] = $tenant;
             }
         }
