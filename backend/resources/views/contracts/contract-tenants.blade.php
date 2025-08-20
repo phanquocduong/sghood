@@ -64,7 +64,10 @@
                         <div class="col-md-3">
                             <select class="form-select shadow-sm rounded-3" name="room_id">
                                 <option value="">Tất cả phòng</option>
-                                @foreach ($rooms as $room)
+                                @php
+                                    $roomsFromTenants = $contractTenants->pluck('contract.room')->unique('id')->sortBy('name');
+                                @endphp
+                                @foreach ($roomsFromTenants as $room)
                                     <option value="{{ $room->id }}" {{ $room_id == $room->id ? 'selected' : '' }}>{{ $room->name }}</option>
                                 @endforeach
                             </select>
