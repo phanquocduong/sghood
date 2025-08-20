@@ -372,14 +372,16 @@
                                                     <i class="fas fa-play-circle me-2"></i>Tái kích hoạt
                                                 </button>
                                             </form>
-                                            <form action="{{ route('contracts.deleteIdentity', $contract->id) }}" method="POST"
-                                                onsubmit="return confirmDeleteIdentity()" class="d-inline status-btn">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger shadow-sm px-4 py-2">
-                                                    <i class="fas fa-trash-alt me-2"></i>Xóa toàn bộ thông tin
-                                                </button>
-                                            </form>
+                                            @if($contract->user && $contract->user->identity_document)
+                                                <form action="{{ route('contracts.deleteIdentity', $contract->id) }}" method="POST"
+                                                    onsubmit="return confirmDeleteIdentity()" class="d-inline status-btn">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger shadow-sm px-4 py-2">
+                                                        <i class="fas fa-trash-alt me-2"></i>Xóa toàn bộ thông tin
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                     <!-- Nút Hủy bỏ và Xác nhận (ẩn mặc định) -->
@@ -491,7 +493,7 @@
 
                         @if($contract->invoices->count() > 5)
                             <div class="text-center mt-3">
-                                <a href="{{ url('invoices?search=HD' . $contract->id) }}"
+                                <a href="{{ url('invoices?search=' . $contract->user->name) }}"
                                    target="_blank"
                                    class="btn btn-primary shadow-sm">
                                     <i class="fas fa-list me-2"></i>Xem tất cả {{ $contract->invoices->count() }} hóa đơn

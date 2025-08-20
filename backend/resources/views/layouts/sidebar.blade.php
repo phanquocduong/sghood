@@ -22,13 +22,22 @@
             <a href="{{ route('notifications.index') }}" class="nav-item nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}"><i class="fa fa-bell me-2"></i>Thông báo</a>
 
 
-            <!-- Quản lý đặt phòng & hợp đồng -->
-            <div class="nav-item dropdown {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt & Hợp đồng</a>
-                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('schedules.*') || request()->routeIs('contracts.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
+            <!-- Quản lý đặt phòng -->
+            <div class="nav-item dropdown {{ request()->routeIs('schedules.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('schedules.*') || request()->routeIs('bookings.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-calendar-check me-2"></i>Đặt phòng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('schedules.*') || request()->routeIs('bookings.*') ? 'show' : '' }}">
                     <a href="{{ route('schedules.index') }}" class="dropdown-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">Lịch xem phòng</a>
                     <a href="{{ route('bookings.index') }}" class="dropdown-item {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Đặt phòng</a>
-                    <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.*') ? 'active' : '' }}">Hợp đồng</a>
+                </div>
+            </div>
+
+            {{-- Quản lý hợp đồng --}}
+            <div class="nav-item dropdown {{ request()->routeIs('contracts.*') || request()->routeIs('contract-tenants.*') ? 'show' : '' }}">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('contracts.*') || request()->routeIs('contract-tenants.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-file-contract me-2"></i>Hợp đồng</a>
+                <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('contracts.*') || request()->routeIs('contract-tenants.*') ? 'show' : '' }}">
+                    <a href="{{ route('contracts.index') }}" class="dropdown-item {{ request()->routeIs('contracts.index') ? 'active' : '' }}">Danh sách hợp đồng</a>
+                    <a href="{{ route('contracts.contract-extensions') }}" class="dropdown-item {{ request()->routeIs('contracts.contract-extensions') ? 'active' : '' }}">Hợp đồng gia hạn</a>
+                    <a href="{{ route('contract-tenants.index') }}" class="dropdown-item {{ request()->routeIs('contract-tenants.*') ? 'active' : '' }}">Hợp đồng khách thuê</a>
                 </div>
             </div>
 

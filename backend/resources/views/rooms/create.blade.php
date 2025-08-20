@@ -52,6 +52,13 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="col-12">
+                        <label for="max_occupants" class="form-label fw-bold text-primary">Số người ở <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control shadow-sm @error('max_occupants') is-invalid @enderror" id="max_occupants" name="max_occupants" value="{{ old('max_occupants') }}" min="1" required>
+                        @error('max_occupants')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-md-6">
                         <label for="status" class="form-label fw-bold text-primary">Trạng thái <span class="text-danger">*</span></label>
                         <select class="form-select shadow-sm @error('status') is-invalid @enderror" id="status" name="status" required>

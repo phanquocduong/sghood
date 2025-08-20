@@ -27,12 +27,6 @@
                         <i class="fas fa-file-contract me-2"></i>Quản lý hợp đồng
                         <span class="badge bg-light text-primary ms-2">{{ $contracts->total() ?? 0 }} hợp đồng</span>
                     </h5>
-                    <a href="{{ route('contracts.contract-extensions') }}"
-                        class="btn btn-primary me-0 shadow-sm w-auto px-2 px-sm-4 d-flex align-items-center justify-content-center"
-                        style="transition: all 0.3s;" title="Xem danh sách hợp đồng gia hạn">
-                        <i class="fas fa-history me-1"></i>
-                        <span class="d-none d-sm-inline">Danh sách hợp đồng gia hạn</span>
-                    </a>
                 </div>
             </div>
 
