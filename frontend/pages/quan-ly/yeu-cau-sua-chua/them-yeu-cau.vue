@@ -35,7 +35,7 @@
                 <!-- Submit -->
                 <button
                     type="submit"
-                    class="submit button"
+                    class="submit button margin-top-10"
                     id="submit"
                     value="Gửi tin nhắn"
                     :disabled="isLoading"

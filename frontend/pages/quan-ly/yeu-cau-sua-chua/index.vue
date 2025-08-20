@@ -1,118 +1,84 @@
 <template>
-    <div>
-        <Titlebar title="Yêu cầu sửa chữa" />
+    <Titlebar title="Yêu cầu sửa chữa" />
 
-        <Loading :is-loading="loading" />
-
-        <div v-if="loading" class="text-center p-5">
-            <p>Đang tải yêu cầu...</p>
-        </div>
-
-        <div v-else class="row">
-            <div class="col-lg-12 col-md-12">
-                <div class="dashboard-list-box margin-top-0">
-                    <div class=" box-title-bar-req">
-                        <h3>Danh sách yêu cầu sửa chữa</h3>
-                        <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="add-button">
-                            <i class="im im-icon-Add mr-2"></i> Yêu cầu sửa chữa
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="dashboard-list-box margin-top-0">
+                <h4>
+                    <div style="display: flex; align-items: center; justify-content: space-between">
+                        Danh sách yêu cầu sửa chữa
+                        <NuxtLink to="/quan-ly/yeu-cau-sua-chua/them-yeu-cau" class="button border with-icon">
+                            Yêu cầu sửa chữa <i class="sl sl-icon-plus"></i>
                         </NuxtLink>
                     </div>
+                </h4>
 
-                    <div v-if="repairRequests.length === 0" class="box-title-bar-tb">
+                <Loading :is-loading="loading" />
+
+                <ul>
+                    <li v-for="(req, index) in repairRequests" :key="req.id" :class="getItemClass(req.status)">
+                        <div class="list-box-listing bookings">
+                            <div class="list-box-listing-img">
+                                <div v-if="req.images?.length" style="height: 150px">
+                                    <img :src="`${baseUrl}${req.images[0]}`" alt="Hình ảnh sự cố" @click="openImageSlider(index)" />
+                                </div>
+                            </div>
+                            <div class="list-box-listing-content">
+                                <div class="inner">
+                                    <h3>
+                                        {{ req.title }}
+                                        <span :class="getStatusClass(req.status)">{{ req.status }}</span>
+                                    </h3>
+                                    <div class="inner-booking-list">
+                                        <h5>Mô tả sự cố:</h5>
+                                        <ul class="booking-list">
+                                            <li class="highlighted">{{ req.description }}</li>
+                                        </ul>
+                                    </div>
+                                    <div v-if="req.note" class="inner-booking-list">
+                                        <h5>Ghi chú:</h5>
+                                        <ul class="booking-list">
+                                            <li>{{ req.note }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buttons-to-right">
+                            <button
+                                v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
+                                class="button gray reject"
+                                :class="{ 'loading-btn': isLoading === req.id }"
+                                @click="removeRequest(req.id)"
+                                :disabled="isLoading === req.id"
+                            >
+                                <span v-if="isLoading === req.id" class="spinner"></span>
+                                <i v-else class="sl sl-icon-close"></i>
+                                {{ isLoading === req.id ? 'Đang hủy...' : 'Hủy yêu cầu' }}
+                            </button>
+                        </div>
+                    </li>
+                    <div v-if="!repairRequests.length" class="col-md-12 text-center">
                         <p>Chưa có yêu cầu nào.</p>
                     </div>
-
-                    <div v-for="(req, index) in repairRequests" :key="req.id" class="repair-item">
-                        <!-- Ảnh bên trái -->
-                        <div class="repair-image-wrapper" v-if="req.images?.length">
-                            <img
-                                :src="`${baseUrl}${req.images[0]}`"
-                                alt="Hình ảnh sự cố"
-                                class="repair-image"
-                                @click="openImageSlider(index)"
-                            />
-                        </div>
-
-                        <!-- Nội dung bên phải -->
-                       <!-- Thay đoạn này trong phần v-for mỗi req -->
-<div class="repair-content">
-    <!-- Header: Tiêu đề và trạng thái -->
-    <div class="repair-header">
-        <div class="repair-title">
-            <h5>
-                <i class="fas fa-tools icon-repair"></i>
-                {{ req.title }}
-            </h5>
-            <span
-                class="status-tag"
-                :class="{
-                    pending: req.status === 'Chờ xác nhận',
-                    inprogress: req.status === 'Đang thực hiện',
-                    done: req.status === 'Hoàn thành',
-                    canceled: req.status === 'Huỷ bỏ'
-                }"
-            >
-                {{ req.status }}
-            </span>
-        </div>
-
-        <!-- Trạng thái + nút hủy chỉ hiển thị trên desktop -->
-        <div class="repair-actions action-desktop">
-            <button
-                class="button gray approve popup-with-zoom-anim delete-btn  "
-                :class="{ 'btn-cancelled-style': isLoading === req.id }"
-                v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-                @click="removeRequest(req.id)"
-                :disabled="isLoading === req.id"
-            >
-                <span v-if="isLoading === req.id" class="spinner"></span>
-                {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy yêu cầu' }}
-            </button>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <!-- Mô tả -->
-    <p class="description">{{ req.description }}</p>
-
-    <!-- Lý do hủy -->
-    <div v-if="req.status === 'Đã hủy' && req.cancellation_reason" class="cancel-box">
-        <strong>Lý do hủy:</strong> {{ req.cancellation_reason }}
-    </div>
-
-    <!-- Nút hủy riêng cho mobile -->
-    <div class="repair-actions action-mobile">
-        <button
-            class="delete-btn"
-            :class="{ 'btn-cancelled-style': isLoading === req.id }"
-            v-if="req && req.id && ['Chờ xác nhận'].includes(req.status)"
-            @click="removeRequest(req.id)"
-            :disabled="isLoading === req.id"
-        >
-            <span v-if="isLoading === req.id" class="spinner"></span>
-            {{ isLoading === req.id ? ' Đang hủy...' : 'Hủy' }}
-        </button>
-    </div>
-</div>
-
-                    </div>
+    <!-- Modal xem ảnh -->
+    <div v-if="showSlider" class="modal-overlay" @click.self="closeSlider">
+        <div class="modal-content">
+            <Transition :name="transitionName" mode="out-in">
+                <div class="slider-wrapper" :key="selectedImages[currentIndex]">
+                    <img :src="selectedImages[currentIndex]" class="slider-image" />
                 </div>
-            </div>
-        </div>
+            </Transition>
+            <!-- Nút điều hướng dạng overlay nằm ngoài khung -->
+            <button class="mfp-arrow mfp-arrow-left mfp-prevent-close" title="Previous" @click.stop="prevImage"></button>
+            <button class="mfp-arrow mfp-arrow-right mfp-prevent-close" title="Next" @click.stop="nextImage"></button>
 
-        <!-- Modal xem ảnh -->
-        <div v-if="showSlider" class="modal-overlay" @click.self="closeSlider">
-            <div class="modal-content">
-                <Transition :name="transitionName" mode="out-in">
-                    <div class="slider-wrapper" :key="selectedImages[currentIndex]">
-                        <img :src="selectedImages[currentIndex]" class="slider-image" />
-                    </div>
-                </Transition>
-                <!-- Nút điều hướng dạng overlay nằm ngoài khung -->
-                <button class="mfp-arrow mfp-arrow-left mfp-prevent-close" title="Previous" @click.stop="prevImage"></button>
-                <button class="mfp-arrow mfp-arrow-right mfp-prevent-close" title="Next" @click.stop="nextImage"></button>
-
-                <button class="modal-close" @click="closeSlider">×</button>
-            </div>
+            <button class="modal-close" @click="closeSlider">×</button>
         </div>
     </div>
 </template>
@@ -130,6 +96,31 @@ const isLoading = ref(null);
 const { $api } = useNuxtApp();
 const repairRequests = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
+
+const getItemClass = status => {
+    switch (status) {
+        case 'Chờ xác nhận':
+            return 'pending-booking';
+        case 'Đang thực hiện':
+            return 'approved-booking';
+        case 'Hoàn thành':
+            return 'approved-booking';
+        case 'Huỷ bỏ':
+        case 'Đã hủy':
+            return 'canceled-booking';
+        default:
+            return '';
+    }
+};
+
+const getStatusClass = status => {
+    let statusClass = 'booking-status';
+    if (status === 'Chờ xác nhận') {
+        statusClass += ' pending';
+    }
+    return statusClass;
+};
+
 const openImageSlider = reqIndex => {
     selectedImages.value = (repairRequests.value[reqIndex].images || []).map(img => `${baseUrl}${img}`);
     currentIndex.value = 0;
@@ -161,13 +152,14 @@ const FetchRepair = async () => {
             }
         });
         repairRequests.value = res.data || [];
-    console.log('id repair:', res);
+        console.log('id repair:', res);
     } catch (e) {
         console.log('sai o dau roi ban oi', e);
     } finally {
         loading.value = false;
     }
 };
+
 const removeRequest = async id => {
     if (!id) {
         console.warn('Không có ID để huỷ');
@@ -175,7 +167,7 @@ const removeRequest = async id => {
     }
     isLoading.value = id;
     try {
-        const res = await $api(`/repair-requests/${id}/cancel `, {
+        const res = await $api(`/repair-requests/${id}/cancel`, {
             method: 'PATCH',
             headers: {
                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
@@ -183,19 +175,25 @@ const removeRequest = async id => {
             }
         });
         await FetchRepair();
-        
     } catch (e) {
         console.log('sai o dau roi ban oi', e);
     } finally {
         isLoading.value = null;
     }
 };
+
 onMounted(() => {
     FetchRepair();
 });
 </script>
 
 <style scoped>
+.bookings .list-box-listing-img {
+    max-width: 150px;
+    max-height: none;
+    border-radius: 4px;
+}
+
 .spinner {
     display: inline-block;
     width: 16px;
@@ -214,47 +212,9 @@ onMounted(() => {
     }
 }
 
-.button:disabled {
+.loading-btn {
     opacity: 0.6;
     cursor: not-allowed;
-}
-.repair-item {
-    display: flex;
-    align-items: flex-start;
-    border-bottom: 1px solid #eee;
-    padding: 20px 10px 10px 10px;
-    position: relative;
-    background: #fff;
-    
-    border-top: 1px solid #eee;
-}
-
-.repair-image-wrapper {
-    flex-shrink: 0;
-    margin-right: 0px;
-    margin-left: 21px;
-}
-
-.repair-image {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 6px;
-    cursor: pointer;
-
-}
-
-.repair-content {
-    display: block;
-    flex: 1;
-    padding: 5px 10px;
-}
-
-.repair-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
 }
 
 .icon-repair {
@@ -262,143 +222,18 @@ onMounted(() => {
     margin-right: 8px;
 }
 
-.description {
-    margin-top: 0px;
-    color: #909090;
-}
-
-.status-tag {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    text-align: center;
-    min-width: 100px;
-}
-
-.pending {
-    background-color: #ebb40e;
-      color: white;
-    font-weight: 18px;
-    font-size: 14px;
-    border-radius: 50px;
-    line-height: 20px;
-    font-weight: 600;
-    color: #ffffff;
-    font-style: normal;
-    padding: 2px 8px;
-    margin-left: 3px;
-    position: relative;
-    top: -2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.inprogress {
-    background-color: #127daf;
-    color: white;
-    font-weight: 18px;
-    font-size: 14px;
-    border-radius: 50px;
-    line-height: 20px;
-    font-weight: 600;
-    color: #ffffff;
-    font-style: normal;
-    padding: 2px 8px;
-    margin-left: 3px;
-    position: relative;
-    top: -2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.done {
-    background-color: #4caf50;
-    color: white;
-    font-weight: 18px;
-    font-size: 14px;
-    border-radius: 50px;
-    line-height: 20px;
-    font-weight: 600;
-    color: #ffffff;
-    font-style: normal;
-    padding: 2px 8px;
-    margin-left: 3px;
-    position: relative;
-    top: -2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-
-}
-
-.canceled {
-    background-color: #ee3535;
-       color: white;
-    font-weight: 18px;
-    font-size: 14px;
-    border-radius: 50px;
-    line-height: 20px;
-    font-weight: 600;
-    color: #ffffff;
-    font-style: normal;
-    padding: 2px 8px;
-    margin-left: 3px;
-    position: relative;
-    top: -2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-.btn-cancelled-style {
-    border: 2px solid #ee3535 !important;
-    background-color: white !important;
-    color: #ee3535 !important;
-    font-weight: bold;
-}
-.cancel-box {
-    margin-top: 5px;
-    padding: 10px;
-    background: #ffebee;
-    border-left: 4px solid #ee3535;
-    color: #ee3535;
-}
-
-.repair-title {
-    flex: 1;
-    display: flex;
-    align-items: center;
-}
-
-.repair-title {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-}
-.repair-title h5 {
-    font-size: 20px;
-    font-weight: bold;
-    margin-left: 7px;
-    display: flex;
-    align-items: center;
-    word-break: break-word;
-    color: #222222;
-    font-weight: 200;
-}
-
-.delete-btn {
-   background: transparent;
-    color: white;
-    border-radius: 4px;
-    border: 1px solid #ee3535;
+.repair-image-wrapper {
+    width: 90px;
+    height: 90px;
+    overflow: hidden;
+    border-radius: 6px;
     cursor: pointer;
-    margin-left: auto;
-    background-color: #ee3535;
-    padding: 6px 15px;
-    line-height: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 0;
 }
-.box-title-bar-tb {
-    font-size: larger;
-    padding: 10px;
-    text-align: center;
+
+.repair-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Modal xem ảnh */
@@ -424,30 +259,10 @@ onMounted(() => {
 }
 
 .slider-image {
-    width: 500px; /* 👈 Tuỳ chỉnh kích thước mong muốn */
+    width: 500px;
     height: 500px;
-    object-fit: contain; /* hoặc cover nếu bạn muốn ảnh full khung */
+    object-fit: contain;
     border-radius: 6px;
-}
-
-.slider-controls {
-    display: flex;
-    justify-content: space-between;
-    background-color: #e8e7e7;
-}
-
-.slider-controls button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 6px;
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .modal-close {
@@ -471,23 +286,16 @@ onMounted(() => {
 .modal-close:hover {
     color: rgb(213, 13, 13);
 }
-h5 {
-    font-size: 18px;
-    transform: translate(-15px);
-    font-weight: bold;
-    bottom: 5px;
-    top: 5px;
-}
+
 .slide-left-enter-active,
 .slide-right-enter-active {
-    transition: all 0.4s ease;
+    transition: all 0.1s ease;
     width: 100%;
 }
 
 .slide-left-leave-active,
 .slide-right-leave-active {
     transition: all 0.1s ease;
-
     width: 100%;
 }
 
@@ -508,15 +316,17 @@ h5 {
     transform: translateX(100%);
     opacity: 0;
 }
+
 .slider-wrapper {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 400px; /* Hoặc max-height phù hợp */
+    height: 400px;
     overflow: hidden;
     position: relative;
 }
+
 /* Nút trái & phải overlay */
 .mfp-arrow {
     position: absolute;
@@ -541,210 +351,36 @@ h5 {
 }
 
 .mfp-arrow-left {
-    left: -100px; /* nằm ngoài khung modal-content */
+    left: -100px;
 }
 
 .mfp-arrow-right {
     right: -100px;
 }
 
-/* Điều chỉnh nếu muốn nằm sát hình ảnh thay vì ngoài khung */
 .modal-content {
     position: relative;
     padding: 20px;
     max-width: 80%;
-    overflow: visible; /* Cho mũi tên vượt ra ngoài */
+    overflow: visible;
 }
 
-/* ----------- Desktop & Default Styles ----------- */
-.add-button {
-    background-color: #ee3535;
-    color: white;
-    border: 1px solid transparent; /* 👈 giữ chỗ cho border */
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-size: 16px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.add-button:hover {
-    background-color: white;
-    color: #ee3535;
-    border: 1px solid #ee3535;
-}
-
-
-.repair-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.box-title-bar-req {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 5px 20px;
-    position: relative;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-   background-color: #fff;
-}
-
-.box-title-bar::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-}
- .box-title-bar-req h3{
-    font-size: 16px;
-    flex-grow: 1;
-    font-weight: 600;
-    margin: 0;
-    padding: 0px 10px;
-    color: #333;
-    display: block;
-    border-radius: 4px 4px 0 0;
-}
-
-.status-tag {
-  order: 0;
-}
-
-.delete-btn {
-  order: 1;
-}
-/* ----------- Responsive Styles (Mobile < 480px) ----------- */
-@media only screen and (max-width: 480px) {
-    .box-title-bar-req {
-        display: flex;
-        flex-direction: column !important;
-        align-items: center !important;
-        width: 100% !important;
-        justify-content: center;
-    }
-
-    .box-title-bar-req h3 {
-        width: 100% !important;
-        text-align: center;
-        margin: auto;
-        padding: 5px 20px;
-        font-size: 18px;
-        font-weight: 500;
-
-    }
-    .mfp-arrow-left
-   {
-    left: -60px;
-   
-    }
-    .mfp-arrow-right{
-    right: -60px;
-    }
-    .add-button {
-        display: flex;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .repair-actions {
-        flex-direction: column;
-        order: 1; /* hiển thị trước */
-        align-items: stretch;
-        gap: 8px;
-        width: 100%;
-    }
-
-    .status-tag,
-    .delete-btn {
-        width: 100%;
-        text-align: center;
-    }
-
-    .repair-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-   .repair-title {
-    flex-direction: column !important; /* Hiển thị theo chiều dọc */
-    align-items: flex-start !important;
-}
-
-.repair-title  {
-    order: 1;
-    margin-bottom: 4px;
-    width: 100%; /* hoặc 100% nếu bạn muốn full width */
-}
-
-        .repair-title h5 {
-            order: 2;
-            margin: 0;
-            font-size: 18px;
-            font-weight:500;
-            transform: translateX(-7px); /* bỏ translate nếu cần */
-            width: 100%;
-                    padding: 7px 0px 0px 0px
-        }
-  .status-tag {
-    order: 0; /* vẫn trên cùng */
-  }
-  .repair-description {
-    order: 1;
-  }
-  .delete-btn {
-    order: 2; /* nằm dưới mô tả */
-    width: 100%;
-    max-width: 200px;
-    margin: 0 auto;
-    text-align: center;
-  }
-}
-/* Mặc định: hiển thị trên PC */
-.action-desktop {
-    display: block;
-}
-.action-mobile {
-    display: none;
-}
-
-.action-desktop .delete-btn {
-       padding: 5px 3px;
-    font-size: 13px;
-    height: auto;
-    min-width: 130px;
-    font-weight: bold;
-    border-radius: 6px;
-    border: none;
-}
-/* Trên mobile: đảo ngược */
+/* Responsive cho mobile */
 @media (max-width: 768px) {
-    .action-desktop {
-        display: none;
+    .mfp-arrow-left {
+        left: -60px;
     }
-    .action-mobile {
-        display: block;
-        margin-top: 10px;
+    .mfp-arrow-right {
+        right: -60px;
     }
 
-    .repair-content {
- 
-        flex-direction: column;
+    .slider-image {
+        width: 300px;
+        height: 300px;
+    }
+
+    .modal-content {
+        max-width: 90%;
     }
 }
-
-
 </style>
