@@ -92,7 +92,7 @@
                             </div>
                         </div>
 
-                        <Comments :key="commentsKey" />
+                        <Comments  />
                     </div>
                 </div>
 
