@@ -80,4 +80,25 @@ class RepairRequestController extends Controller
             ], 500);
         }
     }
+    public function updateStatusDetail($id)
+    {
+        $repair = RepairRequest::findOrFail($id);
+
+        switch ($repair->status) {
+            case 'Chờ xác nhận':
+                $repair->status = 'Đang thực hiện';
+                break;
+            case 'Đang thực hiện':
+                $repair->status = 'Hoàn thành';
+                $repair->repaired_at = now();
+                break;
+            default:
+                return redirect()->back()->with('error', 'Không thể cập nhật trạng thái.');
+        }
+
+        $repair->save();
+
+        return redirect()->route('repair_requests.show', $repair->id)
+            ->with('success', 'Cập nhật trạng thái thành công!');
+    }
 }

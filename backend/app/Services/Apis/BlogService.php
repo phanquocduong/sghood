@@ -42,6 +42,10 @@ class BlogService
             ->where('slug', $slug)
             ->first();
     }
+    public function getCommentsByBlogId($blogId)
+    {
+        return Blog::findOrFail($blogId)->comments;
+    }
 
     public function getRelatedPosts(int $id, int $limit = 5)
     {
