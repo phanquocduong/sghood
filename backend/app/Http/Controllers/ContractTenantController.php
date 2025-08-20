@@ -139,7 +139,7 @@ class ContractTenantController extends Controller
             }
 
             $imagePaths = explode('|', $tenant->identity_document);
-            $fullImagePath = 'images/identity_document/' . $imagePath . '.enc'; // Thêm .enc vì lưu trong DB có .enc
+            $fullImagePath = 'images/tenants/' . $imagePath . '.enc'; // Thêm .enc vì lưu trong DB có .enc
 
             if (!in_array($fullImagePath, $imagePaths)) {
                 Log::error('Invalid tenant image path', [
