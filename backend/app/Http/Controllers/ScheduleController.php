@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Schedule;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
@@ -59,5 +60,28 @@ class ScheduleController extends Controller
             return redirect()->back()->with('error', $result['error']);
         }
         return redirect()->back()->with('success', 'Trạng thái đã được cập nhật thành công!');
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $schedule = Schedule::findOrFail($id);
+        $schedule->status = 'Đã xác nhận';
+        $schedule->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Lịch xem trọ đã được xác nhận.'
+        ]);
+    }
+    public function complete(Request $request, $id)
+    {
+        $schedule = Schedule::findOrFail($id);
+        $schedule->status = 'Hoàn thành';
+        $schedule->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Lịch xem trọ đã được hoàn thành.'
+        ]);
     }
 }

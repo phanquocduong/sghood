@@ -24,6 +24,7 @@ use App\Http\Controllers\CKEditorController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContractExtensionController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContractTenantController;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -158,6 +159,8 @@ Route::middleware('admin')->group(function () {
     Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
         Route::match(['put', 'patch'], '/{id}', [ScheduleController::class, 'updateStatus'])->name('updateStatus');
+        Route::put('/{id}/confirm', [ScheduleController::class, 'confirm'])->name('schedules.confirm');
+        Route::put('/{id}/complete', [ScheduleController::class, 'complete'])->name('schedules.complete');
     });
 
     // Contract routes group
@@ -174,6 +177,14 @@ Route::middleware('admin')->group(function () {
         Route::match(['put', 'patch'], '/{id}/content', [ContractController::class, 'updateContent'])->name('updateContent');
         Route::post('/{id}/reactivate', [ContractController::class, 'reactivate'])->name('reactivate');
         Route::delete('{id}/delete-identity', [ContractController::class, 'deleteIdentity'])->name('deleteIdentity');
+    });
+
+    // Quản lý người ở cùng
+    Route::prefix('contract-tenants')->name('contract-tenants.')->group(function () {
+        Route::get('/index', [ContractTenantController::class, 'index'])->name('index');
+        Route::post('/update-status/{id}', [ContractTenantController::class, 'updateStatus'])->name('update-status');
+        Route::get('/{tenantId}/identity-document/{imagePath}', [ContractTenantController::class, 'showTenantIdentityDocument'])
+    ->name('identity-document');
     });
 
     // Notification routes

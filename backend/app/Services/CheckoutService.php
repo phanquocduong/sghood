@@ -8,10 +8,12 @@ use App\Models\Invoice;
 use App\Models\Contract;
 use App\Models\Room;
 use App\Models\User;
+use App\Models\ContractTenant;
 use App\Jobs\SendCheckoutStatusUpdatedNotification;
 use App\Jobs\SendCheckoutRefundNotification;
 use App\Jobs\SendCheckoutAutoConfirmedNotification;
 use App\Jobs\SendAutoEndContractNotification;
+use App\Jobs\SendContractTenantStatusNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -33,13 +35,10 @@ class CheckoutService
 
         if (!empty($querySearch)) {
             $query->whereHas('contract', function ($q) use ($querySearch) {
-                // If query is exactly "hd" or "HD", show all contracts
                 if (strtolower($querySearch) === 'hd') {
-                    // No additional filtering - show all contracts
                     return;
                 }
 
-                // If query starts with HD or hd, extract the numeric part
                 $numericQuery = $querySearch;
                 if (preg_match('/^hd(\d+)$/i', $querySearch, $matches)) {
                     $numericQuery = $matches[1];
@@ -80,7 +79,6 @@ class CheckoutService
                 $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
                 $depositAmount = $checkout->contract->deposit_amount ?? 0;
 
-                // Xử lý inventory details
                 $inventoryDetails = [];
                 $deductionAmount = 0;
 
@@ -112,13 +110,10 @@ class CheckoutService
                     }
                 }
 
-                // Tính số tiền hoàn trả cuối cùng
                 $finalRefundedAmount = max(0, $depositAmount - $deductionAmount);
 
-                // Xử lý hình ảnh
                 $finalImages = $this->processImages($checkout, $data);
 
-                // Chuẩn bị dữ liệu để cập nhật
                 $updateData = [
                     'inventory_status' => $data['status'],
                     'deduction_amount' => $deductionAmount,
@@ -128,13 +123,10 @@ class CheckoutService
                     'updated_at' => now(),
                 ];
 
-                // Xử lý chuyển đổi user_confirmation_status
                 $this->handleUserConfirmationStatusTransition($checkout, $data['status'], $updateData);
 
-                // Kiểm tra và gửi thông báo nếu trạng thái thay đổi thành "Đã kiểm kê"
                 $sendNotifications = ($data['status'] === 'Đã kiểm kê' && $checkout->inventory_status !== 'Đã kiểm kê');
 
-                // Cập nhật checkout
                 $updated = $checkout->update($updateData);
 
                 if ($updated) {
@@ -157,7 +149,6 @@ class CheckoutService
                                 'room_id' => $room ? $room->id : null,
                             ]);
                         } else {
-                            // Dispatch job để gửi thông báo
                             SendCheckoutStatusUpdatedNotification::dispatch(
                                 $checkout,
                                 $user,
@@ -304,20 +295,16 @@ class CheckoutService
             return DB::transaction(function () use ($id, $request) {
                 $checkout = Checkout::with(['contract.room', 'contract.user', 'contract.invoices'])->findOrFail($id);
 
-                // Kiểm tra điều kiện hợp lệ
                 if ($checkout->inventory_status !== 'Đã kiểm kê' || $checkout->user_confirmation_status !== 'Đồng ý') {
                     throw new \Exception('Yêu cầu không hợp lệ để xác nhận hoàn tiền.');
                 }
 
-                // Lấy ngày xác nhận hoàn tiền
                 $refundedAt = now();
                 $endDate = $checkout->contract->end_date ? \Carbon\Carbon::parse($checkout->contract->end_date) : null;
 
-                // Cập nhật trạng thái thành Đã xử lý
                 $checkout->refund_status = 'Đã xử lý';
                 $checkout->save();
 
-                // Lấy invoice_id của hóa đơn có type là "đặt cọc"
                 $depositInvoice = $checkout->contract->invoices()
                     ->where('type', 'đặt cọc')
                     ->where('status', 'Đã trả')
@@ -333,7 +320,6 @@ class CheckoutService
                     'refunded_at' => $refundedAt
                 ]);
 
-                // Tạo giao dịch
                 Transaction::create([
                     'invoice_id' => $invoiceId,
                     'reference_code' => $request->input('reference_code'),
@@ -345,9 +331,7 @@ class CheckoutService
                     'updated_at' => $refundedAt,
                 ]);
 
-                // Kiểm tra nếu refunded_at > end_date, cập nhật trạng thái hợp đồng và vai trò người dùng
                 if ($endDate && $refundedAt->greaterThan($endDate)) {
-                    // Cập nhật trạng thái hợp đồng thành "Kết thúc"
                     Contract::where('id', $checkout->contract->id)->update([
                         'status' => 'Kết thúc',
                         'updated_at' => $refundedAt,
@@ -358,10 +342,8 @@ class CheckoutService
                         'updated_at' => $refundedAt,
                     ]);
 
-                    // Cập nhật vai trò người dùng thành "Người đăng ký"
                     $user = $checkout->contract->user;
                     if ($user) {
-                        // Xóa identity_document nếu tồn tại
                         if ($user->identity_document && Storage::disk('private')->exists($user->identity_document)) {
                             Storage::disk('private')->delete($user->identity_document);
                             Log::info('Identity document deleted', [
@@ -408,8 +390,6 @@ class CheckoutService
                         'end_date' => $endDate->toDateTimeString(),
                     ]);
                 }
-
-                // Gửi thông báo bằng Job
 
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
@@ -466,7 +446,6 @@ class CheckoutService
             if ($updated) {
                 Log::info('User confirmation status forced to "Đồng ý"', ['checkout_id' => $id]);
 
-                // Gửi thông báo xác nhận tự động
                 $user = $checkout->contract->user;
                 $room = $checkout->contract->room;
 
@@ -502,24 +481,69 @@ class CheckoutService
     public function confirmLeftCheckout($id)
     {
         try {
-            $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
+            return DB::transaction(function () use ($id) {
+                $checkout = Checkout::with(['contract.room', 'contract.user'])->findOrFail($id);
 
-            if ($checkout->inventory_status !== 'Đã kiểm kê') {
-                throw new \Exception('Chỉ có thể xác nhận người dùng đã rời khỏi phòng khi checkout đã được kiểm kê.');
-            }
+                if ($checkout->inventory_status !== 'Đã kiểm kê') {
+                    throw new \Exception('Chỉ có thể xác nhận người dùng đã rời khỏi phòng khi checkout đã được kiểm kê.');
+                }
 
-            $updated = $checkout->update([
-                'has_left' => 1,
-                'updated_at' => now(),
-            ]);
+                $updated = $checkout->update([
+                    'has_left' => 1,
+                    'updated_at' => now(),
+                ]);
 
-            if ($updated) {
-                Log::info('Checkout confirmed as left', ['checkout_id' => $id]);
-            } else {
-                Log::error('Failed to confirm left checkout', ['checkout_id' => $id]);
-            }
+                if ($updated) {
+                    Log::info('Checkout confirmed as left', ['checkout_id' => $id]);
 
-            return $checkout->fresh();
+                    // Cập nhật trạng thái của tất cả ContractTenant liên quan đến contract
+                    $contractTenants = ContractTenant::where('contract_id', $checkout->contract_id)->get();
+
+                    foreach ($contractTenants as $tenant) {
+                        if ($tenant->status !== 'Đã rời đi') {
+                            $oldStatus = $tenant->status;
+                            $tenant->update([
+                                'status' => 'Đã rời đi',
+                                'rejection_reason' => null,
+                                'updated_at' => now(),
+                            ]);
+
+                            Log::info('Contract tenant status updated to Đã rời đi', [
+                                'contract_tenant_id' => $tenant->id,
+                                'contract_id' => $checkout->contract_id,
+                                'old_status' => $oldStatus,
+                            ]);
+
+                            // // Xóa identity_document của tenant
+                            // if ($tenant->identity_document && Storage::disk('private')->exists($tenant->identity_document)) {
+                            //     $imagePaths = explode('|', $tenant->identity_document);
+                            //     foreach ($imagePaths as $path) {
+                            //         Storage::disk('private')->delete($path);
+                            //     }
+                            //     Log::info('Deleted tenant identity document', [
+                            //         'contract_tenant_id' => $tenant->id,
+                            //         'deleted_files' => $imagePaths,
+                            //     ]);
+                            // }
+
+                            // $tenant->update(['identity_document' => null]);
+
+                            // Gửi thông báo trạng thái cho tenant
+                            SendContractTenantStatusNotification::dispatch($tenant, 'Đã rời đi', null);
+
+                            Log::info('Contract tenant status notification job dispatched', [
+                                'contract_tenant_id' => $tenant->id,
+                                'contract_id' => $checkout->contract_id,
+                                'new_status' => 'Đã rời đi',
+                            ]);
+                        }
+                    }
+                } else {
+                    Log::error('Failed to confirm left checkout', ['checkout_id' => $id]);
+                }
+
+                return $checkout->fresh();
+            });
         } catch (\Exception $e) {
             Log::error('Error in confirmLeftCheckout method', [
                 'checkout_id' => $id,

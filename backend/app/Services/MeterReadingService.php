@@ -316,7 +316,7 @@ class MeterReadingService
         ];
     }
 
-    private function calculateProportionalFees($contract, $room, $meterReading, $motel)
+    private function calculateProportionalFees($contract, $room, $meterReading, $motel, $totalOccupants = 1)
     {
         try {
             $contractStartDate = Carbon::parse($contract->start_date);
@@ -352,10 +352,17 @@ class MeterReadingService
 
             // Lấy giá gốc các dịch vụ
             $roomPrice = $contract->rental_price ?? 0;
-            $parkingFee = $motel->parking_fee ?? 0;
-            $junkFee = $motel->junk_fee ?? 0;
-            $internetFee = $motel->internet_fee ?? 0;
-            $serviceFee = $motel->service_fee ?? 0;
+            $baseParkingFee = $motel->parking_fee ?? 0;
+            $baseJunkFee = $motel->junk_fee ?? 0;
+            $baseInternetFee = $motel->internet_fee ?? 0;
+            $baseServiceFee = $motel->service_fee ?? 0;
+
+            // Tính phí dịch vụ dựa trên số người ở
+            // Các phí này có thể tăng theo số người (tuỳ logic business của bạn)
+            $parkingFee = $baseParkingFee * $totalOccupants; // Parking thường không tăng theo số người
+            $junkFee = $baseJunkFee; // Phí rác cố định
+            $internetFee = $baseInternetFee; // Internet thường cố định
+            $serviceFee = $baseServiceFee; // Phí dịch vụ cố định
 
             // Tính tỷ lệ phí dựa trên số ngày sử dụng
             $percentage = 1.0;
@@ -370,9 +377,10 @@ class MeterReadingService
                     'contract_end_date' => $contractEndDate->toDateString(),
                     'month_start' => $monthStart->toDateString(),
                     'days_difference' => $daysDifference,
-                    'percentage' => $percentage
+                    'percentage' => $percentage,
+                    'total_occupants' => $totalOccupants
                 ]);
-            } elseif ($hasExistingInvoices) {
+            } elseif (!$hasExistingInvoices) {
                 // Tháng đầu tiên: tính từ start_date đến cuối tháng
                 $monthEnd = Carbon::create($invoiceYear, $invoiceMonth, 1)->endOfMonth();
                 $daysDifference = (int) $contractStartDate->diffInDays($monthEnd) + 1;
@@ -381,7 +389,8 @@ class MeterReadingService
                     'contract_start_date' => $contractStartDate->toDateString(),
                     'month_end' => $monthEnd->toDateString(),
                     'days_difference' => $daysDifference,
-                    'percentage' => $percentage
+                    'percentage' => $percentage,
+                    'total_occupants' => $totalOccupants
                 ]);
             } else {
                 // Không phải tháng đầu hoặc cuối, trả về phí đầy đủ
@@ -390,7 +399,8 @@ class MeterReadingService
                     'contract_end_date' => $contractEndDate->toDateString(),
                     'invoice_created_date' => $invoiceCreatedDate->toDateString(),
                     'invoice_month' => $invoiceMonth,
-                    'invoice_year' => $invoiceYear
+                    'invoice_year' => $invoiceYear,
+                    'total_occupants' => $totalOccupants
                 ]);
                 return [
                     'room_fee' => $roomPrice,
@@ -407,20 +417,27 @@ class MeterReadingService
             $calculatedInternetFee = $internetFee * $percentage;
             $calculatedServiceFee = $serviceFee * $percentage;
 
-            Log::info('Calculated proportional fees', [
+            Log::info('Calculated proportional fees with occupant count', [
                 'contract_start_date' => $contractStartDate->toDateString(),
                 'contract_end_date' => $contractEndDate->toDateString(),
                 'invoice_created_date' => $invoiceCreatedDate->toDateString(),
                 'days_difference' => $daysDifference,
                 'percentage' => $percentage,
-                'original_fees' => [
+                'total_occupants' => $totalOccupants,
+                'base_fees' => [
                     'room_price' => $roomPrice,
+                    'base_parking_fee' => $baseParkingFee,
+                    'base_junk_fee' => $baseJunkFee,
+                    'base_internet_fee' => $baseInternetFee,
+                    'base_service_fee' => $baseServiceFee
+                ],
+                'calculated_fees_before_percentage' => [
                     'parking_fee' => $parkingFee,
                     'junk_fee' => $junkFee,
                     'internet_fee' => $internetFee,
                     'service_fee' => $serviceFee
                 ],
-                'calculated_fees' => [
+                'final_calculated_fees' => [
                     'room_fee' => $calculatedRoomFee,
                     'parking_fee' => $calculatedParkingFee,
                     'junk_fee' => $calculatedJunkFee,
@@ -438,20 +455,22 @@ class MeterReadingService
                 'internet_fee' => round($calculatedInternetFee, 0),
                 'service_fee' => round($calculatedServiceFee, 0)
             ];
+
         } catch (\Exception $e) {
             Log::error('Error calculating proportional fees: ' . $e->getMessage(), [
                 'contract_id' => $contract->id ?? null,
                 'room_id' => $room->id ?? null,
                 'meter_reading_month' => $meterReading->month ?? null,
-                'meter_reading_year' => $meterReading->year ?? null
+                'meter_reading_year' => $meterReading->year ?? null,
+                'total_occupants' => $totalOccupants
             ]);
 
             return [
                 'room_fee' => $room->price ?? 0,
                 'parking_fee' => $motel->parking_fee ?? 0,
-                'junk_fee' => $motel->junk_fee ?? 0,
+                'junk_fee' => ($motel->junk_fee ?? 0) * $totalOccupants,
                 'internet_fee' => $motel->internet_fee ?? 0,
-                'service_fee' => $motel->service_fee ?? 0
+                'service_fee' => ($motel->service_fee ?? 0) * $totalOccupants
             ];
         }
     }
@@ -459,7 +478,13 @@ class MeterReadingService
     public function createInvoice($meterReadingId)
     {
         try {
-            $meterReading = MeterReading::with(['room.motel', 'room.activeContract.user'])->findOrFail($meterReadingId);
+            $meterReading = MeterReading::with([
+                'room.motel',
+                'room.activeContract.user',
+                'room.activeContract.contractTenants' => function($query) {
+                    $query->where('status', 'Đang ở');
+                }
+            ])->findOrFail($meterReadingId);
 
             $room = $meterReading->room;
             if (!$room) {
@@ -477,6 +502,19 @@ class MeterReadingService
             }
 
             $contractId = $contract->id;
+
+            // Tính tổng số người ở: người ký hợp đồng + người ở chung đang ở
+            $primaryTenantCount = 1; // Người ký hợp đồng chính
+            $additionalTenantsCount = $contract->contractTenants->where('status', 'Đang ở')->count();
+            $totalOccupants = $primaryTenantCount + $additionalTenantsCount;
+
+            Log::info('Calculating occupants for invoice', [
+                'contract_id' => $contractId,
+                'primary_tenant' => $contract->user->name,
+                'additional_tenants_count' => $additionalTenantsCount,
+                'total_occupants' => $totalOccupants,
+                'additional_tenants' => $contract->contractTenants->where('status', 'Đang ở')->pluck('name')->toArray()
+            ]);
 
             // Kiểm tra xem đã có hóa đơn cho tháng này chưa
             $existingInvoice = Invoice::where('contract_id', $contractId)
@@ -502,8 +540,8 @@ class MeterReadingService
             $electricityFee = $electricityConsumption * $electricityRate;
             $waterFee = $waterConsumption * $waterRate;
 
-            // Tính các phí dịch vụ với logic tháng đầu tiên hoặc cuối cùng
-            $calculatedFees = $this->calculateProportionalFees($contract, $room, $meterReading, $motel);
+            // Tính các phí dịch vụ với logic tháng đầu tiên hoặc cuối cùng và số người ở
+            $calculatedFees = $this->calculateProportionalFees($contract, $room, $meterReading, $motel, $totalOccupants);
 
             $roomFee = $calculatedFees['room_fee'];
             $parkingFee = $calculatedFees['parking_fee'];
@@ -520,11 +558,14 @@ class MeterReadingService
             $invoiceCode = 'INV' . $contractId . $currentTime . $currentDate;
 
             // Ghi log thông tin
-            Log::info('Creating invoice with consumption-based fees', [
+            Log::info('Creating invoice with consumption-based fees and occupant count', [
                 'meter_reading_id' => $meterReadingId,
                 'contract_id' => $contractId,
                 'contract_start_date' => $contract->start_date,
                 'contract_end_date' => $contract->end_date,
+                'total_occupants' => $totalOccupants,
+                'primary_tenant' => $contract->user->name,
+                'additional_tenants' => $contract->contractTenants->where('status', 'Đang ở')->pluck('name')->toArray(),
                 'electricity_consumption' => $electricityConsumption,
                 'water_consumption' => $waterConsumption,
                 'electricity_fee' => $electricityFee,
@@ -553,6 +594,7 @@ class MeterReadingService
                 'service_fee' => $serviceFee,
                 'room_fee' => $roomFee,
                 'total_amount' => $totalAmount,
+                'occupant_count' => $totalOccupants, // Thêm field này nếu cần lưu số người ở
                 'status' => 'Chưa trả',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -563,6 +605,7 @@ class MeterReadingService
                 'invoice_code' => $invoice->code,
                 'meter_reading_id' => $meterReadingId,
                 'total_amount' => $totalAmount,
+                'total_occupants' => $totalOccupants,
                 'calculated_fees' => $calculatedFees
             ]);
 

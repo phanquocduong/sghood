@@ -22,11 +22,6 @@
             <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center rounded-top-4"
                 style="background: linear-gradient(90deg, #1e3a8a, #3b82f6);">
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('contracts.index') }}" class="btn btn-light btn-sm me-3 shadow-sm action-icon"
-                        style="transition: all 0.3s; border-radius: 8px;" title="Quay lại danh sách hợp đồng">
-                        <i class="fas fa-arrow-left me-1"></i>
-                        <span class="d-none d-sm-inline ms-1">Quay lại</span>
-                    </a>
                     <h5 class="mb-0 fw-bold">
                         <i class="fas fa-history me-2"></i>Quản lý gia hạn hợp đồng
                         <span class="badge bg-white text-primary ms-2 shadow-sm">{{ $contractExtensions->total() }} gia hạn</span>
@@ -35,19 +30,23 @@
             </div>
 
             <div class="card-body p-4 bg-light">
-                <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb bg-white shadow-sm rounded-3 p-3">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('contracts.index') }}" class="text-decoration-none text-primary">
-                                <i class="fas fa-file-contract me-1"></i>Quản lý hợp đồng
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            <i class="fas fa-history me-1"></i>Quản lý gia hạn hợp đồng
-                        </li>
-                    </ol>
-                </nav>
+                <!-- Notification for pending bookings -->
+                <div class="mb-4">
+                    @php
+                        $pendingCount = \App\Models\ContractExtension::where('status', 'Chờ duyệt')->count();
+                    @endphp
+                    @if($pendingCount > 0)
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>Có <strong>{{ $pendingCount }}</strong> hợp đồng gia hạn đang chờ duyệt</span>
+                        </div>
+                    @else
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span>Không có hợp đồng nào chờ duyệt</span>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- Filter Form -->
                 <div class="mb-4">

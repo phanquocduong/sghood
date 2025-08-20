@@ -48,6 +48,7 @@ class CommentController extends Controller
             ->map(fn($comment) => $this->formatComment($comment))
             ->values(); // đảm bảo trả về array tuần tự
 
+
         return response()->json([
             'success' => true,
             'data' => $data,

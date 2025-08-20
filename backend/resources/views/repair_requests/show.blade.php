@@ -93,14 +93,16 @@
                 <div class="row">
 
                     <div class="col text-end">
-                        <form action="{{ route('repair_requests.updateStatusDetail', $repair->id) }}" method="POST"
-                            class="d-inline">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-sync-alt me-1"></i> Xác nhận sửa chữa
-                            </button>
-                        </form>
+                        @if ($repair->status !== 'Hoàn thành')
+                            <form action="{{ route('repair_requests.updateStatusDetail', $repair->id) }}" method="POST"
+                                class="d-inline">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-sync-alt me-1"></i> Xác nhận
+                                </button>
+                            </form>
+                        @endif
 
                         <a href="{{ route('repair_requests.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
                     </div>

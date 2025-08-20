@@ -70,4 +70,9 @@ class Contract extends Model
     {
         return app(ContractService::class)->checkOverdueInvoices($this->id);
     }
+
+    public function contractTenants()
+    {
+        return $this->hasMany(ContractTenant::class, 'contract_id');
+    }
 }

@@ -99,7 +99,7 @@
                         !item.canceled_at
                     "
                     href="#"
-                    @click.prevent="emitConfirmLeftRoom(item)"
+                    @click.prevent="openConfirmLeftRoomPopup(item)"
                     class="button gray approve"
                 >
                     <i class="fa fa-door-open"></i> Xác nhận đã rời phòng
@@ -112,7 +112,6 @@
                 >
                     <i class="im im-icon-Bank"></i> Thông tin chuyển khoản
                 </a>
-
                 <a
                     v-if="item.inventory_status === 'Chờ kiểm kê' && !item.canceled_at"
                     href="#"
@@ -167,7 +166,7 @@ const getInventoryStatusClass = status => {
     let statusClass = 'booking-status';
     switch (status) {
         case 'Chờ kiểm kê':
-        case 'Kiểm kê lại':
+        case 'K BS kiểm kê lại':
             statusClass += ' pending';
             break;
         case 'Đã kiểm kê':
@@ -230,16 +229,33 @@ const openConfirmCancelPopup = async id => {
     }
 };
 
+const openConfirmLeftRoomPopup = async item => {
+    const result = await Swal.fire({
+        title: 'Xác nhận đã rời phòng',
+        text: 'Bạn có chắc chắn muốn xác nhận đã rời phòng này?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#f91942',
+        cancelButtonColor: '#e0e0e0',
+        customClass: {
+            confirmButton: 'button',
+            cancelButton: 'button gray'
+        }
+    });
+
+    if (result.isConfirmed) {
+        emit('confirmLeftRoom', item);
+    }
+};
+
 const emitOpenInventoryPopup = item => {
     emit('openInventoryPopup', item);
 };
 
 const emitOpenBankInfoPopup = item => {
     emit('openBankInfoPopup', item);
-};
-
-const emitConfirmLeftRoom = item => {
-    emit('confirmLeftRoom', item);
 };
 </script>
 
