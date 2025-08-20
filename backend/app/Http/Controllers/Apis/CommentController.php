@@ -42,9 +42,11 @@ class CommentController extends Controller
                 'user_id'
             ])
             ->latest()
-            ->paginate(10);
+            ->paginate(3);
 
-        $data = $comments->getCollection()->map(fn($comment) => $this->formatComment($comment));
+        $data = $comments->getCollection()
+            ->map(fn($comment) => $this->formatComment($comment))
+            ->values(); // đảm bảo trả về array tuần tự
 
         return response()->json([
             'success' => true,

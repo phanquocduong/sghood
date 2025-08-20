@@ -53,8 +53,10 @@ Route::middleware('admin')->group(function () {
     Route::prefix('notes')->name('notes.')->group(function () {
         Route::get('/', [NoteController::class, 'index'])->name('index');
         Route::post('/', [NoteController::class, 'store'])->name('store');
+        Route::post('/', [NoteController::class, 'storeDashboard'])->name('storeDashboard');
         Route::delete('/{id}', [NoteController::class, 'destroy'])->name('destroy');
         Route::get('/users', [NoteController::class, 'getUsersWithNotes'])->name('users');
+
     });
 
     // Motel Routes Group

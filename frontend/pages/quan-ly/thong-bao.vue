@@ -50,10 +50,31 @@
                                 <p>{{ noti.content }}</p>
                             </div>
                         </a>
-                       <!--  <button class="delete-btn" @click.stop="removeNotification(index)">✕</button> -->
+                        <!--  <button class="delete-btn" @click.stop="removeNotification(index)">✕</button> -->
                     </NuxtLink>
                 </div>
             </div>
+        </div>
+        <div class="pagination-container margin-bottom-40" v-if="totalPages > 1">
+            <nav class="pagination">
+                <ul>
+                    <li v-if="currentPage > 1">
+                        <a href="#" @click.prevent="goToPage(currentPage - 1)">
+                            <i class="sl sl-icon-arrow-left"></i>
+                        </a>
+                    </li>
+                    <li v-for="page in totalPages" :key="page">
+                        <a href="#" :class="{ 'current-page': page === currentPage }" @click.prevent="goToPage(page)">
+                            {{ page }}
+                        </a>
+                    </li>
+                    <li v-if="currentPage < totalPages">
+                        <a href="#" @click.prevent="goToPage(currentPage + 1)">
+                            <i class="sl sl-icon-arrow-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </template>
@@ -66,12 +87,20 @@ import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
 const NotiStore = useNotificationStore();
 const noti = useAppToast();
-const { notifications, loading } = storeToRefs(useNotificationStore());
+const { notifications, loading, currentPage, totalPages } = storeToRefs(useNotificationStore());
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const safeNotifications = computed(() => notifications.value || []);
+const goToPage = page => {
+    if (page !== currentPage.value) {
+        NotiStore.fetchNotifications(page);
+    }
+};
+
 onMounted(() => {
     NotiStore.fetchNotifications();
+    console.log('currentPage:', currentPage.value);
+    console.log('totalPages:', totalPages.value);
 });
 const onMarkAsRead = async id => {
     NotiStore.markAsRead(id);
@@ -224,6 +253,5 @@ const removeNotification = index => {
     border: none;
     text-align: center;
     height: 46px;
-
 }
 </style>

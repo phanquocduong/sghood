@@ -38,6 +38,7 @@ class BlogController extends Controller
     public function showBlog($slug)
     {
         $blog = $this->blogService->getBlogBySlug($slug);
+        $comments = $this->blogService->getCommentsByBlogId($blog->id);
         if (!$blog) {
             return response()->json([
                 'success' => false,
@@ -47,7 +48,8 @@ class BlogController extends Controller
         }
         return response()->json([
             'success' => true,
-            'data' => $blog
+            'data' => $blog,
+            'comments' => $comments
         ]);
     }
     public function related($id)

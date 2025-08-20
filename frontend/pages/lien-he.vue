@@ -64,7 +64,7 @@
             <div class="col-md-8">
                 <section id="contact">
                     <h4 class="headline margin-bottom-35">Liên Hệ Với Chúng Tôi</h4>
-                    <form @keyup.enter="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
+                    <form @submit.prevent="handleSubmit" name="contactform" id="form-contact" autocomplete="on">
                         <div class="row">
                             <div class="col-md-6">
                                 <div>
@@ -104,7 +104,6 @@
                                 id="contact-Message"
                                 placeholder="Lời nhắn"
                                 spellcheck="true"
-                                required="required"
                                 style="min-height: 180px; width: 100%"
                             ></textarea>
                         </div>
@@ -116,7 +115,6 @@
                             value="Gửi tin nhắn"
                             :disabled="loading"
                             style="margin-bottom: 10px; margin-top: -10px"
-                            @click="handleSubmit"
                         >
                             <span v-if="loading" class="spinner"></span>
                             {{ loading ? ' Đang gửi...' : 'Gửi đi' }}
@@ -191,6 +189,10 @@ onMounted(() => {
     }
 });
 const handleSubmit = async () => {
+    if (!name.value) return toast.warning('Vui lòng nhập họ tên');
+    if (!email.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) return toast.warning('Email không hợp lệ');
+    if (!subject.value) return toast.warning('Vui lòng nhập chủ đề');
+    if (!message.value) return toast.warning('Vui lòng nhập lời nhắn');
     loading.value = true;
     try {
         const res = await $api('/contact', {
@@ -206,7 +208,7 @@ const handleSubmit = async () => {
                 message: message.value
             }
         });
-        console.log(res.value);
+
         if (res?.status === true) {
             toast.success('Gửi thành công! Cảm ơn bạn đã liên hệ.');
             subject.value = '';

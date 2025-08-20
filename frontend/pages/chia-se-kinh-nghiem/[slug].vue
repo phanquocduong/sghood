@@ -59,7 +59,7 @@
                                         <a href="#">{{ blog.category || 'Chưa phân loại' }}</a>
                                     </li>
                                     <li>
-                                        <a href="#">{{ blog.comments || 0 }} bình luận</a>
+                                        <a href="#" @click.prevent="scrollToBottom">{{ blog.comments || 0 }} bình luận</a>
                                     </li>
                                 </ul>
                                 <p v-html="blog.content"></p>
@@ -92,7 +92,7 @@
                             </div>
                         </div>
 
-                        <Comments :key="commentsKey" />
+                        <Comments id="comments" />
                     </div>
                 </div>
 
@@ -152,6 +152,7 @@ const loading = ref(false);
 const { $api } = useNuxtApp();
 const relatedPosts = ref([]);
 const blogList = ref([]);
+const comments = ref([]);
 const popularPosts = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const hasIncreasedView = ref(false);
@@ -209,6 +210,13 @@ useHead({
     ]
 });
 
+const scrollToBottom = () => {
+    const el = document.getElementById('comments');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
 function formatDate(dateStr = '') {
     if (!dateStr) return 'Không rõ ngày';
 
@@ -247,23 +255,22 @@ const fetchBlogs = async slug => {
             content: fixedContent,
             date: res.data.created_at,
             category: res.data.category || 'Tin tức',
-            excerpt: res.data.excerpt || stripHtml(res.data.content).slice(0, 150) + '...',
+            comments: res.comments.length || [],
             created_at: formatDate(res.data.created_at)
         };
 
+        console.log('fetchblogs', res);
         if (!hasIncreasedView.value) {
             try {
-                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (token) {
-                    const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token
-                        }
-                    });
-                    hasIncreasedView.value = true;
-                }
+                const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                    }
+                });
+                console.log('Increase view response:', resView);
+                hasIncreasedView.value = true;
             } catch (err) {
                 console.error('Increase view error:', err);
             }
@@ -289,8 +296,7 @@ const fetchPopularPosts = async () => {
         const res = await $api(`/blogs/popular`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                'Content-Type': 'application/json'
             }
         });
 

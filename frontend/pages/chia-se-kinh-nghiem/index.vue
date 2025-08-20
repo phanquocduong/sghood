@@ -286,7 +286,7 @@ const fetchBlogs = async (page = 1, selectedCategory = '') => {
             url: `/chia-se-kinh-nghiem/${g.slug}`,
             created_at: formatDate(g.created_at)
         }));
-        console.log('fetchBlogs', res);
+        console.log('fetchBlogsIndex', res);
         blogPosts.value = mapped;
         allBlogs.value = [...mapped];
 

@@ -8,6 +8,31 @@
             <template v-for="comment in comments" :key="comment.id">
                 <CommentsNode v-if="comment" :comment="comment" :blog_id="comment.blog_id" @refresh="fetchComments" />
             </template>
+            <div
+                class="pagination-container margin-bottom-40"
+                style="display: flex; justify-content: center; margin-top: 30px"
+                v-if="totalPages > 1"
+            >
+                <nav class="pagination">
+                    <ul>
+                        <li v-if="currentPage > 1">
+                            <a href="#" @click.prevent="goToPage(currentPage - 1)">
+                                <i class="sl sl-icon-arrow-left"></i>
+                            </a>
+                        </li>
+                        <li v-for="page in totalPages" :key="page">
+                            <a href="#" :class="{ 'current-page': page === currentPage }" @click.prevent="goToPage(page)">
+                                {{ page }}
+                            </a>
+                        </li>
+                        <li v-if="currentPage < totalPages">
+                            <a href="#" @click.prevent="goToPage(currentPage + 1)">
+                                <i class="sl sl-icon-arrow-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
             <div id="add-review" class="add-review-box" v-if="authStore.user">
                 <!-- Add Review -->
                 <h3 class="listing-desc-headline margin-bottom-35">Bình luận</h3>
@@ -55,22 +80,31 @@ const loading = ref(false);
 const ReplayContent = ref('');
 const blog_id = ref(null);
 const route = useRoute();
+const currentPage = ref(1);
+const totalPages = ref(1);
 const slug = computed(() => route.params.slug);
 const authStore = useAuthStore();
+const goToPage = async page => {
+    if (page !== currentPage.value) {
+        await fetchComments(page);
+    }
+};
 
-const fetchComments = async () => {
+const fetchComments = async (page = 1) => {
     try {
-        const res = await $api(`/blogs/${slug.value}/comments`, {
+        const res = await $api(`/blogs/${slug.value}/comments?page=${page}`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             }
         });
         comments.value = res.data || [];
         if (Array.isArray(res.data) && res.data.length > 0) {
             blog_id.value = res.data[0].blog_id;
         }
-        console.log('Comments:', res.data);
+        currentPage.value = res.meta.current_page || 1;
+        totalPages.value = res.meta.last_page || 1;
+        console.log('Comments:sadsada', res);
     } catch (error) {
         console.error('Lỗi khi fetch bình luận:', error);
     }
@@ -86,7 +120,7 @@ const AddReplay = async blog_id => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
             },
             body: {
                 content: ReplayContent.value,
@@ -161,5 +195,10 @@ watch(
 .button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+.pagination ul {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
 }
 </style>

@@ -148,8 +148,9 @@
                                 <div class="col-6 col-md-3 {{ $index >= 8 ? 'd-none more-motel' : '' }}">
                                     <div class="text-center p-3 bg-{{ $color }} bg-opacity-10 rounded">
                                         <i class="fas fa-building text-{{ $color }} mb-2"></i>
-                                        <small class="mb-1 d-block"
-                                            style="color: white;"><strong>{{ $motel->motel->name }}</strong></small>
+                                        <small class="mb-1 d-block text-truncate" style="color:white; max-width: 100%;">
+                                            <strong>{{ $motel->motel->name }}</strong>
+                                        </small>
                                         <span class="badge bg-{{ $color }}">{{ $available }}</span>
                                     </div>
                                 </div>
@@ -184,7 +185,8 @@
                             </h6>
                             <ul class="list-group list-group-flush">
                                 @forelse($currentTenants as $index => $tenant)
-                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-current' : '' }}">
+                                    <li
+                                        class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-current' : '' }}">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-2">
                                                 <i class="fas fa-user-circle text-primary"></i>
@@ -197,7 +199,8 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có người thuê</li>
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có người thuê
+                                    </li>
                                 @endforelse
 
                                 @if (count($currentTenants) > 3)
@@ -217,7 +220,8 @@
                             </h6>
                             <ul class="list-group list-group-flush">
                                 @forelse($expiringTenants as $index => $tenant)
-                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expiring' : '' }}">
+                                    <li
+                                        class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expiring' : '' }}">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-2">
                                                 <i class="fas fa-user-clock text-warning"></i>
@@ -230,7 +234,8 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng sắp hết
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng sắp
+                                        hết
                                         hạn</li>
                                 @endforelse
 
@@ -253,7 +258,8 @@
                             </h6>
                             <ul class="list-group list-group-flush">
                                 @forelse($expiredTenants as $index => $tenant)
-                                    <li class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expired' : '' }}">
+                                    <li
+                                        class="list-group-item border-0 py-2 {{ $index >= 3 ? 'd-none extra-expired' : '' }}">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-2">
                                                 <i class="fas fa-user-times text-danger"></i>
@@ -266,7 +272,8 @@
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng đã hết
+                                    <li class="list-group-item border-0 py-2 text-muted text-center">Không có hợp đồng đã
+                                        hết
                                         hạn</li>
                                 @endforelse
 
@@ -317,7 +324,7 @@
                     },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
+                            label: function(context) {
                                 return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
                                     currency: 'VND'
@@ -345,7 +352,7 @@
                             display: false
                         },
                         ticks: {
-                            callback: function (value) {
+                            callback: function(value) {
                                 return new Intl.NumberFormat('vi-VN', {
                                     notation: 'compact',
                                     compactDisplay: 'short'
