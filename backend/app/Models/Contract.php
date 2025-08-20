@@ -66,6 +66,11 @@ class Contract extends Model
         return $this->hasMany(Checkout::class, 'contract_id');
     }
 
+    public function tenants()
+    {
+        return $this->hasMany(ContractTenant::class, 'contract_id');
+    }
+
     public function checkOverdueInvoices(): bool
     {
         return app(ContractService::class)->checkOverdueInvoices($this->id);

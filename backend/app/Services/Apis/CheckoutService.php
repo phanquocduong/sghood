@@ -5,6 +5,7 @@ namespace App\Services\Apis;
 use App\Jobs\Apis\SendCheckoutNotification;
 use App\Models\Checkout;
 use App\Models\Contract;
+use App\Models\ContractTenant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -181,6 +182,11 @@ class CheckoutService
 
         $checkout->update(['has_left' => true]);
 
+         // Cập nhật trạng thái của các ContractTenant liên kết với contract có status là "Đang ở"
+        ContractTenant::where('contract_id', $checkout->contract_id)
+            ->where('status', 'Đang ở')
+            ->update(['status' => 'Đã rời đi']);
+
         SendCheckoutNotification::dispatch(
             $checkout,
             'left-room',
@@ -209,19 +215,7 @@ class CheckoutService
                 ];
             }
 
-            $qrUrl = null;
-            if ($bankInfo) {
-                $qrUrl = sprintf(
-                    'https://qr.sepay.vn/img?acc=%s&bank=%s&amount=&des=&template=qronly',
-                    urlencode($bankInfo['account_number']),
-                    urlencode($bankInfo['bank_name'])
-                );
-            }
-
-            $checkout->update([
-                'bank_info' => $bankInfo,
-                'qr_code_path' => $qrUrl,
-            ]);
+            $checkout->update(['bank_info' => $bankInfo]);
 
             $method = $bankInfo ? 'chuyển khoản' : 'tiền mặt';
             SendCheckoutNotification::dispatch(
