@@ -39,7 +39,7 @@
                     <div v-if="item.early_terminated_at" class="inner-booking-list">
                         <h5>Đã kết thúc hợp đồng sớm vào:</h5>
                         <ul class="booking-list">
-                            <li class="highlighted">{{ formatDateTime(item.signed_at) }}</li>
+                            <li class="highlighted">{{ formatDateTime(item.early_terminated_at) }}</li>
                         </ul>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
             <NuxtLink :to="`/quan-ly/hop-dong/${item.id}`" class="button gray approve">
                 <i class="im im-icon-Folder-Bookmark"></i> {{ getActText(item.status) }}
             </NuxtLink>
-            <NuxtLink :to="`/quan-ly/hop-dong/${item.id}/nguoi-o-cung`" class="button gray approve">
+            <NuxtLink v-if="item.status === 'Hoạt động'" :to="`/quan-ly/hop-dong/${item.id}/nguoi-o-cung`" class="button gray approve">
                 <i class="im im-icon-Folder-Bookmark"></i> Quản lý người ở cùng
             </NuxtLink>
             <a
@@ -90,19 +90,6 @@
                 class="button"
             >
                 <i class="sl sl-icon-logout"></i> Trả phòng
-            </a>
-            <a
-                v-if="
-                    item.status === 'Hoạt động' &&
-                    !isNearExpiration(item.end_date) &&
-                    item.latest_extension_status !== 'Chờ duyệt' &&
-                    (item.has_checkout === null || (item.has_checkout !== null && item.latest_checkout_status !== null))
-                "
-                href="#"
-                @click.prevent="openConfirmEarlyTerminationPopup(item.id)"
-                class="button"
-            >
-                <i class="sl sl-icon-close"></i> Kết thúc sớm
             </a>
         </div>
 
@@ -192,59 +179,6 @@ const openConfirmCancelPopup = async id => {
 
     if (result.isConfirmed) {
         emit('cancelContract', id);
-    }
-};
-
-const openConfirmEarlyTerminationPopup = async id => {
-    const result = await Swal.fire({
-        title: 'Xác nhận kết thúc hợp đồng sớm',
-        html: `
-            <p><strong>Lưu ý quan trọng:</strong> Việc kết thúc hợp đồng sớm sẽ có các hậu quả sau:</p>
-            <ul style="text-align: left;">
-                <li><strong>Tiền cọc không được hoàn lại:</strong> Toàn bộ số tiền cọc (${formatPrice(
-                    props.item.deposit_amount
-                )}) sẽ không được hoàn trả dưới bất kỳ hình thức nào.</li>
-                <li><strong>Rời khỏi phòng sớm:</strong> Bạn cần rời khỏi phòng trong vòng <strong>3 ngày</strong> kể từ khi yêu cầu được xác nhận để hỗ trợ việc kiểm kê và sửa chữa phòng cho khách thuê mới.</li>
-                <li><strong>Nghĩa vụ tài chính:</strong> Bạn cần thanh toán toàn bộ các hóa đơn chưa thanh toán trước khi kết thúc hợp đồng. Nếu thời gian hiện tại từ ngày 27 cuối tháng đến ngày 5 đầu tháng, vui lòng đợi SGHood tạo hóa đơn tháng cuối để thanh toán trước khi yêu cầu kết thúc sớm.</li>
-                <li><strong>Lịch sử thuê:</strong> Việc kết thúc hợp đồng sớm có thể ảnh hưởng đến hồ sơ thuê phòng của bạn, có thể tác động đến các giao dịch thuê trong tương lai.</li>
-            </ul>
-            <p>Bạn có chắc chắn muốn tiếp tục yêu cầu kết thúc hợp đồng sớm?</p>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Xác nhận',
-        cancelButtonText: 'Hủy',
-        confirmButtonColor: '#f91942',
-        cancelButtonColor: '#e0e0e0',
-        customClass: {
-            popup: 'swal-wide',
-            htmlContainer: 'swal-html-container'
-        }
-    });
-
-    if (result.isConfirmed) {
-        await requestEarlyTermination(id);
-    }
-};
-
-const requestEarlyTermination = async id => {
-    try {
-        otpLoading.value = true;
-        const response = await $api(`/contracts/${id}`, { method: 'GET' });
-        // Gán hợp đồng vào selectedContract để đảm bảo id tồn tại
-        selectedContract.value = { id, ...response.data };
-        otpPhoneNumber.value = response.data.user_phone || '';
-        if (!otpPhoneNumber.value) {
-            toast.error('Không tìm thấy số điện thoại cho hợp đồng này.');
-            return;
-        }
-        currentAction.value = 'early_termination';
-        await requestOTP(id);
-    } catch (error) {
-        toast.error('Lỗi khi lấy thông tin hợp đồng.');
-        console.error(error);
-    } finally {
-        otpLoading.value = false;
     }
 };
 
@@ -477,8 +411,6 @@ const confirmOTP = async () => {
                 otpLoading.value = false;
                 return;
             }
-        } else if (currentAction.value === 'early_termination') {
-            emit('earlyTermination', selectedContract.value.id);
         }
         closeOTPModal();
     } catch (error) {

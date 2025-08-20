@@ -19,6 +19,21 @@
                     :save-loading="saveLoading"
                     :signature-data="signatureData"
                 />
+
+                <!-- Nút Kết thúc sớm -->
+                <div
+                    v-if="
+                        contract?.status === 'Hoạt động' &&
+                        !isNearExpiration(contract?.end_date) &&
+                        contract?.latest_extension_status !== 'Chờ duyệt' &&
+                        (contract?.has_checkout === null || (contract?.has_checkout !== null && contract?.latest_checkout_status !== null))
+                    "
+                    class="d-flex justify-content-center margin-top-20"
+                >
+                    <button @click="openConfirmEarlyTerminationPopup(contract.id)" class="button">
+                        <i class="sl sl-icon-close"></i> Kết thúc sớm
+                    </button>
+                </div>
             </div>
 
             <IdentityUpload
@@ -32,7 +47,7 @@
             />
         </div>
 
-        <OTPModal :phone-number="phoneNumber" :loading="saveLoading" v-model:otp-code="otpCode" @confirm="confirmOTPAndSign" />
+        <OTPModal :phone-number="phoneNumber" :loading="saveLoading" v-model:otp-code="otpCode" @confirm="verifyOTPAndExecute" />
     </div>
 
     <div class="row">
@@ -50,6 +65,9 @@ import { shallowRef, ref, computed, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useRoute, useRouter } from 'vue-router';
 import { useContract } from '~/composables/useContract';
+import Swal from 'sweetalert2';
+import { useFormatPrice } from '~/composables/useFormatPrice';
+import { useContractUtils } from '~/composables/useContractUtils';
 
 definePageMeta({
     layout: 'management'
@@ -75,7 +93,9 @@ useHead({
 const route = useRoute();
 const router = useRouter();
 const toast = useAppToast();
-const { $dropzone } = useNuxtApp();
+const { $dropzone, $api } = useNuxtApp();
+const { formatPrice } = useFormatPrice();
+const { isNearExpiration } = useContractUtils();
 
 // State
 const loading = ref(false);
@@ -104,21 +124,30 @@ const isFormComplete = computed(() =>
 );
 
 // Composable
-const { fetchContract, signContract, confirmOTPAndSign, saveContract, handleIdentityUpload, phoneNumber, otpCode, bypassExtract } =
-    useContract({
-        contract,
-        signatureData,
-        identityDocument,
-        identityImages,
-        contractContainer,
-        loading,
-        extractLoading,
-        saveLoading,
-        toast,
-        router,
-        route,
-        dropzoneInstance
-    });
+const {
+    fetchContract,
+    signContract,
+    verifyOTPAndExecute,
+    saveContract,
+    handleIdentityUpload,
+    phoneNumber,
+    otpCode,
+    bypassExtract,
+    earlyTermination
+} = useContract({
+    contract,
+    signatureData,
+    identityDocument,
+    identityImages,
+    contractContainer,
+    loading,
+    extractLoading,
+    saveLoading,
+    toast,
+    router,
+    route,
+    dropzoneInstance
+});
 
 // Xử lý sự kiện input
 const handleInput = event => {
@@ -128,6 +157,38 @@ const handleInput = event => {
         if (name in identityDocument.value) {
             identityDocument.value[name] = value;
         }
+    }
+};
+
+const openConfirmEarlyTerminationPopup = async id => {
+    const result = await Swal.fire({
+        title: 'Xác nhận kết thúc hợp đồng sớm',
+        html: `
+            <p><strong>Lưu ý quan trọng:</strong> Việc kết thúc hợp đồng sớm sẽ có các hậu quả sau:</p>
+            <ul style="text-align: left;">
+                <li><strong>Tiền cọc không được hoàn lại:</strong> Toàn bộ số tiền cọc (${formatPrice(
+                    contract.value.deposit_amount
+                )}) sẽ không được hoàn trả dưới bất kỳ hình thức nào.</li>
+                <li><strong>Rời khỏi phòng sớm:</strong> Bạn cần rời khỏi phòng trong vòng <strong>3 ngày</strong> kể từ khi yêu cầu được xác nhận để hỗ trợ việc kiểm kê và sửa chữa phòng cho khách thuê mới.</li>
+                <li><strong>Nghĩa vụ tài chính:</strong> Bạn cần thanh toán toàn bộ các hóa đơn chưa thanh toán trước khi kết thúc hợp đồng. Nếu thời gian hiện tại từ ngày 27 cuối tháng đến ngày 5 đầu tháng, vui lòng đợi SGHood tạo hóa đơn tháng cuối để thanh toán trước khi yêu cầu kết thúc sớm.</li>
+                <li><strong>Lịch sử thuê:</strong> Việc kết thúc hợp đồng sớm có thể ảnh hưởng đến hồ sơ thuê phòng của bạn, có thể tác động đến các giao dịch thuê trong tương lai.</li>
+            </ul>
+            <p>Bạn có chắc chắn muốn tiếp tục yêu cầu kết thúc hợp đồng sớm?</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#f91942',
+        cancelButtonColor: '#e0e0e0',
+        customClass: {
+            popup: 'swal-wide',
+            htmlContainer: 'swal-html-container'
+        }
+    });
+
+    if (result.isConfirmed) {
+        await earlyTermination(id);
     }
 };
 

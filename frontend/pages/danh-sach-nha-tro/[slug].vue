@@ -37,9 +37,9 @@
             </div>
         </div>
 
-        <!-- Danh sách phòng trống -->
+        <!-- Danh sách phòng -->
         <div id="listing-pricing-list" class="listing-section">
-            <h3 class="listing-desc-headline margin-top-70 margin-bottom-30">Danh sách phòng trống</h3>
+            <h3 class="listing-desc-headline margin-top-70 margin-bottom-30">Danh sách phòng</h3>
 
             <div class="row">
                 <div v-for="room in motel.rooms" :key="room.id" class="col-lg-4 col-md-6">

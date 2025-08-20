@@ -24,6 +24,7 @@ export function useContract({
     const otpCode = ref('');
     const extractErrorCount = ref(0); // Đếm số lần quét lỗi
     const bypassExtract = ref(false); // Cờ cho phép bypass quét CCCD
+    const currentAction = ref(null); // Theo dõi hành động hiện tại: 'sign' hoặc 'early_termination'
 
     const processContractContent = () => {
         if (!contract.value?.content) return;
@@ -202,12 +203,13 @@ export function useContract({
         return contract.value.content;
     };
 
-    const requestOTP = async () => {
+    const requestOTP = async action => {
         if (!phoneNumber.value) {
             toast.error('Không tìm thấy số điện thoại.');
             return false;
         }
 
+        currentAction.value = action; // Lưu hành động hiện tại
         await nextTick();
 
         if (typeof window === 'undefined' || !document.getElementById('recaptcha-container')) {
@@ -247,41 +249,67 @@ export function useContract({
 
     const signContract = async () => {
         try {
-            const otpSent = await requestOTP();
+            const otpSent = await requestOTP('sign');
             if (!otpSent) return;
         } catch (error) {
             console.error(error);
         }
     };
 
-    const confirmOTPAndSign = async () => {
+    const earlyTermination = async id => {
+        try {
+            const otpSent = await requestOTP('early_termination');
+            if (!otpSent) return;
+        } catch (error) {
+            console.error('Lỗi khi yêu cầu OTP cho kết thúc sớm:', error);
+            toast.error('Lỗi khi yêu cầu OTP. Vui lòng thử lại.');
+        }
+    };
+
+    const verifyOTPAndExecute = async () => {
         saveLoading.value = true;
         try {
             const verified = await verifyOTP(otpCode.value);
             if (!verified) {
+                toast.error('OTP không hợp lệ.');
                 saveLoading.value = false;
                 return;
             }
 
-            const updatedContent = await updateContractWithSignature();
-            const response = await $api(`/contracts/${route.params.id}/sign`, {
-                method: 'POST',
-                body: {
-                    signature: signatureData.value,
-                    content: updatedContent
-                },
-                headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
-            });
-            toast.success(response.message);
-            if (window.jQuery && window.jQuery.fn.magnificPopup) {
-                window.jQuery.magnificPopup.close();
+            if (currentAction.value === 'sign') {
+                const updatedContent = await updateContractWithSignature();
+                const response = await $api(`/contracts/${route.params.id}/sign`, {
+                    method: 'POST',
+                    body: {
+                        signature: signatureData.value,
+                        content: updatedContent
+                    },
+                    headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value }
+                });
+                toast.success(response.message);
+                if (window.jQuery && window.jQuery.fn.magnificPopup) {
+                    window.jQuery.magnificPopup.close();
+                }
+                router.push(`/quan-ly/hoa-don/${response.invoice_code}/thanh-toan`);
+            } else if (currentAction.value === 'early_termination') {
+                const response = await $api(`/contracts/${route.params.id}/early-termination`, {
+                    method: 'POST',
+                    headers: {
+                        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                    }
+                });
+                toast.success('Yêu cầu kết thúc hợp đồng sớm đã được gửi.');
+                await fetchContract();
+                if (window.jQuery && window.jQuery.fn.magnificPopup) {
+                    window.jQuery.magnificPopup.close();
+                }
             }
-            router.push(`/quan-ly/hoa-don/${response.invoice_code}/thanh-toan`);
         } catch (error) {
-            console.error('Lỗi khi ký hợp đồng:', error);
+            console.error(`Lỗi khi thực hiện ${currentAction.value}:`, error);
             handleBackendError(error, toast);
         } finally {
             saveLoading.value = false;
+            currentAction.value = null; // Reset hành động
         }
     };
 
@@ -344,11 +372,12 @@ export function useContract({
         fetchContract,
         handleIdentityUpload,
         signContract,
-        confirmOTPAndSign,
+        verifyOTPAndExecute,
         saveContract,
         phoneNumber,
         otpCode,
         extractErrorCount,
-        bypassExtract
+        bypassExtract,
+        earlyTermination
     };
 }
