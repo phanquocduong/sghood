@@ -46,6 +46,40 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Marked as read']);
     }
 
+    public function markAllAsRead(Request $request)
+    {
+        try {
+            // ✅ Fix: Cập nhật tất cả thông báo chưa đọc cho admin users (giống với logic trong index)
+            $updated = Notification::where('status', 'Chưa đọc')
+                ->whereHas('user', function ($query) {
+                    $query->where('role', 'Quản trị viên');
+                })
+                ->update(['status' => 'Đã đọc']);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Đã đánh dấu {$updated} thông báo là đã đọc!",
+                    'updated_count' => $updated
+                ]);
+            }
+
+            return redirect()->back()->with('success', "Đã đánh dấu {$updated} thông báo là đã đọc!");
+
+        } catch (\Exception $e) {
+            \Log::error('Lỗi khi đánh dấu tất cả thông báo đã đọc: ' . $e->getMessage());
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra khi đánh dấu thông báo'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi đánh dấu thông báo');
+        }
+    }
+
 
     public function headerData()
     {

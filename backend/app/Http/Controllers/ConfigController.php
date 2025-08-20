@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\ConfigService;
 use App\Http\Requests\ConfigRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class ConfigController extends Controller
 {
@@ -117,7 +119,10 @@ class ConfigController extends Controller
             return redirect()->back()->with('error', $result['error'])->withInput();
         }
 
-        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được tạo thành công!');
+        // ✅ Tự động xóa cache sau khi tạo cấu hình thành công
+        $this->clearConfigCache();
+
+        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được tạo thành công và cache đã được xóa!');
     }
 
     /**
@@ -253,7 +258,10 @@ class ConfigController extends Controller
             return redirect()->back()->with('error', $result['error'])->withInput();
         }
 
-        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công!');
+        // ✅ Tự động xóa cache sau khi cập nhật cấu hình thành công
+        $this->clearConfigCache();
+
+        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được cập nhật thành công và cache đã được xóa!');
     }
 
     /**
@@ -267,6 +275,43 @@ class ConfigController extends Controller
             return redirect()->back()->with('error', $result['error']);
         }
 
-        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được xóa thành công!');
+        // ✅ Tự động xóa cache sau khi xóa cấu hình thành công
+        $this->clearConfigCache();
+
+        return redirect()->route('configs.index')->with('success', 'Cấu hình đã được xóa thành công và cache đã được xóa!');
+    }
+
+    /**
+     * ✅ Method riêng để xóa cache
+     */
+    private function clearConfigCache()
+    {
+        try {
+            // Xóa tất cả các loại cache liên quan đến config
+            Artisan::call('cache:clear');           // Xóa application cache
+            Artisan::call('config:clear');          // Xóa config cache
+            Artisan::call('view:clear');            // Xóa compiled views
+            Artisan::call('route:clear');           // Xóa route cache
+            Artisan::call('optimize:clear');        // Xóa tất cả cache optimization
+
+            Log::info('Cache đã được xóa thành công sau khi thay đổi cấu hình');
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi xóa cache sau khi thay đổi cấu hình: ' . $e->getMessage());
+            // Không throw exception để không ảnh hưởng đến quá trình chính
+        }
+    }
+
+    /**
+     * ✅ Endpoint để xóa cache thủ công (tùy chọn - cho admin)
+     */
+    public function clearCache()
+    {
+        try {
+            $this->clearConfigCache();
+            return redirect()->back()->with('success', 'Cache đã được xóa thành công!');
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi xóa cache thủ công: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Không thể xóa cache: ' . $e->getMessage());
+        }
     }
 }
