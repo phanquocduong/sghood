@@ -8,9 +8,11 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
 use App\Models\Contract;
+use App\Models\Transaction;
 use App\Services\RoomService;
 use App\Services\ContractService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 
 class StatisticController extends Controller
 {
@@ -68,7 +70,10 @@ class StatisticController extends Controller
             ->sum('transfer_amount');
 
         $isNearExpiration = (int) Config::getValue('is_near_expiration', 30);
-
+        $minYear = DB::table('transactions')
+            ->selectRaw('YEAR(MIN(transaction_date)) as year')
+            ->value('year');
+        $years = range($minYear, now()->year);
 
         return view('statistics.index', [
             'countUsersToday' => $countUsersToday,
@@ -85,6 +90,7 @@ class StatisticController extends Controller
             'monthRevenue' => $monthRevenue,
             'isNearExpiration' => $isNearExpiration,
             'monthlyRevenue' => $monthlyRevenue,
+            'years' => $years,
         ]);
     }
 
@@ -110,4 +116,5 @@ class StatisticController extends Controller
 
         return $monthlyData;
     }
+   
 }

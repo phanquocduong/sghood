@@ -226,6 +226,7 @@ Route::middleware('admin')->group(function () {
 
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
+         Route::get('/revenue-by-year', [TransactionController::class, 'getRevenueByYear'])->name('getRevenueByYear');
         Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
         Route::patch('/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });

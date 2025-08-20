@@ -117,7 +117,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="py-3">
-                                                    <a class="btn btn-sm btn-outline-primary"
+                                                    <a class="btn btn-sm btn-outline-primary" target="_blank"
                                                         href="{{ route('repair_requests.show', $request->id) }}">
                                                         <i class="fas fa-eye me-1"></i>
                                                     </a>

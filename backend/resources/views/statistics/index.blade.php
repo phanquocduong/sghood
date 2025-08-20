@@ -112,11 +112,18 @@
             <div class="col-xl-8">
                 <!-- Revenue Chart -->
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h6 class="mb-0 fw-semibold">
+                    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-semibold d-flex align-items-center">
                             <i class="fas fa-chart-area text-primary me-2"></i>
                             Biểu đồ doanh thu theo tháng
                         </h6>
+                        <select id="yearSelect" class="form-select form-select-sm w-auto ms-3">
+                            @foreach ($years as $year)
+                                <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="card-body">
                         <canvas id="monthlyRevenueChart" height="300"></canvas>
@@ -149,7 +156,9 @@
                                     <div class="text-center p-3 bg-{{ $color }} bg-opacity-10 rounded">
                                         <i class="fas fa-building text-{{ $color }} mb-2"></i>
                                         <small class="mb-1 d-block text-truncate" style="color:white; max-width: 100%;">
-                                            <strong>{{ $motel->motel->name }}</strong>
+                                            <strong><a class="text-white" target="_blank"
+                                                    href="{{ route('motels.show', $motel->motel->id) }}"
+                                                    style="display: inline-block;">{{ $motel->motel->name }}</a></strong>
                                         </small>
                                         <span class="badge bg-{{ $color }}">{{ $available }}</span>
                                     </div>
@@ -369,5 +378,23 @@
             hiddenItems.forEach(el => el.classList.toggle('d-none'));
             btn.textContent = btn.textContent === 'Xem thêm' ? 'Thu gọn' : 'Xem thêm';
         }
+    </script>
+    <script>
+        const yearSelect = document.getElementById('yearSelect');
+        yearSelect.addEventListener('change', async function() {
+            const year = this.value;
+            const response = await fetch(`/transactions/revenue-by-year?year=${year}`);
+            const result = await response.json();
+            console.log(result); // 👉 xem thử API trả về gì
+
+            const months = Array.from({
+                length: 12
+            }, (_, i) => i + 1);
+            const chartData = months.map(m => result[m] || 0);
+
+            // Gán dữ liệu mới vào chart
+            monthlyRevenueChart.data.datasets[0].data = chartData;
+            monthlyRevenueChart.update();
+        });
     </script>
 @endsection
