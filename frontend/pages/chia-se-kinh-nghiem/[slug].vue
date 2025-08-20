@@ -199,13 +199,13 @@ const fetchBlogs = async slug => {
         console.log('fetchblogs', res);
         if (!hasIncreasedView.value) {
             try {
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                console.log('CSRF Token:', token);
+           
                 const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token
+                        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                        
                     }
                 });
                 console.log('Increase view response:', resView);
