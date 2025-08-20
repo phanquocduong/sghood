@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -77,7 +78,6 @@ class TransactionController extends Controller
                     ] : null
                 ]
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Error in transaction show: ' . $e->getMessage(), [
                 'transaction_id' => $id,
@@ -89,5 +89,18 @@ class TransactionController extends Controller
                 'message' => 'Có lỗi xảy ra khi tải thông tin giao dịch: ' . $e->getMessage()
             ], 500);
         }
+    }
+    public function getRevenueByYear(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+
+        $revenues = Transaction::selectRaw('MONTH(transaction_date) as month, SUM(transfer_amount) as total')
+            ->whereYear('transaction_date', $year)
+            ->where('transfer_type', 'in') // 💡 chỉ tính tiền vào
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        return response()->json($revenues);
     }
 }
