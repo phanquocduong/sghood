@@ -59,7 +59,7 @@
                                         <a href="#">{{ blog.category || 'Chưa phân loại' }}</a>
                                     </li>
                                     <li>
-                                        <a href="#">{{ blog.comments || 0 }} bình luận</a>
+                                        <a href="#" @click.prevent="scrollToBottom" >{{ blog.comments || 0 }} bình luận</a>
                                     </li>
                                 </ul>
                                 <p v-html="blog.content"></p>
@@ -92,7 +92,7 @@
                             </div>
                         </div>
 
-                        <Comments  />
+                        <Comments   id="comments"  />
                     </div>
                 </div>
 
@@ -152,9 +152,16 @@ const loading = ref(false);
 const { $api } = useNuxtApp();
 const relatedPosts = ref([]);
 const blogList = ref([]);
+const comments = ref([]);
 const popularPosts = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
 const hasIncreasedView = ref(false);
+const scrollToBottom = ()=>{
+  const el = document.getElementById('comments');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
 
 function formatDate(dateStr = '') {
     if (!dateStr) return 'Không rõ ngày';
@@ -193,10 +200,11 @@ const fetchBlogs = async slug => {
             content: fixedContent,
             date: res.data.created_at,
             category: res.data.category || 'Tin tức',
+            comments: res.comments.length || [],
             created_at: formatDate(res.data.created_at)
         };
-
-        console.log('fetchblogs', res);
+        
+        console.log('fetchblogs', res); 
         if (!hasIncreasedView.value) {
             try {
            
@@ -235,7 +243,7 @@ const FetchPopularPosts = async () => {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                
             }
         });
 

@@ -9,27 +9,29 @@ export const useNotificationStore = defineStore('notification', () => {
     const { $api } = useNuxtApp();
     const toast = useAppToast();
     const authStore = useAuthStore();
-
-    const fetchNotifications = async () => {
+    const totalPages = ref(1);
+    const currentPage = ref(1);
+    const fetchNotifications = async (page=1) => {
         const userId = authStore.user?.id;
         if (!userId) return;
         loading.value = true;
         try {
-            const res = await $api(`/notifications/user/${userId}`, {
+            const res = await $api(`/notifications/user/${userId}?page=${page}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
                 }
             });
-
+            console.log('noti:', res);
             if (!res || !res.data || !Array.isArray(res.data.data)) {
                 notifications.value = []; // ← Đảm bảo luôn là mảng
                 return;
             }
-       
-
+            
             const list = res.data.data;
+            currentPage.value = res.data.current_page ;
+            totalPages.value = res.data.last_page  ;
             notifications.value = list.map(item => ({
                 id: item.id,
                 title: item.title,
@@ -79,6 +81,8 @@ export const useNotificationStore = defineStore('notification', () => {
         fetchNotifications,
         removeNotification,
         markAsRead,
-        unreadCount
+        unreadCount,
+         totalPages,
+        currentPage
     };
 });
