@@ -65,6 +65,13 @@ class NotificationController extends Controller
             'message' => 'Thông báo đã được đánh dấu là đã đọc.'
         ]);
     }
+    public function markAllAsRead(){
+        $this->notificationService->markAllNotificationAsRead();
+        return response()->json([
+            'status' => true,
+            'message' => 'Tất cả thông báo đã được đánh dấu là đã đọc.'
+        ]);
+    }
 
     public function getByNotificationId($id)
     {

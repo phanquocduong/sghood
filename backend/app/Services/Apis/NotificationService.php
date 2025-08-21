@@ -26,8 +26,11 @@ class NotificationService
             $notification->save();
             return true;
         }
-        
+
         return false;
+    }
+    public function markAllNotificationAsRead(){
+        Notification::where('status', 'Chưa đọc')->update(['status' => 'Đã đọc']);
     }
 
     public function getNotificationById($notificationId)
