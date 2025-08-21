@@ -13,14 +13,38 @@
         .header p { font-size: 16px; opacity: 0.9; }
         .content { padding: 40px 30px; }
         .greeting { font-size: 18px; margin-bottom: 20px; color: #2c3e50; }
-        .contract-info { background: #f8f9fa; border-radius: 10px; padding: 25px; margin: 25px 0; border-left: 4px solid #28a745; }
-        .contract-info h3 { color: #28a745; margin-bottom: 15px; font-size: 18px; }
-        .info-row { display: flex; margin-bottom: 12px; align-items: center; }
-        .info-label { font-weight: 600; color: #495057; min-width: 120px; margin-right: 15px; }
-        .info-value { color: #212529; flex: 1; }
+
+        .contract-header { background: #f8f9fa; border-radius: 10px; padding: 25px; margin: 25px 0; border-left: 4px solid #28a745; text-align: center; }
+        .contract-header h2 { color: #28a745; margin-bottom: 5px; font-size: 20px; font-weight: bold; }
+        .contract-header .contract-id { color: #495057; font-size: 16px; margin-bottom: 15px; }
+
+        .customer-info { display: flex; justify-content: space-between; margin: 20px 0; flex-wrap: wrap; }
+        .customer-left, .customer-right { flex: 1; min-width: 250px; }
+        .customer-left { margin-right: 20px; }
+        .info-item { margin-bottom: 8px; }
+        .info-label { font-weight: 600; color: #495057; display: inline-block; min-width: 100px; }
+        .info-value { color: #212529; }
+        .room-number { background: #d4edda; padding: 5px 15px; border-radius: 5px; display: inline-block; font-weight: bold; color: #155724; }
+
+        .contract-table { width: 100%; border-collapse: collapse; margin: 25px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        .contract-table th { background: #28a745; color: white; padding: 15px 12px; text-align: center; font-weight: 600; font-size: 14px; }
+        .contract-table td { padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6; }
+        .contract-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .contract-table tr:hover { background-color: #e8f5e8; }
+        .contract-table .item-name { text-align: left; font-weight: 500; }
+        .contract-table .details { text-align: left; font-size: 13px; color: #666; }
+        .contract-table .value { text-align: left; font-weight: 600; }
+
+        .contract-info { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 25px 0; }
+        .contract-info h4 { color: #856404; margin-bottom: 10px; font-size: 16px; }
+        .contract-details { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .contract-label { font-weight: 600; color: #856404; }
+        .contract-value { color: #856404; font-weight: bold; }
+
         .success-message { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin: 25px 0; }
         .success-message h4 { color: #155724; margin-bottom: 10px; font-size: 16px; }
         .success-message p { color: #155724; line-height: 1.5; }
+
         .message { color: #6c757d; line-height: 1.8; margin: 20px 0; }
         .cta-section { text-align: center; margin: 30px 0; }
         .cta-button { display: inline-block; background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; transition: all 0.3s ease; }
@@ -29,12 +53,16 @@
         .footer p { margin-bottom: 10px; opacity: 0.8; }
         .contact-info { font-size: 14px; opacity: 0.7; }
         .icon { display: inline-block; width: 20px; height: 20px; margin-right: 8px; vertical-align: middle; }
+
         @media (max-width: 600px) {
             .email-container { margin: 10px; border-radius: 10px; }
             .content { padding: 30px 20px; }
             .header { padding: 25px 20px; }
-            .info-row { flex-direction: column; align-items: flex-start; }
-            .info-label { min-width: auto; margin-bottom: 5px; }
+            .customer-info { flex-direction: column; }
+            .customer-left { margin-right: 0; margin-bottom: 15px; }
+            .contract-table { font-size: 12px; }
+            .contract-table th, .contract-table td { padding: 8px 6px; }
+            .contract-details { flex-direction: column; }
         }
     </style>
 </head>
@@ -48,41 +76,95 @@
         <div class="greeting">
             Xin chào <strong>{{ $userName }}</strong>,
         </div>
+
         <div class="success-message">
             <h4>✅ Hợp đồng đã được xác nhận</h4>
             <p>Hợp đồng của bạn (Mã hợp đồng: <strong style="color: #28a745;">#{{ $contractId }}</strong>) đã được tạo thành công. Bạn có thể kiểm tra chi tiết hợp đồng trong hệ thống.</p>
         </div>
-        <div class="contract-info">
-            <h3>📋 Thông tin hợp đồng</h3>
-            <div class="info-row">
-                <span class="info-label">🏠 Tên phòng:</span>
-                <span class="info-value">{{ $roomName }}</span>
+
+        <div class="contract-header">
+            <h2>THÔNG BÁO HỢP ĐỒNG THUÊ PHÒNG</h2>
+            <div class="contract-id">Mã hợp đồng: #{{ $contractId }}</div>
+        </div>
+
+        <div class="customer-info">
+            <div class="customer-left">
+                <div class="info-item">
+                    <span class="info-label">Khách hàng:</span>
+                    <span class="info-value">{{ $userName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ngày tạo:</span>
+                    <span class="info-value">{{ $createdAt }}</span>
+                </div>
             </div>
-            <div class="info-row">
-                <span class="info-label">📅 Ngày bắt đầu:</span>
-                <span class="info-value">{{ $startDate }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">📅 Ngày kết thúc:</span>
-                <span class="info-value">{{ $endDate }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">🕐 Ngày tạo hợp đồng:</span>
-                <span class="info-value">{{ $createdAt }}</span>
+            <div class="customer-right">
+                <div class="info-item">
+                    <span class="info-label">Phòng số:</span>
+                    <span class="room-number">{{ $roomName }}</span>
+                </div>
             </div>
         </div>
+
+        <table class="contract-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">STT</th>
+                    <th style="width: 150px;">Thông tin</th>
+                    <th>Chi tiết</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td class="item-name">Tên phòng</td>
+                    <td class="value">{{ $roomName }}</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td class="item-name">Ngày bắt đầu</td>
+                    <td class="value">{{ $startDate }}</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td class="item-name">Ngày kết thúc</td>
+                    <td class="value">{{ $endDate }}</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td class="item-name">Ngày tạo hợp đồng</td>
+                    <td class="value">{{ $createdAt }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="contract-info">
+            <h4>📋 Thông tin quan trọng:</h4>
+            <div class="contract-details">
+                <span class="contract-label">- Trạng thái hợp đồng:</span>
+                <span class="contract-value">Đã được xác nhận</span>
+            </div>
+            <div class="contract-details">
+                <span class="contract-label">- Thời hạn hợp đồng:</span>
+                <span class="contract-value">Từ {{ $startDate }} đến {{ $endDate }}</span>
+            </div>
+        </div>
+
         <p class="message">
-            Bạn có thể xem hoặc quản lý hợp đồng của mình bằng cách nhấn vào nút bên dưới:
+            Vui lòng lưu giữ thông tin hợp đồng này để tra cứu khi cần thiết. Bạn có thể xem hoặc quản lý hợp đồng của mình bằng cách nhấn vào nút bên dưới:
         </p>
+
         <div class="cta-section">
             <a href="https://sghood.com.vn/quan-ly/hop-dong" class="cta-button" style="color: #ffffff;">
                 <span class="icon">📄</span> Xem hợp đồng của tôi
             </a>
         </div>
+
         <p class="message">
             Nếu bạn cần hỗ trợ, vui lòng liên hệ với chúng tôi. Xin cảm ơn!
         </p>
     </div>
+
     <div class="footer">
         <p><strong>📧 Đội ngũ hỗ trợ khách hàng</strong></p>
         <div class="contact-info">
