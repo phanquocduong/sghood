@@ -25,9 +25,9 @@
             <div class="nav-item dropdown {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
                 <a href="#" class="nav-link dropdown-toggle {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'active' : '' }}" data-bs-toggle="dropdown"><i class="fa fa-building me-2"></i>Nhà trọ</a>
                 <div class="dropdown-menu bg-transparent border-0 {{ request()->routeIs('districts.*') || request()->routeIs('motels.*') || request()->routeIs('rooms.*') || request()->routeIs('amenities.*') || request()->routeIs('configs.*') ? 'show' : '' }}">
-                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Khu vực</a>
-                    <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}">Nhà trọ</a>
-                    <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Tiện ích</a>
+                    <a href="{{ route('districts.index') }}" class="dropdown-item {{ request()->routeIs('districts.*') ? 'active' : '' }}">Quản lý Khu vực</a>
+                    <a href="{{ route('amenities.index') }}" class="dropdown-item {{ request()->routeIs('amenities.*') ? 'active' : '' }}">Quản lý Tiện ích</a>
+                    <a href="{{ route('motels.index') }}" class="dropdown-item {{ request()->routeIs('motels.*') || request()->routeIs('rooms.*') ? 'active' : '' }}">Quản lý Nhà trọ</a>
                 </div>
             </div>
 

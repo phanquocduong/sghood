@@ -184,14 +184,14 @@ Route::middleware('admin')->group(function () {
         Route::get('/index', [ContractTenantController::class, 'index'])->name('index');
         Route::post('/update-status/{id}', [ContractTenantController::class, 'updateStatus'])->name('update-status');
         Route::get('/{tenantId}/identity-document/{imagePath}', [ContractTenantController::class, 'showTenantIdentityDocument'])
-    ->name('identity-document');
+            ->name('identity-document');
     });
 
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
-    ->name('notifications.markAllAsRead');
+        ->name('notifications.markAllAsRead');
 
     // Route notification for navbar
     Route::get('/notifications/header-data', [NotificationController::class, 'headerData'])
@@ -234,7 +234,7 @@ Route::middleware('admin')->group(function () {
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
-        Route::match(['put', 'patch'],'/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
+        Route::match(['put', 'patch'], '/{id}/status', [InvoiceController::class, 'updateStatus'])->name('updateStatus');
     });
 
     Route::prefix('transactions')->name('transactions.')->group(function () {
@@ -258,7 +258,10 @@ Route::middleware('admin')->group(function () {
     // Route for meter reading index
     Route::get('/meter-readings', [MeterReadingController::class, 'index'])->name('meter_readings.index');
     Route::put('/meter-readings', [MeterReadingController::class, 'store'])->name('meter_readings.store');
-    Route::get('/filter-meter-readings', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+    Route::get('/meter-readings/filter', [MeterReadingController::class, 'filter'])->name('meter_readings.filter');
+    Route::get('/meter-readings/history', [MeterReadingController::class, 'history'])->name('meter_readings.history');
+    Route::get('/meter-readings/export', [MeterReadingController::class, 'export'])->name('meter_readings.export');
+
 
 
     // Route for repair requests
@@ -266,7 +269,7 @@ Route::middleware('admin')->group(function () {
     Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
     Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
     Route::put('repair-requests/{repairRequest}/note', [RepairRequestController::class, 'updateNote'])
-    ->name('repair_requests.updateNote');
+        ->name('repair_requests.updateNote');
 });
 
 // File tải file PDF hợp đồng
