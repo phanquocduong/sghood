@@ -162,7 +162,7 @@ class MotelService
                 'district:id,name',
                 'images:id,motel_id,image_url',
                 'rooms' => fn ($query) =>
-                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'status', 'description')
+                    $query->select('id', 'motel_id', 'name', 'price', 'area', 'max_occupants', 'status', 'description')
                         ->where('status', '!=', 'Ẩn')
                         ->with([
                             'amenities:id,name',
@@ -177,7 +177,7 @@ class MotelService
         $fees = [
             ['name' => 'Tiền điện', 'price' => $motel->electricity_fee, 'unit' => 'kWh'],
             ['name' => 'Tiền nước', 'price' => $motel->water_fee, 'unit' => 'm³'],
-            ['name' => 'Tiền giữ xe', 'price' => $motel->parking_fee, 'unit' => 'tháng'],
+            ['name' => 'Tiền giữ xe', 'price' => $motel->parking_fee, 'unit' => 'người/tháng'],
             ['name' => 'Tiền rác', 'price' => $motel->junk_fee, 'unit' => 'tháng'],
             ['name' => 'Tiền internet', 'price' => $motel->internet_fee, 'unit' => 'tháng'],
             ['name' => 'Phí dịch vụ', 'price' => $motel->service_fee, 'unit' => 'tháng'],
@@ -191,6 +191,7 @@ class MotelService
             'name' => $room->name,
             'price' => $room->price,
             'area' => $room->area,
+            'max_occupants' => $room->max_occupants,
             'description' => $room->description,
             'status' => $room->status,
             'amenities' => $room->amenities->pluck('name')->toArray(),

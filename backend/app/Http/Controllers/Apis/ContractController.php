@@ -76,11 +76,10 @@ class ContractController extends Controller
     {
         try {
             $contract = Contract::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
-            $bypassExtract = filter_var($request->input('bypass_extract'), FILTER_VALIDATE_BOOLEAN);
-            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id, $bypassExtract);
+            $updatedContract = $this->contractService->saveContract($request->input('contract_content'), $id);
 
             if ($contract->status === 'Chờ xác nhận' && $request->hasFile('identity_images')) {
-                $this->userService->extractAndSaveIdentityImages(
+                $this->userService->saveIdentityDocument(
                     Auth::user(),
                     $request->file('identity_images')
                 );

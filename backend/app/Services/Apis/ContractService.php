@@ -151,7 +151,7 @@ class ContractService
         }
     }
 
-    public function saveContract(string $content, int $id, bool $bypassExtract = false): Contract
+    public function saveContract(string $content, int $id): Contract
     {
         try {
             $contract = Contract::query()
@@ -159,23 +159,17 @@ class ContractService
                 ->where('id', $id)
                 ->firstOrFail();
 
-            $oldStatus = $contract->status;
-            $newStatus = $bypassExtract ? 'Chờ duyệt thủ công' : 'Chờ duyệt';
-
             $contract->update([
                 'content' => $content,
-                'status' => $newStatus
+                'status' => 'Chờ duyệt'
             ]);
 
-            $type = $bypassExtract ? 'bypass_pending' : 'pending';
-            $title = $bypassExtract
-                ? "Hợp đồng #{$contract->id} đang chờ duyệt thủ công"
-                : "Hợp đồng #{$contract->id} đang chờ duyệt";
-            $body = $bypassExtract
-                ? "Người dùng {$contract->user->name} đã nhập thông tin CCCD trực tiếp và gửi hợp đồng #{$contract->id} để duyệt thủ công."
-                : "Người dùng {$contract->user->name} đã hoàn thiện thông tin cá nhân vào hợp đồng #{$contract->id} và đang chờ duyệt.";
-
-            SendContractNotification::dispatch($contract, $type, $title, $body);
+            SendContractNotification::dispatch(
+                $contract,
+                "pending",
+                "Hợp đồng #{$contract->id} đang chờ duyệt",
+                "Người dùng {$contract->user->name} đã hoàn thiện thông tin cá nhân vào hợp đồng #{$contract->id} và đang chờ duyệt."
+            );
 
             return $contract->fresh();
         } catch (\Throwable $e) {

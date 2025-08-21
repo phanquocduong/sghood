@@ -45,7 +45,7 @@ class UserService
         $user->update(['fcm_token' => $fcmToken]);
     }
 
-    public function extractAndSaveIdentityImages(User $user, array $images): void
+    public function saveIdentityDocument(User $user, array $images): void
     {
         $identityDocumentPaths = [];
         foreach ($images as $index => $imageFile) {

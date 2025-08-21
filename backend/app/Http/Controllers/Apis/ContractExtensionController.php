@@ -34,11 +34,10 @@ class ContractExtensionController extends Controller
         }
     }
 
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $filters = $request->only(['sort', 'status']);
-            $bookings = $this->contractExtensionService->getExtensions($filters);
+            $bookings = $this->contractExtensionService->getExtensions();
             return response()->json([
                 'data' => $bookings
             ], 200);
