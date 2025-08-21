@@ -14,8 +14,9 @@
         <div v-else class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <div class="box-title-bar">
+                    <div class="box-title-bar" style="display: flex; justify-content: space-between; align-items: center; background-color: white; ">
                         <h4>Thông báo</h4>
+                        <button class="read-all-btn" @click="onReadAll"> Đánh dấu là đã đọc tất cả</button>
                     </div>
 
                     <!-- Không có thông báo -->
@@ -87,7 +88,7 @@ import { formatTimeAgo } from '~/utils/time';
 import { useNotificationStore } from '~/stores/notication';
 const NotiStore = useNotificationStore();
 const noti = useAppToast();
-const { notifications, loading, currentPage, totalPages } = storeToRefs(useNotificationStore());
+const { notifications, loading, currentPage, totalPages, onMarkAllAsRead } = storeToRefs(useNotificationStore());
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const safeNotifications = computed(() => notifications.value || []);
@@ -96,7 +97,9 @@ const goToPage = page => {
         NotiStore.fetchNotifications(page);
     }
 };
-
+const onReadAll = async () => {
+    NotiStore.onMarkAllAsRead();
+};
 onMounted(() => {
     NotiStore.fetchNotifications();
     console.log('currentPage:', currentPage.value);
@@ -254,4 +257,17 @@ const removeNotification = index => {
     text-align: center;
     height: 46px;
 }
+.read-all-btn {
+  font-size: 13px;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 15px;
+  line-height: 40px;
+  font-weight: 600;
+}
+.read-all-btn:hover {
+  color: #333;
+}   
 </style>
