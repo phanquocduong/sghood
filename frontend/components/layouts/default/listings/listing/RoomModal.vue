@@ -31,6 +31,7 @@
                 <ul v-if="room.amenities.length != 0" class="amenities-list">
                     <li v-for="amenity in room.amenities" :key="amenity">{{ amenity }}</li>
                 </ul>
+                <p><strong class="label">Số người ở tối đa:</strong> {{ room.max_occupants }}</p>
             </div>
         </div>
     </div>
@@ -71,10 +72,12 @@ const nextImage = () => {
 
 const getStatusClass = status => {
     switch (status) {
-        case 'Còn trống':
+        case 'Trống':
             return 'status-available';
         case 'Đã thuê':
             return 'status-rented';
+        case 'Sửa chữa':
+            return 'status-repaired';
         default:
             return 'status-default';
     }
@@ -242,6 +245,11 @@ const getStatusClass = status => {
 
 .status-rented {
     color: #dc3545;
+    font-weight: 500;
+}
+
+.status-repaired {
+    color: #ffc107;
     font-weight: 500;
 }
 
