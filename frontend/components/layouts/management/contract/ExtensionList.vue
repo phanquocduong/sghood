@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="buttons-to-right">
-                <a href="#" @click.prevent="openExtensionDetailPopup(extension)" class="button gray approve popup-with-zoom-anim">
+                <a href="#" @click.prevent="openExtensionDetailPopup(extension)" class="button gray approve">
                     <i class="im im-icon-Folder-Bookmark"></i> Xem chi tiết
                 </a>
             </div>
