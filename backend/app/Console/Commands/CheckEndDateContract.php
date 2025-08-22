@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SendContractTenantStatusNotification;
 use App\Models\Checkout;
 use App\Models\Contract;
+use App\Models\ContractTenant;
 use App\Models\User;
 use Illuminate\Console\Command;
 use App\Mail\AutoEndContractNotification;
@@ -27,14 +29,15 @@ class CheckEndDateContract extends Command
 
         $this->info("🔍 Bắt đầu kiểm tra các trạng thái kiểm kê và tự động kết thúc hợp đồng...");
 
-        // Kiểm tra và kết thúc hợp đồng đã hoàn tất checkout
-        $hasValidCheckouts = $this->checkCompletedCheckouts($debug);
+        // B1: Xử lý các checkout đã hoàn tất (kết thúc hợp đồng từ checkout)
+        $this->processCompletedCheckouts($debug);
 
-        // Chỉ kiểm tra và kết thúc hợp đồng đã hết hạn nếu không có checkout hợp lệ nào
-        if ($hasValidCheckouts) {
+        // B2: Chỉ auto end nếu KHÔNG có checkout "blocking"
+        if (!$this->hasBlockingCheckouts()) {
             $this->checkEndDateContracts($debug);
         } else {
-            $this->info("ℹ️ Có checkout đang xử lý, bỏ qua tự động kết thúc hợp đồng hết hạn.");
+            $blocking = $this->countBlockingCheckouts();
+            $this->info("ℹ️ Có {$blocking} checkout chưa đủ điều kiện ⇒ bỏ qua auto end theo ngày.");
         }
     }
 
@@ -59,7 +62,7 @@ class CheckEndDateContract extends Command
 
         $this->info("📊 Tìm thấy {$completedCheckouts->count()} checkout hoàn tất");
         // Chỉ tiếp tục nếu có checkout hoàn tất
-        if($completedCheckouts->count() === 0) {
+        if ($completedCheckouts->count() === 0) {
             $this->info('ℹ️ Không có checkout hoàn tất nào.');
             return false;
         }
@@ -129,6 +132,98 @@ class CheckEndDateContract extends Command
         return $validCheckoutsProcessed > 0;
     }
 
+
+    /**
+     * Cập nhật trạng thái & xoá identity_document cho tất cả người ở cùng của hợp đồng.
+     * Có xử lý xoá file trên disk, và log số dòng cập nhật.
+     */
+    private function updateAndClearCoTenants(Contract $contract): void
+    {
+        // Nếu có global scope/soft delete, cân nhắc dùng withoutGlobalScopes()/withTrashed()
+        $tenants = ContractTenant::where('contract_id', $contract->id)->get();
+
+        if ($tenants->isEmpty()) {
+            Log::info('Co-tenant: không có người ở cùng cho hợp đồng', ['contract_id' => $contract->id]);
+            return;
+        }
+
+        // Xoá file của từng người ở cùng (nếu có)
+        foreach ($tenants as $t) {
+            try {
+                if (!empty($t->identity_document) && Storage::disk('private')->exists($t->identity_document)) {
+                    Storage::disk('private')->delete($t->identity_document);
+                    Log::info('Co-tenant: đã xoá file identity_document', [
+                        'contract_id' => $contract->id,
+                        'tenant_id' => $t->id,
+                        'path' => $t->identity_document,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Co-tenant: lỗi xoá file identity_document', [
+                    'contract_id' => $contract->id,
+                    'tenant_id' => $t->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Bulk update trạng thái + xoá reference trong DB
+        $affected = ContractTenant::where('contract_id', $contract->id)
+            ->update([
+                'status' => 'Đã rời đi',
+                'identity_document' => null,
+                'updated_at' => now(),
+            ]);
+
+        Log::info('Co-tenant: cập nhật trạng thái & xoá identity_document', [
+            'contract_id' => $contract->id,
+            'tenant_ids' => $tenants->pluck('id')->all(),
+            'affected_rows' => $affected,
+        ]);
+    }
+
+
+    private function hasBlockingCheckouts(): bool
+    {
+        $today = Carbon::today();
+
+        $count = Checkout::whereHas('contract', function ($q) use ($today) {
+            $q->where('status', 'Hoạt động')
+                ->where('end_date', '<=', $today);
+        })
+            ->where(function ($q) {
+                $q->whereNull('inventory_status')
+                    ->orWhere('inventory_status', '!=', 'Đã kiểm kê')
+                    ->orWhereNull('user_confirmation_status')
+                    ->orWhere('user_confirmation_status', '!=', 'Đồng ý')
+                    ->orWhereNull('refund_status')
+                    ->orWhere('refund_status', '!=', 'Đã xử lý');
+            })
+            ->count();
+
+        return $count > 0;
+    }
+
+    private function countBlockingCheckouts(): int
+    {
+        $today = Carbon::today();
+
+        return Checkout::whereHas('contract', function ($q) use ($today) {
+            $q->where('status', 'Hoạt động')
+                ->where('end_date', '<=', $today);
+        })
+            ->where(function ($q) {
+                $q->whereNull('inventory_status')
+                    ->orWhere('inventory_status', '!=', 'Đã kiểm kê')
+                    ->orWhereNull('user_confirmation_status')
+                    ->orWhere('user_confirmation_status', '!=', 'Đồng ý')
+                    ->orWhereNull('refund_status')
+                    ->orWhere('refund_status', '!=', 'Đã xử lý');
+            })
+            ->count();
+    }
+
+
     /**
      * Kết thúc hợp đồng từ checkout và xử lý các tác vụ liên quan
      */
@@ -150,8 +245,72 @@ class CheckEndDateContract extends Command
             ]);
         }
 
+        $this->updateAndClearCoTenants($contract);
+
         // Xóa identity document của user
         $this->clearUserIdentityDocument($contract->user, $contract->id, $checkout->id);
+    }
+
+
+
+
+    private function processCompletedCheckouts($debug): void
+    {
+        $this->info("✅ === KIỂM TRA CHECKOUT HOÀN TẤT ===");
+
+        $completedCheckouts = Checkout::with(['contract.user', 'contract.room.motel'])
+            ->where('inventory_status', 'Đã kiểm kê')
+            ->where('user_confirmation_status', 'Đồng ý')
+            ->where('refund_status', 'Đã xử lý')
+            ->whereHas('contract', function ($query) {
+                $query->where('status', 'Hoạt động')
+                    ->where('end_date', '<=', Carbon::today());
+            })
+            ->get();
+
+        $this->info("📊 Tìm thấy {$completedCheckouts->count()} checkout hoàn tất");
+
+        if ($debug && $completedCheckouts->isNotEmpty()) {
+            $this->showCompletedCheckoutsDebugInfo($completedCheckouts);
+        }
+
+        foreach ($completedCheckouts as $checkout) {
+            try {
+                $contract = $checkout->contract;
+                if (!$contract) {
+                    $this->warn("⚠️ Checkout #{$checkout->id} không có hợp đồng liên kết");
+                    continue;
+                }
+                if (!$this->isCheckoutValid($checkout)) {
+                    $this->warn("⚠️ Checkout #{$checkout->id} không hợp lệ, bỏ qua");
+                    continue;
+                }
+
+                // ✅ Get co-tenants before ending contract
+                $coTenants = ContractTenant::where('contract_id', $contract->id)->get();
+
+                $this->endContractFromCheckout($contract, $checkout);
+                $this->createContractEndNotification($contract, $checkout);
+                $this->sendCheckoutCompletedEmail($contract, $checkout);
+
+                // ✅ Send notifications to co-tenants
+                foreach ($coTenants as $tenant) {
+                    $this->sendMailForCoTenant($tenant);
+                }
+
+                if ($contract->user?->fcm_token) {
+                    $this->sendContractEndFcmNotification($contract->user, $contract, $checkout);
+                }
+            } catch (\Exception $e) {
+                $this->error("❌ Lỗi khi kết thúc hợp đồng từ checkout #{$checkout->id}: " . $e->getMessage());
+                Log::error("Error ending contract from completed checkout", [
+                    'checkout_id' => $checkout->id,
+                    'contract_id' => $checkout->contract_id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
     }
 
     /**
@@ -265,33 +424,52 @@ class CheckEndDateContract extends Command
     {
         $this->info("🔒 Tự động kết thúc hợp đồng #{$contract->id} (User: " . ($contract->user->name ?? 'N/A') . ")");
 
-        // Kết thúc hợp đồng
+        // 1) Kết thúc hợp đồng
         $contract->update(['status' => 'Kết thúc']);
 
-        // Cập nhật trạng thái phòng thành "Sửa chữa"
+        // 2) Đổi trạng thái phòng
         if ($contract->room_id) {
-            Room::where('id', $contract->room_id)->update([
-                'status' => 'Sửa chữa',
-            ]);
-
+            Room::where('id', $contract->room_id)->update(['status' => 'Sửa chữa']);
             Log::info('Room status updated to repair (auto end)', [
                 'room_id' => $contract->room_id,
                 'contract_id' => $contract->id,
             ]);
         }
 
-        // Xóa identity document của user
+        // 3) ✅ Get all co-tenants before updating their status
+        $coTenants = ContractTenant::where('contract_id', $contract->id)->get();
+
+        // Log the co-tenants found
+        Log::info('Co-tenants found for contract', [
+            'contract_id' => $contract->id,
+            'co_tenants_count' => $coTenants->count(),
+            'co_tenants' => $coTenants->map(function ($tenant) {
+                return [
+                    'id' => $tenant->id,
+                    'name' => $tenant->name,
+                    'email' => $tenant->email,
+                    'status' => $tenant->status
+                ];
+            })->toArray()
+        ]);
+
+        // 4) Update and clear co-tenants (this will change their status to 'Đã rời đi')
+        $this->updateAndClearCoTenants($contract);
+
+        // 5) Xoá identity của chủ hợp đồng
         $this->clearUserIdentityDocument($contract->user, $contract->id, null);
 
+        // 6) Thông báo & email & FCM cho chủ hợp đồng
         $this->info("✅ Hợp đồng #{$contract->id} đã được kết thúc");
-
-        // Tạo thông báo trong database
         $this->createAutoEndContractNotification($contract);
-
-        // Gửi email thông báo
         $this->sendAutoEndContractEmail($contract);
 
-        // Gửi thông báo FCM nếu user có FCM token
+        // 7) ✅ Send notifications to co-tenants AFTER updating their status
+        foreach ($coTenants as $tenant) {
+            $this->sendMailForCoTenant($tenant);
+        }
+
+        // 8) FCM cho chủ hợp đồng
         if ($contract->user?->fcm_token) {
             $notificationData = [
                 'title' => 'Hợp đồng đã kết thúc',
@@ -383,6 +561,65 @@ class CheckEndDateContract extends Command
             Log::error("Error sending auto contract end email", [
                 'contract_id' => $contract->id,
                 'user_id' => $contract->user_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+
+    // gửi mail cho người ở cùng
+    private function sendMailForCoTenant($tenant)
+    {
+        try {
+            // ✅ Validate tenant object first
+            if (!$tenant || !is_object($tenant)) {
+                $this->warn("⚠️ Invalid tenant object");
+                return;
+            }
+
+            if (!$tenant->email) {
+                $this->warn("⚠️ Tenant #{$tenant->name} (ID: {$tenant->id}) không có email, bỏ qua gửi mail");
+                return;
+            }
+
+            // ✅ Load contract relationship if not already loaded
+            if (!$tenant->relationLoaded('contract')) {
+                $tenant->load('contract.room.motel');
+            }
+
+            // ✅ Verify contract exists
+            if (!$tenant->contract) {
+                $this->warn("⚠️ Tenant #{$tenant->id} không có hợp đồng liên kết");
+                return;
+            }
+
+            // ✅ Dispatch the job with proper parameters for "Đã rời đi" status
+            SendContractTenantStatusNotification::dispatch(
+                $tenant,
+                'Đã rời đi',
+                'Hợp đồng đã kết thúc tự động'
+            );
+
+            $this->info("📧 Đã dispatch job gửi email thông báo cho người ở cùng: {$tenant->email}");
+
+            Log::info('Contract tenant notification job dispatched for auto-end', [
+                'contract_id' => $tenant->contract_id,
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'tenant_email' => $tenant->email,
+                'new_status' => 'Đã rời đi',
+                'reason' => 'Hợp đồng đã kết thúc tự động',
+                'room_id' => $tenant->contract->room_id ?? null,
+                'motel_id' => $tenant->contract->room->motel_id ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            $this->error("❌ Lỗi gửi thông báo cho người ở cùng #{$tenant->id}: " . $e->getMessage());
+            Log::error("Error dispatching tenant notification job", [
+                'tenant_id' => $tenant->id ?? 'unknown',
+                'tenant_name' => $tenant->name ?? 'unknown',
+                'contract_id' => $tenant->contract_id ?? 'unknown',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
