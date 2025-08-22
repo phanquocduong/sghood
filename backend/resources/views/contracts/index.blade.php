@@ -36,7 +36,7 @@
                     @php
                         $pendingCount = \App\Models\Contract::where('status', 'Chờ duyệt')->count();
                     @endphp
-                    @if($pendingCount > 0 || $pendingCountt > 0)
+                    @if($pendingCount > 0)
                         <div class="alert alert-warning d-flex align-items-center" role="alert">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <span>Có <strong>{{ $pendingCount }}</strong> hợp đồng đang chờ duyệt</span>
