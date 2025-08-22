@@ -37,7 +37,7 @@
                         <ul class="list-group list-group-flush">
                             @isset($notes)
                                 @forelse($notes->take(4) as $note)
-                                    <li class="list-group-item "py-3" data-id-user="{{ $note->user_id }}"
+                                    <li class="list-group-item py-3" data-id-user="{{ $note->user_id }}"
                                         data-note-id="{{ $note->id }}">
                                         <div class="d-flex">
                                             <div class="flex-shrink-0 me-3">

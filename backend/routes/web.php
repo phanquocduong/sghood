@@ -54,7 +54,7 @@ Route::middleware('admin')->group(function () {
     Route::prefix('notes')->name('notes.')->group(function () {
         Route::get('/', [NoteController::class, 'index'])->name('index');
         Route::post('/', [NoteController::class, 'store'])->name('store');
-        Route::post('/', [NoteController::class, 'storeDashboard'])->name('storeDashboard');
+        Route::post('/note-dashboard', [NoteController::class, 'storeDashboard'])->name('storeDashboard');
         Route::delete('/{id}', [NoteController::class, 'destroy'])->name('destroy');
         Route::get('/users', [NoteController::class, 'getUsersWithNotes'])->name('users');
 
@@ -264,6 +264,7 @@ Route::middleware('admin')->group(function () {
     // Route for repair requests
     Route::get('/repair-requests', [RepairRequestController::class, 'index'])->name('repair_requests.index');
     Route::put('/repair-requests/{id}/status', [RepairRequestController::class, 'updateStatus'])->name('repairs.updateStatus');
+    Route::put('/repair-requests/{id}', [RepairRequestController::class, 'updateStatusDetail'])->name('repair_requests.updateStatusDetail');
     Route::get('/repair-requests/{id}', [RepairRequestController::class, 'show'])->name('repair_requests.show');
     Route::put('repair-requests/{repairRequest}/note', [RepairRequestController::class, 'updateNote'])
     ->name('repair_requests.updateNote');
