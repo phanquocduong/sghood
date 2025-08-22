@@ -35,12 +35,11 @@
                 <div class="mb-4">
                     @php
                         $pendingCount = \App\Models\Contract::where('status', 'Chờ duyệt')->count();
-                        $pendingCountt = \App\Models\Contract::where('status', 'Chờ duyệt thủ công')->count();
                     @endphp
                     @if($pendingCount > 0 || $pendingCountt > 0)
                         <div class="alert alert-warning d-flex align-items-center" role="alert">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span>Có <strong>{{ $pendingCount }}</strong> hợp đồng đang chờ duyệt và <strong>{{ $pendingCountt }}</strong> hợp đồng đang chờ duyệt thủ công</span>
+                            <span>Có <strong>{{ $pendingCount }}</strong> hợp đồng đang chờ duyệt</span>
                         </div>
                     @else
                         <div class="alert alert-info d-flex align-items-center" role="alert">
@@ -66,7 +65,6 @@
                                 <option value="Chờ xác nhận" {{ $status == 'Chờ xác nhận' ? 'selected' : '' }}>Chờ xác nhận
                                 </option>
                                 <option value="Chờ duyệt" {{ $status == 'Chờ duyệt' ? 'selected' : '' }}>Chờ duyệt</option>
-                                <option value="Chờ duyệt thủ công" {{ $status == 'Chờ duyệt thủ công' ? 'selected' : '' }}>Chờ duyệt thủ công</option>
                                 <option value="Chờ chỉnh sửa" {{ $status == 'Chờ chỉnh sửa' ? 'selected' : '' }}>Chờ chỉnh
                                     sửa</option>
                                 <option value="Chờ ký" {{ $status == 'Chờ ký' ? 'selected' : '' }}>Chờ ký</option>

@@ -112,13 +112,18 @@ class ContractTenantService
             ]);
 
             $data = ['status' => $status];
-            if ($status === 'Từ chối' && $rejectionReason) {
+            if ($status === 'Từ chối') {
+                if (!$rejectionReason) {
+                    return ['error' => 'Lý do từ chối là bắt buộc', 'status' => 422];
+                }
                 $data['rejection_reason'] = $rejectionReason;
                 // Xóa identity_document khi từ chối
                 $this->deleteTenantIdentityDocument($id);
-            } elseif ($status === 'Từ chối' && !$rejectionReason) {
-                return ['error' => 'Lý do từ chối là bắt buộc', 'status' => 422];
-            } elseif ($status !== 'Từ chối') {
+            } elseif ($status === 'Đã rời đi') {
+                // Xóa identity_document khi người ở chung đã rời đi
+                $this->deleteTenantIdentityDocument($id);
+                $data['rejection_reason'] = null;
+            } else {
                 $data['rejection_reason'] = null;
             }
 

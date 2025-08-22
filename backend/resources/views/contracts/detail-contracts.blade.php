@@ -365,14 +365,14 @@
                                                 <i class="fas fa-stop-circle me-2"></i>Kết thúc hợp đồng sớm
                                             </button>
                                         @elseif($currentStatus === 'Kết thúc sớm')
-                                            <form action="{{ route('contracts.reactivate', $contract->id) }}" method="POST"
-                                                onsubmit="return confirmStatusChange('Hoạt động')" class="d-inline status-btn">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success shadow-sm px-4 py-2">
-                                                    <i class="fas fa-play-circle me-2"></i>Tái kích hoạt
-                                                </button>
-                                            </form>
                                             @if($contract->user && $contract->user->identity_document)
+                                                <form action="{{ route('contracts.reactivate', $contract->id) }}" method="POST"
+                                                    onsubmit="return confirmStatusChange('Hoạt động')" class="d-inline status-btn">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success shadow-sm px-4 py-2">
+                                                        <i class="fas fa-play-circle me-2"></i>Tái kích hoạt
+                                                    </button>
+                                                </form>
                                                 <form action="{{ route('contracts.deleteIdentity', $contract->id) }}" method="POST"
                                                     onsubmit="return confirmDeleteIdentity()" class="d-inline status-btn">
                                                     @csrf
@@ -683,13 +683,16 @@
                 input.style.backgroundColor = 'lightgrey';
             });
 
-            // Hide original status buttons and show edit controls
+            // Hide original status buttons
             document.querySelectorAll('.status-btn').forEach(element => {
                 element.classList.add('d-none');
             });
-            document.getElementById('editControls').forEach(element => {
-                element.classList.remove('d-none');
-            });
+
+            // Show edit controls
+            const editControls = document.getElementById('editControls');
+            if (editControls) {
+                editControls.classList.remove('d-none');
+            }
 
             // Scroll to top of page
             window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -553,7 +553,11 @@ class ContractService
             }
 
             // Check for unpaid invoices
-            if ($this->checkOverdueInvoices($contractId)) {
+            $hasUnpaidInvoices = Invoice::where('contract_id', $contractId)
+                ->where('status', 'Chưa trả')
+                ->exists();
+
+            if ($hasUnpaidInvoices) {
                 Log::warning('Cố gắng tái kích hoạt hợp đồng có hóa đơn chưa thanh toán', [
                     'contract_id' => $contractId
                 ]);
