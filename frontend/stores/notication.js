@@ -74,6 +74,27 @@ export const useNotificationStore = defineStore('notification', () => {
             console.log(e);
         }
     };
+    const onMarkAllAsRead = async () => {
+        try{
+            const res = await $api('/notifications/mark-all-as-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                }
+            });
+            if (res.status === false) {
+                toast.error(res.message || 'Lỗi khi đánh dấu đã đọc');
+                return;
+            }
+            notifications.value.forEach(n => {
+                n.unread = false;
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const unreadCount = computed(() => notifications.value.filter(n => n.unread).length);
     return {
         notifications,
@@ -83,6 +104,7 @@ export const useNotificationStore = defineStore('notification', () => {
         markAsRead,
         unreadCount,
         totalPages,
-        currentPage
+        currentPage,
+        onMarkAllAsRead
     };
 });

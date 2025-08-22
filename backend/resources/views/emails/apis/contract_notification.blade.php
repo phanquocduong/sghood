@@ -112,11 +112,6 @@
             margin-bottom: 24px;
         }
 
-        .status-pending, .status-bypass-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
         .status-updated {
             background: #dbeafe;
             color: #1e40af;
@@ -308,9 +303,6 @@
                 @if ($type == 'pending')
                     <span class="status-badge status-pending">Chờ duyệt</span><br>
                     Một hợp đồng mới vừa được gửi và đang chờ sự duyệt từ bạn. Vui lòng kiểm tra và xử lý trong thời gian sớm nhất.
-                @elseif ($type == 'bypass_pending')
-                    <span class="status-badge status-bypass-pending">Chờ duyệt thủ công</span><br>
-                    Hợp đồng đã được gửi với thông tin CCCD nhập tay và ảnh tải lên. Vui lòng kiểm tra thông tin và ảnh để duyệt thủ công.
                 @elseif ($type == 'signed')
                     <span class="status-badge status-signed">Đã ký</span><br>
                     Hợp đồng vừa được ký bởi người dùng và đang chờ thanh toán tiền cọc.

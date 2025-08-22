@@ -345,7 +345,6 @@ export function useContract({
             const updatedHtml = updateContractHtml();
             const formData = new FormData();
             formData.append('contract_content', updatedHtml);
-            formData.append('bypass_extract', bypassExtract.value);
 
             if (contract.value.status === 'Chờ xác nhận') {
                 identityImages.value.forEach(file => formData.append('identity_images[]', file));

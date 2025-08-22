@@ -100,17 +100,13 @@ class ContractExtensionService
         }
     }
 
-    public function getExtensions(array $filters)
+    public function getExtensions()
     {
         $query = ContractExtension::query()
             ->with('contract')
             ->whereHas('contract', fn($q) => $q->where('user_id', Auth::id()));
 
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        $query->orderBy('created_at', $this->getSortOrder($filters['sort'] ?? 'default'));
+        $query->orderBy('created_at', 'desc');
 
         $extensions = $query->get()->map(function ($extension) {
             return [
@@ -125,15 +121,6 @@ class ContractExtensionService
         });
 
         return $extensions;
-    }
-
-    protected function getSortOrder($sort)
-    {
-        return match ($sort) {
-            'oldest' => 'asc',
-            'latest', 'default' => 'desc',
-            default => 'desc',
-        };
     }
 
     public function cancelContractExtension(int $id): array

@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use App\Services\MeterReadingService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MeterReadingsExport;
 
 class MeterReadingController extends Controller
 {
@@ -92,12 +95,12 @@ class MeterReadingController extends Controller
                         ->first();
 
                     // Thêm thông tin chỉ số tháng trước vào room object
-                    $room->previous_electricity =  $previousReading ? $previousReading->electricity_kwh : 0;
+                    $room->previous_electricity = $previousReading ? $previousReading->electricity_kwh : 0;
                     $room->previous_water = $previousReading ? $previousReading->water_m3 : 0;
                     $room->previous_month = $previousReading ? $previousReading->month : null;
                     $room->previous_year = $previousReading ? $previousReading->year : null;
                     $room->has_previous_reading = $previousReading !== null;
-                        // dd($room); // Debugging line to check room data
+                    // dd($room); // Debugging line to check room data
                     return $room;
                 });
             });
@@ -230,49 +233,358 @@ class MeterReadingController extends Controller
 
     public function filter(Request $request)
     {
-        $query = MeterReading::query()->with('room');
+        try {
+            $query = MeterReading::query()->with(['room.motel']);
 
-        if ($request->room_id) {
-            $query->whereHas('room', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->room_id . '%');
-            });
-        }
-
-        if ($request->month) {
-            $query->where('month', $request->month);
-        }
-
-        if ($request->year) {
-            $query->where('year', $request->year);
-        }
-
-        if ($request->sortOption) {
-            switch ($request->sortOption) {
-                case 'room_asc':
-                    $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')->orderBy('rooms.name', 'asc');
-                    break;
-                case 'room_desc':
-                    $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')->orderBy('rooms.name', 'desc');
-                    break;
-                case 'month_desc':
-                    $query->orderBy('month', 'desc');
-                    break;
-                case 'month_asc':
-                    $query->orderBy('month', 'asc');
-                    break;
-                case 'created_at_desc':
-                    $query->orderBy('created_at', 'desc');
-                    break;
-                case 'created_at_asc':
-                    $query->orderBy('created_at', 'asc');
-                    break;
+            // ✅ Apply improved search filter
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->whereHas('room', function ($roomQuery) use ($searchTerm) {
+                        $roomQuery->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                        ->orWhereHas('room.motel', function ($motelQuery) use ($searchTerm) {
+                            $motelQuery->where('name', 'like', '%' . $searchTerm . '%');
+                        })
+                        ->orWhere('id', 'like', '%' . $searchTerm . '%');
+                });
             }
+
+            // Apply other filters
+            if ($request->filled('room_id')) {
+                $query->where('room_id', $request->room_id);
+            }
+
+            if ($request->filled('month')) {
+                $query->where('month', $request->month);
+            }
+
+            if ($request->filled('year')) {
+                $query->where('year', $request->year);
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            // Apply sorting
+            if ($request->filled('sortOption')) {
+                switch ($request->sortOption) {
+                    case 'room_asc':
+                        $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')
+                            ->orderBy('rooms.name', 'asc')
+                            ->select('meter_readings.*');
+                        break;
+                    case 'room_desc':
+                        $query->join('rooms', 'rooms.id', '=', 'meter_readings.room_id')
+                            ->orderBy('rooms.name', 'desc')
+                            ->select('meter_readings.*');
+                        break;
+                    case 'month_desc':
+                        $query->orderBy('year', 'desc')->orderBy('month', 'desc');
+                        break;
+                    case 'month_asc':
+                        $query->orderBy('year', 'asc')->orderBy('month', 'asc');
+                        break;
+                    case 'created_at_desc':
+                        $query->orderBy('created_at', 'desc');
+                        break;
+                    case 'created_at_asc':
+                        $query->orderBy('created_at', 'asc');
+                        break;
+                    default:
+                        $query->orderBy('created_at', 'desc');
+                        break;
+                }
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+
+            $meterReadings = $query->paginate(15);
+            $meterReadings->appends($request->all());
+
+            // Calculate statistics for the filtered data
+            $statistics = $this->calculateStatistics($request);
+
+            if ($request->ajax()) {
+                // ✅ Create search summary for AJAX response
+                $searchSummary = null;
+                if ($request->filled('search')) {
+                    $searchSummary = [
+                        'term' => $request->search,
+                        'total_found' => $meterReadings->total(),
+                        'page_showing' => $meterReadings->count()
+                    ];
+                }
+
+                // ✅ Return only the table content for AJAX requests
+                $html = view('meter_readings.partials.history-table', compact('meterReadings', 'searchSummary'))->render();
+
+                return response()->json([
+                    'success' => true,
+                    'html' => $html,
+                    'statistics' => $statistics,
+                    'total_count' => $meterReadings->total(),
+                    'search_summary' => $searchSummary
+                ]);
+            }
+
+            // For non-AJAX requests, redirect to history page with filters
+            return redirect()->route('meter_readings.history', $request->all());
+
+        } catch (\Exception $e) {
+            Log::error('Error filtering meter readings', [
+                'error' => $e->getMessage(),
+                'filters' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Có lỗi xảy ra khi tìm kiếm: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Có lỗi xảy ra khi tìm kiếm.');
         }
+    }
 
-        $meterReadings = $query->paginate(10);
+    public function history(Request $request)
+    {
+        try {
+            // Get all rooms for filter dropdown
+            $rooms = Room::with('motel')->orderBy('name')->get();
 
-        if ($request->ajax()) {
-            return view('meter_readings._meter_readings_table', compact('meterReadings'));
+            $query = MeterReading::query()->with(['room.motel']);
+
+            // ✅ Improved search functionality - search by room name and motel name
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->whereHas('room', function ($roomQuery) use ($searchTerm) {
+                        $roomQuery->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                        ->orWhereHas('room.motel', function ($motelQuery) use ($searchTerm) {
+                            $motelQuery->where('name', 'like', '%' . $searchTerm . '%');
+                        })
+                        ->orWhere('id', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            if ($request->filled('room_id')) {
+                $query->where('room_id', $request->room_id);
+            }
+
+            if ($request->filled('month')) {
+                $query->where('month', $request->month);
+            }
+
+            if ($request->filled('year')) {
+                $query->where('year', $request->year);
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            // Default sorting
+            $query->orderBy('created_at', 'desc');
+
+            $meterReadings = $query->paginate(15);
+            $meterReadings->appends($request->all());
+
+            // Calculate statistics
+            $statistics = $this->calculateStatistics($request);
+
+            // ✅ Add search summary
+            $searchSummary = null;
+            if ($request->filled('search')) {
+                $searchSummary = [
+                    'term' => $request->search,
+                    'total_found' => $meterReadings->total(),
+                    'page_showing' => $meterReadings->count()
+                ];
+            }
+
+            return view('meter_readings.history', array_merge(
+                compact('meterReadings', 'rooms', 'searchSummary'),
+                $statistics
+            ));
+
+        } catch (\Exception $e) {
+            Log::error('Error loading meter readings history', [
+                'error' => $e->getMessage(),
+                'filters' => $request->all()
+            ]);
+
+            return back()->with('error', 'Có lỗi xảy ra khi tải dữ liệu.');
+        }
+    }
+
+    /**
+     * ✅ Fixed export method
+     */
+    public function export(Request $request)
+    {
+        try {
+            $query = MeterReading::with(['room.motel'])
+                ->orderBy('created_at', 'desc');
+
+            // Apply filters
+            if ($request->filled('room_id')) {
+                $query->where('room_id', $request->room_id);
+            }
+
+            if ($request->filled('month')) {
+                $query->where('month', $request->month);
+            }
+
+            if ($request->filled('year')) {
+                $query->where('year', $request->year);
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            $meterReadings = $query->get();
+
+            if ($meterReadings->isEmpty()) {
+                return back()->with('warning', 'Không có dữ liệu để xuất Excel.');
+            }
+
+            $filename = 'meter_readings_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+            // Use string format instead of class constants
+            return Excel::download(new MeterReadingsExport($meterReadings), $filename, 'Xlsx');
+
+        } catch (\Exception $e) {
+            \Log::error('Error exporting meter readings: ' . $e->getMessage());
+            return back()->with('error', 'Có lỗi xảy ra khi xuất file Excel.');
+        }
+    }
+
+    public function getRoomReading(Request $request)
+    {
+        try {
+            $request->validate([
+                'room_id' => 'required|exists:rooms,id',
+                'month' => 'required|integer|between:1,12',
+                'year' => 'required|integer|min:2020'
+            ]);
+
+            $reading = MeterReading::where('room_id', $request->room_id)
+                ->where('month', $request->month)
+                ->where('year', $request->year)
+                ->first();
+
+            if ($reading) {
+                return response()->json([
+                    'exists' => true,
+                    'data' => [
+                        'electricity_kwh' => $reading->electricity_kwh,
+                        'water_m3' => $reading->water_m3,
+                        'id' => $reading->id,
+                        'created_at' => $reading->created_at->format('d/m/Y H:i')
+                    ]
+                ]);
+            }
+
+            return response()->json(['exists' => false]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting room reading', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'exists' => false,
+                'error' => 'Có lỗi xảy ra khi kiểm tra dữ liệu.'
+            ], 500);
+        }
+    }
+
+    /**
+     * ✅ Fixed statistics calculation
+     */
+    private function calculateStatistics(Request $request)
+    {
+        try {
+            $baseQuery = MeterReading::query();
+
+            // ✅ Apply search filter to statistics
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $baseQuery->where(function ($q) use ($searchTerm) {
+                    $q->whereHas('room', function ($roomQuery) use ($searchTerm) {
+                        $roomQuery->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                        ->orWhereHas('room.motel', function ($motelQuery) use ($searchTerm) {
+                            $motelQuery->where('name', 'like', '%' . $searchTerm . '%');
+                        })
+                        ->orWhere('id', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            if ($request->filled('room_id')) {
+                $baseQuery->where('room_id', $request->room_id);
+            }
+
+            if ($request->filled('month')) {
+                $baseQuery->where('month', $request->month);
+            }
+
+            if ($request->filled('year')) {
+                $baseQuery->where('year', $request->year);
+            }
+
+            if ($request->filled('date_from')) {
+                $baseQuery->whereDate('created_at', '>=', $request->date_from);
+            }
+
+            if ($request->filled('date_to')) {
+                $baseQuery->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            // Calculate statistics
+            $totalReadings = (clone $baseQuery)->count();
+            $roomsWithReadings = (clone $baseQuery)->distinct('room_id')->count('room_id');
+            $totalElectricity = (clone $baseQuery)->sum('electricity_kwh') ?: 0;
+            $totalWater = (clone $baseQuery)->sum('water_m3') ?: 0;
+
+            return [
+                'totalReadings' => $totalReadings,
+                'roomsWithReadings' => $roomsWithReadings,
+                'totalElectricity' => $totalElectricity,
+                'totalWater' => $totalWater
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error calculating statistics', [
+                'error' => $e->getMessage(),
+                'filters' => $request->all()
+            ]);
+
+            return [
+                'totalReadings' => 0,
+                'roomsWithReadings' => 0,
+                'totalElectricity' => 0,
+                'totalWater' => 0
+            ];
         }
     }
 

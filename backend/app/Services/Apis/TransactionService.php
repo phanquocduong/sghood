@@ -39,7 +39,7 @@ class TransactionService
                 $query->orderBy('transactions.transaction_date', 'desc');
                 break;
             default:
-                $query->orderBy('transactions.created_at', 'desc');
+                $query->orderBy('transactions.transaction_date', 'desc');
                 break;
         }
 

@@ -5,7 +5,6 @@
         <div class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <ContractExtensionFilter v-model:filter="filter" @update:filter="fetchExtensions" />
                     <ContractExtensionList :extensions="extensions" :is-loading="isLoading" @cancel-extension="cancelExtension" />
                 </div>
             </div>
@@ -25,16 +24,14 @@ definePageMeta({
 const { $api } = useNuxtApp();
 const { handleBackendError } = useApi();
 const extensions = ref([]);
-const filter = ref({ sort: 'default', status: '' });
 const isLoading = ref(false);
 const toast = useAppToast();
 
 const fetchExtensions = async () => {
     isLoading.value = true;
     try {
-        const response = await $api('/contract-extensions', { method: 'GET', params: filter.value });
+        const response = await $api('/contract-extensions', { method: 'GET' });
         extensions.value = response.data;
-        console.log(extensions.value);
     } catch (error) {
         handleBackendError(error, toast);
     } finally {
