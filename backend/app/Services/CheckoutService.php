@@ -515,18 +515,18 @@ class CheckoutService
                             ]);
 
                             // // Xóa identity_document của tenant
-                            // if ($tenant->identity_document && Storage::disk('private')->exists($tenant->identity_document)) {
-                            //     $imagePaths = explode('|', $tenant->identity_document);
-                            //     foreach ($imagePaths as $path) {
-                            //         Storage::disk('private')->delete($path);
-                            //     }
-                            //     Log::info('Deleted tenant identity document', [
-                            //         'contract_tenant_id' => $tenant->id,
-                            //         'deleted_files' => $imagePaths,
-                            //     ]);
-                            // }
+                            if ($tenant->identity_document && Storage::disk('private')->exists($tenant->identity_document)) {
+                                $imagePaths = explode('|', $tenant->identity_document);
+                                foreach ($imagePaths as $path) {
+                                    Storage::disk('private')->delete($path);
+                                }
+                                Log::info('Deleted tenant identity document', [
+                                    'contract_tenant_id' => $tenant->id,
+                                    'deleted_files' => $imagePaths,
+                                ]);
+                            }
 
-                            // $tenant->update(['identity_document' => null]);
+                            $tenant->update(['identity_document' => null]);
 
                             // Gửi thông báo trạng thái cho tenant
                             SendContractTenantStatusNotification::dispatch($tenant, 'Đã rời đi', null);
