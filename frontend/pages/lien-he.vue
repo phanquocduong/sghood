@@ -199,7 +199,7 @@ const handleSubmit = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                
             },
             body: {
                 name: name.value,
@@ -216,6 +216,7 @@ const handleSubmit = async () => {
         } else {
             toast.error(` Gửi thất bại: ${res?.message || 'Lỗi không xác định.'}`);
         }
+            console.log("Contact API response:", res);
     } catch (error) {
         toast.error(' Gửi thất bại: Lỗi kết nối đến máy chủ.');
     } finally {
