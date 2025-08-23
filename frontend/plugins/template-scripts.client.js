@@ -25,7 +25,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 script.src = src;
                 script.async = false;
                 script.onload = () => {
-                    console.log(`Loaded: ${src}`);
+                    // console.log(`Loaded: ${src}`);
                     resolve();
                 };
                 script.onerror = err => {
@@ -45,7 +45,7 @@ export default defineNuxtPlugin(nuxtApp => {
             const $ = window.jQuery;
 
             const initCustom = () => {
-                console.log('Initializing custom.js logic');
+                // console.log('Initializing custom.js logic');
 
                 const initListingSlider = () => {
                     // Áp dụng background-image
@@ -99,16 +99,16 @@ export default defineNuxtPlugin(nuxtApp => {
                 $(window)
                     .off('initListingSlider')
                     .on('initListingSlider', () => {
-                        console.log('Reinitializing listing slider due to data update');
+                        // console.log('Reinitializing listing slider due to data update');
                         initListingSlider();
                     });
 
                 // Mmenu
                 function mmenuInit() {
-                    console.log('Starting mmenuInit');
+                    // console.log('Starting mmenuInit');
                     var wi = $(window).width();
                     if (wi <= 1024) {
-                        console.log('Window width <= 1024, initializing mmenu');
+                        // console.log('Window width <= 1024, initializing mmenu');
                         if ($('#navigation').length === 0) {
                             console.error('#navigation element not found');
                             return;
@@ -126,7 +126,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $('.mmenu-init').find('ul').addClass('mm-listview');
                         $('.mmenu-init').find('.mobile-styles .mm-listview').unwrap();
 
-                        console.log('mmenu-init element created:', $('.mmenu-init').length);
+                        // console.log('mmenu-init element created:', $('.mmenu-init').length);
                         if ($('.mmenu-init').length) {
                             if (!$.fn.mmenu) {
                                 console.error('mmenu plugin is not loaded');
@@ -143,24 +143,24 @@ export default defineNuxtPlugin(nuxtApp => {
                             );
 
                             var mmenuAPI = $('.mmenu-init').data('mmenu');
-                            console.log('mmenuAPI:', mmenuAPI);
+                            // console.log('mmenuAPI:', mmenuAPI);
                             if (mmenuAPI) {
                                 var $icon = $('.hamburger');
                                 $('.mmenu-trigger')
                                     .off('click')
                                     .click(function () {
-                                        console.log('mmenu-trigger clicked');
+                                        // console.log('mmenu-trigger clicked');
                                         mmenuAPI.open();
                                     });
 
                                 mmenuAPI.bind('open:finish', function () {
-                                    console.log('mmenu opened');
+                                    // console.log('mmenu opened');
                                     setTimeout(function () {
                                         $icon.addClass('is-active');
                                     });
                                 });
                                 mmenuAPI.bind('close:finish', function () {
-                                    console.log('mmenu closed');
+                                    // console.log('mmenu closed');
                                     setTimeout(function () {
                                         $icon.removeClass('is-active');
                                     });
@@ -1305,7 +1305,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     containers.each(function () {
                         if (this.parentElement !== document.body) {
                             document.body.appendChild(this);
-                            console.log('Moved toast container to <body>');
+                            // console.log('Moved toast container to <body>');
                         }
                         $(this).css({
                             'z-index': '10000000',
@@ -1333,7 +1333,7 @@ export default defineNuxtPlugin(nuxtApp => {
 
             // Waypoints (dùng trong parallax)
             if (typeof Waypoint !== 'undefined') {
-                console.log('Initializing waypoints');
+                // console.log('Initializing waypoints');
                 $('.waypoint').each(function () {
                     new Waypoint({
                         element: this,
@@ -1347,7 +1347,7 @@ export default defineNuxtPlugin(nuxtApp => {
 
             // CounterUp
             if ($.fn.counterUp) {
-                console.log('Initializing counterUp');
+                // console.log('Initializing counterUp');
                 $('.counter').counterUp('destroy');
                 $('.counter').counterUp({
                     delay: 10,
@@ -1357,7 +1357,7 @@ export default defineNuxtPlugin(nuxtApp => {
 
             // RangeSlider
             if ($.fn.rangeslider) {
-                console.log('Initializing rangeslider');
+                // console.log('Initializing rangeslider');
                 $('input[type="range"]').rangeslider('destroy').rangeslider({
                     polyfill: false
                 });
@@ -1366,7 +1366,7 @@ export default defineNuxtPlugin(nuxtApp => {
 
         Promise.all(scripts.map(loadScript))
             .then(() => {
-                console.log('All scripts loaded successfully');
+                // console.log('All scripts loaded successfully');
                 initPlugins();
             })
             .catch(err => {
@@ -1374,7 +1374,7 @@ export default defineNuxtPlugin(nuxtApp => {
             });
 
         nuxtApp.hook('page:finish', () => {
-            console.log('Page changed, reinitializing plugins');
+            // console.log('Page changed, reinitializing plugins');
             setTimeout(() => {
                 initPlugins();
             }, 200);

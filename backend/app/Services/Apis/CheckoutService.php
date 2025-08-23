@@ -182,7 +182,7 @@ class CheckoutService
 
         $checkout->update(['has_left' => true]);
 
-         // Cập nhật trạng thái của các ContractTenant liên kết với contract có status là "Đang ở"
+        // Cập nhật trạng thái của các ContractTenant liên kết với contract có status là "Đang ở"
         ContractTenant::where('contract_id', $checkout->contract_id)
             ->where('status', 'Đang ở')
             ->update(['status' => 'Đã rời đi']);
@@ -217,12 +217,11 @@ class CheckoutService
 
             $checkout->update(['bank_info' => $bankInfo]);
 
-            $method = $bankInfo ? 'chuyển khoản' : 'tiền mặt';
             SendCheckoutNotification::dispatch(
                 $checkout,
                 'update-bank',
                 "Thông tin hoàn tiền yêu cầu trả phòng #{$checkout->id} đã được cập nhật",
-                "Người dùng {$checkout->contract->user->name} đã cập nhật thông tin hoàn tiền cho yêu cầu trả phòng #{$checkout->id} thành {$method}."
+                "Người dùng {$checkout->contract->user->name} đã cập nhật thông tin hoàn tiền cho yêu cầu trả phòng #{$checkout->id}."
             );
 
             return [

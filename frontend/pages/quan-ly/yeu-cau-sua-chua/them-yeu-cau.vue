@@ -131,7 +131,7 @@ const submitForm = async () => {
         dropzoneInstance.removeAllFiles();
         router.push('/quan-ly/yeu-cau-sua-chua');
     } catch (e) {
-        console.log('Lỗi gửi form:', e?.response?._data || e);
+        console.error('Lỗi gửi form:', e?.response?._data || e);
     } finally {
         isLoading.value = false;
     }

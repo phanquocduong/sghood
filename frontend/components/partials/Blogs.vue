@@ -43,7 +43,6 @@ const { $api } = useNuxtApp();
 const blogPosts = ref([]);
 const baseUrl = useRuntimeConfig().public.baseUrl;
 
-// ✅ Định nghĩa trước khi dùng
 function formatDate(dateStr = '') {
     const date = new Date(dateStr);
     return date.toLocaleDateString('vi-VN', {
@@ -66,7 +65,6 @@ const fetchBlogs = async () => {
                 'Content-Type': 'application/json'
             }
         });
-        console.log('fetch blogs page', res);
         blogPosts.value = res.data
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 3)
@@ -76,10 +74,10 @@ const fetchBlogs = async () => {
                 thumbnail: g.thumbnail?.startsWith('/storage') ? baseUrl + g.thumbnail : g.thumbnail,
                 excerpt: g.excerpt || stripHtml(g.content).slice(0, 100) + '...',
                 url: `/chia-se-kinh-nghiem/${g.slug}`,
-                created_at: formatDate(g.created_at) // ✅ đã dùng
+                created_at: formatDate(g.created_at)
             }));
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Error: ', e);
     } finally {
         loading.value = false;
     }

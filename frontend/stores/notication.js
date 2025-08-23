@@ -23,7 +23,6 @@ export const useNotificationStore = defineStore('notification', () => {
                     'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
                 }
             });
-            console.log('noti:', res);
             if (!res || !res.data || !Array.isArray(res.data.data)) {
                 notifications.value = []; // ← Đảm bảo luôn là mảng
                 return;
@@ -44,7 +43,7 @@ export const useNotificationStore = defineStore('notification', () => {
                 notifications.value = [];
             } else {
                 toast.error('Lỗi khi lấy thông báo');
-                console.log(err);
+                console.error(err);
             }
         } finally {
             loading.value = false;
@@ -71,11 +70,11 @@ export const useNotificationStore = defineStore('notification', () => {
             }
             notifications.value[index].unread = false;
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     };
     const onMarkAllAsRead = async () => {
-        try{
+        try {
             const res = await $api('/notifications/mark-all-as-read', {
                 method: 'POST',
                 headers: {
@@ -91,9 +90,9 @@ export const useNotificationStore = defineStore('notification', () => {
                 n.unread = false;
             });
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
-    }
+    };
 
     const unreadCount = computed(() => notifications.value.filter(n => n.unread).length);
     return {

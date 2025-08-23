@@ -7,12 +7,9 @@ use App\Services\Apis\AmenityService;
 
 class AmenityController extends Controller
 {
-    protected $amenityService;
-
-    public function __construct(AmenityService $amenityService)
-    {
-        $this->amenityService = $amenityService;
-    }
+    public function __construct(
+        private readonly AmenityService $amenityService
+    ) {}
 
     public function index()
     {

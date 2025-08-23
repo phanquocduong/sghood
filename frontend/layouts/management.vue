@@ -117,7 +117,6 @@ const checkAuth = async () => {
 
 onMounted(() => {
     checkAuth();
-    console.log('user ở manager:', user.value);
 });
 </script>
 

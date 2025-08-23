@@ -56,8 +56,6 @@ export default defineNuxtPlugin(nuxtApp => {
         };
 
         onMessage(messaging, payload => {
-            console.log('Message received in foreground:', payload);
-
             if (payload.notification) {
                 toast.success(`${payload.notification.title}: ${payload.notification.body}`);
             }

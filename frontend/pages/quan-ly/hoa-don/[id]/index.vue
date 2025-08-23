@@ -290,7 +290,6 @@ const fetchInvoice = async () => {
     try {
         const response = await $api(`/invoices/${route.params.id}`, { method: 'GET' });
         invoice.value = response.data;
-        console.log(invoice.value);
     } catch (error) {
         const data = error.response?._data;
         toast.error(data?.error || 'Đã có lỗi xảy ra khi lấy chi tiết hóa đơn.');

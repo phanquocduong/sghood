@@ -18,27 +18,23 @@
                                     />
                                 </div>
 
-                                <ClientOnly>
-                                    <div class="main-search-input-item">
-                                        <select name="district" :value="search.district" class="chosen-select">
-                                            <option value="">Tất cả khu vực</option>
-                                            <option v-for="option in districts" :key="option" :value="option">
-                                                {{ option }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </ClientOnly>
+                                <div class="main-search-input-item">
+                                    <select name="district" :value="search.district" class="chosen-select">
+                                        <option value="">Tất cả khu vực</option>
+                                        <option v-for="option in districts" :key="option" :value="option">
+                                            {{ option }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                                <ClientOnly>
-                                    <div class="main-search-input-item">
-                                        <select name="priceRange" :value="search.priceRange" class="chosen-select">
-                                            <option value="">Tất cả mức giá</option>
-                                            <option v-for="option in priceOptions" :key="option.key" :value="option.key">
-                                                {{ option.label }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </ClientOnly>
+                                <div class="main-search-input-item">
+                                    <select name="priceRange" :value="search.priceRange" class="chosen-select">
+                                        <option value="">Tất cả mức giá</option>
+                                        <option v-for="option in priceOptions" :key="option.key" :value="option.key">
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </div>
 
                                 <button class="button" @click="$emit('search')">Tìm kiếm</button>
                             </div>
@@ -68,7 +64,6 @@ const updateSearch = (key, value) => {
     emit('update:search', newSearch);
 };
 
-// Khởi tạo Chosen khi component được mount
 onMounted(() => {
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.chosen) {

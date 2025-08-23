@@ -259,7 +259,6 @@ const fetchBlogs = async slug => {
             created_at: formatDate(res.data.created_at)
         };
 
-        console.log('fetchblogs', res);
         if (!hasIncreasedView.value) {
             try {
                 const resView = await $api(`/blogs/${res.data.id}/increase-view`, {
@@ -269,7 +268,6 @@ const fetchBlogs = async slug => {
                         'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
                     }
                 });
-                console.log('Increase view response:', resView);
                 hasIncreasedView.value = true;
             } catch (err) {
                 console.error('Increase view error:', err);

@@ -342,7 +342,6 @@ const openEditSchedulePopup = async schedule => {
         timeSlot: schedule.scheduled_at ? formatTimeSlot(schedule.scheduled_at) : '',
         message: schedule.message || ''
     };
-    console.log(editFormData.value);
 
     if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
         console.error('Magnific Popup không được tải');

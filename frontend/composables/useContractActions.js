@@ -58,7 +58,6 @@ export function useContractActions({ isLoading, contracts }) {
     const returnContract = async (contractId, data) => {
         isLoading.value = true;
         try {
-            console.log(data);
             await $api(`/contracts/${contractId}/return`, {
                 method: 'POST',
                 headers: {

@@ -5,9 +5,7 @@
             <img
                 class="comment-avatar"
                 style="padding: 0 0 0 0"
-                :src="
-                 comment.user?.avatar ? baseUrl + comment.user.avatar : defaultAvatar
-                "
+                :src="comment.user?.avatar ? baseUrl + comment.user.avatar : defaultAvatar"
             />
         </div>
 
@@ -100,7 +98,6 @@ const HandleReply = async blog_id => {
                 parent_id: props.comment.id
             })
         });
-        console.log('Reply response:', res);
         showReplay.value = false;
         ReplayContent.value = '';
         emit('refresh');

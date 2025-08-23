@@ -248,7 +248,6 @@ const FetchPopularPosts = async () => {
                 'Content-Type': 'application/json'
             }
         });
-        console.log(res);
         popularPosts.value = res.map(g => ({
             id: g.id,
             title: g.title,
@@ -257,7 +256,7 @@ const FetchPopularPosts = async () => {
             url: `/chia-se-kinh-nghiem/${g.slug}`
         }));
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Error: ', e);
     }
 };
 const socialLinks = [
@@ -286,7 +285,6 @@ const fetchBlogs = async (page = 1, selectedCategory = '') => {
             url: `/chia-se-kinh-nghiem/${g.slug}`,
             created_at: formatDate(g.created_at)
         }));
-        console.log('fetchBlogsIndex', res);
         blogPosts.value = mapped;
         allBlogs.value = [...mapped];
 
@@ -295,7 +293,7 @@ const fetchBlogs = async (page = 1, selectedCategory = '') => {
         currentPage.value = res.current_page || 1;
         totalPages.value = res.last_page || 1;
     } catch (e) {
-        console.log('sai o dau do', e);
+        console.error('Error: ', e);
     } finally {
         loading.value = false;
     }
@@ -316,11 +314,10 @@ const searchBlogs = async (keyWord, page = 1, perPage = 5) => {
             excerpt: g.excerpt || stripHtml(g.content).slice(0, 100) + '...',
             url: `/chia-se-kinh-nghiem/${g.slug}`
         }));
-        console.log('searchBlogs', res);
         currentPage.value = res.current_page || 1;
         totalPages.value = res.last_page || 1;
     } catch (e) {
-        console.log('searchBlogs error', e);
+        console.error('searchBlogs error', e);
     }
 };
 onMounted(async () => {

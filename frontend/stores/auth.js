@@ -2,10 +2,12 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { useAppToast } from '~/composables/useToast';
 import { useFirebaseAuth } from '~/composables/useFirebaseAuth';
+import { useApi } from '~/composables/useApi';
 
 export const useAuthStore = defineStore('auth', () => {
     const toast = useAppToast();
     const { $api } = useNuxtApp();
+    const { handleBackendError } = useApi();
     const { sendOTP, verifyOTP, getIdToken, signOut } = useFirebaseAuth();
     const config = useRuntimeConfig();
     const nuxtApp = useNuxtApp();
@@ -25,20 +27,6 @@ export const useAuthStore = defineStore('auth', () => {
     const loading = ref(false);
     const user = ref(null);
     const isAuthenticated = ref(false);
-
-    // Methods
-    const handleBackendError = error => {
-        const data = error.response?._data;
-        if (data?.error) {
-            toast.error(data.error);
-            return;
-        }
-        if (data?.errors) {
-            Object.values(data.errors).forEach(err => toast.error(err[0]));
-            return;
-        }
-        toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.');
-    };
 
     const closePopup = () => {
         if (typeof window !== 'undefined' && window.$.magnificPopup) {
@@ -116,7 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
             // Reset auth state on login failure
             user.value = null;
             isAuthenticated.value = false;
-            handleBackendError(error);
+            handleBackendError(error, toast);
         } finally {
             loading.value = false;
         }
@@ -151,7 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
             await signOut();
             toast.success(response.message);
         } catch (error) {
-            handleBackendError(error);
+            handleBackendError(error, toast);
         } finally {
             loading.value = false;
         }
@@ -249,8 +237,8 @@ export const useAuthStore = defineStore('auth', () => {
             closePopup();
             toast.success(response.message);
         } catch (error) {
-            console.log(error);
-            handleBackendError(error);
+            console.error(error);
+            handleBackendError(error, toast);
         } finally {
             loading.value = false;
         }
@@ -261,8 +249,6 @@ export const useAuthStore = defineStore('auth', () => {
             try {
                 const token = await nuxtApp.$getFcmToken();
                 if (token) {
-                    console.log('Saving FCM token for user:', user.value.id);
-
                     const response = await $api('/save-fcm-token', {
                         method: 'POST',
                         body: { fcm_token: token },
@@ -270,11 +256,9 @@ export const useAuthStore = defineStore('auth', () => {
                             'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
                         }
                     });
-
-                    console.log('FCM token saved successfully');
                     return true;
                 } else {
-                    console.log('No FCM token available to save');
+                    console.error('No FCM token available to save');
                     return false;
                 }
             } catch (error) {
@@ -313,7 +297,6 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = response.data;
             isAuthenticated.value = !!response.data;
         } catch (error) {
-            console.error('Fetch user failed:', error);
             user.value = null;
             isAuthenticated.value = false;
         }

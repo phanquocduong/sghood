@@ -28,7 +28,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 const config = useRuntimeConfig();
-const router = useRouter(); // Khai báo router từ vue-router
+const router = useRouter();
 defineProps(['districts']);
 
 const handleRedirect = district => {

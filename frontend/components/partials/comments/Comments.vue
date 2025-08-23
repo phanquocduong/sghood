@@ -104,7 +104,6 @@ const fetchComments = async (page = 1) => {
         }
         currentPage.value = res.meta.current_page || 1;
         totalPages.value = res.meta.last_page || 1;
-        console.log('Comments:sadsada', res);
     } catch (error) {
         console.error('Lỗi khi fetch bình luận:', error);
     }
@@ -127,7 +126,6 @@ const AddReplay = async blog_id => {
                 user_id: authStore.user?.id
             }
         });
-        console.log('Reply response:', res);
         showReplay.value = false;
         ReplayContent.value = '';
         await fetchComments();
@@ -155,7 +153,6 @@ const getBlogId = async slug => {
 
 // 👀 Theo dõi slug thay đổi
 onMounted(async () => {
-    console.log('onMounted chạy');
     await getBlogId(slug.value);
     await fetchComments();
     if (authStore.user) {

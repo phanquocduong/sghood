@@ -152,9 +152,8 @@ const FetchRepair = async () => {
             }
         });
         repairRequests.value = res.data || [];
-        console.log('id repair:', res);
     } catch (e) {
-        console.log('sai o dau roi ban oi', e);
+        console.error('Error: ', e);
     } finally {
         loading.value = false;
     }

@@ -165,15 +165,12 @@ sudo chmod -R 755 /var/www/html/admin.sghood.com.vn
 ### 2. Clone dự án
 
 -   Tạo PAT trên GitHub: **Settings** > **Developer settings** > **Personal access tokens** > **Generate new token** (chọn quyền `repo`).
--   Clone:
-    ```bash
-    cd /var/www/html/admin.sghood.com.vn
-    sudo -u www-data git clone https://phanquocduong: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@github.com/phanquocduong/sghood.git .
-    ```
--   Chỉ giữ lại backend/, xoá các folder và file khác
--   Chuyển source trong backend/ ra ngoài -> xoá backend/
 
 ```bash
+cd /var/www/html/admin.sghood.com.vn
+sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduong/sghood.git .
+rm -rf frontend/ .git/
+rm .gitignore DEPLOYMENT.md README.md
 mv /var/www/html/admin.sghood.com.vn/backend/* /var/www/html/admin.sghood.com.vn/
 ```
 
@@ -284,7 +281,7 @@ sudo systemctl reload nginx
 sudo certbot --nginx -d admin.sghood.com.vn -d www.admin.sghood.com.vn
 ```
 
-## 8 . Cài Cronjob
+### 8 . Cài Cronjob
 
 ```bash
 cd /var/www/html/admin.sghood.com.vn
@@ -308,9 +305,9 @@ Kiểm tra cronjob đã được thêm chưa:
 crontab -l
 ```
 
-## 9 . Cài Suppervisor
+### 9 . Cài Suppervisor
 
-# Cài đặt Supervisor:
+#### Cài đặt Supervisor:
 
 Cập nhật hệ thống và cài đặt Supervisor:
 
@@ -332,7 +329,7 @@ Kiểm tra trạng thái:
 sudo systemctl status supervisor
 ```
 
-# Tạo file cấu hình Supervisor
+#### Tạo file cấu hình Supervisor
 
 Tạo file cấu hình cho Laravel worker:
 
@@ -358,7 +355,7 @@ stdout_logfile=/var/www/html/admin.sghood.com.vn/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
-# Cấu hình quyền truy cập
+#### Cấu hình quyền truy cập
 
 Đảm bảo user www-data có quyền:
 
@@ -374,7 +371,7 @@ Cấp quyền thực thi cho artisan:
 sudo chmod +x /var/www/html/admin.sghood.com.vn/artisan
 ```
 
-# Khởi động và kiểm tra Supervisor
+#### Khởi động và kiểm tra Supervisor
 
 Áp dụng cấu hình:
 
@@ -387,6 +384,19 @@ sudo supervisorctl update
 
 ```bash
 sudo supervisorctl start laravel-worker:*
+```
+
+### 10 . Tạo symbolic link để phpMyAdmin hoạt động tại admin.sghood.com.vn/phpmyadmin
+
+```bash
+scp -r D:\PRO224\sghood\backend\storage\app\public root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
+scp -r D:\PRO224\sghood\backend\storage\app\private root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
+```
+
+### 11 . Upload storage
+
+```bash
+sudo ln -s /usr/share/phpmyadmin /var/www/html/admin.sghood.com.vn/phpmyadmin
 ```
 
 ## Triển khai Frontend Nuxt 3 SSR (`sghood.com.vn`)
@@ -403,11 +413,13 @@ sudo chmod -R 755 /var/www/html/sghood.com.vn
 
 ```bash
 cd /var/www/html/sghood.com.vn
-sudo -u www-data git clone https://<your-username>:<your-pat>@github.com/phanquocduong/sghood.git .
-```
+sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduong/sghood.git .
+rm -rf backend/ .git/
+rm .gitignore DEPLOYMENT.md README.md
+mv /var/www/html/sghood.com.vn/frontend/* /var/www/html/sghood.com.vn/
 
--   Chỉ giữ lại frontend/, xoá các folder và file khác
--   Chuyển source trong frontend/ ra ngoài -> xoá frontend/
+sudo nano nuxt.config.ts
+```
 
 ### 3. Cài dependencies
 

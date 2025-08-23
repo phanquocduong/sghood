@@ -14,9 +14,12 @@
         <div v-else class="row">
             <div class="col-lg-12 col-md-12">
                 <div class="dashboard-list-box margin-top-0">
-                    <div class="box-title-bar" style="display: flex; justify-content: space-between; align-items: center; background-color: white; ">
+                    <div
+                        class="box-title-bar"
+                        style="display: flex; justify-content: space-between; align-items: center; background-color: white"
+                    >
                         <h4>Thông báo</h4>
-                        <button class="read-all-btn" @click="onReadAll"> Đánh dấu là đã đọc tất cả</button>
+                        <button class="read-all-btn" @click="onReadAll">Đánh dấu là đã đọc tất cả</button>
                     </div>
 
                     <!-- Không có thông báo -->
@@ -102,8 +105,6 @@ const onReadAll = async () => {
 };
 onMounted(() => {
     NotiStore.fetchNotifications();
-    console.log('currentPage:', currentPage.value);
-    console.log('totalPages:', totalPages.value);
 });
 const onMarkAsRead = async id => {
     NotiStore.markAsRead(id);
@@ -258,16 +259,16 @@ const removeNotification = index => {
     height: 46px;
 }
 .read-all-btn {
-  font-size: 13px;
-  color: #999;
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-right: 15px;
-  line-height: 40px;
-  font-weight: 600;
+    font-size: 13px;
+    color: #999;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 15px;
+    line-height: 40px;
+    font-weight: 600;
 }
 .read-all-btn:hover {
-  color: #333;
-}   
+    color: #333;
+}
 </style>

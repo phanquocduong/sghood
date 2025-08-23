@@ -47,7 +47,6 @@ export const useFirebaseAuth = () => {
                 });
             }
 
-            console.log(phone);
             confirmationResult = await signInWithPhoneNumber($firebaseAuth, phone, window.recaptchaVerifier);
             toast.info('Mã OTP đã được gửi!');
             return true;

@@ -1,83 +1,75 @@
 <template>
+    <Loading :is-loading="isLoading" />
+
+    <SearchBanner
+        :search="search"
+        :districts="districts.map(d => d.name)"
+        :price-options="priceOptions"
+        @update:search="search = $event"
+        @search="handleSearch"
+    />
+
     <div>
-        <!-- Banner luôn hiển thị -->
-        <SearchBanner
-            :search="search"
-            :districts="districts.map(d => d.name)"
-            :price-options="priceOptions"
-            @update:search="search = $event"
-            @search="handleSearch"
-        />
+        <SectionFeaturedDistricts :districts="districts" />
+        <SectionFeaturedMotels />
 
-        <!-- Hiệu ứng loading -->
-        <Loading :is-loading="isLoading" />
-
-        <!-- Nội dung chỉ hiển thị khi load xong -->
-        <div>
-            <SectionFeaturedDistricts :districts="districts" />
-            <SectionFeaturedMotels />
-
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-8 col-md-offset-2">
-                        <h2 class="headline centered margin-top-80">
-                            <strong class="headline-with-separator">Tìm Phòng Trọ Dễ Dàng Chỉ Với Vài Bước</strong>
-                            <span class="margin-top-25">
-                                Chọn phòng phù hợp, đặt lịch xem trực tiếp và ký hợp đồng an tâm chỉ trong vài bước đơn giản.
-                            </span>
-                        </h2>
-                    </div>
-                </div>
-
-                <div class="row icons-container">
-                    <div class="col-md-4">
-                        <div class="icon-box-2 with-line">
-                            <i class="im im-icon-Map2"></i>
-                            <h3>Tìm Phòng Phù Hợp</h3>
-                            <p>Sử dụng bộ lọc để tìm trọ theo khu vực, giá, diện tích, tiện ích...</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="icon-box-2 with-line">
-                            <i class="im im-icon-Mail-withAtSign"></i>
-                            <h3>Đặt Lịch Xem Phòng</h3>
-                            <p>Gửi yêu cầu hẹn giờ xem phòng với SGHood ngay trên hệ thống.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="icon-box-2">
-                            <i class="im im-icon-Checked-User"></i>
-                            <h3>Ký Hợp Đồng & Đặt Cọc</h3>
-                            <p>Sau khi xem phòng ưng ý, tiến hành đặt phòng, ký hợp đồng và đặt cọc nhanh chóng.</p>
-                        </div>
-                    </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <h2 class="headline centered margin-top-80">
+                        <strong class="headline-with-separator">Tìm Phòng Trọ Dễ Dàng Chỉ Với Vài Bước</strong>
+                        <span class="margin-top-25">
+                            Chọn phòng phù hợp, đặt lịch xem trực tiếp và ký hợp đồng an tâm chỉ trong vài bước đơn giản.
+                        </span>
+                    </h2>
                 </div>
             </div>
 
-            <!-- Recent Blog Posts -->
-            <section class="fullwidth border-top margin-top-70 padding-top-75 padding-bottom-75" data-background-color="#fff">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h3 class="headline centered margin-bottom-50">
-                                <strong class="headline-with-separator">Bài Viết Mới</strong>
-                            </h3>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <Blogs />
-
-                        <div class="col-md-12 centered-content">
-                            <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-30"> Xem thêm </NuxtLink>
-                        </div>
+            <div class="row icons-container">
+                <div class="col-md-4">
+                    <div class="icon-box-2 with-line">
+                        <i class="im im-icon-Map2"></i>
+                        <h3>Tìm Trọ Phù Hợp</h3>
+                        <p>Sử dụng bộ lọc để tìm trọ theo khu vực, giá, diện tích, tiện ích...</p>
                     </div>
                 </div>
-            </section>
-            <!-- Recent Blog Posts / End -->
+
+                <div class="col-md-4">
+                    <div class="icon-box-2 with-line">
+                        <i class="im im-icon-Mail-withAtSign"></i>
+                        <h3>Đặt Lịch Xem Trọ</h3>
+                        <p>Gửi yêu cầu hẹn giờ xem trọ với SGHood ngay trên hệ thống.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="icon-box-2">
+                        <i class="im im-icon-Checked-User"></i>
+                        <h3>Ký Hợp Đồng & Đặt Cọc</h3>
+                        <p>Sau khi xem trọ ưng ý, tiến hành đặt phòng, ký hợp đồng và đặt cọc nhanh chóng.</p>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <section class="fullwidth border-top margin-top-70 padding-top-75 padding-bottom-75" data-background-color="#fff">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3 class="headline centered margin-bottom-50">
+                            <strong class="headline-with-separator">Bài Viết Mới</strong>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <Blogs />
+                    <div class="col-md-12 centered-content">
+                        <NuxtLink to="/chia-se-kinh-nghiem" class="button border margin-top-30"> Xem thêm </NuxtLink>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 </template>
 
@@ -100,7 +92,6 @@ onMounted(async () => {
             if (config.value?.price_filter_options) {
                 priceOptions.value = JSON.parse(config.value.price_filter_options) || [];
             }
-
             const response = await $api('/districts', { method: 'GET' });
             districts.value = response.data;
         } catch (error) {

@@ -100,11 +100,6 @@ const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 const props = defineProps({
     isOpen: Boolean
 });
-/* const resetHint = () => {
-  localStorage.removeItem(local_hint_key.value)
-  initActions() // cập nhật lại danh sách rawAction
-  console.log('Hint đã được reset.')
-} */
 
 const selectFile = () => {
     if (fileInput.value) {
@@ -115,8 +110,6 @@ const selectFile = () => {
 const handleFileUpload = async e => {
     const file = e.target.files[0];
     if (!file) return;
-
-    console.log('File size (bytes):', file.size);
 
     if (!file || file.size === undefined) {
         toast.error('File không hợp lệ');
@@ -135,15 +128,11 @@ const handleFileUpload = async e => {
 
     try {
         const imageUrl = await uploadImageToFirebase(file, $firebaseStorage);
-        console.log('Uploading image:', file);
-        console.log('Upload to:', $firebaseStorage);
 
         await sendMessage({
             content: imageUrl,
             type: 'image'
         });
-
-        console.log('Image uploaded:', imageUrl);
     } catch (err) {
         console.error('Upload image error:', err);
         toast.error('Gửi ảnh thất bại');
@@ -182,32 +171,27 @@ watch(newMessage, val => {
 });
 
 const initActions = () => {
-  const configs = useState('configs')?.value;
-  let questionMap = {};
+    const configs = useState('configs')?.value;
+    let questionMap = {};
 
-  try {
-    const rawMap = configs?.question_map;
-    questionMap = typeof rawMap === 'string' ? JSON.parse(rawMap) : rawMap || {};
-    console.log('✅ Parsed questionMap:', questionMap);
-  } catch (err) {
-    console.error('Lỗi parse question_map:', err);
-    questionMap = {};
-  }
+    try {
+        const rawMap = configs?.question_map;
+        questionMap = typeof rawMap === 'string' ? JSON.parse(rawMap) : rawMap || {};
+    } catch (err) {
+        console.error('Lỗi parse question_map:', err);
+        questionMap = {};
+    }
 
-  const path = route.path;
-  const segments = path.split('/').filter(Boolean);
-  const matchedKey = Object.keys(questionMap).find(key => segments.includes(key));
-    console.log('🔍 Segments từ path:', segments);
-  const origin = matchedKey ? questionMap[matchedKey] : questionMap['default'] || [];
-    console.log('🎯 matchedKey:', matchedKey);
-  const raw = localStorage.getItem(local_hint_key.value);
-  const usedHints = raw ? JSON.parse(raw) : [];
+    const path = route.path;
+    const segments = path.split('/').filter(Boolean);
+    const matchedKey = Object.keys(questionMap).find(key => segments.includes(key));
+    const origin = matchedKey ? questionMap[matchedKey] : questionMap['default'] || [];
+    const raw = localStorage.getItem(local_hint_key.value);
+    const usedHints = raw ? JSON.parse(raw) : [];
 
-  const filtered = origin.filter(hint => !usedHints.includes(hint));
+    const filtered = origin.filter(hint => !usedHints.includes(hint));
 
-  rawAction.value = filtered;
-
-
+    rawAction.value = filtered;
 };
 
 const handleClick = (text, index) => {
@@ -299,7 +283,6 @@ const initChat = async () => {
                 if (hasAdmin) {
                     lastRealtime.value = Date.now();
                     localStorage.setItem('lastRealtime', lastRealtime.value.toString());
-                    /* console.log('lastRealtime:', lastRealtime.value, new Date(lastRealtime.value)); */
 
                     emit('unread');
                     const audio = notiSound.value;
@@ -327,7 +310,6 @@ const sendMessage = async (payload = null) => {
 
     try {
         const chatId = `${AdminId.value}_${currentUserId.value}`;
-
 
         scrollToBottom();
         newMessage.value = '';
@@ -366,22 +348,22 @@ const sendMessage = async (payload = null) => {
     }
 };
 
-onMounted(async() => {
-        const storeRealtime = localStorage.getItem('lastRealtime');
-        if (!storeRealtime) {
-            lastRealtime.value = 0;
-        } else {
-            lastRealtime.value = parseInt(storeRealtime);
-        }
-        await initChat();
-       await nextTick(async () => {
-   const question =  initActions();
-    if (question) {
-      sendMessage({ type: 'text', text: question });
-       saveUserHint(question); // Đánh dấu là đã dùng gợi ý này
+onMounted(async () => {
+    const storeRealtime = localStorage.getItem('lastRealtime');
+    if (!storeRealtime) {
+        lastRealtime.value = 0;
+    } else {
+        lastRealtime.value = parseInt(storeRealtime);
     }
+    await initChat();
+    await nextTick(async () => {
+        const question = initActions();
+        if (question) {
+            sendMessage({ type: 'text', text: question });
+            saveUserHint(question); // Đánh dấu là đã dùng gợi ý này
+        }
     });
-    });
+});
 
 onBeforeUnmount(() => {
     if (unsubscribe) unsubscribe();

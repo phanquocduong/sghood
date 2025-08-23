@@ -1,20 +1,16 @@
 <template>
     <Loading :is-loading="isLoading" />
     <div v-if="!isLoading" id="wrapper">
-        <!-- Header -->
         <header id="header-container">
             <div id="header">
                 <div class="container">
                     <div class="left-side">
-                        <!-- Logo -->
                         <div id="logo">
                             <NuxtLink to="/"><img v-if="config?.main_logo" :src="baseUrl + config.main_logo" /></NuxtLink>
                         </div>
 
-                        <!-- Mobile Navigation -->
                         <MobileNavigation />
 
-                        <!-- Main Navigation -->
                         <MainNavigation />
                     </div>
 
@@ -46,10 +42,10 @@
         <NuxtPage />
 
         <AppFooter />
-        <!-- Back To Top Button -->
+
         <div id="backtotop"><a href="#"></a></div>
 
-        <!-- chatbox -->
+        <!-- Chatbox -->
         <div>
             <ChatIcon v-if="user && (!isChatOpen || !isMobile)" :unreadMessages="unreadMessages" @toggle="toggleChat" class="chat-icon" />
             <div>
@@ -88,6 +84,7 @@ const toggleChat = () => {
         unreadMessages.value = 0;
     }
 };
+
 const onUnreadMessage = () => {
     if (!isChatOpen.value) {
         unreadMessages.value++;
@@ -105,6 +102,7 @@ watch(
     },
     { immediate: true }
 );
+
 onMounted(() => {
     const CheckMobile = () => {
         isMobile.value = window.innerWidth <= 480;
@@ -113,6 +111,7 @@ onMounted(() => {
     window.addEventListener('resize', CheckMobile);
 });
 </script>
+
 <style scoped>
 @media only screen and (max-width: 480px) {
     .chat-box {
