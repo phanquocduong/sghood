@@ -5,33 +5,40 @@ namespace App\Http\Requests\Apis;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Lớp xác thực dữ liệu cho yêu cầu tạo mới yêu cầu sửa chữa.
+ */
 class StoreRepairRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Kiểm tra quyền truy cập của người dùng.
+     *
+     * @return bool True nếu người dùng đã đăng nhập
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return Auth::check(); // Yêu cầu người dùng phải đăng nhập
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Các quy tắc xác thực dữ liệu đầu vào.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> Quy tắc xác thực
      */
     public function rules(): array
     {
-         return [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string|max:1000',
-            'images' => ['nullable', 'array', 'max:5'],
-            'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        return [
+            'title' => 'required|string|max:255', // Tiêu đề là bắt buộc, tối đa 255 ký tự
+            'description' => 'required|string|max:1000', // Mô tả là bắt buộc, tối đa 1000 ký tự
+            'images' => ['nullable', 'array', 'max:5'], // Ảnh là tùy chọn, tối đa 5 ảnh
+            'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:2048'], // Mỗi ảnh phải là file hợp lệ, định dạng jpg/jpeg/png/webp, tối đa 2MB
         ];
     }
 
     /**
-     * Get custom error messages
+     * Tùy chỉnh thông báo lỗi cho các quy tắc xác thực.
+     *
+     * @return array Thông báo lỗi tùy chỉnh
      */
     public function messages(): array
     {

@@ -4,33 +4,38 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Lớp xác thực dữ liệu cho yêu cầu đăng nhập.
+ */
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Kiểm tra quyền truy cập của người dùng.
+     *
+     * @return bool True nếu người dùng được phép thực hiện yêu cầu
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Cho phép tất cả người dùng thực hiện yêu cầu đăng nhập
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Các quy tắc xác thực cho yêu cầu đăng nhập.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> Quy tắc xác thực
      */
     public function rules(): array
     {
         return [
-            'username' => 'required|string',
-            'password' => 'required|string'
+            'username' => 'required|string', // Tên đăng nhập (email hoặc số điện thoại) là bắt buộc và phải là chuỗi
+            'password' => 'required|string' // Mật khẩu là bắt buộc và phải là chuỗi
         ];
     }
 
     /**
-     * Get the custom messages for validator errors.
+     * Tùy chỉnh thông báo lỗi cho các quy tắc xác thực.
      *
-     * @return array<string, string>
+     * @return array<string, string> Thông báo lỗi tùy chỉnh
      */
     public function messages(): array
     {

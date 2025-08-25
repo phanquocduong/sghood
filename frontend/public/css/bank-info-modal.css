@@ -1,0 +1,135 @@
+/* Style cho nội dung modal */
+.modal-content {
+    padding: 16px;
+}
+
+.modal-content p {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+
+/* Style cho mã QR và biên lai */
+.qr-code,
+.receipt {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.qr-code h5,
+.receipt h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+/* Style cho tiêu đề modal */
+.small-dialog-header {
+    background: linear-gradient(135deg, #f91942 0%, #ff5f7e 100%);
+    padding: 25px 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.small-dialog-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+        repeat;
+}
+
+.small-dialog-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 22px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    color: white;
+    font-weight: bolder;
+}
+
+.booking-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+    color: white;
+    font-weight: 500;
+}
+
+/* Style cho các nút hành động */
+.booking-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.button {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.button.gray {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+}
+
+.button.gray:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+.button:not(.gray) {
+    background: linear-gradient(135deg, #f91942 0%, #ff5f7e 100%);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.button:not(.gray):hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Thiết kế responsive */
+@media (max-width: 768px) {
+    .booking-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .button {
+        width: 100%;
+    }
+
+    .small-dialog-header {
+        padding: 20px;
+    }
+}

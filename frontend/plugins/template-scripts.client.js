@@ -1,29 +1,32 @@
-// plugins/template-scripts.js
+// Định nghĩa plugin để tải và khởi tạo các thư viện JavaScript và xử lý logic giao diện
 export default defineNuxtPlugin(nuxtApp => {
+    // Kiểm tra môi trường client để đảm bảo mã chỉ chạy trên trình duyệt
     if (process.client) {
+        // Danh sách các tệp script cần tải
         const scripts = [
-            '/scripts/jquery-3.6.0.min.js',
-            '/scripts/jquery-migrate-3.3.2.min.js',
-            '/scripts/mmenu.min.js',
-            '/scripts/chosen.min.js',
-            '/scripts/slick.min.js',
-            '/scripts/rangeslider.min.js',
-            '/scripts/magnific-popup.min.js',
-            '/scripts/waypoints.min.js',
-            '/scripts/counterup.min.js',
-            '/scripts/jquery-ui.min.js',
-            '/scripts/tooltips.min.js',
-            '/scripts/custom.js',
-            '/scripts/switcher.js',
-            '/scripts/moment.min.js',
-            '/scripts/daterangepicker.js'
+            '/scripts/jquery-3.6.0.min.js', // Thư viện jQuery phiên bản 3.6.0
+            '/scripts/jquery-migrate-3.3.2.min.js', // Hỗ trợ tương thích ngược cho jQuery
+            '/scripts/mmenu.min.js', // Thư viện menu điều hướng cho thiết bị di động
+            '/scripts/chosen.min.js', // Thư viện tạo dropdown tùy chỉnh
+            '/scripts/slick.min.js', // Thư viện carousel/slideshow
+            '/scripts/rangeslider.min.js', // Thư viện tạo thanh trượt phạm vi
+            '/scripts/magnific-popup.min.js', // Thư viện tạo popup hình ảnh/video
+            '/scripts/waypoints.min.js', // Thư viện kích hoạt hiệu ứng khi cuộn trang
+            '/scripts/counterup.min.js', // Thư viện đếm số tăng dần
+            '/scripts/jquery-ui.min.js', // Thư viện giao diện người dùng của jQuery
+            '/scripts/tooltips.min.js', // Thư viện tạo tooltip
+            '/scripts/custom.js', // Tệp script tùy chỉnh cho dự án
+            '/scripts/switcher.js', // Tệp script xử lý chuyển đổi giao diện
+            '/scripts/moment.min.js', // Thư viện xử lý thời gian và ngày tháng
+            '/scripts/daterangepicker.js' // Thư viện chọn khoảng ngày
         ];
 
+        // Hàm tải script động và trả về Promise
         const loadScript = src => {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 script.src = src;
-                script.async = false;
+                script.async = false; // Tải script theo thứ tự
                 script.onload = () => {
                     // console.log(`Loaded: ${src}`);
                     resolve();
@@ -32,11 +35,13 @@ export default defineNuxtPlugin(nuxtApp => {
                     console.error(`Failed to load: ${src}`, err);
                     reject(err);
                 };
-                document.head.appendChild(script);
+                document.head.appendChild(script); // Thêm script vào thẻ head
             });
         };
 
+        // Hàm khởi tạo các plugin và logic giao diện
         const initPlugins = () => {
+            // Kiểm tra sự tồn tại của jQuery
             if (!window.jQuery) {
                 console.error('jQuery not loaded');
                 return;
@@ -44,11 +49,13 @@ export default defineNuxtPlugin(nuxtApp => {
 
             const $ = window.jQuery;
 
+            // Hàm xử lý logic tùy chỉnh cho giao diện
             const initCustom = () => {
                 // console.log('Initializing custom.js logic');
 
+                // Hàm khởi tạo slider cho danh sách
                 const initListingSlider = () => {
-                    // Áp dụng background-image
+                    // Áp dụng background-image cho các phần tử có thuộc tính data-background-image
                     $('.listing-slider-small .item').each(function () {
                         var attrImageBG = $(this).attr('data-background-image');
                         if (attrImageBG !== undefined) {
@@ -56,7 +63,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         }
                     });
 
-                    // Khởi tạo Magnific Popup
+                    // Khởi tạo Magnific Popup cho gallery hình ảnh
                     $('.mfp-gallery-container').each(function () {
                         $(this).magnificPopup({
                             type: 'image',
@@ -72,7 +79,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         });
                     });
 
-                    // Khởi tạo Slick cho listing-slider
+                    // Khởi tạo Slick carousel cho listing-slider
                     if ($('.listing-slider-small').length) {
                         try {
                             $('.listing-slider-small').slick('unslick'); // Hủy khởi tạo nếu đã tồn tại
@@ -92,10 +99,10 @@ export default defineNuxtPlugin(nuxtApp => {
                     }
                 };
 
-                // Gọi khởi tạo ban đầu
+                // Gọi hàm khởi tạo slider ban đầu
                 initListingSlider();
 
-                // Lắng nghe sự kiện initListingSlider để khởi tạo lại khi dữ liệu sẵn sàng
+                // Lắng nghe sự kiện để khởi tạo lại slider khi dữ liệu thay đổi
                 $(window)
                     .off('initListingSlider')
                     .on('initListingSlider', () => {
@@ -103,17 +110,18 @@ export default defineNuxtPlugin(nuxtApp => {
                         initListingSlider();
                     });
 
-                // Mmenu
+                // Hàm khởi tạo menu điều hướng cho thiết bị di động
                 function mmenuInit() {
                     // console.log('Starting mmenuInit');
                     var wi = $(window).width();
                     if (wi <= 1024) {
+                        // Chỉ khởi tạo menu trên màn hình nhỏ
                         // console.log('Window width <= 1024, initializing mmenu');
                         if ($('#navigation').length === 0) {
                             console.error('#navigation element not found');
                             return;
                         }
-                        $('.mmenu-init').remove();
+                        $('.mmenu-init').remove(); // Xóa menu hiện tại nếu có
                         $('#navigation')
                             .clone()
                             .addClass('mmenu-init')
@@ -150,7 +158,7 @@ export default defineNuxtPlugin(nuxtApp => {
                                     .off('click')
                                     .click(function () {
                                         // console.log('mmenu-trigger clicked');
-                                        mmenuAPI.open();
+                                        mmenuAPI.open(); // Mở menu
                                     });
 
                                 mmenuAPI.bind('open:finish', function () {
@@ -175,16 +183,17 @@ export default defineNuxtPlugin(nuxtApp => {
                     $('.mm-next').addClass('mm-fullsubopen');
                 }
 
-                // Gọi trong document.ready hoặc hook của Nuxt
+                // Khởi tạo mmenu và các sự kiện liên quan khi tài liệu sẵn sàng
                 $(document).ready(function () {
                     mmenuInit();
                     $(window).off('resize.mmenu').on('resize.mmenu', mmenuInit);
                 });
-                // User Menu
+
+                // Xử lý sự kiện click cho menu người dùng
                 $('.user-menu')
                     .off('click')
                     .on('click', function () {
-                        $(this).toggleClass('active');
+                        $(this).toggleClass('active'); // Chuyển đổi trạng thái active
                     });
 
                 var mouse_is_inside = false;
@@ -203,9 +212,9 @@ export default defineNuxtPlugin(nuxtApp => {
                         if (!mouse_is_inside) $('.user-menu').removeClass('active');
                     });
 
-                // Back to Top
-                var pxShow = 600;
-                var scrollSpeed = 500;
+                // Xử lý nút "Back to Top"
+                var pxShow = 600; // Độ cao cuộn để hiển thị nút
+                var scrollSpeed = 500; // Tốc độ cuộn
                 $(window)
                     .off('scroll.backtotop')
                     .scroll(function () {
@@ -219,11 +228,11 @@ export default defineNuxtPlugin(nuxtApp => {
                 $('#backtotop a')
                     .off('click')
                     .on('click', function () {
-                        $('html, body').animate({ scrollTop: 0 }, scrollSpeed);
+                        $('html, body').animate({ scrollTop: 0 }, scrollSpeed); // Cuộn lên đầu trang
                         return false;
                     });
 
-                // Inline CSS
+                // Áp dụng CSS inline cho các phần tử có thuộc tính data-background
                 function inlineCSS() {
                     $(
                         '.main-search-container, section.fullwidth, .listing-slider .item, .listing-slider-small .item, .address-container, .img-box-background, .image-edge, .edge-bg'
@@ -240,6 +249,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 }
                 inlineCSS();
 
+                // Xử lý hiệu ứng parallax cho background
                 function parallaxBG() {
                     $('.parallax').prepend('<div class="parallax-overlay"></div>');
                     $('.parallax').each(function () {
@@ -263,7 +273,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 }
                 parallaxBG();
 
-                // Image Box
+                // Xử lý background cho category-box và img-box
                 $('.category-box').each(function () {
                     $(this).append('<div class="category-box-background"></div>');
                     $(this)
@@ -278,7 +288,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         .css({ 'background-image': 'url(' + $(this).attr('data-background-image') + ')' });
                 });
 
-                // Parallax
+                // Xử lý parallax cho thiết bị không cảm ứng
                 if ('ontouchstart' in window) {
                     document.documentElement.className = document.documentElement.className + ' touch';
                 }
@@ -286,6 +296,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     $('.parallax').css('background-attachment', 'fixed');
                 }
 
+                // Sửa lỗi fullscreen cho nội dung
                 function fullscreenFix() {
                     var h = $('body').height();
                     $('.content-b').each(function () {
@@ -297,6 +308,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 $(window).off('resize.fullscreen').resize(fullscreenFix);
                 fullscreenFix();
 
+                // Điều chỉnh kích thước background cho parallax
                 function backgroundResize() {
                     var windowH = $(window).height();
                     $('.parallax').each(function () {
@@ -326,6 +338,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 $(window).off('resize.bg focus.bg').resize(backgroundResize).focus(backgroundResize);
                 backgroundResize();
 
+                // Điều chỉnh vị trí parallax khi cuộn
                 function parallaxPosition() {
                     var heightWindow = $(window).height();
                     var topWindow = $(window).scrollTop();
@@ -359,6 +372,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     parallaxPosition();
                 }
 
+                // Xử lý sự kiện mousewheel cho IE
                 if (navigator.userAgent.match(/Trident\/7\./)) {
                     $('body')
                         .off('mousewheel')
@@ -370,7 +384,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         });
                 }
 
-                // Chosen
+                // Khởi tạo Chosen cho dropdown
                 var config = {
                     '.chosen-select': { disable_search_threshold: 10, width: '100%' },
                     '.chosen-select-deselect': { allow_single_deselect: true, width: '100%' },
@@ -385,7 +399,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     }
                 }
 
-                // Magnific Popup
+                // Khởi tạo Magnific Popup cho các loại popup
                 $('.mfp-gallery-container').each(function () {
                     $(this).magnificPopup({
                         type: 'image',
@@ -430,7 +444,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     fixedContentPos: false
                 });
 
-                // Slick Carousel - Đảm bảo kiểm tra sự tồn tại và bọc trong try...catch
+                // Khởi tạo Slick carousel cho các carousel khác nhau
                 if ($('.fullwidth-slick-carousel').length) {
                     try {
                         $('.fullwidth-slick-carousel').slick('unslick');
@@ -576,7 +590,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     });
                 }
 
-                // Tabs
+                // Xử lý tab điều hướng
                 var $tabsNav = $('.tabs-nav'),
                     $tabsNavLis = $tabsNav.children('li');
                 $tabsNav.each(function () {
@@ -599,7 +613,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     anchor.parent('li').click();
                 }
 
-                // Accordions
+                // Xử lý accordion
                 var $accor = $('.accordion');
                 $accor.each(function () {
                     $(this).toggleClass('ui-accordion ui-widget ui-helper-reset');
@@ -620,7 +634,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     e.preventDefault();
                 });
 
-                // Toggle
+                // Xử lý toggle
                 $('.toggle-container').hide();
                 $('.trigger, .trigger.opened')
                     .off('click')
@@ -635,13 +649,13 @@ export default defineNuxtPlugin(nuxtApp => {
                     });
                 $('.trigger.opened').addClass('active').next('.toggle-container').show();
 
-                // Tooltips (tipTip)
+                // Xử lý tooltip
                 $('.tooltip.top').tipTip({ defaultPosition: 'top' });
                 $('.tooltip.bottom').tipTip({ defaultPosition: 'bottom' });
                 $('.tooltip.left').tipTip({ defaultPosition: 'left' });
                 $('.tooltip.right').tipTip({ defaultPosition: 'right' });
 
-                // Rating Overview
+                // Xử lý thanh đánh giá
                 function ratingOverview(ratingElem) {
                     $(ratingElem).each(function () {
                         var dataRating = $(this).attr('data-rating');
@@ -670,7 +684,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         ratingOverview('.rating-bars-rating');
                     });
 
-                // Upload Button
+                // Xử lý nút tải tệp
                 var uploadButton = {
                     $button: $('.uploadButton-input'),
                     $nameField: $('.uploadButton-file-name')
@@ -683,14 +697,14 @@ export default defineNuxtPlugin(nuxtApp => {
                     uploadButton.$nameField.html(selectedFile);
                 });
 
-                // Recaptcha
+                // Xử lý reCAPTCHA
                 $('.message-vendor')
                     .off('click')
                     .on('click', function () {
                         $('.captcha-holder').addClass('visible');
                     });
 
-                // Like Icon
+                // Xử lý nút "Like"
                 $('.like-icon, .widget-button, .like-button')
                     .off('click')
                     .on('click', function (e) {
@@ -699,7 +713,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $(this).children('.like-icon').toggleClass('liked');
                     });
 
-                // Search Form More Options
+                // Xử lý tùy chọn tìm kiếm nâng cao
                 $('.more-search-options-trigger')
                     .off('click')
                     .on('click', function (e) {
@@ -708,7 +722,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $('.more-search-options.relative').animate({ height: 'toggle', opacity: 'toggle' }, 300);
                     });
 
-                // Half Screen Map
+                // Xử lý bố cục bản đồ nửa màn hình
                 $(window)
                     .off('load.map resize.map')
                     .on('load resize', function () {
@@ -722,7 +736,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         }
                     });
 
-                // CounterUp
+                // Khởi tạo CounterUp
                 $(window)
                     .off('load.counter')
                     .on('load', function () {
@@ -732,7 +746,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         });
                     });
 
-                // Rating Script
+                // Xử lý đánh giá
                 $('.leave-rating input')
                     .off('change')
                     .change(function () {
@@ -741,7 +755,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $radio.closest('label').addClass('selected');
                     });
 
-                // Dashboard Scripts
+                // Xử lý điều hướng dashboard
                 $('.dashboard-nav ul li a')
                     .off('click')
                     .on('click', function () {
@@ -821,7 +835,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         }
                     });
 
-                // Time Slots
+                // Xử lý khung thời gian
                 $('.day-slots').each(function () {
                     var daySlots = $(this);
                     daySlots
@@ -915,7 +929,7 @@ export default defineNuxtPlugin(nuxtApp => {
 
                 $('.plusminus').numberPicker();
 
-                // Pricing List
+                // Xử lý danh sách giá
                 function newMenuItem() {
                     var newElem = $('tr.pricing-list-item.pattern').first().clone();
                     newElem.find('input').val('');
@@ -971,7 +985,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     .children('input')
                     .before('<i class="data-unit">' + fieldUnit + '</i>');
 
-                // Notifications
+                // Xử lý thông báo
                 $('a.close')
                     .removeAttr('href')
                     .off('click')
@@ -980,7 +994,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $(this).parent().css(fadeOut).slideUp();
                     });
 
-                // Panel Dropdown
+                // Xử lý dropdown panel
                 function close_panel_dropdown() {
                     $('.panel-dropdown').removeClass('active');
                     $('.fs-inner-container.content').removeClass('faded-out');
@@ -1048,7 +1062,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         }
                     });
 
-                // Show More Button
+                // Xử lý nút "Show More"
                 $('.show-more-button')
                     .off('click')
                     .on('click', function (e) {
@@ -1065,7 +1079,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         }
                     });
 
-                // Listing Page Nav
+                // Xử lý điều hướng trang danh sách
                 $(window)
                     .off('load.listNav resize.listNav scroll.listNav')
                     .on('load resize scroll', function () {
@@ -1131,7 +1145,7 @@ export default defineNuxtPlugin(nuxtApp => {
                             });
                     });
 
-                // Payment Accordion
+                // Xử lý accordion thanh toán
                 var radios = document.querySelectorAll('.payment-tab-trigger > input');
                 for (var i = 0; i < radios.length; i++) {
                     radios[i].removeEventListener('change', expandAccordion);
@@ -1146,7 +1160,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     event.target.parentNode.parentNode.classList.add('payment-tab-active');
                 }
 
-                // Booking Sticky Footer
+                // Xử lý footer cố định cho đặt chỗ
                 $('.booking-sticky-footer a.button')
                     .off('click')
                     .on('click', function (e) {
@@ -1154,7 +1168,7 @@ export default defineNuxtPlugin(nuxtApp => {
                         $('html, body').animate({ scrollTop: $($anchor.attr('href')).offset().top - 100 }, 1000);
                     });
 
-                // Contact Form
+                // Xử lý form liên hệ
                 var shake = 'No';
                 $('#message').hide();
                 $('#name, #comments, #subject')
@@ -1230,7 +1244,7 @@ export default defineNuxtPlugin(nuxtApp => {
                     return pattern.test(emailAddress);
                 }
 
-                // Ratings (Numerical and Star)
+                // Xử lý đánh giá số và sao
                 function numericalRating(ratingElem) {
                     $(ratingElem).each(function () {
                         var dataRating = $(this).attr('data-rating');
@@ -1299,7 +1313,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 }
                 starRating('.star-rating');
 
-                // Đảm bảo toast luôn trong <body> và trên cùng
+                // Đảm bảo toast hiển thị trên cùng
                 const ensureToastInBody = () => {
                     const containers = $('.Vue-Toastification__container');
                     containers.each(function () {
@@ -1314,24 +1328,24 @@ export default defineNuxtPlugin(nuxtApp => {
                     });
                 };
 
-                // Lắng nghe sự kiện mmenu và Magnific Popup
+                // Lắng nghe sự kiện mmenu và Magnific Popup để đảm bảo toast
                 if ($.fn.mmenu) {
                     $('.mmenu-init').on('mmenu:open mmenu:close', ensureToastInBody);
                 }
                 $(document).on('mfpOpen mfpClose', ensureToastInBody);
 
-                // Gọi trong document.ready hoặc hook của Nuxt
+                // Gọi lại khi tài liệu sẵn sàng
                 $(document).ready(function () {
                     mmenuInit();
                     $(window).off('resize.mmenu').on('resize.mmenu', mmenuInit);
-                    ensureToastInBody(); // Gọi lần đầu
+                    ensureToastInBody();
                 });
             };
 
-            // Gọi initCustom
+            // Gọi hàm khởi tạo logic tùy chỉnh
             initCustom();
 
-            // Waypoints (dùng trong parallax)
+            // Khởi tạo Waypoints cho hiệu ứng cuộn
             if (typeof Waypoint !== 'undefined') {
                 // console.log('Initializing waypoints');
                 $('.waypoint').each(function () {
@@ -1345,7 +1359,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 console.log('waypoints not available');
             }
 
-            // CounterUp
+            // Khởi tạo CounterUp
             if ($.fn.counterUp) {
                 // console.log('Initializing counterUp');
                 $('.counter').counterUp('destroy');
@@ -1355,7 +1369,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 });
             }
 
-            // RangeSlider
+            // Khởi tạo RangeSlider
             if ($.fn.rangeslider) {
                 // console.log('Initializing rangeslider');
                 $('input[type="range"]').rangeslider('destroy').rangeslider({
@@ -1364,6 +1378,7 @@ export default defineNuxtPlugin(nuxtApp => {
             }
         };
 
+        // Tải tất cả script và khởi tạo plugin
         Promise.all(scripts.map(loadScript))
             .then(() => {
                 // console.log('All scripts loaded successfully');
@@ -1373,6 +1388,7 @@ export default defineNuxtPlugin(nuxtApp => {
                 console.error('Error loading scripts:', err);
             });
 
+        // Hook để khởi tạo lại plugin khi trang thay đổi
         nuxtApp.hook('page:finish', () => {
             // console.log('Page changed, reinitializing plugins');
             setTimeout(() => {

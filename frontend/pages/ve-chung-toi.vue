@@ -1,10 +1,13 @@
+<!-- Template cho trang giới thiệu về chúng tôi -->
 <template>
     <div class="page-wrapper">
-        <!-- VỀ CHÚNG TÔI -->
+        <!-- Phần giới thiệu "Về chúng tôi" -->
         <section class="section bg-gray">
             <div class="section-inner">
+                <!-- Tiêu đề chính của phần -->
                 <h2 class="section-title title-large">VỀ CHÚNG TÔI</h2>
                 <div class="flex-row">
+                    <!-- Khối văn bản mô tả -->
                     <div class="text-block">
                         <h3 class="sub-title">CHÚNG TÔI LÀ AI</h3>
                         <div class="text-box">
@@ -15,14 +18,16 @@
                             </p>
                         </div>
                     </div>
+                    <!-- Hình ảnh minh họa -->
                     <img src="/images/Questions-pana.png" alt="About" class="image" />
                 </div>
             </div>
         </section>
 
-        <!-- SỨ MỆNH & TẦM NHÌN -->
+        <!-- Phần sứ mệnh và tầm nhìn -->
         <section class="section bg-white">
             <div class="section-inner">
+                <!-- Tiêu đề chính của phần -->
                 <h2 class="section-title">SỨ MỆNH & TẦM NHÌN</h2>
                 <div class="text-box">
                     <p>
@@ -38,11 +43,13 @@
             </div>
         </section>
 
-        <!-- CHÚNG TÔI LÀM GÌ -->
+        <!-- Phần "Chúng tôi làm gì" -->
         <section class="section bg-gray">
             <div class="section-inner">
+                <!-- Tiêu đề chính của phần -->
                 <h2 class="section-title">CHÚNG TÔI LÀM GÌ</h2>
                 <div class="flex-row">
+                    <!-- Khối văn bản liệt kê dịch vụ -->
                     <div class="text-block">
                         <div class="text-box">
                             <p>✔ Tìm kiếm & lọc phòng theo khu vực, giá cả, tiện ích và đánh giá.</p>
@@ -51,14 +58,16 @@
                             <p>✔ Cung cấp thông tin rõ ràng, hình ảnh thực tế, hợp đồng minh bạch.</p>
                         </div>
                     </div>
+                    <!-- Hình ảnh minh họa -->
                     <img src="/images/Man thinking-pana.png" alt="About" class="image" />
                 </div>
             </div>
         </section>
 
-        <!-- ĐỘI NGŨ PHÁT TRIỂN -->
+        <!-- Phần đội ngũ phát triển -->
         <section class="section bg-white">
             <div class="section-inner">
+                <!-- Tiêu đề chính của phần -->
                 <h2 class="section-title">ĐỘI NGŨ PHÁT TRIỂN</h2>
                 <div class="text-box">
                     <p>
@@ -75,157 +84,40 @@
 <script setup>
 import { useHead } from '#app';
 
-// Cấu hình SEO cho trang về chúng tôi
+// Cấu hình SEO cho trang "Về chúng tôi"
 useHead({
-    title: 'SGHood - Về Chúng Tôi',
+    title: 'SGHood - Về Chúng Tôi', // Tiêu đề trang
     meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { charset: 'utf-8' }, // Thiết lập mã hóa ký tự
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }, // Responsive viewport
         {
             hid: 'description',
             name: 'description',
             content:
-                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.'
+                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.' // Mô tả SEO
         },
         {
             name: 'keywords',
-            content: 'SGHood, về chúng tôi, quản lý nhà trọ, thuê trọ TP. Hồ Chí Minh, nền tảng thuê trọ, đội ngũ phát triển'
+            content: 'SGHood, về chúng tôi, quản lý nhà trọ, thuê trọ TP. Hồ Chí Minh, nền tảng thuê trọ, đội ngũ phát triển' // Từ khóa SEO
         },
-        { name: 'author', content: 'SGHood Team' },
-        // Open Graph
+        { name: 'author', content: 'SGHood Team' }, // Tác giả
+        // Open Graph metadata
         {
             property: 'og:title',
-            content: 'SGHood - Về Chúng Tôi'
+            content: 'SGHood - Về Chúng Tôi' // Tiêu đề Open Graph
         },
         {
             property: 'og:description',
             content:
-                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.'
+                'Tìm hiểu về SGHood - nền tảng quản lý thuê trọ thông minh tại TP. Hồ Chí Minh, sứ mệnh, tầm nhìn và đội ngũ phát triển.' // Mô tả Open Graph
         },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: 'https://sghood.com.vn/ve-chung-toi' }
+        { property: 'og:type', content: 'website' }, // Loại nội dung Open Graph
+        { property: 'og:url', content: 'https://sghood.com.vn/ve-chung-toi' } // URL Open Graph
     ]
 });
 </script>
 
+<!-- CSS tùy chỉnh cho trang -->
 <style scoped>
-/* Layout chung */
-.section {
-    padding: 40px 0;
-}
-
-.bg-gray {
-    background-color: #f8f8f8;
-}
-
-.bg-white {
-    background-color: #ffffff;
-}
-
-.section-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 16px;
-}
-
-.section-title {
-    font-size: 32px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 24px;
-    color: #f91942;
-}
-
-.title-large {
-    font-size: 40px;
-}
-
-.sub-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 16px;
-    color: #333;
-}
-
-/* Flex layout */
-.flex-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.text-block {
-    flex: 1 1 300px;
-    max-width: 100%;
-}
-
-.text-box {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.text-box p {
-    margin-bottom: 12px;
-    line-height: 1.6;
-    color: #333;
-    text-align: left;
-}
-
-.image {
-    width: 300px;
-    height: auto;
-    object-fit: contain;
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-/* Responsive Tablet */
-@media screen and (max-width: 1024px) {
-    .section-title {
-        font-size: 28px;
-    }
-    .sub-title {
-        font-size: 20px;
-    }
-    .image {
-        width: 250px;
-    }
-}
-
-@media screen and (max-width: 640px) {
-    .section {
-        padding: 24px 0; /* giảm chiều cao section */
-    }
-
-    .flex-row {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .image {
-        order: -1; /* đẩy hình lên trên */
-        width: 50%;
-        max-width: 280px;
-        margin-bottom: 16px;
-    }
-
-    .text-box p {
-        text-align: center;
-    }
-
-    .section-title {
-        font-size: 24px;
-    }
-
-    .sub-title {
-        font-size: 18px;
-    }
-
-    .text-box {
-        padding: 0 10px;
-    }
-}
+@import '~/public/css/about.css';
 </style>

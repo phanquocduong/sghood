@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Service class for handling authentication business logic.
+ * Lớp dịch vụ xử lý logic nghiệp vụ xác thực cho người dùng.
  */
 class AuthService
 {
@@ -34,17 +34,18 @@ class AuthService
     ];
 
     /**
-     * Attempt user login with provided credentials.
+     * Thử đăng nhập người dùng với thông tin đăng nhập.
      *
-     * @param array $credentials
-     * @return array
+     * @param array $credentials Thông tin đăng nhập (email hoặc số điện thoại, mật khẩu)
+     * @return array Kết quả đăng nhập với dữ liệu người dùng, token hoặc thông báo lỗi
      */
     public function login(array $credentials): array
     {
         try {
-            // Clean up any existing auth state
+            // Đăng xuất trạng thái xác thực hiện tại để tránh xung đột
             Auth::logout();
 
+            // Kiểm tra thông tin đăng nhập
             if (!Auth::attempt($credentials)) {
                 return ['error' => 'Thông tin đăng nhập không chính xác', 'status' => 401];
             }
@@ -52,47 +53,58 @@ class AuthService
             /** @var User $user */
             $user = Auth::user();
 
+            // Kiểm tra xem người dùng đã xác minh email chưa
             if (!$user->hasVerifiedEmail()) {
                 Auth::logout();
                 return ['error' => 'Vui lòng xác minh email trước khi đăng nhập', 'status' => 403];
             }
 
-            // Delete all existing tokens for this user to prevent conflicts
+            // Kiểm tra trạng thái tài khoản
+            if ($user->status !== 'Hoạt động') {
+                Auth::logout();
+                return ['error' => 'Tài khoản của bạn hiện không hoạt động', 'status' => 403];
+            }
+
+            // Xóa tất cả token hiện tại của người dùng để tránh xung đột
             $user->tokens()->delete();
 
-            // Create new token
+            // Tạo token mới
             $token = $user->createToken('auth_token')->plainTextToken;
 
+            // Trả về dữ liệu người dùng và token
             return [
-                'data' => $user->fresh()->only($this->userFields), // Chỉ trả về các trường cần thiết
+                'data' => $user->fresh()->only($this->userFields),
                 'token' => $token,
             ];
         } catch (\Throwable $e) {
-            Log::error('Login Error', [
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
+            Log::error('Lỗi đăng nhập', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'credentials' => array_keys($credentials) // Don't log actual values
+                'credentials' => array_keys($credentials) // Không ghi lại giá trị thực
             ]);
             return ['error' => 'Đã xảy ra lỗi khi đăng nhập', 'status' => 500];
         }
     }
 
     /**
-     * Register a new user and send email verification.
+     * Đăng ký người dùng mới và gửi email xác minh.
      *
-     * @param array $payload
-     * @return array
+     * @param array $payload Dữ liệu đăng ký (email, số điện thoại, mật khẩu, v.v.)
+     * @return array Kết quả đăng ký với dữ liệu người dùng, token hoặc thông báo lỗi
      */
     public function register(array $payload): array
     {
+        // Bắt đầu giao dịch cơ sở dữ liệu
         DB::beginTransaction();
         try {
-            // Clean up any existing auth state
+            // Đăng xuất trạng thái xác thực hiện tại
             Auth::logout();
 
+            // Mã hóa mật khẩu
             $payload['password'] = Hash::make($payload['password']);
 
-            // Check if user already exists
+            // Kiểm tra xem email hoặc số điện thoại đã được sử dụng chưa
             $existingUser = User::where('email', $payload['email'])
                 ->orWhere('phone', $payload['phone'])
                 ->first();
@@ -102,56 +114,66 @@ class AuthService
                 return ['error' => 'Email hoặc số điện thoại đã được sử dụng', 'status' => 422];
             }
 
+            // Tạo người dùng mới
             $user = User::create($payload);
 
-            // Delete any existing tokens for this user
+            // Xóa tất cả token hiện tại của người dùng
             $user->tokens()->delete();
 
+            // Tạo token mới
             $token = $user->createToken('auth_token')->plainTextToken;
 
+            // Gửi thông báo xác minh email
             $user->notify(new VerifyEmail());
 
+            // Xác nhận giao dịch
             DB::commit();
 
+            // Trả về dữ liệu người dùng và token
             return [
-                'data' => $user->fresh()->only($this->userFields), // Chỉ trả về các trường cần thiết
+                'data' => $user->fresh()->only($this->userFields),
                 'token' => $token,
             ];
         } catch (\Throwable $e) {
+            // Hủy giao dịch nếu có lỗi
             DB::rollBack();
-            Log::error('Register Error', [
+            // Ghi log lỗi
+            Log::error('Lỗi đăng ký', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'payload' => array_keys($payload) // Don't log actual values
+                'payload' => array_keys($payload) // Không ghi lại giá trị thực
             ]);
             return ['error' => 'Đã xảy ra lỗi khi đăng ký', 'status' => 500];
         }
     }
 
     /**
-     * Reset user password using validated data.
+     * Đặt lại mật khẩu người dùng bằng dữ liệu đã xác thực.
      *
-     * @param array $data
-     * @return array
+     * @param array $data Dữ liệu chứa số điện thoại và mật khẩu mới
+     * @return array Kết quả đặt lại mật khẩu hoặc thông báo lỗi
      */
     public function resetPassword(array $data): array
     {
         try {
+            // Tìm người dùng theo số điện thoại
             $user = User::where('phone', $data['phone'])->first();
 
             if (!$user) {
                 return ['error' => 'Số điện thoại không tồn tại', 'status' => 404];
             }
 
-            // Delete all existing tokens for this user
+            // Xóa tất cả token hiện tại của người dùng
             $user->tokens()->delete();
 
+            // Cập nhật mật khẩu mới
             $user->forceFill(['password' => Hash::make($data['password'])])->save();
             event(new PasswordReset($user));
 
             return ['data' => []];
         } catch (\Throwable $e) {
-            Log::error('Reset Password Error', [
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
+            Log::error('Lỗi đặt lại mật khẩu', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'phone' => $data['phone'] ?? 'unknown'
@@ -161,9 +183,9 @@ class AuthService
     }
 
     /**
-     * Revoke all tokens for the user during logout.
+     * Hủy tất cả token của người dùng khi đăng xuất.
      *
-     * @param User $user
+     * @param User $user Người dùng cần đăng xuất
      * @return void
      */
     public function logout(User $user): void
@@ -175,16 +197,18 @@ class AuthService
             // Xóa toàn bộ session
             session()->flush();
 
-            // Đảm bảo xóa cache liên quan đến user
+            // Xóa cache liên quan đến người dùng
             Cache::forget('user_' . $user->id);
 
-            Log::info('User logged out successfully', ['user_id' => $user->id]);
+            // Ghi log thông báo đăng xuất thành công
+            Log::info('Người dùng đăng xuất thành công', ['user_id' => $user->id]);
         } catch (\Throwable $e) {
-            Log::error('Logout Error', [
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
+            Log::error('Lỗi đăng xuất', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->id ?? 'unknown'
             ]);
-            throw $e; // Để debug lỗi nếu cần
+            throw $e; // Ném lại ngoại lệ để debug nếu cần
         }
     }
 }

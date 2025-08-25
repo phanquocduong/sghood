@@ -1,0 +1,206 @@
+/* Reset margin và padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Container chính của trang */
+.page-container {
+    min-height: 100vh; /* Chiều cao tối thiểu bằng khung nhìn */
+    background: linear-gradient(135deg, #fff1f1, #ffe1e3); /* Gradient nền */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Container nội dung */
+.container {
+    max-width: 500px; /* Chiều rộng tối đa */
+    width: 100%;
+    background: #ffffff; /* Màu nền trắng */
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Đổ bóng */
+    padding: 40px 30px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-out; /* Hiệu ứng xuất hiện */
+}
+
+/* Tiêu đề trang */
+.header-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 20px;
+}
+
+/* Container trạng thái đang tải */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    animation: pulse 1.5s infinite; /* Hiệu ứng nhấp nháy */
+}
+
+/* Spinner loading */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid #f91942; /* Viền đỏ */
+    border-top-color: transparent; /* Viền trên trong suốt */
+    border-radius: 50%;
+    animation: spin 1s linear infinite; /* Hiệu ứng quay */
+}
+
+/* Văn bản trạng thái đang tải */
+.loading-text {
+    font-size: 1.2rem;
+    color: #4a4a4a;
+}
+
+/* Container thông báo */
+.notification {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid; /* Viền trái */
+    transition: all 0.3s ease; /* Hiệu ứng chuyển đổi */
+}
+
+/* Nội dung thông báo */
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Biểu tượng thông báo */
+.notification-icon {
+    font-size: 1.5rem;
+}
+
+/* Văn bản thông báo */
+.notification-text {
+    font-size: 1.6rem;
+    flex: 1;
+}
+
+/* Văn bản đếm ngược */
+.countdown-text {
+    font-size: 1.1rem;
+    color: #4a4a4a;
+    margin-top: 10px;
+}
+
+/* Kiểu cho thông báo thành công */
+.success {
+    background: #e6f4ea; /* Màu nền xanh nhạt */
+    border-color: #34c759; /* Viền xanh */
+    color: #1a3c1f;
+}
+
+/* Biểu tượng thông báo thành công */
+.success .notification-icon {
+    color: #34c759;
+}
+
+/* Kiểu cho thông báo lỗi */
+.error {
+    background: #ffe6e8; /* Màu nền hồng nhạt */
+    border-color: #f91942; /* Viền đỏ */
+    color: #5c1c24;
+}
+
+/* Biểu tượng thông báo lỗi */
+.error .notification-icon {
+    color: #f91942;
+}
+
+/* Nút quay lại trang chủ */
+.back-button {
+    display: inline-block;
+    width: 100%;
+    padding: 14px 0;
+    background: #f91942; /* Màu nền đỏ */
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease; /* Hiệu ứng chuyển đổi */
+    box-shadow: 0 5px 15px rgba(249, 25, 66, 0.3); /* Đổ bóng */
+}
+
+/* Hiệu ứng hover cho nút */
+.back-button:hover {
+    background: #d11236; /* Màu đỏ đậm hơn */
+    transform: translateY(-2px); /* Nâng lên nhẹ */
+    box-shadow: 0 8px 20px rgba(249, 25, 66, 0.4); /* Đổ bóng mạnh hơn */
+}
+
+/* Hiệu ứng xuất hiện */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hiệu ứng quay cho spinner */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hiệu ứng nhấp nháy */
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* CSS responsive cho thiết bị di động */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px; /* Giảm padding */
+    }
+
+    .header-title {
+        font-size: 1.5rem; /* Giảm kích thước tiêu đề */
+    }
+
+    .spinner {
+        width: 40px; /* Giảm kích thước spinner */
+        height: 40px;
+    }
+
+    .loading-text {
+        font-size: 1rem; /* Giảm kích thước văn bản */
+    }
+
+    .notification-text {
+        font-size: 1rem; /* Giảm kích thước văn bản thông báo */
+    }
+
+    .countdown-text {
+        font-size: 0.9rem; /* Giảm kích thước văn bản đếm ngược */
+    }
+
+    .back-button {
+        padding: 12px 0; /* Giảm padding nút */
+        font-size: 1rem; /* Giảm kích thước chữ */
+    }
+}

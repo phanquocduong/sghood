@@ -1,5 +1,6 @@
+// Composable định dạng giá tiền và phí
 export const useFormatPrice = () => {
-    // Hàm định dạng giá tiền
+    // Hàm định dạng giá tiền sang định dạng tiền tệ Việt Nam
     const formatPrice = price => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
     };
@@ -12,6 +13,7 @@ export const useFormatPrice = () => {
         }));
     };
 
+    // Trả về các hàm định dạng
     return {
         formatPrice,
         formatFees

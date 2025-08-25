@@ -7,37 +7,42 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Yêu cầu xác thực dữ liệu khi gửi yêu cầu trả phòng.
+ */
 class ReturnRequest extends FormRequest
 {
     /**
-     * Xác định xem người dùng có được phép gửi request này không.
+     * Xác định xem người dùng có được phép thực hiện yêu cầu này không.
      *
      * @return bool
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return Auth::check(); // Yêu cầu người dùng phải đăng nhập
     }
 
     /**
-     * Quy tắc xác thực cho request.
+     * Các quy tắc xác thực cho yêu cầu trả phòng.
      *
      * @return array
      */
     public function rules(): array
     {
+        // Lấy ID hợp đồng từ route
         $contractId = $this->route('id');
 
         return [
-            'is_cash_refunded' => 'required|boolean',
-            'bank_name' => 'nullable|required_if:is_cash_refunded,false|string|max:255',
-            'account_number' => 'nullable|required_if:is_cash_refunded,false|string|max:50',
-            'account_holder' => 'nullable|required_if:is_cash_refunded,false|string|max:255',
+            'is_cash_refunded' => 'required|boolean', // Phương thức hoàn tiền (tiền mặt hay chuyển khoản)
+            'bank_name' => 'nullable|required_if:is_cash_refunded,false|string|max:255', // Tên ngân hàng, bắt buộc nếu không hoàn tiền mặt
+            'account_number' => 'nullable|required_if:is_cash_refunded,false|string|max:50', // Số tài khoản, bắt buộc nếu không hoàn tiền mặt
+            'account_holder' => 'nullable|required_if:is_cash_refunded,false|string|max:255', // Tên chủ tài khoản, bắt buộc nếu không hoàn tiền mặt
             'check_out_date' => [
-                'required',
-                'date_format:d/m/Y',
-                'after:today',
+                'required', // Ngày trả phòng là bắt buộc
+                'date_format:d/m/Y', // Định dạng ngày DD/MM/YYYY
+                'after:today', // Phải từ ngày mai trở đi
                 function ($attribute, $value, $fail) use ($contractId) {
+                    // Kiểm tra ngày trả phòng không vượt quá 30 ngày sau ngày kết thúc hợp đồng
                     $contract = Contract::findOrFail($contractId);
                     $endDate = Carbon::parse($contract->end_date);
                     if ($endDate->isValid()) {

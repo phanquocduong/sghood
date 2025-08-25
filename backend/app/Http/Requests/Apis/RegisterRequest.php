@@ -7,30 +7,30 @@ use Illuminate\Foundation\Http\FormRequest;
 class RegisterRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Xác định xem người dùng có được phép thực hiện yêu cầu này không.
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Cho phép tất cả người dùng thực hiện yêu cầu đăng ký
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Các quy tắc xác thực cho yêu cầu đăng ký.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'phone' => 'required|string|unique:users,phone',
-            'name' => 'required|string|min:2|max:255',
-            'email' => 'required|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/'
+            'phone' => 'required|string|unique:users,phone', // Số điện thoại là bắt buộc và phải duy nhất
+            'name' => 'required|string|min:2|max:255', // Tên là bắt buộc, tối thiểu 2 ký tự, tối đa 255 ký tự
+            'email' => 'required|email|unique:users,email|max:255', // Email là bắt buộc, định dạng hợp lệ, duy nhất
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/' // Mật khẩu yêu cầu ít nhất 8 ký tự, chứa chữ hoa, chữ thường, số và ký tự đặc biệt
         ];
     }
 
     /**
-     * Get custom error messages for validation rules.
+     * Tùy chỉnh thông báo lỗi cho các quy tắc xác thực.
      *
      * @return array
      */

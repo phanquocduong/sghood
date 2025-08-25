@@ -10,14 +10,30 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Dịch vụ xử lý logic nghiệp vụ liên quan đến gia hạn hợp đồng.
+ */
 class ContractExtensionService
 {
+    /**
+     * Khởi tạo dịch vụ với NotificationService.
+     *
+     * @param NotificationService $notificationService Dịch vụ xử lý thông báo
+     */
     public function __construct(
         private readonly NotificationService $notificationService,
     ) {}
 
+    /**
+     * Tạo nội dung HTML cho yêu cầu gia hạn hợp đồng.
+     *
+     * @param Contract $contract Mô hình hợp đồng
+     * @param Carbon $newEndDate Ngày kết thúc mới
+     * @return string Nội dung HTML của phụ lục gia hạn
+     */
     private function generateExtensionContent(Contract $contract, Carbon $newEndDate): string
     {
+        // Tạo nội dung HTML với thông tin hợp đồng và ngày kết thúc mới
         return '
             <div class="contract-document">
                 <p><strong>Hợp đồng số: </strong>' . $contract->id . '</p>
@@ -29,15 +45,24 @@ class ContractExtensionService
         ';
     }
 
+    /**
+     * Gia hạn hợp đồng theo số tháng được chỉ định.
+     *
+     * @param int $id ID của hợp đồng
+     * @param int $months Số tháng gia hạn
+     * @return array Kết quả với dữ liệu hoặc lỗi
+     */
     public function extendContract(int $id, int $months): array
     {
         try {
+            // Tìm hợp đồng đang hoạt động của người dùng hiện tại
             $contract = Contract::query()
                 ->where('id', $id)
                 ->where('user_id', Auth::id())
                 ->where('status', 'Hoạt động')
                 ->first();
 
+            // Kiểm tra xem hợp đồng có tồn tại không
             if (!$contract) {
                 return [
                     'error' => 'Không tìm thấy hợp đồng hoặc bạn không có quyền gia hạn',
@@ -45,13 +70,14 @@ class ContractExtensionService
                 ];
             }
 
+            // Lấy ngày kết thúc hiện tại và ngày hiện tại
             $endDate = Carbon::parse($contract->end_date);
             $today = Carbon::today();
 
-            // Lấy giá trị config is_near_expiration
+            // Lấy giá trị cấu hình thời gian cho phép gia hạn
             $isNearExpiration = Config::getValue('is_near_expiration', 15);
 
-            // Chỉ kiểm tra điều kiện ngày nếu is_near_expiration không phải -1
+            // Kiểm tra điều kiện thời gian gia hạn nếu is_near_expiration không phải -1
             if ($isNearExpiration !== -1) {
                 $diffInDays = $endDate->diffInDays($today);
                 if ($diffInDays > $isNearExpiration) {
@@ -62,6 +88,7 @@ class ContractExtensionService
                 }
             }
 
+            // Kiểm tra số tháng gia hạn
             if ($months < 1) {
                 return [
                     'error' => 'Thời gian gia hạn phải ít nhất là 1 tháng',
@@ -69,7 +96,7 @@ class ContractExtensionService
                 ];
             }
 
-            // Gia hạn hợp đồng thêm số tháng được truyền vào
+            // Tính ngày kết thúc mới
             $newEndDate = $endDate->addMonths($months);
 
             // Tạo phụ lục hợp đồng
@@ -82,7 +109,7 @@ class ContractExtensionService
                 'status' => 'Chờ duyệt',
             ]);
 
-            // Gửi thông báo qua job queue
+            // Gửi thông báo yêu cầu gia hạn đến quản trị viên
             SendContractExtensionNotification::dispatch(
                 $extension,
                 'pending',
@@ -90,42 +117,59 @@ class ContractExtensionService
                 "Người dùng {$contract->user->name} đã yêu cầu gia hạn hợp đồng #{$contract->id} cho nhà trọ {$contract->room->motel->name} đến ngày {$newEndDate->format('d/m/Y')}."
             );
 
+            // Trả về dữ liệu hợp đồng và ID yêu cầu gia hạn
             return [
                 'data' => $contract,
                 'extension_id' => $extension->id,
             ];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi gia hạn hợp đồng:' . $e->getMessage());
             throw $e;
         }
     }
 
+    /**
+     * Lấy danh sách các yêu cầu gia hạn hợp đồng của người dùng hiện tại.
+     *
+     * @return \Illuminate\Support\Collection Danh sách yêu cầu gia hạn đã định dạng
+     */
     public function getExtensions()
     {
+        // Tạo query lấy danh sách yêu cầu gia hạn của người dùng hiện tại
         $query = ContractExtension::query()
-            ->with('contract')
+            ->with('contract') // Nạp thông tin hợp đồng liên quan
             ->whereHas('contract', fn($q) => $q->where('user_id', Auth::id()));
 
+        // Sắp xếp theo thời gian tạo giảm dần
         $query->orderBy('created_at', 'desc');
 
+        // Định dạng dữ liệu trả về
         $extensions = $query->get()->map(function ($extension) {
             return [
                 'id' => $extension->id,
-                'contract_id' => $extension->contract_id,
-                'new_end_date' => $extension->new_end_date ? $extension->new_end_date->toIso8601String() : null,
-                'new_rental_price' => $extension->new_rental_price,
-                'content' => $extension->content,
-                'status' => $extension->status,
-                'rejection_reason' => $extension->rejection_reason,
+                'contract_id' => $extension->contract_id, // ID hợp đồng
+                'new_end_date' => $extension->new_end_date ? $extension->new_end_date->toIso8601String() : null, // Ngày kết thúc mới
+                'new_rental_price' => $extension->new_rental_price, // Giá thuê mới
+                'content' => $extension->content, // Nội dung phụ lục
+                'status' => $extension->status, // Trạng thái phụ lục
+                'rejection_reason' => $extension->rejection_reason, // Lý do từ chối (nếu có)
             ];
         });
 
         return $extensions;
     }
 
+    /**
+     * Hủy yêu cầu gia hạn hợp đồng.
+     *
+     * @param int $id ID của yêu cầu gia hạn
+     * @return array Kết quả với dữ liệu hoặc lỗi
+     */
     public function cancelContractExtension(int $id): array
     {
         try {
+            // Tìm yêu cầu gia hạn
             $contractExtension = ContractExtension::findOrFail($id);
 
             // Kiểm tra quyền người dùng
@@ -136,6 +180,7 @@ class ContractExtensionService
                 ];
             }
 
+            // Kiểm tra trạng thái yêu cầu gia hạn
             if ($contractExtension->status !== 'Chờ duyệt') {
                 return [
                     'error' => 'Gia hạn/phụ lục hợp đồng không ở trạng thái có thể hủy',
@@ -143,9 +188,10 @@ class ContractExtensionService
                 ];
             }
 
+            // Cập nhật trạng thái yêu cầu gia hạn thành "Huỷ bỏ"
             $contractExtension->update(['status' => 'Huỷ bỏ']);
 
-            // Gửi thông báo qua job queue
+            // Gửi thông báo hủy yêu cầu gia hạn đến quản trị viên
             SendContractExtensionNotification::dispatch(
                 $contractExtension,
                 'canceled',
@@ -153,11 +199,13 @@ class ContractExtensionService
                 "Người dùng {$contractExtension->contract->user->name} đã hủy yêu cầu gia hạn hợp đồng #{$contractExtension->contract_id} cho nhà trọ {$contractExtension->contract->room->motel->name}."
             );
 
+            // Trả về dữ liệu yêu cầu gia hạn đã cập nhật
             return [
                 'data' => $contractExtension,
                 'status' => 200,
             ];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi hủy gia hạn:' . $e->getMessage());
             throw $e;
         }

@@ -1,32 +1,41 @@
 <template>
     <ClientOnly>
+        <!-- Chỉ hiển thị khung chat khi isOpen = true -->
         <div v-show="isOpen" class="chat-box">
-            <!-- Loading nhỏ trong khung chat -->
+            <!-- Hiển thị loading khi đang tải dữ liệu -->
             <Loading :is-loading="isLoading" />
 
-            <!-- Nội dung chat chỉ hiển thị khi không loading -->
+            <!-- Nội dung chat chỉ hiển thị khi không ở trạng thái loading -->
             <template v-if="!isLoading">
+                <!-- Âm thanh thông báo khi có tin nhắn mới -->
                 <audio ref="notiSound" src="/sounds/notification.mp3" preload="auto"></audio>
-                <!-- Header -->
+
+                <!-- Phần header của khung chat -->
                 <div class="chat-header">
                     <span class="chat-title">Hỗ trợ người dùng</span>
+                    <!-- Nút đóng khung chat, emit sự kiện 'close' khi click -->
                     <button class="chat-close" @click="$emit('close')">✕</button>
                 </div>
 
-                <!-- Nội dung chat -->
+                <!-- Phần thân khung chat, hiển thị danh sách tin nhắn -->
                 <div class="chat-body">
                     <div class="chat-messages" ref="messageContainer">
+                        <!-- Lặp qua danh sách tin nhắn để hiển thị -->
                         <div
                             v-for="(msg, index) in messages"
                             :key="index"
                             :class="['chat-message-wrapper', msg.from === 'user' ? 'align-right' : 'align-left']"
                         >
+                            <!-- Hiển thị avatar của người gửi (người dùng hoặc admin) -->
                             <img :src="msg.from === 'user' ? avatarUrl : '/images/sghood_logo1.png'" alt="avatar" class="chat-avatar" />
 
+                            <!-- Hiển thị nội dung tin nhắn -->
                             <div :class="['chat-message', msg.from === 'user' ? 'from-user' : 'from-admin']">
+                                <!-- Nếu tin nhắn là hình ảnh -->
                                 <template v-if="msg.type === 'image'">
                                     <img :src="msg.content" class="chat-image" />
                                 </template>
+                                <!-- Nếu tin nhắn là văn bản -->
                                 <template v-else>
                                     <span class="chat-text">{{ msg.text }}</span>
                                 </template>
@@ -35,31 +44,29 @@
                     </div>
                 </div>
 
-                <!-- Gợi ý câu hỏi -->
+                <!-- Phần gợi ý câu hỏi -->
                 <div v-if="rawAction.length > 0" class="chat-suggestions">
                     <ul class="suggestion-list">
+                        <!-- Lặp qua danh sách gợi ý câu hỏi -->
                         <li v-for="(hint, index) in rawAction" :key="index" class="suggestion-item" @click="handleClick(hint, index)">
                             {{ hint }}
                         </li>
                     </ul>
                 </div>
 
-                <!-- Nhập tin nhắn -->
+                <!-- Phần nhập tin nhắn -->
                 <div class="chat-input">
+                    <!-- Ô nhập văn bản tin nhắn, gửi khi nhấn Enter -->
                     <input type="text" v-model="newMessage" @keyup.enter="sendMessage" placeholder="Nhập tin nhắn..." />
+                    <!-- Nút chọn file để gửi hình ảnh -->
                     <div class="dropzone-button" @click="selectFile">
                         <i class="fa fas fa-camera"></i>
+                        <!-- Input ẩn để chọn file hình ảnh -->
                         <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleFileUpload" />
                     </div>
 
+                    <!-- Nút gửi tin nhắn -->
                     <button @click="sendMessage()">Gửi</button>
-                    <!-- <button
-  class="suggestion-item"
-  style="background-color: #ffe0e0; color: #b71c1c"
-  @click="resetHint"
->
-  🧹 Reset hint
-</button> -->
                 </div>
             </template>
         </div>
@@ -74,61 +81,69 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { useBehaviorStore } from '~/stores/behavior';
 import { uploadImageToFirebase } from '~/utils/uploadImage';
 import { useAppToast } from '~/composables/useToast';
-const { $firebaseStorage } = useNuxtApp();
-const emit = defineEmits(['close', 'unread']);
-const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
-const toast = useAppToast();
-const currentUserId = ref(authStore.user?.id || null);
-const token = ref(authStore.token || '');
-const behavior = useBehaviorStore();
-const { $api, $firebaseDb } = useNuxtApp();
-const newMessage = ref(behavior.chat || '');
-const messages = ref([]);
-const notiSound = ref(null);
 
-const AdminId = ref(null);
-const messageContainer = ref(null);
-let unsubscribe = null; // để dừng listener khi unmount
-const config = useRuntimeConfig();
-const isLoading = ref(false);
-const rawAction = ref([]);
-const lastRealtime = ref(Date.now());
-const fileInput = ref(null);
-const MAX_SIZE_MB = 2;
-const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+// Khởi tạo các biến và hàm từ Nuxt
+const { $firebaseStorage } = useNuxtApp();
+const emit = defineEmits(['close', 'unread']); // Định nghĩa các sự kiện emit
+const authStore = useAuthStore(); // Store quản lý thông tin người dùng
+const { user } = storeToRefs(authStore); // Lấy thông tin người dùng từ store
+const toast = useAppToast(); // Hàm hiển thị thông báo toast
+const currentUserId = ref(authStore.user?.id || null); // ID người dùng hiện tại
+const token = ref(authStore.token || ''); // Token xác thực
+const behavior = useBehaviorStore(); // Store quản lý hành vi người dùng
+const { $api, $firebaseDb } = useNuxtApp(); // API và Firestore từ Nuxt
+const newMessage = ref(behavior.chat || ''); // Nội dung tin nhắn mới
+const messages = ref([]); // Danh sách tin nhắn
+const notiSound = ref(null); // Ref cho âm thanh thông báo
+const AdminId = ref(null); // ID của admin được gán
+const messageContainer = ref(null); // Ref cho container tin nhắn
+let unsubscribe = null; // Biến lưu hàm unsubscribe của Firestore listener
+const config = useRuntimeConfig(); // Cấu hình runtime của Nuxt
+const isLoading = ref(false); // Trạng thái loading
+const rawAction = ref([]); // Danh sách gợi ý câu hỏi
+const lastRealtime = ref(Date.now()); // Thời gian cập nhật tin nhắn realtime
+const fileInput = ref(null); // Ref cho input file
+const MAX_SIZE_MB = 2; // Dung lượng tối đa của file (MB)
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024; // Dung lượng tối đa (bytes)
 const props = defineProps({
-    isOpen: Boolean
+    isOpen: Boolean // Prop kiểm soát trạng thái mở/đóng khung chat
 });
 
+// Hàm mở input chọn file
 const selectFile = () => {
     if (fileInput.value) {
         fileInput.value.click();
     }
 };
 
+// Hàm xử lý khi người dùng chọn file để gửi
 const handleFileUpload = async e => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Kiểm tra file có hợp lệ không
     if (!file || file.size === undefined) {
         toast.error('File không hợp lệ');
         return;
     }
 
+    // Kiểm tra định dạng file (chỉ chấp nhận hình ảnh)
     if (!file.type.startsWith('image/')) {
         toast.error('Chỉ được gửi ảnh');
         return;
     }
 
+    // Kiểm tra kích thước file
     if (file.size > MAX_SIZE_BYTES) {
         toast.error(`Chỉ gửi được ảnh dưới ${MAX_SIZE_MB}MB`);
         return;
     }
 
     try {
+        // Tải ảnh lên Firebase Storage và lấy URL
         const imageUrl = await uploadImageToFirebase(file, $firebaseStorage);
 
+        // Gửi tin nhắn chứa URL ảnh
         await sendMessage({
             content: imageUrl,
             type: 'image'
@@ -138,17 +153,21 @@ const handleFileUpload = async e => {
         toast.error('Gửi ảnh thất bại');
     }
 };
+
+// Theo dõi trạng thái mở/đóng khung chat
 watch(
     () => props.isOpen,
     open => {
         if (open) {
-            markMessagesAsRead();
+            markMessagesAsRead(); // Đánh dấu tin nhắn đã đọc khi mở khung chat
         }
     }
 );
 
+// Key lưu trữ gợi ý đã sử dụng
 const local_hint_key = computed(() => `usedHints_${currentUserId.value}`);
 
+// Lấy danh sách gợi ý đã sử dụng từ localStorage
 const getUserHint = () => {
     const raw = localStorage.getItem(local_hint_key.value);
     try {
@@ -157,6 +176,8 @@ const getUserHint = () => {
         return [];
     }
 };
+
+// Lưu gợi ý đã sử dụng vào localStorage
 const saveUserHint = hint => {
     const used = getUserHint();
     if (!used.includes(hint)) {
@@ -166,10 +187,12 @@ const saveUserHint = hint => {
 };
 
 const route = useRoute();
+// Theo dõi thay đổi nội dung tin nhắn để lưu vào behavior store
 watch(newMessage, val => {
     behavior.updateChat(val);
 });
 
+// Khởi tạo danh sách gợi ý câu hỏi dựa trên đường dẫn hiện tại
 const initActions = () => {
     const configs = useState('configs')?.value;
     let questionMap = {};
@@ -186,38 +209,34 @@ const initActions = () => {
     const segments = path.split('/').filter(Boolean);
     const matchedKey = Object.keys(questionMap).find(key => segments.includes(key));
     const origin = matchedKey ? questionMap[matchedKey] : questionMap['default'] || [];
-    const raw = localStorage.getItem(local_hint_key.value);
-    const usedHints = raw ? JSON.parse(raw) : [];
+    const usedHints = getUserHint();
 
+    // Lọc các gợi ý chưa được sử dụng
     const filtered = origin.filter(hint => !usedHints.includes(hint));
-
     rawAction.value = filtered;
 };
 
+// Xử lý khi người dùng click vào gợi ý câu hỏi
 const handleClick = (text, index) => {
     sendMessage({ type: 'text', content: text });
     saveUserHint(text);
-    const key = `usedHints_${currentUserId.value}`;
-    const raw = localStorage.getItem(key);
-    const used = raw ? JSON.parse(raw) : [];
-
-    if (!used.includes(text)) {
-        used.push(text);
-        localStorage.setItem(key, JSON.stringify(used));
-    }
-
-    // Xoá khỏi danh sách hiện tại
-    rawAction.value.splice(index, 1);
+    rawAction.value.splice(index, 1); // Xóa gợi ý đã chọn
 };
+
+// Hàm gửi tin nhắn từ gợi ý
 const send = text => {
     sendMessage(text);
 };
 
+// Tính toán URL avatar của người dùng
 const avatarUrl = computed(() => (user.value?.avatar ? config.public.baseUrl + user.value.avatar : '/images/default-avatar.webp'));
+
+// Lấy trang cuối cùng người dùng đã truy cập
 const lastVisitedPage = computed(() => {
     return behavior.visitedPages.at(-1) || '/';
 });
 
+// Cuộn khung chat xuống dưới cùng
 const scrollToBottom = () => {
     nextTick(() => {
         if (messageContainer.value) {
@@ -226,11 +245,12 @@ const scrollToBottom = () => {
     });
 };
 
+// Khởi tạo khung chat
 const initChat = async () => {
     isLoading.value = true;
 
     try {
-        // 1) Gọi API start-chat để backend gán admin
+        // Gọi API để bắt đầu phiên chat và lấy admin ID
         const res = await $api('/messages/start-chat', {
             method: 'POST',
             headers: {
@@ -250,7 +270,7 @@ const initChat = async () => {
         AdminId.value = res.admin_id;
         scrollToBottom();
 
-        // 3) Lắng nghe realtime từ Firestore
+        // Lắng nghe tin nhắn mới từ Firestore
         const chatId = `${AdminId.value}_${currentUserId.value}`;
         const msgQuery = query(collection($firebaseDb, 'messages'), where('chatId', '==', chatId), orderBy('createdAt', 'asc'));
 
@@ -276,7 +296,6 @@ const initChat = async () => {
                 messages.value = [...messages.value, ...newUniqueMessages];
                 scrollToBottom();
                 const hasAdmin = newUniqueMessages.some(m => {
-                    /* const createdAt = m.createdAt?.seconds || Math.floor(Date.now() / 1000); */
                     return m.from === 'admin' && m.createdAt > lastRealtime.value;
                 });
 
@@ -284,13 +303,13 @@ const initChat = async () => {
                     lastRealtime.value = Date.now();
                     localStorage.setItem('lastRealtime', lastRealtime.value.toString());
 
-                    emit('unread');
+                    emit('unread'); // Phát sự kiện khi có tin nhắn chưa đọc
                     const audio = notiSound.value;
                     if (audio) {
                         audio.pause();
                         audio.currentTime = 0;
                         audio.play().catch(err => {
-                            console.warn('khong the phat am thanh', err);
+                            console.warn('Không thể phát âm thanh', err);
                         });
                     }
                 }
@@ -302,6 +321,8 @@ const initChat = async () => {
         isLoading.value = false;
     }
 };
+
+// Hàm gửi tin nhắn
 const sendMessage = async (payload = null) => {
     const type = payload?.type || 'text';
     const Rawtext = payload?.content || newMessage.value;
@@ -314,7 +335,7 @@ const sendMessage = async (payload = null) => {
         scrollToBottom();
         newMessage.value = '';
 
-        // Gửi tin nhắn lên Firestore (realtime)
+        // Gửi tin nhắn lên Firestore
         await addDoc(collection($firebaseDb, 'messages'), {
             text: type === 'image' ? '' : text,
             content: type === 'image' ? Rawtext : '',
@@ -326,21 +347,7 @@ const sendMessage = async (payload = null) => {
             chatId
         });
 
-        // Optionally: gọi API gửi nữa nếu backend cần lưu
-
-        /*  await $api('/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
-      },
-      body: {
-        receiver_id: AdminId.value,
-        message: text
-      }
-    })  */
-
-        if (type === 'text') behavior.clearChat();
+        if (type === 'text') behavior.clearChat(); // Xóa nội dung chat sau khi gửi
 
         scrollToBottom();
     } catch (err) {
@@ -348,6 +355,7 @@ const sendMessage = async (payload = null) => {
     }
 };
 
+// Khởi tạo khi component được mount
 onMounted(async () => {
     const storeRealtime = localStorage.getItem('lastRealtime');
     if (!storeRealtime) {
@@ -360,15 +368,17 @@ onMounted(async () => {
         const question = initActions();
         if (question) {
             sendMessage({ type: 'text', text: question });
-            saveUserHint(question); // Đánh dấu là đã dùng gợi ý này
+            saveUserHint(question);
         }
     });
 });
 
+// Hủy listener Firestore khi component bị hủy
 onBeforeUnmount(() => {
     if (unsubscribe) unsubscribe();
 });
 
+// Đánh dấu tin nhắn đã đọc
 const markMessagesAsRead = () => {
     lastRealtime.value = Date.now();
     localStorage.setItem('lastRealtime', lastRealtime.value.toString());
@@ -376,12 +386,12 @@ const markMessagesAsRead = () => {
 </script>
 
 <style scoped>
+/* Các style cho khung chat */
 .chat-message-wrapper {
     display: flex;
     align-items: flex-end;
-    /* Cho avatar và text thẳng hàng dưới */
     margin-bottom: 10px;
-    gap: 8px; /* khoảng cách giữa avatar và tin nhắn */
+    gap: 8px;
 }
 
 .align-right {
@@ -414,14 +424,6 @@ const markMessagesAsRead = () => {
     display: inline-block;
 }
 
-.chat-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
 .chat-box {
     position: fixed;
     bottom: 160px;
@@ -438,7 +440,7 @@ const markMessagesAsRead = () => {
     height: 500px;
 }
 
-/* Header */
+/* Style cho header */
 .chat-header {
     background-color: #e53935;
     color: white;
@@ -461,21 +463,13 @@ const markMessagesAsRead = () => {
     cursor: pointer;
 }
 
-/* Gợi ý */
+/* Style cho gợi ý câu hỏi */
 .chat-suggestions {
     padding: 8px 12px;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     align-items: flex-start;
-}
-
-.suggestion-title {
-    width: 100%;
-    font-weight: 500;
-    font-size: 13px;
-    margin-bottom: 4px;
-    color: #444;
 }
 
 .suggestion-list {
@@ -503,7 +497,7 @@ const markMessagesAsRead = () => {
     background-color: #ddd;
 }
 
-/* Tin nhắn */
+/* Style cho phần tin nhắn */
 .chat-body {
     flex: 1;
     display: flex;
@@ -515,7 +509,6 @@ const markMessagesAsRead = () => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    /* ✅ dùng hướng bình thường */
     padding: 12px;
     overflow-y: auto;
     background-color: #f8f8f8;
@@ -543,7 +536,7 @@ const markMessagesAsRead = () => {
     color: #0b5394;
 }
 
-/* Input */
+/* Style cho phần nhập tin nhắn */
 .chat-input {
     display: flex;
     border-top: 1px solid #ddd;
@@ -576,6 +569,8 @@ const markMessagesAsRead = () => {
 .chat-input button:hover {
     background-color: #d32f2f;
 }
+
+/* Style cho loading */
 .loading-overlay {
     position: absolute;
     inset: 0;
@@ -607,6 +602,8 @@ p {
         transform: rotate(360deg);
     }
 }
+
+/* Style cho nút chọn file hình ảnh */
 .dropzone-button {
     width: 40px;
     height: 40px;
@@ -618,25 +615,23 @@ p {
     justify-content: center;
     cursor: pointer;
 }
+
 .dropzone-button:hover {
     background-color: #d32f2f;
 }
-.dropzone-button::before {
-    font-size: 18px;
-    color: white;
-}
 
-.dropzone .dz-message {
-    display: none !important;
-}
 .dropzone-button i {
     color: white;
     font-size: 15px;
 }
+
+/* Style cho hình ảnh trong tin nhắn */
 .chat-image {
     max-width: 200px;
     border-radius: 8px;
 }
+
+/* Responsive cho màn hình nhỏ */
 @media (max-width: 480px) {
     .chat-box {
         width: 100%;

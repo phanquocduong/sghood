@@ -8,13 +8,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Dịch vụ xử lý việc tạo và lưu file PDF hợp đồng.
+ */
 class ContractPdfService
 {
     /**
-     * Chuẩn bị nội dung HTML với CSS hỗ trợ tiếng Việt
+     * Chuẩn bị nội dung HTML với CSS hỗ trợ tiếng Việt.
+     *
+     * @param string $content Nội dung hợp đồng dạng HTML
+     * @return string Nội dung HTML đã được xử lý
      */
     private function prepareHtmlContent(string $content): string
     {
+        // Định nghĩa CSS hỗ trợ tiếng Việt và định dạng PDF
         $css = '
         <style>
             @page { margin: 15mm 20mm; size: A4;}
@@ -73,8 +80,10 @@ class ContractPdfService
             .vietnamese-text { font-family: "Noto Serif", "DejaVu Serif", serif; }
         </style>';
 
+        // Xử lý nội dung hợp đồng
         $processedContent = $this->processContent($content);
 
+        // Trả về HTML hoàn chỉnh với CSS
         return <<<HTML
         <!DOCTYPE html>
         <html lang="vi">
@@ -92,35 +101,47 @@ class ContractPdfService
     }
 
     /**
-     * Xử lý nội dung để tối ưu cho PDF
+     * Xử lý nội dung hợp đồng để tối ưu cho PDF.
+     *
+     * @param string $content Nội dung hợp đồng dạng HTML
+     * @return string Nội dung đã được xử lý
      */
     private function processContent(string $content): string
     {
+        // Xóa các đoạn mã PHP
         $content = preg_replace('/<\?php.*?\?>/s', '', $content);
+        // Xóa các thẻ script
         $content = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $content);
 
+        // Chuyển đổi mã hóa sang UTF-8 nếu cần
         if (!mb_check_encoding($content, 'UTF-8')) {
             $content = mb_convert_encoding($content, 'UTF-8', 'auto');
         }
 
+        // Giải mã các thực thể HTML
         if (strpos($content, '&') !== false) {
             $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         }
 
+        // Giải mã HTML nếu nội dung chứa thẻ HTML
         if (preg_match('/<[^>]+>/', $content) && strpos($content, '<div class=') !== false) {
             $content = htmlspecialchars_decode($content, ENT_QUOTES);
         }
 
+        // Thay thế font-family để đảm bảo hỗ trợ tiếng Việt
         $content = preg_replace(
             '/font-family:\s*["\']?[^"\']*["\']?[^;]*/i',
             'font-family: "Noto Serif", "DejaVu Serif", serif',
             $content
         );
 
+        // Xóa các thuộc tính max-width và box-shadow
         $content = preg_replace('/style\s*=\s*["\']([^"\']*max-width:[^"\']*)["\']/', '', $content);
         $content = preg_replace('/box-shadow:\s*[^;]+;?/', '', $content);
+        // Xóa các thẻ style
         $content = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $content);
 
+        // Giữ nguyên các ký tự Unicode
         $content = preg_replace_callback('/[\x{00A0}-\x{FFFF}]/u', function ($matches) {
             return $matches[0];
         }, $content);
@@ -129,43 +150,56 @@ class ContractPdfService
     }
 
     /**
-     * Tạo và lưu file PDF hợp đồng
+     * Tạo và lưu file PDF hợp đồng.
+     *
+     * @param int $contractId ID của hợp đồng
+     * @return array Kết quả với đường dẫn file hoặc lỗi
      */
     public function generateAndSaveContractPdf(int $contractId): array
     {
         try {
+            // Tìm hợp đồng của người dùng hiện tại
             $contract = Contract::query()
                 ->where('id', $contractId)
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 
+            // Tạo tên file PDF
             $filename = 'pdf/contracts/contract-' . $contract->id . '-' . time() . '.pdf';
 
+            // Kiểm tra xem file PDF đã tồn tại chưa
             if ($contract->file && Storage::disk('private')->exists($contract->file)) {
                 return ['data' => $contract->file];
             }
 
+            // Kiểm tra nội dung hợp đồng
             if (!$contract->content) {
                 return ['error' => 'Nội dung hợp đồng không tồn tại'];
             }
 
+            // Chuẩn bị nội dung HTML cho PDF
             $htmlContent = $this->prepareHtmlContent($contract->content);
 
+            // Tạo PDF với các tùy chọn tối ưu
             $pdf = Pdf::loadHTML($htmlContent)
                 ->setOptions([
-                    'defaultFont' => 'Noto Serif',
-                    'fontCache' => storage_path('fonts/'),
-                    'isHtml5ParserEnabled' => true,
-                    'isPhpEnabled' => false,
-                    'dpi' => 96,
-                    'isFontSubsettingEnabled' => true,
+                    'defaultFont' => 'Noto Serif', // Font mặc định hỗ trợ tiếng Việt
+                    'fontCache' => storage_path('fonts/'), // Bộ nhớ cache font
+                    'isHtml5ParserEnabled' => true, // Hỗ trợ phân tích HTML5
+                    'isPhpEnabled' => false, // Tắt PHP trong HTML
+                    'dpi' => 96, // Độ phân giải PDF
+                    'isFontSubsettingEnabled' => true, // Tối ưu font
                 ]);
 
+            // Lưu file PDF vào disk private
             Storage::disk('private')->put($filename, $pdf->output());
+            // Cập nhật đường dẫn file vào hợp đồng
             $contract->update(['file' => $filename]);
 
+            // Trả về đường dẫn file PDF
             return ['data' => $filename];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi tạo và lưu PDF hợp đồng:' . $e->getMessage());
             return ['error' => 'Đã xảy ra lỗi khi tạo file PDF: ' . $e->getMessage()];
         }

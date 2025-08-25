@@ -172,6 +172,7 @@ sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduon
 rm -rf frontend/ .git/
 rm .gitignore DEPLOYMENT.md README.md
 mv /var/www/html/admin.sghood.com.vn/backend/* /var/www/html/admin.sghood.com.vn/
+rm -rf backend/
 ```
 
 ### 3. Cài dependencies
@@ -389,14 +390,15 @@ sudo supervisorctl start laravel-worker:*
 ### 10 . Tạo symbolic link để phpMyAdmin hoạt động tại admin.sghood.com.vn/phpmyadmin
 
 ```bash
-scp -r D:\PRO224\sghood\backend\storage\app\public root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
-scp -r D:\PRO224\sghood\backend\storage\app\private root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
+sudo ln -s /usr/share/phpmyadmin /var/www/html/admin.sghood.com.vn/phpmyadmin
 ```
 
 ### 11 . Upload storage
 
 ```bash
-sudo ln -s /usr/share/phpmyadmin /var/www/html/admin.sghood.com.vn/phpmyadmin
+scp -r D:\PRO224\sghood\backend\storage\app\public root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
+scp -r D:\PRO224\sghood\backend\storage\app\private root@103.90.224.188:/var/www/html/admin.sghood.com.vn/storage/app
+php artisan storage:link
 ```
 
 ## Triển khai Frontend Nuxt 3 SSR (`sghood.com.vn`)
@@ -417,6 +419,7 @@ sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduon
 rm -rf backend/ .git/
 rm .gitignore DEPLOYMENT.md README.md
 mv /var/www/html/sghood.com.vn/frontend/* /var/www/html/sghood.com.vn/
+rm -rf frontend/
 
 sudo nano nuxt.config.ts
 ```
@@ -498,6 +501,15 @@ sudo systemctl reload nginx
 
 ```bash
 sudo certbot --nginx -d sghood.com.vn -d www.sghood.com.vn
+```
+
+### 10. Cấp quyền lại cho storage backend
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn/storage
+sudo chown -R www-data:www-data /var/www/html/admin.sghood.com.vn/bootstrap/cache
+sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/storage
+sudo chmod -R 775 /var/www/html/admin.sghood.com.vn/bootstrap/cache
 ```
 
 ## Kiểm tra và xử lý lỗi

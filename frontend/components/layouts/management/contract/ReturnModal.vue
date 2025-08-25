@@ -352,7 +352,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import '~/public/css/viewing-schedules.css';
+@import '~/public/css/modal.css';
 
 .ml-3 {
     margin-left: 12px;

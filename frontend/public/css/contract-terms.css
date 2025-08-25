@@ -1,0 +1,153 @@
+/* CSS chung cho trang điều khoản */
+.terms-page {
+    line-height: 1.8;
+    color: #2c2c2c;
+    background: #fff;
+    min-height: 100vh; /* Đảm bảo chiều cao tối thiểu bằng khung nhìn */
+}
+
+/* Container chính */
+.container {
+    max-width: 960px; /* Chiều rộng tối đa */
+    margin: 0 auto;
+    padding: 32px 16px; /* Khoảng cách lề */
+}
+
+/* Tiêu đề chính */
+.terms-header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+/* Tiêu đề h2 */
+.terms-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f91942; /* Màu đỏ đặc trưng */
+    margin-bottom: 8px;
+}
+
+/* Phụ đề */
+.subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Tiêu đề các phần */
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    border-left: 4px solid #f91942; /* Viền trái màu đỏ */
+    padding-left: 12px;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+/* Khối nội dung phần */
+.section {
+    margin-bottom: 32px;
+    opacity: 0; /* Ẩn ban đầu */
+    transform: translateY(20px); /* Dịch xuống 20px */
+    transition: all 0.4s ease; /* Hiệu ứng chuyển đổi */
+}
+
+/* Hiển thị khi vào khung nhìn */
+.section.visible {
+    opacity: 1;
+    transform: translateY(0); /* Trở về vị trí ban đầu */
+}
+
+/* CSS cho mục trách nhiệm và điều khoản chung */
+.responsibility-item,
+.general-item {
+    background: #f9f9f9; /* Màu nền nhạt */
+    padding: 12px 16px;
+    border-radius: 6px;
+    border-left: 3px solid #ccc; /* Viền trái xám */
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.3s ease; /* Hiệu ứng chuyển đổi viền */
+}
+
+/* Hiệu ứng hover cho mục */
+.responsibility-item:hover,
+.general-item:hover {
+    border-left-color: #f91942; /* Viền đỏ khi hover */
+}
+
+/* Thêm dấu chấm trước mỗi mục */
+.responsibility-item::before,
+.general-item::before {
+    content: '•';
+    color: #f91942; /* Màu đỏ */
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* CSS cho mục quyền chấm dứt hợp đồng */
+.termination-item {
+    background: #fff5f5; /* Màu nền hồng nhạt */
+    border-left: 4px solid #f91942; /* Viền trái đỏ */
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+/* Thêm biểu tượng cảnh báo trước mục */
+.termination-item::before {
+    content: '⚠';
+    margin-right: 8px;
+    color: #f91942; /* Màu đỏ */
+    font-weight: bold;
+}
+
+/* CSS cho ghi chú quan trọng */
+.important-note {
+    background: #fffde7; /* Màu nền vàng nhạt */
+    border-left: 4px solid #fbc02d; /* Viền trái vàng */
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+/* Tiêu đề ghi chú */
+.important-note h4 {
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Thanh tiến trình cuộn */
+.scroll-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0; /* Màu nền xám nhạt */
+    z-index: 100;
+}
+
+/* Phần tiến trình cuộn */
+.scroll-progress {
+    height: 100%;
+    background: #f91942; /* Màu đỏ */
+    transition: width 0.2s ease; /* Hiệu ứng chuyển đổi mượt mà */
+}
+
+/* CSS responsive cho thiết bị di động */
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 16px; /* Giảm kích thước chữ */
+    }
+
+    .terms-header h2 {
+        font-size: 20px; /* Giảm kích thước tiêu đề */
+    }
+
+    .container {
+        padding: 20px 12px; /* Giảm padding */
+    }
+}

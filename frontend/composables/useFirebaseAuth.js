@@ -1,11 +1,13 @@
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { useAppToast } from '~/composables/useToast';
 
+// Composable xử lý xác thực Firebase
 export const useFirebaseAuth = () => {
-    const { $firebaseAuth } = useNuxtApp();
-    const toast = useAppToast();
-    let confirmationResult = null;
+    const { $firebaseAuth } = useNuxtApp(); // Lấy đối tượng Firebase Auth từ Nuxt plugin
+    const toast = useAppToast(); // Lấy composable hiển thị thông báo
+    let confirmationResult = null; // Biến lưu trữ kết quả xác thực OTP
 
+    // Hàm xử lý lỗi Firebase
     const handleFirebaseError = error => {
         switch (error.code) {
             case 'auth/too-many-requests':
@@ -28,25 +30,29 @@ export const useFirebaseAuth = () => {
         }
     };
 
+    // Hàm gửi mã OTP qua Firebase
     const sendOTP = async phone => {
         try {
-            // Kiểm tra sự tồn tại của recaptcha-container
+            // Kiểm tra sự tồn tại của container reCAPTCHA
             if (typeof window !== 'undefined' && !document.getElementById('recaptcha-container')) {
                 toast.error('Không tìm thấy container reCAPTCHA.');
                 return false;
             }
 
+            // Xóa reCAPTCHA cũ nếu có
             if (typeof window !== 'undefined' && window.recaptchaVerifier) {
                 window.recaptchaVerifier.clear();
             }
 
+            // Khởi tạo reCAPTCHA mới
             if (typeof window !== 'undefined') {
                 window.recaptchaVerifier = new RecaptchaVerifier($firebaseAuth, 'recaptcha-container', {
-                    size: 'invisible',
+                    size: 'invisible', // reCAPTCHA vô hình
                     callback: () => {}
                 });
             }
 
+            // Gửi OTP qua Firebase
             confirmationResult = await signInWithPhoneNumber($firebaseAuth, phone, window.recaptchaVerifier);
             toast.info('Mã OTP đã được gửi!');
             return true;
@@ -57,6 +63,7 @@ export const useFirebaseAuth = () => {
         }
     };
 
+    // Hàm xác minh mã OTP
     const verifyOTP = async otp => {
         if (!confirmationResult) {
             toast.error('Chưa gửi mã OTP. Vui lòng yêu cầu mã OTP trước!');
@@ -64,7 +71,7 @@ export const useFirebaseAuth = () => {
         }
 
         try {
-            await confirmationResult.confirm(otp);
+            await confirmationResult.confirm(otp); // Xác minh OTP
             toast.success('Xác minh OTP thành công!');
             return true;
         } catch (error) {
@@ -73,6 +80,7 @@ export const useFirebaseAuth = () => {
         }
     };
 
+    // Hàm lấy ID token từ Firebase
     const getIdToken = async () => {
         try {
             return await $firebaseAuth.currentUser?.getIdToken();
@@ -82,6 +90,7 @@ export const useFirebaseAuth = () => {
         }
     };
 
+    // Hàm đăng xuất Firebase
     const signOut = async () => {
         try {
             await $firebaseAuth.signOut();
@@ -90,5 +99,5 @@ export const useFirebaseAuth = () => {
         }
     };
 
-    return { sendOTP, verifyOTP, getIdToken, signOut };
+    return { sendOTP, verifyOTP, getIdToken, signOut }; // Trả về các hàm xử lý xác thực
 };

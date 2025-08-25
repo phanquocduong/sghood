@@ -5,16 +5,29 @@ namespace App\Http\Requests\Apis;
 use App\Models\Config;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Lớp xác thực dữ liệu cho yêu cầu cập nhật lịch xem nhà trọ.
+ */
 class UpdateScheduleRequest extends FormRequest
 {
+    /**
+     * Kiểm tra quyền truy cập của người dùng.
+     *
+     * @return bool True nếu người dùng được phép thực hiện yêu cầu
+     */
     public function authorize(): bool
     {
-        return true;
+        return true; // Cho phép tất cả người dùng đã đăng nhập thực hiện
     }
 
+    /**
+     * Các quy tắc xác thực dữ liệu đầu vào.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> Quy tắc xác thực
+     */
     public function rules(): array
     {
-        // Lấy danh sách timeSlots từ Config
+        // Lấy danh sách khung giờ từ cấu hình
         $timeSlots = Config::getValue('time_slots_viewing_schedule', [
             '8:00 sáng - 8:30 sáng',
             '9:00 sáng - 9:30 sáng',
@@ -61,19 +74,24 @@ class UpdateScheduleRequest extends FormRequest
             }
         }
 
-        // Chuyển mảng timeSlots thành chuỗi phân tách bằng dấu phẩy
+        // Chuyển mảng khung giờ thành chuỗi phân tách bằng dấu phẩy
         $timeSlotsString = implode(',', $timeSlots);
 
         return [
-            'date' => 'required|date_format:d/m/Y',
+            'date' => 'required|date_format:d/m/Y', // Ngày xem phải đúng định dạng
             'timeSlot' => [
-                'required',
-                'in:' . $timeSlotsString,
+                'required', // Khung giờ là bắt buộc
+                'in:' . $timeSlotsString, // Khung giờ phải nằm trong danh sách cho phép
             ],
-            'message' => 'nullable|string|max:255',
+            'message' => 'nullable|string|max:255', // Lời nhắn là tùy chọn, tối đa 255 ký tự
         ];
     }
 
+    /**
+     * Tùy chỉnh thông báo lỗi cho các quy tắc xác thực.
+     *
+     * @return array Thông báo lỗi tùy chỉnh
+     */
     public function messages(): array
     {
         return [

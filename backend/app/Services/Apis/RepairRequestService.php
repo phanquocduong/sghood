@@ -11,25 +11,38 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
+/**
+ * Dịch vụ xử lý logic nghiệp vụ liên quan đến yêu cầu sửa chữa.
+ */
 class RepairRequestService
 {
     /**
-     * Lấy tất cả repair requests của user
+     * Lấy danh sách tất cả yêu cầu sửa chữa của người dùng.
+     *
+     * @param int $userId ID của người dùng
+     * @return Collection Danh sách yêu cầu sửa chữa
      */
     public function getUserRepairRequests(int $userId): Collection
     {
+        // Truy vấn các yêu cầu sửa chữa của người dùng dựa trên hợp đồng
         return RepairRequest::whereHas('contract', function ($query) use ($userId) {
             $query->where('user_id', $userId);
-        })->with('contract')->get();
+        })->with('contract')->get(); // Lấy thông tin hợp đồng liên quan
     }
 
     /**
-     * Tạo mới repair request
+     * Tạo mới một yêu cầu sửa chữa.
+     *
+     * @param int $userId ID của người dùng
+     * @param array $data Dữ liệu đã xác thực từ yêu cầu
+     * @return RepairRequest Mô hình yêu cầu sửa chữa vừa tạo
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException Nếu không tìm thấy hợp đồng
      */
     public function createRepairRequest(int $userId, array $data): RepairRequest
     {
+        // Sử dụng giao dịch để đảm bảo tính toàn vẹn dữ liệu
         return DB::transaction(function () use ($userId, $data) {
-            // Tìm contract đang hoạt động của user
+            // Tìm hợp đồng đang hoạt động của người dùng
             $contract = Contract::where('user_id', $userId)
                 ->where('status', 'Hoạt động')
                 ->firstOrFail();
@@ -39,7 +52,7 @@ class RepairRequestService
             if (isset($data['images']) && is_array($data['images'])) {
                 foreach ($data['images'] as $image) {
                     if ($image->isValid()) {
-                        // Chuyển đổi ảnh sang WebP
+                        // Chuyển đổi ảnh sang định dạng WebP
                         $imageManager = new ImageManager(new Driver());
                         $imageWebp = $imageManager->read($image)->toWebp(quality: 85);
 
@@ -50,15 +63,16 @@ class RepairRequestService
                         // Lưu ảnh vào storage
                         Storage::disk('public')->put($path, $imageWebp->toString());
 
-                        // Thêm đường dẫn công khai vào mảng
+                        // Thêm URL công khai vào mảng
                         $imagePaths[] = Storage::url($path);
                     }
                 }
             }
 
-            // Chuyển mảng đường dẫn thành chuỗi ngăn cách bằng |
+            // Chuyển mảng đường dẫn ảnh thành chuỗi ngăn cách bằng |
             $imagesString = !empty($imagePaths) ? implode('|', $imagePaths) : null;
 
+            // Tạo yêu cầu sửa chữa
             $repairRequest = RepairRequest::create([
                 'contract_id' => $contract->id,
                 'title' => $data['title'],
@@ -67,7 +81,7 @@ class RepairRequestService
                 'status' => 'Chờ xác nhận',
             ]);
 
-            // Gửi thông báo
+            // Gửi thông báo đến quản trị viên
             SendRepairRequestNotification::dispatch(
                 $repairRequest,
                 'pending',
@@ -80,18 +94,25 @@ class RepairRequestService
     }
 
     /**
-     * Hủy yêu cầu sửa chữa
+     * Hủy một yêu cầu sửa chữa.
+     *
+     * @param int $userId ID của người dùng
+     * @param int $repairRequestId ID của yêu cầu sửa chữa
+     * @return RepairRequest Mô hình yêu cầu sửa chữa đã hủy
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException Nếu không tìm thấy yêu cầu
+     * @throws \Exception Nếu trạng thái không cho phép hủy
      */
     public function cancelRepairRequest(int $userId, int $repairRequestId): RepairRequest
     {
+        // Sử dụng giao dịch để đảm bảo tính toàn vẹn dữ liệu
         return DB::transaction(function () use ($userId, $repairRequestId) {
-            // Tìm repair request và kiểm tra xem nó thuộc về user
+            // Tìm yêu cầu sửa chữa và kiểm tra quyền sở hữu
             $repairRequest = RepairRequest::where('id', $repairRequestId)
                 ->whereHas('contract', function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 })->firstOrFail();
 
-            // Kiểm tra trạng thái hiện tại
+            // Kiểm tra trạng thái hiện tại của yêu cầu
             if ($repairRequest->status === 'Huỷ bỏ') {
                 throw new \Exception('Yêu cầu sửa chữa đã được hủy trước đó');
             }
@@ -104,10 +125,10 @@ class RepairRequestService
                 throw new \Exception('Không thể hủy yêu cầu sửa chữa đã hoàn thành');
             }
 
-            // Cập nhật trạng thái
+            // Cập nhật trạng thái thành 'Huỷ bỏ'
             $repairRequest->update(['status' => 'Huỷ bỏ']);
 
-            // Gửi thông báo
+            // Gửi thông báo đến quản trị viên
             SendRepairRequestNotification::dispatch(
                 $repairRequest,
                 'canceled',

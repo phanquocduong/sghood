@@ -1,4 +1,5 @@
 <template>
+    <!-- Modal để thêm người ở cùng -->
     <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
         <div class="small-dialog-header">
             <h3>Thêm người ở cùng</h3>
@@ -6,6 +7,7 @@
         </div>
         <div class="message-reply margin-top-0">
             <div class="booking-form-grid">
+                <!-- Form nhập thông tin người ở cùng -->
                 <div class="form-row">
                     <div class="form-col">
                         <label><i class="fa fa-user"></i> Họ và tên (*):</label>
@@ -57,6 +59,7 @@
                     </div>
                 </div>
             </div>
+            <!-- Phần tải lên ảnh CCCD -->
             <div class="booking-note-section">
                 <label><i class="fa fa-credit-card"></i> Giấy tờ tùy thân (*):</label>
                 <div class="upload-instructions">
@@ -69,22 +72,27 @@
                         <li>Định dạng ảnh: JPEG hoặc PNG, kích thước tối đa 2MB mỗi ảnh.</li>
                     </ul>
                 </div>
+                <!-- Thông báo nếu CCCD hợp lệ -->
                 <p v-if="formData.identity_document.has_valid" class="valid-message">Ảnh căn cước đã hợp lệ, không thể tải lên thêm.</p>
+                <!-- Thông báo nếu bypass quét CCCD -->
                 <p v-else-if="bypassExtract" class="bypass-message">
                     Quét CCCD thất bại nhiều lần. Vui lòng tải ảnh lên để admin xác nhận.
                 </p>
+                <!-- Khu vực tải lên ảnh bằng Dropzone -->
                 <div class="edit-profile-photo" style="position: relative">
                     <form
                         id="tenant-dropzone-upload"
                         class="dropzone"
                         :class="{ 'dropzone-disabled': formData.identity_document.has_valid }"
                     ></form>
+                    <!-- Lớp phủ hiển thị trạng thái loading khi quét CCCD -->
                     <div v-if="extractLoading" class="loading-overlay">
                         <div class="spinner"></div>
                         <p>Đang quét căn cước công dân...</p>
                     </div>
                 </div>
             </div>
+            <!-- Nút hành động -->
             <div class="booking-actions">
                 <button @click="closeModal" class="button gray" type="button"><i class="fa fa-times"></i> Hủy</button>
                 <button @click.prevent="handleSubmitTenant" class="button" :disabled="buttonLoading || !isFormComplete">
@@ -102,18 +110,21 @@ import { ref, onMounted, computed, nextTick } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useTenant } from '~/composables/useTenant';
 
-const { $dropzone } = useNuxtApp();
-const toast = useAppToast();
+const { $dropzone } = useNuxtApp(); // Lấy instance Dropzone từ Nuxt
+const toast = useAppToast(); // Sử dụng composable để hiển thị thông báo
 
+// Định nghĩa props
 const props = defineProps({
     contractId: {
         type: [Number, String],
-        required: true
+        required: true // ID của hợp đồng
     }
 });
 
+// Định nghĩa các sự kiện emit
 const emit = defineEmits(['addTenant', 'close']);
 
+// Khởi tạo dữ liệu form
 const formData = ref({
     name: '',
     phone: '',
@@ -134,15 +145,17 @@ const formData = ref({
     identity_images: []
 });
 
-const buttonLoading = ref(false);
-const extractLoading = ref(false);
-const bypassExtract = ref(false);
-const extractErrorCount = ref(0);
-const identityImages = ref([]);
-const genderSelect = ref(null);
-const relationSelect = ref(null);
-const dropzoneInstance = ref(null);
+// Khởi tạo các biến trạng thái
+const buttonLoading = ref(false); // Trạng thái loading của nút submit
+const extractLoading = ref(false); // Trạng thái loading khi quét CCCD
+const bypassExtract = ref(false); // Cờ bypass quét CCCD
+const extractErrorCount = ref(0); // Đếm số lần quét CCCD thất bại
+const identityImages = ref([]); // Danh sách ảnh CCCD
+const genderSelect = ref(null); // Tham chiếu đến select giới tính
+const relationSelect = ref(null); // Tham chiếu đến select mối quan hệ
+const dropzoneInstance = ref(null); // Tham chiếu đến instance Dropzone
 
+// Kiểm tra form đã hoàn thành chưa
 const isFormComplete = computed(() => {
     return (
         formData.value.name &&
@@ -152,6 +165,7 @@ const isFormComplete = computed(() => {
     );
 });
 
+// Sử dụng composable useTenant để xử lý logic tải lên CCCD và gửi form
 const { handleIdentityUpload, submitTenant } = useTenant({
     formData,
     identityImages,
@@ -163,6 +177,7 @@ const { handleIdentityUpload, submitTenant } = useTenant({
     extractErrorCount
 });
 
+// Khởi tạo Chosen select cho dropdown
 const initChosenSelect = (selectRef, options = {}) => {
     if (!window.jQuery || !window.jQuery.fn.chosen) {
         console.error('jQuery hoặc Chosen không được tải');
@@ -174,6 +189,7 @@ const initChosenSelect = (selectRef, options = {}) => {
         no_results_text: 'Không tìm thấy kết quả',
         ...options
     });
+    // Cập nhật giá trị form khi select thay đổi
     $select.on('change', event => {
         if (selectRef === genderSelect) {
             formData.value.gender = event.target.value;
@@ -184,6 +200,7 @@ const initChosenSelect = (selectRef, options = {}) => {
     return $select;
 };
 
+// Khởi tạo Datepicker cho trường ngày sinh
 const initDatePicker = (elementId, field) => {
     if (!window.jQuery || !window.jQuery.fn.daterangepicker || !window.moment) {
         console.error('jQuery, Moment hoặc Daterangepicker không được tải');
@@ -219,15 +236,15 @@ const initDatePicker = (elementId, field) => {
             }
         })
         .on('apply.daterangepicker', (ev, picker) => {
-            field.value.birthdate = picker.startDate.format('DD/MM/YYYY');
+            field.value.birthdate = picker.startDate.format('DD/MM/YYYY'); // Cập nhật ngày sinh
             $datePicker.val(picker.startDate.format('DD/MM/YYYY'));
         })
         .on('cancel.daterangepicker', () => {
-            field.value.birthdate = '';
+            field.value.birthdate = ''; // Xóa ngày sinh khi hủy
             $datePicker.val('');
         })
         .on('showCalendar.daterangepicker', () => {
-            window.jQuery('.daterangepicker').addClass('calendar-animated');
+            window.jQuery('.daterangepicker').addClass('calendar-animated'); // Thêm hiệu ứng khi hiển thị lịch
         })
         .on('show.daterangepicker', () => {
             window.jQuery('.daterangepicker').removeClass('calendar-hidden').addClass('calendar-visible');
@@ -239,6 +256,7 @@ const initDatePicker = (elementId, field) => {
     $datePicker.val(field.value.birthdate || '');
 };
 
+// Khởi tạo Dropzone để tải lên ảnh CCCD
 const initDropzone = () => {
     if (!$dropzone) {
         console.error('Dropzone không được tải');
@@ -249,33 +267,35 @@ const initDropzone = () => {
     dropzoneInstance.value = new $dropzone('#tenant-dropzone-upload', {
         url: '/',
         autoProcessQueue: true,
-        maxFilesize: 5,
-        acceptedFiles: 'image/jpeg,image/png',
-        clickable: !formData.value.identity_document.has_valid,
+        maxFilesize: 5, // Giới hạn kích thước file là 5MB
+        acceptedFiles: 'image/jpeg,image/png', // Chỉ chấp nhận file JPEG và PNG
+        clickable: !formData.value.identity_document.has_valid, // Vô hiệu hóa nếu CCCD đã hợp lệ
         dictDefaultMessage: '<i class="sl sl-icon-plus"></i>Tải lên 2 ảnh căn cước công dân mặt trước và mặt sau',
         init() {
             this.on('queuecomplete', () => {
                 const files = [...this.getQueuedFiles(), ...this.getAcceptedFiles()];
-                if (files.length) handleIdentityUpload(files);
+                if (files.length) handleIdentityUpload(files); // Xử lý tải lên ảnh
             });
             this.on('error', (file, message) => {
-                console.error('Error uploading file:', message);
+                console.error('Error uploading file:', message); // Ghi log lỗi tải lên
             });
-            if (formData.value.identity_document.has_valid) this.disable();
+            if (formData.value.identity_document.has_valid) this.disable(); // Vô hiệu hóa Dropzone nếu CCCD hợp lệ
         }
     });
 };
 
+// Đóng modal
 const closeModal = () => {
     if (window.jQuery && window.jQuery.fn.magnificPopup) {
-        window.jQuery.magnificPopup.close();
+        window.jQuery.magnificPopup.close(); // Đóng Magnific Popup
     }
     if (dropzoneInstance.value) {
-        dropzoneInstance.value.removeAllFiles(true);
+        dropzoneInstance.value.removeAllFiles(true); // Xóa tất cả file trong Dropzone
     }
-    emit('close');
+    emit('close'); // Emit sự kiện đóng modal
 };
 
+// Mở modal
 const openModal = async () => {
     if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
         console.error('Magnific Popup không được tải');
@@ -283,6 +303,7 @@ const openModal = async () => {
         return;
     }
 
+    // Reset form dữ liệu
     formData.value = {
         name: '',
         phone: '',
@@ -306,6 +327,7 @@ const openModal = async () => {
     bypassExtract.value = false;
     extractErrorCount.value = 0;
 
+    // Mở Magnific Popup
     window.jQuery.magnificPopup.open({
         items: { src: '#small-dialog', type: 'inline' },
         fixedContentPos: false,
@@ -320,6 +342,7 @@ const openModal = async () => {
         callbacks: {
             open: () => {
                 nextTick(() => {
+                    // Khởi tạo các thư viện giao diện
                     initChosenSelect(genderSelect, { placeholder_text_single: 'Chọn giới tính', allow_single_deselect: true });
                     initChosenSelect(relationSelect, { placeholder_text_single: 'Chọn mối quan hệ', allow_single_deselect: true });
                     initDatePicker('birthdate-picker', formData);
@@ -330,33 +353,37 @@ const openModal = async () => {
     });
 };
 
+// Xử lý submit form thêm người ở cùng
 const handleSubmitTenant = async () => {
-    buttonLoading.value = true;
+    buttonLoading.value = true; // Bật trạng thái loading
     try {
-        await submitTenant();
-        emit('addTenant');
-        closeModal();
+        await submitTenant(); // Gửi yêu cầu thêm người ở cùng
+        emit('addTenant'); // Emit sự kiện thêm người ở cùng
+        closeModal(); // Đóng modal
     } catch (error) {
-        console.error('Error submitting tenant:', error);
+        console.error('Error submitting tenant:', error); // Ghi log lỗi
     } finally {
-        buttonLoading.value = false;
+        buttonLoading.value = false; // Tắt trạng thái loading
     }
 };
 
+// Khởi tạo khi component được mount
 onMounted(() => {
     nextTick(() => {
         if ($dropzone) {
-            $dropzone.autoDiscover = false;
+            $dropzone.autoDiscover = false; // Tắt tự động khởi tạo Dropzone
         }
     });
 });
 
+// Expose hàm openModal để sử dụng bên ngoài
 defineExpose({ openModal });
 </script>
 
 <style scoped>
-@import '~/public/css/viewing-schedules.css';
+@import '~/public/css/modal.css';
 
+/* Style cho khu vực tải lên Dropzone */
 .dropzone {
     border: 2px dashed #ccc;
     border-radius: 8px;
@@ -376,6 +403,7 @@ defineExpose({ openModal });
     border-color: #ccc !important;
 }
 
+/* Style cho thông báo CCCD hợp lệ */
 .valid-message {
     color: #59b02c;
     font-size: 1.4rem;
@@ -384,12 +412,14 @@ defineExpose({ openModal });
     text-align: center;
 }
 
+/* Style cho thông báo bypass quét CCCD */
 .bypass-message {
     color: #f39c12;
     font-weight: bold;
     margin-top: 10px;
 }
 
+/* Style cho hướng dẫn tải lên */
 .upload-instructions {
     margin-bottom: 15px;
     text-align: left;
@@ -412,6 +442,7 @@ defineExpose({ openModal });
     margin-bottom: 8px;
 }
 
+/* Style cho lớp phủ loading */
 .loading-overlay {
     position: absolute;
     top: 0;
@@ -442,6 +473,7 @@ defineExpose({ openModal });
     font-weight: 500;
 }
 
+/* Hiệu ứng quay cho spinner */
 @keyframes spin {
     0% {
         transform: rotate(0deg);

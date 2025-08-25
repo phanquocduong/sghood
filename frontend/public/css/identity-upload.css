@@ -1,0 +1,130 @@
+/* CSS cho khu vực tải ảnh */
+.dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.2s ease;
+}
+
+.dropzone:hover {
+    border-color: #59b02c;
+}
+
+/* CSS khi Dropzone bị vô hiệu hóa */
+.dropzone-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    border-color: #ccc !important;
+}
+
+/* CSS cho thông báo CCCD hợp lệ */
+.valid-message {
+    color: #59b02c;
+    font-size: 1.4rem;
+    line-height: 2.2rem;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* CSS cho spinner trong nút */
+.button-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Hiệu ứng xoay cho spinner */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* CSS cho nút khi bị vô hiệu hóa */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.edit-profile-photo {
+    margin-bottom: 0;
+}
+
+.dashboard-list-box ul li {
+    padding: 6px 12px;
+}
+
+/* CSS cho hướng dẫn tải ảnh */
+.upload-instructions {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.upload-instructions h5 {
+    font-size: 1.6rem;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.upload-instructions ul {
+    list-style-type: disc;
+    padding-left: 16px;
+    font-size: 1.4rem;
+    color: #555;
+}
+
+.upload-instructions li {
+    margin-bottom: 8px;
+}
+
+/* CSS cho thông báo bypass quét CCCD */
+.bypass-message {
+    color: #f39c12;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+    .dashboard-list-box {
+        margin-top: 20px !important;
+    }
+
+    .upload-instructions h5 {
+        font-size: 1.5rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .upload-instructions h5 {
+        font-size: 1.4rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.2rem;
+        padding-left: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .upload-instructions h5 {
+        font-size: 1.3rem;
+    }
+
+    .upload-instructions ul {
+        font-size: 1.1rem;
+        padding-left: 10px;
+    }
+}

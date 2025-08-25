@@ -12,8 +12,18 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Dịch vụ xử lý logic nghiệp vụ liên quan đến người ở cùng hợp đồng.
+ */
 class ContractTenantService
 {
+    /**
+     * Lấy danh sách người ở cùng của một hợp đồng.
+     *
+     * @param int $contractId ID của hợp đồng
+     * @param int $userId ID của người dùng
+     * @return array Danh sách người ở cùng hoặc thông báo lỗi
+     */
     public function getContractTenants(int $contractId, int $userId): array
     {
         try {
@@ -35,6 +45,7 @@ class ContractTenantService
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function (ContractTenant $tenant) {
+                    // Định dạng dữ liệu người ở cùng
                     return [
                         'id' => $tenant->id,
                         'contract_id' => $tenant->contract_id,
@@ -52,16 +63,27 @@ class ContractTenantService
                 })
                 ->toArray();
 
+            // Trả về danh sách người ở cùng và số lượng tối đa người ở
             return [
                 'tenants' => $tenants,
                 'max_occupants' => $contract->room->max_occupants ?? 0
             ];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi lấy danh sách người ở cùng: ' . $e->getMessage());
             throw $e;
         }
     }
 
+    /**
+     * Thêm mới một người ở cùng cho hợp đồng.
+     *
+     * @param int $contractId ID của hợp đồng
+     * @param int $userId ID của người dùng
+     * @param array $data Dữ liệu đã xác thực của người ở cùng
+     * @param array $files Các tệp ảnh CCCD
+     * @return array Kết quả với dữ liệu hoặc lỗi
+     */
     public function storeTenant(int $contractId, int $userId, array $data, array $files): array
     {
         try {
@@ -95,7 +117,9 @@ class ContractTenantService
             $identityDocumentPaths = [];
             foreach ($files['identity_images'] as $index => $image) {
                 if ($image instanceof UploadedFile) {
+                    // Tạo tên tệp duy nhất với định dạng webp mã hóa
                     $filename = "images/tenants/tenant-{$contractId}-" . time() . "-{$index}.webp.enc";
+                    // Chuyển đổi ảnh sang định dạng webp và mã hóa
                     $imageContent = (new ImageManager(new Driver()))
                         ->read($image)
                         ->toWebp(quality: 85)
@@ -122,7 +146,7 @@ class ContractTenantService
                 'status' => 'Chờ duyệt',
             ]);
 
-            // Gửi thông báo
+            // Gửi thông báo thêm người ở cùng đến quản trị viên
             SendContractTenantNotification::dispatch(
                 $contract,
                 $tenant,
@@ -131,6 +155,7 @@ class ContractTenantService
                 "Người dùng {$contract->user->name} đã đăng ký thêm người ở cùng {$tenant->name} (ID: {$tenant->id}) vào hợp đồng #{$contract->id}."
             );
 
+            // Trả về dữ liệu người ở cùng đã tạo
             return [
                 'data' => [
                     'id' => $tenant->id,
@@ -149,11 +174,20 @@ class ContractTenantService
                 'message' => 'Thêm người ở cùng thành công',
             ];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi thêm người ở cùng: ' . $e->getMessage());
             throw $e;
         }
     }
 
+    /**
+     * Hủy đăng ký người ở cùng.
+     *
+     * @param int $contractId ID của hợp đồng
+     * @param int $tenantId ID của người ở cùng
+     * @param int $userId ID của người dùng
+     * @return array Kết quả với dữ liệu hoặc lỗi
+     */
     public function cancelTenant(int $contractId, int $tenantId, int $userId): array
     {
         try {
@@ -181,6 +215,7 @@ class ContractTenantService
                 ];
             }
 
+            // Kiểm tra trạng thái người ở cùng
             if ($tenant->status !== 'Chờ duyệt' && $tenant->status !== 'Đã duyệt') {
                 return [
                     'error' => 'Người ở cùng không ở trạng thái có thể hủy',
@@ -188,9 +223,10 @@ class ContractTenantService
                 ];
             }
 
+            // Cập nhật trạng thái người ở cùng thành "Huỷ bỏ"
             $tenant->update(['status' => 'Huỷ bỏ']);
 
-            // Gửi thông báo
+            // Gửi thông báo hủy người ở cùng đến quản trị viên
             SendContractTenantNotification::dispatch(
                 $contract,
                 $tenant,
@@ -199,13 +235,23 @@ class ContractTenantService
                 "Người dùng {$contract->user->name} đã hủy đăng ký người ở cùng {$tenant->name} trong hợp đồng #{$contract->id}."
             );
 
+            // Trả về dữ liệu người ở cùng đã cập nhật
             return ['data' => $tenant->fresh()];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi hủy người ở cùng: ' . $e->getMessage());
             throw $e;
         }
     }
 
+    /**
+     * Xác nhận người ở cùng vào ở chính thức.
+     *
+     * @param int $contractId ID của hợp đồng
+     * @param int $tenantId ID của người ở cùng
+     * @param int $userId ID của người dùng
+     * @return array Kết quả với dữ liệu hoặc lỗi
+     */
     public function confirmTenant(int $contractId, int $tenantId, int $userId): array
     {
         try {
@@ -233,6 +279,7 @@ class ContractTenantService
                 ];
             }
 
+            // Kiểm tra trạng thái người ở cùng
             if ($tenant->status !== 'Đã duyệt') {
                 return [
                     'error' => 'Người ở cùng không ở trạng thái có thể xác nhận vào ở',
@@ -240,9 +287,10 @@ class ContractTenantService
                 ];
             }
 
+            // Cập nhật trạng thái người ở cùng thành "Đang ở"
             $tenant->update(['status' => 'Đang ở']);
 
-            // Gửi thông báo
+            // Gửi thông báo xác nhận người ở cùng đến quản trị viên
             SendContractTenantNotification::dispatch(
                 $contract,
                 $tenant,
@@ -251,8 +299,10 @@ class ContractTenantService
                 "Người dùng {$contract->user->name} đã xác nhận người ở cùng {$tenant->name} (ID: {$tenant->id}) vào ở chính thức trong hợp đồng #{$contract->id}."
             );
 
+            // Trả về dữ liệu người ở cùng đã cập nhật
             return ['data' => $tenant->fresh()];
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error('Lỗi xác nhận người ở cùng: ' . $e->getMessage());
             throw $e;
         }

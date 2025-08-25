@@ -16,8 +16,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Kreait\Firebase\Messaging\CloudMessage;
 
+/**
+ * Job xử lý gửi thông báo liên quan đến người ở cùng hợp đồng cho quản trị viên.
+ */
 class SendContractTenantNotification implements ShouldQueue
 {
+    // Sử dụng các trait để hỗ trợ hàng đợi và tuần tự hóa mô hình
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $contract;
@@ -26,6 +30,15 @@ class SendContractTenantNotification implements ShouldQueue
     protected $title;
     protected $body;
 
+    /**
+     * Khởi tạo job với dữ liệu thông báo.
+     *
+     * @param Contract $contract Mô hình hợp đồng
+     * @param ContractTenant $tenant Mô hình người ở cùng
+     * @param string $type Loại thông báo (tenant_added, tenant_canceled, tenant_confirmed)
+     * @param string $title Tiêu đề thông báo
+     * @param string $body Nội dung thông báo
+     */
     public function __construct(Contract $contract, ContractTenant $tenant, string $type, string $title, string $body)
     {
         $this->contract = $contract;
@@ -35,30 +48,38 @@ class SendContractTenantNotification implements ShouldQueue
         $this->body = $body;
     }
 
+    /**
+     * Xử lý gửi thông báo qua email và Firebase Cloud Messaging (FCM).
+     */
     public function handle()
     {
         try {
+            // Lấy danh sách quản trị viên (Quản trị viên hoặc Super admin)
             $admins = User::where('role', 'Quản trị viên')->orWhere('role', 'Super admin')->get();
             if ($admins->isEmpty()) {
+                // Ghi log cảnh báo nếu không tìm thấy quản trị viên
                 Log::warning('Không tìm thấy admin với role Quản trị viên hoặc Super admin');
                 return;
             }
 
-            // Gửi email
+            // Gửi email thông báo đến tất cả quản trị viên
             Mail::to($admins->pluck('email'))->send(new ContractTenantEmail($this->contract, $this->tenant, $this->type, $this->title));
 
-            // Gửi thông báo đẩy và lưu vào database
+            // Tạo URL cơ bản để liên kết đến trang hợp đồng
             $messaging = app('firebase.messaging');
             $baseUrl = config('app.url');
             $link = "$baseUrl/contracts/{$this->contract->id}";
 
+            // Gửi thông báo đến từng quản trị viên
             foreach ($admins as $admin) {
+                // Tạo bản ghi thông báo trong cơ sở dữ liệu
                 Notification::create([
                     'user_id' => $admin->id,
                     'title' => $this->title,
                     'content' => $this->body,
                 ]);
 
+                // Gửi thông báo qua FCM nếu quản trị viên có fcm_token
                 if ($admin->fcm_token) {
                     $message = CloudMessage::fromArray([
                         'token' => $admin->fcm_token,
@@ -69,6 +90,7 @@ class SendContractTenantNotification implements ShouldQueue
                 }
             }
         } catch (\Throwable $e) {
+            // Ghi log lỗi nếu có ngoại lệ xảy ra
             Log::error("Lỗi gửi thông báo người ở cùng: {$this->title}", [
                 'contract_id' => $this->contract->id,
                 'tenant_id' => $this->tenant->id,

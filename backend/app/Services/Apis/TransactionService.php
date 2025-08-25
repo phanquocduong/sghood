@@ -4,48 +4,58 @@ namespace App\Services\Apis;
 
 use App\Models\Transaction;
 
+/**
+ * Dịch vụ xử lý logic nghiệp vụ liên quan đến giao dịch.
+ */
 class TransactionService
 {
     /**
-     * Lấy danh sách giao dịch của user với bộ lọc và phân trang
+     * Lấy danh sách giao dịch của người dùng với bộ lọc và phân trang.
+     *
+     * @param int $userId ID của người dùng
+     * @param array $filters Mảng chứa các bộ lọc (sort, type)
+     * @param int $perPage Số lượng giao dịch mỗi trang
+     * @return \Illuminate\Pagination\LengthAwarePaginator Danh sách giao dịch đã phân trang
      */
     public function getUserTransactions($userId, array $filters, $perPage = 10)
     {
+        // Xây dựng truy vấn lấy giao dịch với thông tin liên quan
         $query = Transaction::query()
             ->select([
-                'transactions.id',
-                'transactions.transaction_date',
-                'transactions.content',
-                'transactions.transfer_type',
-                'transactions.transfer_amount',
-                'transactions.reference_code',
-                'invoices.code as invoice_code'
+                'transactions.id', // ID giao dịch
+                'transactions.transaction_date', // Ngày giao dịch
+                'transactions.content', // Nội dung giao dịch
+                'transactions.transfer_type', // Loại giao dịch
+                'transactions.transfer_amount', // Số tiền giao dịch
+                'transactions.reference_code', // Mã tham chiếu
+                'invoices.code as invoice_code' // Mã hóa đơn
             ])
-            ->join('invoices', 'transactions.invoice_id', '=', 'invoices.id')
-            ->join('contracts', 'invoices.contract_id', '=', 'contracts.id')
-            ->where('contracts.user_id', $userId);
+            ->join('invoices', 'transactions.invoice_id', '=', 'invoices.id') // Kết nối với bảng hóa đơn
+            ->join('contracts', 'invoices.contract_id', '=', 'contracts.id') // Kết nối với bảng hợp đồng
+            ->where('contracts.user_id', $userId); // Lọc theo ID người dùng
 
         // Áp dụng bộ lọc loại giao dịch
         if (!empty($filters['type'])) {
-            $query->where('transactions.transfer_type', $filters['type']);
+            $query->where('transactions.transfer_type', $filters['type']); // Lọc theo loại giao dịch
         }
 
-        // Áp dụng sắp xếp
+        // Áp dụng sắp xếp dựa trên tiêu chí
         switch ($filters['sort']) {
             case 'oldest':
-                $query->orderBy('transactions.transaction_date', 'asc');
+                $query->orderBy('transactions.transaction_date', 'asc'); // Sắp xếp theo ngày giao dịch tăng dần
                 break;
             case 'latest':
-                $query->orderBy('transactions.transaction_date', 'desc');
+                $query->orderBy('transactions.transaction_date', 'desc'); // Sắp xếp theo ngày giao dịch giảm dần
                 break;
             default:
-                $query->orderBy('transactions.transaction_date', 'desc');
+                $query->orderBy('transactions.transaction_date', 'desc'); // Sắp xếp mặc định theo ngày giao dịch giảm dần
                 break;
         }
 
-        // Sử dụng paginate thay vì get
+        // Thực hiện phân trang
         $transactions = $query->paginate($perPage);
 
+        // Biến đổi dữ liệu giao dịch để trả về định dạng mong muốn
         return $transactions->through(function ($transaction) {
             return [
                 'id' => $transaction->id,

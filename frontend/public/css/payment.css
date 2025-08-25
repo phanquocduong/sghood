@@ -1,0 +1,519 @@
+.payment-section {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h2 {
+    color: #28a745;
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.header h2 i {
+    font-size: 28px;
+}
+
+.contract-id {
+    font-size: 16px;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+.payment-methods {
+    text-align: center;
+}
+
+.payment-methods h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.methods-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.method {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #d9d9d9;
+}
+
+.qr-method,
+.manual-method {
+    flex: 1 1 45%;
+}
+
+.cash-method {
+    flex: 1 1 90%;
+}
+
+.method:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.method h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.method p {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.qr-code img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.qr-code .status {
+    font-size: 14px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.qr-code .status.success {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.qr-code .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #28a745;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.bank-info {
+    text-align: center;
+}
+
+.bank-logo {
+    max-height: 50px;
+}
+
+.bank-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item .label {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.value-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.copy-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #007bff;
+    transition: color 0.3s ease;
+    padding: 2px;
+}
+
+.copy-btn:hover {
+    color: #0056b3;
+}
+
+.copy-btn i {
+    font-size: 16px;
+}
+
+.note {
+    background: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #555;
+}
+
+.note i {
+    color: #007bff;
+}
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 10px auto;
+    transition: background 0.3s ease;
+}
+
+.download-btn:hover {
+    background: #0056b3;
+}
+
+.download-btn i {
+    font-size: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Thiết kế responsive */
+@media (max-width: 992px) {
+    .payment-section {
+        max-width: 90%;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .header h2 {
+        font-size: 22px;
+    }
+
+    .header h2 i {
+        font-size: 24px;
+    }
+
+    .contract-id {
+        font-size: 14px;
+    }
+
+    .payment-methods h3 {
+        font-size: 18px;
+    }
+
+    .methods-container {
+        flex-direction: column; /* Chuyển thành cột trên màn hình nhỏ */
+        align-items: center; /* Căn giữa các method */
+    }
+
+    .method {
+        min-width: 100%; /* Chiếm toàn bộ chiều rộng */
+        margin-bottom: 20px; /* Khoảng cách giữa các method */
+    }
+
+    .cash-method {
+        margin-top: 20px; /* Giữ khoảng cách trên màn hình nhỏ */
+    }
+
+    .qr-code img {
+        max-width: 300px;
+    }
+
+    .copy-btn i {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .payment-section {
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    .header h2 {
+        font-size: 20px;
+    }
+
+    .header h2 i {
+        font-size: 22px;
+    }
+
+    .contract-id {
+        font-size: 13px;
+    }
+
+    .payment-methods h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .method h4 {
+        font-size: 16px;
+    }
+
+    .method p {
+        font-size: 13px;
+    }
+
+    .qr-code img {
+        max-width: 250px;
+    }
+
+    .qr-code .status {
+        font-size: 13px;
+    }
+
+    .bank-logo {
+        max-height: 40px;
+    }
+
+    .bank-name {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .info-item .label,
+    .info-item .value {
+        font-size: 13px;
+    }
+
+    .copy-btn i {
+        font-size: 14px;
+    }
+
+    .note {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .download-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .download-btn i {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .payment-section {
+        margin: 15px auto;
+        padding: 10px;
+    }
+
+    .header h2 {
+        font-size: 18px;
+    }
+
+    .header h2 i {
+        font-size: 20px;
+    }
+
+    .contract-id {
+        font-size: 12px;
+    }
+
+    .payment-methods h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .method {
+        padding: 15px;
+    }
+
+    .method h4 {
+        font-size: 14px;
+    }
+
+    .method p {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .qr-code img {
+        max-width: 200px;
+    }
+
+    .qr-code .status {
+        font-size: 12px;
+    }
+
+    .bank-logo {
+        max-height: 35px;
+    }
+
+    .bank-name {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .info-item .label,
+    .info-item .value {
+        font-size: 12px;
+    }
+
+    .copy-btn i {
+        font-size: 13px;
+    }
+
+    .note {
+        font-size: 11px;
+        padding: 6px;
+    }
+
+    .note i {
+        font-size: 12px;
+    }
+
+    .download-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .download-btn i {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .payment-section {
+        margin: 10px auto;
+        padding: 8px;
+    }
+
+    .header h2 {
+        font-size: 16px;
+    }
+
+    .header h2 i {
+        font-size: 18px;
+    }
+
+    .contract-id {
+        font-size: 11px;
+    }
+
+    .payment-methods h3 {
+        font-size: 13px;
+    }
+
+    .method {
+        padding: 10px;
+    }
+
+    .method h4 {
+        font-size: 13px;
+    }
+
+    .method p {
+        font-size: 11px;
+    }
+
+    .qr-code img {
+        max-width: 150px;
+    }
+
+    .qr-code .status {
+        font-size: 11px;
+    }
+
+    .qr-code .spinner {
+        width: 14px;
+        height: 14px;
+    }
+
+    .bank-logo {
+        max-height: 30px;
+    }
+
+    .bank-name {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .info-item .label,
+    .info-item .value {
+        font-size: 11px;
+    }
+
+    .copy-btn i {
+        font-size: 12px;
+    }
+
+    .note {
+        font-size: 10px;
+        padding: 5px;
+    }
+
+    .note i {
+        font-size: 11px;
+    }
+
+    .download-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .download-btn i {
+        font-size: 12px;
+    }
+}
+
+/* Đảm bảo cash-method có thiết kế tương tự các method khác */
+.cash-info,
+.info-grid {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+    text-align: left; /* Căn trái nội dung chi tiết */
+}

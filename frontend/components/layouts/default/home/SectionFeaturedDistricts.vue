@@ -1,3 +1,4 @@
+<!-- Template hiển thị danh sách khu vực nổi bật -->
 <template>
     <div class="container">
         <div class="row">
@@ -7,7 +8,9 @@
                 </h3>
             </div>
 
+            <!-- Hiển thị từng khu vực -->
             <div v-for="(district, index) in districts" :key="district.id" :class="index < 2 ? 'col-md-6' : 'col-md-4'">
+                <!-- Liên kết đến trang danh sách nhà trọ theo quận -->
                 <a
                     @click.prevent="handleRedirect(district.name)"
                     class="img-box alternative-imagebox"
@@ -27,10 +30,15 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+
+// Lấy cấu hình và router
 const config = useRuntimeConfig();
 const router = useRouter();
+
+// Định nghĩa props
 defineProps(['districts']);
 
+// Hàm xử lý chuyển hướng đến trang danh sách nhà trọ theo quận
 const handleRedirect = district => {
     router.push({
         path: '/danh-sach-nha-tro',
@@ -41,7 +49,9 @@ const handleRedirect = district => {
 };
 </script>
 
+<!-- CSS tùy chỉnh cho component -->
 <style scoped>
+/* CSS cho box hình ảnh khu vực */
 .img-box {
     background-size: cover;
     background-position: center;
@@ -52,10 +62,12 @@ const handleRedirect = district => {
     cursor: pointer;
 }
 
+/* Hiệu ứng hover cho box hình ảnh */
 .img-box:hover {
     transform: scale(1.01);
 }
 
+/* CSS cho nội dung trong box hình ảnh */
 .img-box-content {
     position: absolute;
     bottom: 20px;
@@ -65,6 +77,7 @@ const handleRedirect = district => {
     transition: all 0.3s ease;
 }
 
+/* Hiệu ứng hover cho nội dung box */
 .img-box:hover .img-box-content {
     transform: translateY(-10px);
     background: rgba(0, 0, 0, 0.5);

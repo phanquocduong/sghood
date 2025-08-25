@@ -1,5 +1,7 @@
 <template>
+    <!-- Container cho các bộ lọc hóa đơn -->
     <div class="booking-requests-filter">
+        <!-- Dropdown chọn tháng -->
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
@@ -11,6 +13,7 @@
             </div>
         </ClientOnly>
 
+        <!-- Dropdown chọn năm -->
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
@@ -22,6 +25,7 @@
             </div>
         </ClientOnly>
 
+        <!-- Dropdown chọn kiểu sắp xếp -->
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
@@ -34,6 +38,7 @@
             </div>
         </ClientOnly>
 
+        <!-- Dropdown chọn loại hóa đơn -->
         <ClientOnly>
             <div class="sort-by">
                 <div class="sort-by-select">
@@ -53,25 +58,29 @@ import { ref, watch, nextTick } from 'vue';
 import { useNuxtApp } from '#app';
 import { useAppToast } from '~/composables/useToast';
 
-const { $api } = useNuxtApp();
-const toast = useAppToast();
-const months = ref([]);
-const years = ref([]);
+const { $api } = useNuxtApp(); // Lấy instance API từ Nuxt
+const toast = useAppToast(); // Sử dụng composable để hiển thị thông báo
+const months = ref([]); // Danh sách các tháng
+const years = ref([]); // Danh sách các năm
 
+// Định nghĩa props
 const props = defineProps({
     filter: {
         type: Object,
-        required: true
+        required: true // Bộ lọc hóa đơn
     }
 });
 
+// Định nghĩa sự kiện emit
 const emit = defineEmits(['update:filter']);
 
+// Hàm lấy danh sách tháng và năm từ server
 const fetchMonthsAndYears = async () => {
     try {
+        // Gửi yêu cầu GET để lấy danh sách tháng và năm
         const response = await $api('/invoices/months-years', { method: 'GET' });
-        months.value = response.data.months;
-        years.value = response.data.years;
+        months.value = response.data.months; // Cập nhật danh sách tháng
+        years.value = response.data.years; // Cập nhật danh sách năm
         // Cập nhật Chosen sau khi dữ liệu được fetch
         nextTick(() => {
             if (window.jQuery && window.jQuery.fn.chosen) {
@@ -79,27 +88,29 @@ const fetchMonthsAndYears = async () => {
             }
         });
     } catch (error) {
-        toast.error('Lỗi khi lấy danh sách tháng và năm.');
+        toast.error('Lỗi khi lấy danh sách tháng và năm.'); // Hiển thị thông báo lỗi
     }
 };
 
-// Cập nhật filter và trigger Chosen khi filter thay đổi
+// Theo dõi thay đổi của filter để cập nhật Chosen
 watch(
     () => props.filter,
     () => {
         nextTick(() => {
             if (window.jQuery && window.jQuery.fn.chosen) {
-                window.jQuery('.chosen-select').trigger('chosen:updated');
+                window.jQuery('.chosen-select').trigger('chosen:updated'); // Cập nhật giao diện Chosen
             }
         });
     },
     { deep: true }
 );
 
+// Khởi tạo Chosen khi component được mount
 onMounted(() => {
-    fetchMonthsAndYears();
+    fetchMonthsAndYears(); // Lấy danh sách tháng và năm
     nextTick(() => {
         if (window.jQuery && window.jQuery.fn.chosen) {
+            // Khởi tạo Chosen cho các dropdown
             window
                 .jQuery('.chosen-select')
                 .chosen({
@@ -107,9 +118,9 @@ onMounted(() => {
                     no_results_text: 'Không tìm thấy kết quả'
                 })
                 .on('change', event => {
-                    const key = event.target.name;
-                    const value = event.target.value;
-                    emit('update:filter', { ...props.filter, [key]: value });
+                    const key = event.target.name; // Lấy tên trường thay đổi
+                    const value = event.target.value; // Lấy giá trị mới
+                    emit('update:filter', { ...props.filter, [key]: value }); // Emit sự kiện cập nhật filter
                 });
         } else {
             console.error('jQuery hoặc Chosen không được tải');
@@ -117,5 +128,3 @@ onMounted(() => {
     });
 });
 </script>
-
-<style scoped></style>

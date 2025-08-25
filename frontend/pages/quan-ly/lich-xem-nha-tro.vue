@@ -1,320 +1,134 @@
 <template>
-    <div>
-        <Titlebar title="Lịch xem nhà trọ" />
-
-        <!-- Modal Dialog for Booking -->
-        <div id="small-dialog" class="zoom-anim-dialog mfp-hide">
-            <div class="small-dialog-header" style="margin-bottom: 0">
-                <h3>Đặt phòng trọ</h3>
-                <p class="booking-subtitle">Vui lòng điền đầy đủ thông tin để đặt phòng.</p>
-            </div>
-            <div class="message-reply margin-top-0">
-                <a
-                    style="text-decoration: underline !important; color: #007bff; margin: 10px 0 20px; display: inline-block"
-                    href="/dieu-khoan-hop-dong"
-                    target="_blank"
-                    class="terms-link"
-                    >Xem điều khoản hợp đồng</a
-                >
-                <div class="booking-form-grid">
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label><i class="fa fa-bed"></i> Phòng:</label>
-                            <select v-model="formData.room_id" class="modal-room-select" ref="roomSelect">
-                                <option value="">Chọn phòng</option>
-                                <option v-for="room in rooms" :key="room.id" :value="room.id">{{ room.name }}</option>
-                            </select>
-                        </div>
-                        <div class="form-col">
-                            <label><i class="fa fa-calendar"></i> Ngày bắt đầu:</label>
-                            <div class="date-input-container">
-                                <input type="text" id="date-picker" placeholder="Chọn ngày bắt đầu" readonly="readonly" />
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <label><i class="fa fa-clock-o"></i> Thời gian thuê:</label>
-                            <select v-model="formData.duration" class="modal-duration-select" ref="durationSelect">
-                                <option value="">Chọn thời gian</option>
-                                <option v-for="duration in durations" :value="duration">{{ duration }}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="booking-note-section">
-                    <label><i class="fa fa-sticky-note"></i> Ghi chú:</label>
-                    <textarea v-model="formData.note" cols="40" rows="3" placeholder="Thêm ghi chú (không bắt buộc)..."></textarea>
-                </div>
-                <div class="booking-actions">
-                    <button @click="closeModal" class="button gray" type="button"><i class="fa fa-times"></i> Hủy</button>
-                    <button @click.prevent="submitBooking" class="button" :disabled="buttonLoading">
-                        <span v-if="buttonLoading" class="spinner"></span>
-                        <i v-else class="fa fa-check"></i>
-                        {{ buttonLoading ? 'Đang xử lý...' : 'Đặt phòng' }}
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Dialog for Editing Schedule -->
-        <div id="edit-schedule-dialog" class="zoom-anim-dialog mfp-hide">
-            <div class="small-dialog-header">
-                <h3>Chỉnh sửa lịch xem nhà trọ</h3>
-                <p class="booking-subtitle">Vui lòng cập nhật thông tin lịch xem</p>
-            </div>
-            <div class="message-reply margin-top-0">
-                <div class="booking-form-grid">
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label><i class="fa fa-calendar"></i> Ngày xem:</label>
-                            <div class="date-input-container">
-                                <input type="text" id="edit-date-picker" placeholder="Chọn ngày xem" readonly="readonly" />
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <label><i class="fa fa-clock-o"></i> Khung giờ:</label>
-                            <select v-model="editFormData.timeSlot" class="modal-time-select" ref="timeSelect">
-                                <option value="">Chọn khung giờ</option>
-                                <option v-for="slot in timeSlots" :value="slot">{{ slot }}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="booking-note-section">
-                    <label><i class="fa fa-sticky-note"></i> Lời nhắn:</label>
-                    <textarea v-model="editFormData.message" cols="40" rows="3" placeholder="Thêm lời nhắn (không bắt buộc)..."></textarea>
-                </div>
-                <div class="booking-actions">
-                    <button @click="closeModal" class="button gray" type="button"><i class="fa fa-times"></i> Hủy</button>
-                    <button @click.prevent="submitEditSchedule" class="button" :disabled="buttonLoading">
-                        <span v-if="buttonLoading" class="spinner"></span>
-                        <i v-else class="fa fa-check"></i>
-                        {{ buttonLoading ? 'Đang xử lý...' : 'Cập nhật' }}
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12 col-md-12">
-                <div class="dashboard-list-box margin-top-0">
-                    <ScheduleFilter v-model:filter="filter" @update:filter="fetchSchedules" />
-                    <ScheduleList
-                        :schedules="schedules"
-                        :is-loading="isLoading"
-                        @cancel-schedule="cancelSchedule"
-                        @open-popup="openPopup"
-                        @edit-schedule="openEditSchedulePopup"
-                    />
-                </div>
+    <!-- Tiêu đề trang -->
+    <Titlebar title="Lịch xem nhà trọ" />
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="dashboard-list-box margin-top-0">
+                <!-- Bộ lọc lịch xem -->
+                <ScheduleFilter v-model:filter="filter" @update:filter="fetchSchedules" />
+                <!-- Danh sách lịch xem -->
+                <ScheduleList
+                    :schedules="schedules"
+                    :is-loading="isLoading"
+                    @cancel-schedule="cancelSchedule"
+                    @open-popup="openPopup"
+                    @edit-schedule="openEditSchedulePopup"
+                />
             </div>
         </div>
     </div>
+    <!-- Modal đặt phòng -->
+    <BookingModal
+        :rooms="rooms"
+        :durations="durations"
+        :formData="formData"
+        @update:formData="formData = $event"
+        @update:buttonLoading="buttonLoading = $event"
+        @close="closeModal"
+        @submit="fetchSchedules"
+    />
+    <!-- Modal chỉnh sửa lịch xem -->
+    <EditScheduleModal
+        :timeSlots="timeSlots"
+        :editFormData="editFormData"
+        @update:editFormData="editFormData = $event"
+        @update:buttonLoading="buttonLoading = $event"
+        @close="closeModal"
+        @submit="fetchSchedules"
+    />
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
-import { useRouter } from 'vue-router';
 
-definePageMeta({ layout: 'management' });
+definePageMeta({ layout: 'management' }); // Cấu hình layout cho trang là 'management'
 
-const { $api } = useNuxtApp();
-const { handleBackendError } = useApi();
-const toast = useAppToast();
-const router = useRouter();
-const config = useState('configs');
+const { $api } = useNuxtApp(); // Lấy instance của API từ NuxtApp
+const { handleBackendError } = useApi(); // Hàm xử lý lỗi từ backend
+const toast = useAppToast(); // Hàm hiển thị thông báo
+const config = useState('configs'); // Lấy cấu hình từ state
 
-const schedules = ref([]);
-const filter = ref({ sort: 'default', status: '' });
-const isLoading = ref(false);
-const buttonLoading = ref(false);
-const formData = ref({ room_id: null, date: '', duration: '', note: '' });
-const editFormData = ref({ id: null, date: '', timeSlot: '', message: '' });
-const rooms = ref([]);
-const roomSelect = ref(null);
-const timeSelect = ref(null);
-const durations = ref([]);
-const durationSelect = ref(null);
-const timeSlots = ref([]);
+// Khởi tạo các biến reactive
+const schedules = ref([]); // Danh sách lịch xem nhà trọ
+const filter = ref({ sort: 'default', status: '' }); // Bộ lọc (sắp xếp và trạng thái)
+const isLoading = ref(false); // Trạng thái loading khi tải dữ liệu
+const buttonLoading = ref(false); // Trạng thái loading của nút trong modal
+const formData = ref({ room_id: null, date: '', duration: '', note: '' }); // Dữ liệu form đặt phòng
+const editFormData = ref({ id: null, date: '', timeSlot: '', message: '' }); // Dữ liệu form chỉnh sửa lịch
+const rooms = ref([]); // Danh sách phòng
+const durations = ref([]); // Danh sách thời gian thuê
+const timeSlots = ref([]); // Danh sách khung giờ xem
 
+// Hàm lấy danh sách lịch xem từ API
 const fetchSchedules = async () => {
-    isLoading.value = true;
+    isLoading.value = true; // Bật trạng thái loading
     try {
-        const { data } = await $api('/schedules', { params: filter.value });
-        schedules.value = data;
+        const { data } = await $api('/schedules', { params: filter.value }); // Gọi API để lấy lịch
+        schedules.value = data; // Cập nhật danh sách lịch
     } catch (error) {
-        handleBackendError(error, toast);
+        handleBackendError(error, toast); // Xử lý lỗi nếu có
     } finally {
-        isLoading.value = false;
+        isLoading.value = false; // Tắt trạng thái loading
     }
 };
 
+// Hàm hủy lịch xem
 const cancelSchedule = async id => {
-    isLoading.value = true;
+    isLoading.value = true; // Bật trạng thái loading
     try {
         await $api(`/schedules/${id}/cancel`, {
             method: 'POST',
             headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value },
-            body: { _method: 'PATCH' }
+            body: { _method: 'PATCH' } // Sử dụng _method để mô phỏng PATCH request
         });
-        await fetchSchedules();
-        toast.success('Hủy lịch xem nhà trọ thành công');
+        await fetchSchedules(); // Làm mới danh sách lịch
+        toast.success('Hủy lịch xem nhà trọ thành công'); // Hiển thị thông báo thành công
     } catch (error) {
-        handleBackendError(error, toast);
+        handleBackendError(error, toast); // Xử lý lỗi nếu có
     } finally {
-        isLoading.value = false;
+        isLoading.value = false; // Tắt trạng thái loading
     }
 };
 
+// Hàm lấy danh sách phòng của một nhà trọ
 const fetchRooms = async motelId => {
     try {
-        rooms.value = await $api(`/motels/${motelId}/rooms`);
+        const response = await $api(`/motels/${motelId}/rooms`); // Gọi API để lấy danh sách phòng
+        rooms.value = Array.isArray(response) ? response : []; // Gán danh sách phòng hoặc mảng rỗng
+        if (rooms.value.length === 0) {
+            toast.error('Không tìm thấy phòng nào cho nhà trọ này'); // Thông báo nếu không có phòng
+        }
     } catch (error) {
-        handleBackendError(error, toast);
+        handleBackendError(error, toast); // Xử lý lỗi nếu có
+        rooms.value = []; // Đặt lại danh sách phòng rỗng
     }
 };
 
-const submitBooking = async () => {
-    if (!formData.value.room_id || !formData.value.date || !formData.value.duration) {
-        return toast.error('Vui lòng chọn phòng, ngày bắt đầu và thời gian thuê');
-    }
-
-    buttonLoading.value = true;
-    try {
-        await $api('/bookings', {
-            method: 'POST',
-            headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value },
-            body: {
-                room_id: formData.value.room_id,
-                start_date: formData.value.date,
-                duration: formData.value.duration,
-                note: formData.value.note
-            }
-        });
-        toast.success('Đặt phòng thành công');
-        formData.value = { room_id: null, date: '', duration: '', note: '' };
-        rooms.value = [];
-        window.jQuery.magnificPopup.close();
-        router.push('/quan-ly/dat-phong');
-    } catch (error) {
-        handleBackendError(error, toast);
-    } finally {
-        buttonLoading.value = false;
-    }
-};
-
-const submitEditSchedule = async () => {
-    if (!editFormData.value.date || !editFormData.value.timeSlot) {
-        return toast.error('Vui lòng chọn ngày và khung giờ');
-    }
-
-    buttonLoading.value = true;
-    try {
-        await $api(`/schedules/${editFormData.value.id}`, {
-            method: 'POST',
-            headers: { 'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value },
-            body: {
-                date: editFormData.value.date,
-                timeSlot: editFormData.value.timeSlot,
-                message: editFormData.value.message,
-                _method: 'PATCH'
-            }
-        });
-        toast.success('Cập nhật lịch xem thành công');
-        editFormData.value = { id: null, date: '', timeSlot: '', message: '' };
-        window.jQuery.magnificPopup.close();
-        await fetchSchedules();
-    } catch (error) {
-        handleBackendError(error, toast);
-    } finally {
-        buttonLoading.value = false;
-    }
-};
-
+// Hàm đóng modal
 const closeModal = () => {
-    if (window.jQuery && window.jQuery.magnificPopup) {
-        window.jQuery.magnificPopup.close();
+    if (window.jQuery && window.jQuery.fn.magnificPopup) {
+        window.jQuery.magnificPopup.close(); // Đóng modal sử dụng Magnific Popup
     }
 };
 
-const initChosenSelect = (selectRef, options = {}) => {
-    if (!window.jQuery || !window.jQuery.fn.chosen) {
-        console.error('jQuery hoặc Chosen không được tải');
-        return;
-    }
-    const $select = window.jQuery(selectRef.value).chosen({
-        width: '100%',
-        no_results_text: 'Không tìm thấy kết quả',
-        ...options
-    });
-    return $select;
-};
-
-const initDatePicker = (elementId, field) => {
-    if (!window.jQuery || !window.jQuery.fn.daterangepicker || !window.moment) {
-        console.error('jQuery, Moment hoặc Daterangepicker không được tải');
-        return;
-    }
-
-    const tomorrow = window.moment().add(2, 'days');
-    const $datePicker = window.jQuery(`#${elementId}`);
-    $datePicker
-        .daterangepicker({
-            opens: 'left',
-            singleDatePicker: true,
-            minDate: tomorrow,
-            locale: {
-                format: 'DD/MM/YYYY',
-                applyLabel: 'Xác nhận',
-                cancelLabel: 'Hủy',
-                daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
-                monthNames: [
-                    'Tháng 1',
-                    'Tháng 2',
-                    'Tháng 3',
-                    'Tháng 4',
-                    'Tháng 5',
-                    'Tháng 6',
-                    'Tháng 7',
-                    'Tháng 8',
-                    'Tháng 9',
-                    'Tháng 10',
-                    'Tháng 11',
-                    'Tháng 12'
-                ]
-            }
-        })
-        .on('apply.daterangepicker', (ev, picker) => {
-            field.value.date = picker.startDate.format('DD/MM/YYYY');
-            $datePicker.val(picker.startDate.format('DD/MM/YYYY'));
-        })
-        .on('cancel.daterangepicker', () => {
-            field.value.date = '';
-            $datePicker.val('');
-        })
-        .on('showCalendar.daterangepicker', () => {
-            window.jQuery('.daterangepicker').addClass('calendar-animated');
-        })
-        .on('show.daterangepicker', () => {
-            window.jQuery('.daterangepicker').removeClass('calendar-hidden').addClass('calendar-visible');
-        })
-        .on('hide.daterangepicker', () => {
-            window.jQuery('.daterangepicker').removeClass('calendar-visible').addClass('calendar-hidden');
-        });
-
-    $datePicker.val(field.value.date || '');
-};
-
+// Hàm mở modal đặt phòng
 const openPopup = async motelId => {
-    await fetchRooms(motelId);
-    formData.value.room_id = null;
+    formData.value = { room_id: null, date: '', duration: '', note: '' }; // Reset dữ liệu form
+    await fetchRooms(motelId); // Lấy danh sách phòng
 
     if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
-        console.error('Magnific Popup không được tải');
+        console.error('Magnific Popup không được tải'); // Báo lỗi nếu thư viện Magnific Popup không tải được
         return;
     }
 
+    if (rooms.value.length === 0) {
+        console.warn('No rooms available, modal will not open'); // Cảnh báo nếu không có phòng
+        return;
+    }
+
+    // Cấu hình và mở modal Magnific Popup
     window.jQuery.magnificPopup.open({
         items: { src: '#small-dialog', type: 'inline' },
         fixedContentPos: false,
@@ -325,17 +139,13 @@ const openPopup = async motelId => {
         midClick: true,
         removalDelay: 300,
         mainClass: 'my-mfp-zoom-in',
-        closeOnBgClick: false,
-        callbacks: {
-            open: () => {
-                initChosenSelect(roomSelect, { placeholder_text_single: 'Chọn phòng', allow_single_deselect: true });
-                initChosenSelect(durationSelect, { disable_search: true });
-            }
-        }
+        closeOnBgClick: false
     });
 };
 
+// Hàm mở modal chỉnh sửa lịch xem
 const openEditSchedulePopup = async schedule => {
+    // Gán dữ liệu lịch xem vào form chỉnh sửa
     editFormData.value = {
         id: schedule.id,
         date: schedule.scheduled_at ? window.moment(schedule.scheduled_at).format('DD/MM/YYYY') : '',
@@ -344,10 +154,11 @@ const openEditSchedulePopup = async schedule => {
     };
 
     if (!window.jQuery || !window.jQuery.fn.magnificPopup) {
-        console.error('Magnific Popup không được tải');
+        console.error('Magnific Popup không được tải'); // Báo lỗi nếu thư viện Magnific Popup không tải được
         return;
     }
 
+    // Cấu hình và mở modal chỉnh sửa
     window.jQuery.magnificPopup.open({
         items: { src: '#edit-schedule-dialog', type: 'inline' },
         fixedContentPos: false,
@@ -358,83 +169,39 @@ const openEditSchedulePopup = async schedule => {
         midClick: true,
         removalDelay: 300,
         mainClass: 'my-mfp-zoom-in',
-        closeOnBgClick: false,
-        callbacks: {
-            open: () => {
-                initDatePicker('edit-date-picker', editFormData);
-                initChosenSelect(timeSelect, { disable_search: true });
-                updateChosenSelect(timeSelect, editFormData.value.timeSlot);
-            }
-        }
+        closeOnBgClick: false
     });
 };
 
+// Hàm định dạng khung giờ từ thời gian lịch xem
 const formatTimeSlot = scheduledAt => {
-    const date = window.moment(scheduledAt);
+    const date = window.moment(scheduledAt); // Chuyển đổi thời gian sang định dạng moment
     const hour = date.hour();
     const minute = date.minute();
-    const period = hour >= 12 ? 'chiều' : 'sáng';
+    const period = hour >= 12 ? 'chiều' : 'sáng'; // Xác định buổi sáng/chiều
 
-    // Thời gian bắt đầu
-    const startHour = hour; // Giữ nguyên giờ ở định dạng 24 giờ
+    const startHour = hour;
     const startMinute = minute.toString().padStart(2, '0');
-
-    // Thời gian kết thúc (thêm 30 phút)
-    const endDate = date.clone().add(30, 'minutes');
+    const endDate = date.clone().add(30, 'minutes'); // Tính thời gian kết thúc (30 phút sau)
     const endHour = endDate.hour();
     const endMinute = endDate.minute().toString().padStart(2, '0');
     const endPeriod = endHour >= 12 ? 'chiều' : 'sáng';
 
-    return `${startHour}:${startMinute} ${period} - ${endHour}:${endMinute} ${endPeriod}`;
+    return `${startHour}:${startMinute} ${period} - ${endHour}:${endMinute} ${endPeriod}`; // Trả về khung giờ định dạng
 };
 
+// Khởi tạo khi component được mount
 onMounted(() => {
+    // Gán danh sách khung giờ từ cấu hình
     if (config.value?.time_slots_viewing_schedule) {
         timeSlots.value = JSON.parse(config.value.time_slots_viewing_schedule) || [];
     }
 
+    // Gán danh sách thời gian thuê từ cấu hình
     if (config.value?.booking_durations) {
         durations.value = JSON.parse(config.value.booking_durations) || [];
     }
 
-    fetchSchedules();
-    nextTick(() => {
-        initDatePicker('date-picker', formData);
-        initChosenSelect(roomSelect, { placeholder_text_single: 'Chọn phòng', allow_single_deselect: true }).on('change', event => {
-            formData.value.room_id = event.target.value;
-        });
-        initChosenSelect(durationSelect, { disable_search: true }).on('change', event => {
-            formData.value.duration = event.target.value;
-        });
-        initChosenSelect(timeSelect, { placeholder_text_single: 'Chọn khung giờ', disable_search: true }).on('change', event => {
-            editFormData.value.timeSlot = event.target.value;
-        });
-    });
+    fetchSchedules(); // Lấy danh sách lịch xem khi trang được tải
 });
-
-const updateChosenSelect = (selectRef, value = null) => {
-    nextTick(() => {
-        if (window.jQuery && selectRef.value) {
-            const $select = window.jQuery(selectRef.value);
-            if ($select.data('chosen')) {
-                $select.trigger('chosen:updated');
-                if (value !== null) {
-                    $select.val(value).trigger('chosen:updated');
-                }
-            }
-        }
-    });
-};
-
-watch(
-    rooms,
-    () => {
-        updateChosenSelect(roomSelect);
-    },
-    { deep: true }
-);
 </script>
-
-<style scoped>
-@import '~/public/css/viewing-schedules.css';
-</style>

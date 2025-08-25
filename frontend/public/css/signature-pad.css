@@ -1,0 +1,173 @@
+/* CSS cho khu vực chữ ký */
+.signature-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    margin: 24px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+/* CSS cho tiêu đề khu vực chữ ký */
+.signature-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.signature-header h4 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.signature-header p {
+    font-size: 1.4rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* CSS cho wrapper của canvas */
+.signature-pad-wrapper {
+    position: relative;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    background: #f9fafb;
+    margin-bottom: 24px;
+    transition: border-color 0.3s ease;
+}
+
+.signature-pad-wrapper:hover {
+    border-color: #3b82f6;
+}
+
+/* CSS cho canvas */
+.signature-pad {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+/* CSS cho placeholder khi canvas rỗng */
+.signature-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.signature-placeholder i {
+    font-size: 2.25rem;
+    margin-bottom: 8px;
+}
+
+.signature-placeholder span {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* CSS cho các nút hành động */
+.signature-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* CSS cho nút xóa chữ ký */
+.btn-clear {
+    background: #ffffff;
+    border: 2px solid #d1d5db;
+    color: #4b5563;
+}
+
+.btn-clear:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn-clear:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(209, 213, 219, 0.3);
+}
+
+/* CSS cho nút xác nhận chữ ký */
+.btn-confirm {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-confirm:hover:not(:disabled) {
+    background: #2563eb;
+    color: white !important;
+}
+
+.btn-confirm:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+    .signature-container {
+        padding: 16px;
+    }
+
+    .signature-header h4 {
+        font-size: 1.5rem;
+    }
+
+    .signature-pad-wrapper {
+        border-width: 1px;
+    }
+
+    .signature-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .signature-placeholder i {
+        font-size: 1.75rem;
+    }
+
+    .signature-placeholder span {
+        font-size: 0.875rem;
+    }
+}

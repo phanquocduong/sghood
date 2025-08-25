@@ -4,29 +4,39 @@ namespace App\Http\Requests\Apis;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Lớp xác thực dữ liệu cho yêu cầu đổi mật khẩu.
+ */
 class ChangePasswordRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Kiểm tra quyền truy cập của người dùng.
+     *
+     * @return bool True nếu người dùng được phép thực hiện yêu cầu
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Cho phép tất cả người dùng đã đăng nhập thực hiện
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Các quy tắc xác thực dữ liệu đầu vào.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> Quy tắc xác thực
      */
     public function rules(): array
     {
         return [
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
+            'current_password' => 'required|string', // Mật khẩu hiện tại là bắt buộc
+            'new_password' => 'required|string|min:8|confirmed', // Mật khẩu mới phải có ít nhất 8 ký tự và được xác nhận
         ];
     }
 
+    /**
+     * Tùy chỉnh thông báo lỗi cho các quy tắc xác thực.
+     *
+     * @return array Thông báo lỗi tùy chỉnh
+     */
     public function messages()
     {
         return [

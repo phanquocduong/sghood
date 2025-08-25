@@ -1,0 +1,133 @@
+/* CSS chung cho các section */
+.section {
+    padding: 40px 0; /* Khoảng cách trên dưới */
+}
+
+/* Màu nền xám nhạt */
+.bg-gray {
+    background-color: #f8f8f8;
+}
+
+/* Màu nền trắng */
+.bg-white {
+    background-color: #ffffff;
+}
+
+/* Container nội dung trong section */
+.section-inner {
+    max-width: 900px; /* Chiều rộng tối đa */
+    margin: 0 auto;
+    padding: 0 16px; /* Khoảng cách lề */
+}
+
+/* Tiêu đề chính của section */
+.section-title {
+    font-size: 32px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+    color: #f91942; /* Màu đỏ đặc trưng */
+}
+
+/* Tiêu đề lớn hơn cho phần đầu tiên */
+.title-large {
+    font-size: 40px;
+}
+
+/* Tiêu đề phụ */
+.sub-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+/* Bố cục flex cho các hàng chứa văn bản và hình ảnh */
+.flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap; /* Cho phép wrap trên thiết bị nhỏ */
+}
+
+/* Khối văn bản */
+.text-block {
+    flex: 1 1 300px; /* Linh hoạt với chiều rộng tối thiểu 300px */
+    max-width: 100%;
+}
+
+/* Hộp văn bản */
+.text-box {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Đoạn văn trong hộp văn bản */
+.text-box p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: #333;
+    text-align: left;
+}
+
+/* Hình ảnh minh họa */
+.image {
+    width: 300px;
+    height: auto;
+    object-fit: contain; /* Đảm bảo hình ảnh không bị méo */
+    border-radius: 8px;
+    flex-shrink: 0; /* Không co lại */
+}
+
+/* CSS responsive cho tablet */
+@media screen and (max-width: 1024px) {
+    .section-title {
+        font-size: 28px; /* Giảm kích thước tiêu đề */
+    }
+    .sub-title {
+        font-size: 20px; /* Giảm kích thước tiêu đề phụ */
+    }
+    .image {
+        width: 250px; /* Giảm kích thước hình ảnh */
+    }
+}
+
+/* CSS responsive cho thiết bị di động */
+@media screen and (max-width: 640px) {
+    .section {
+        padding: 24px 0; /* Giảm khoảng cách trên dưới */
+    }
+
+    /* Chuyển bố cục flex thành cột */
+    .flex-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    /* Đẩy hình ảnh lên trên */
+    .image {
+        order: -1;
+        width: 50%;
+        max-width: 280px;
+        margin-bottom: 16px;
+    }
+
+    /* Căn giữa văn bản */
+    .text-box p {
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 24px; /* Giảm kích thước tiêu đề */
+    }
+
+    .sub-title {
+        font-size: 18px; /* Giảm kích thước tiêu đề phụ */
+    }
+
+    .text-box {
+        padding: 0 10px; /* Thêm khoảng cách lề */
+    }
+}

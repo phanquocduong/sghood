@@ -1,4 +1,6 @@
+<!-- Template hiển thị danh sách nhà trọ nổi bật -->
 <template>
+    <!-- Chỉ render ở client-side để tránh lỗi SSR -->
     <ClientOnly>
         <section class="fullwidth margin-top-65 padding-top-75 padding-bottom-70" data-background-color="#f8f8f8">
             <div class="container">
@@ -10,8 +12,10 @@
                     </div>
 
                     <div class="col-md-12">
+                        <!-- Carousel hiển thị nhà trọ -->
                         <div ref="carousel" class="simple-slick-carousel dots-nav">
                             <div v-for="motel in motels" :key="motel.id" class="carousel-item">
+                                <!-- Liên kết đến trang chi tiết nhà trọ -->
                                 <NuxtLink :to="`/danh-sach-nha-tro/${motel.slug}`" class="listing-item-container">
                                     <div class="listing-item">
                                         <img :src="`${config.public.baseUrl}${motel.main_image}`" :alt="motel.name" />
@@ -44,21 +48,24 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useFormatPrice } from '~/composables/useFormatPrice';
 
+// Lấy API, cấu hình và composable format giá
 const { $api } = useNuxtApp();
 const config = useRuntimeConfig();
 const { formatPrice } = useFormatPrice();
-const motels = ref([]);
-const carousel = ref(null);
+const motels = ref([]); // Lưu danh sách nhà trọ
+const carousel = ref(null); // Tham chiếu đến carousel
 
+// Hàm chạy khi component được mount
 onMounted(async () => {
     try {
+        // Gọi API để lấy danh sách nhà trọ nổi bật
         const response = await $api('/motels/featured', { method: 'GET' });
         motels.value = response.data;
 
         // Đợi DOM được render hoàn toàn
         await nextTick();
 
-        // Chỉ khởi tạo Slick nếu có dữ liệu và DOM sẵn sàng
+        // Khởi tạo Slick carousel nếu có dữ liệu và jQuery/Slick có sẵn
         if (motels.value.length > 0 && carousel.value && typeof window !== 'undefined' && window.jQuery && window.jQuery.fn.slick) {
             const $ = window.jQuery;
             $(carousel.value).slick({
@@ -93,4 +100,4 @@ onMounted(async () => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped></style>

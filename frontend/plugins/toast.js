@@ -1,8 +1,9 @@
 import Toast, { useToast } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 
+// Plugin tích hợp vue-toastification vào ứng dụng
 export default defineNuxtPlugin(nuxtApp => {
-    // Kiểm tra screen size để tùy chỉnh config
+    // Hàm kiểm tra thiết bị di động
     const isMobile = () => {
         if (process.client) {
             return window.innerWidth <= 768;
@@ -10,7 +11,7 @@ export default defineNuxtPlugin(nuxtApp => {
         return false;
     };
 
-    // Config cơ bản
+    // Cấu hình cơ bản cho toast
     const baseConfig = {
         transition: 'Vue-Toastification__bounce',
         maxToasts: 20,
@@ -28,14 +29,14 @@ export default defineNuxtPlugin(nuxtApp => {
         rtl: false
     };
 
-    // Config responsive cho mobile
+    // Hàm lấy cấu hình responsive cho toast
     const getResponsiveConfig = () => {
         if (isMobile()) {
             return {
                 ...baseConfig,
-                position: 'top-center', // Thay đổi vị trí cho mobile
-                maxToasts: 3, // Giảm số toast hiển thị
-                timeout: 4000, // Giảm thời gian hiển thị
+                position: 'top-center', // Vị trí toast trên mobile
+                maxToasts: 3, // Giới hạn số toast hiển thị
+                timeout: 4000, // Thời gian hiển thị ngắn hơn
                 toastClassName: 'mobile-toast', // Class tùy chỉnh cho mobile
                 bodyClassName: 'mobile-toast-body',
                 containerClassName: 'mobile-toast-container'
@@ -43,13 +44,14 @@ export default defineNuxtPlugin(nuxtApp => {
         }
         return {
             ...baseConfig,
-            position: 'top-right'
+            position: 'top-right' // Vị trí toast trên desktop
         };
     };
 
+    // Tích hợp vue-toastification với cấu hình
     nuxtApp.vueApp.use(Toast, getResponsiveConfig());
 
-    // Thêm CSS responsive
+    // Thêm CSS responsive cho toast
     if (process.client) {
         const style = document.createElement('style');
         style.textContent = `
@@ -118,19 +120,19 @@ export default defineNuxtPlugin(nuxtApp => {
                 }
             }
         `;
-        document.head.appendChild(style);
+        document.head.appendChild(style); // Thêm CSS vào head
 
-        // Cập nhật config khi resize màn hình
+        // Cập nhật cấu hình khi thay đổi kích thước màn hình
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                // Có thể thêm logic để reload toast config nếu cần
                 console.log('Screen resized, current mobile status:', isMobile());
             }, 250);
         });
     }
 
+    // Cung cấp toast cho ứng dụng
     return {
         provide: {
             toast: useToast()

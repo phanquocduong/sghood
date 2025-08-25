@@ -1,94 +1,82 @@
 import { useAppToast } from '~/composables/useToast';
 import { useApi } from '~/composables/useApi';
 
+// Composable xử lý các hành động liên quan đến hợp đồng
 export function useContractActions({ isLoading, contracts }) {
-    const { $api } = useNuxtApp();
-    const { handleBackendError } = useApi();
-    const toast = useAppToast();
+    const { $api } = useNuxtApp(); // Lấy instance của API
+    const { handleBackendError } = useApi(); // Hàm xử lý lỗi từ backend
+    const toast = useAppToast(); // Hàm hiển thị thông báo
 
+    // Lấy danh sách hợp đồng
     const fetchContracts = async () => {
-        isLoading.value = true;
+        isLoading.value = true; // Bật trạng thái loading
         try {
-            const response = await $api('/contracts', { method: 'GET' });
-            contracts.value = response.data;
+            const response = await $api('/contracts', { method: 'GET' }); // Gọi API lấy danh sách hợp đồng
+            contracts.value = response.data; // Cập nhật danh sách hợp đồng
         } catch (error) {
-            handleBackendError(error, toast);
+            handleBackendError(error, toast); // Xử lý lỗi nếu có
         } finally {
-            isLoading.value = false;
+            isLoading.value = false; // Tắt trạng thái loading
         }
     };
 
+    // Hủy hợp đồng
     const cancelContract = async id => {
-        isLoading.value = true;
+        isLoading.value = true; // Bật trạng thái loading
         try {
             await $api(`/contracts/${id}/cancel`, {
                 method: 'POST',
                 headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-                }
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value // Thêm token bảo mật
+                },
+                body: { _method: 'PATCH' }
             });
-            toast.success('Hủy hợp đồng thành công');
-            await fetchContracts();
+            toast.success('Hủy hợp đồng thành công'); // Hiển thị thông báo thành công
+            await fetchContracts(); // Làm mới danh sách hợp đồng
         } catch (error) {
-            handleBackendError(error, toast);
+            handleBackendError(error, toast); // Xử lý lỗi nếu có
         } finally {
-            isLoading.value = false;
+            isLoading.value = false; // Tắt trạng thái loading
         }
     };
 
+    // Gia hạn hợp đồng
     const extendContract = async (id, months) => {
-        isLoading.value = true;
+        isLoading.value = true; // Bật trạng thái loading
         try {
             await $api(`/contracts/${id}/extend`, {
                 method: 'POST',
                 headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value // Thêm token bảo mật
                 },
                 body: { months }
             });
-            toast.success('Yêu cầu gia hạn hợp đồng đã được gửi.');
-            await fetchContracts();
+            toast.success('Yêu cầu gia hạn hợp đồng đã được gửi.'); // Hiển thị thông báo thành công
+            await fetchContracts(); // Làm mới danh sách hợp đồng
         } catch (error) {
-            handleBackendError(error, toast);
+            handleBackendError(error, toast); // Xử lý lỗi nếu có
         } finally {
-            isLoading.value = false;
+            isLoading.value = false; // Tắt trạng thái loading
         }
     };
 
+    // Trả phòng và hoàn tiền cọc
     const returnContract = async (contractId, data) => {
-        isLoading.value = true;
+        isLoading.value = true; // Bật trạng thái loading
         try {
             await $api(`/contracts/${contractId}/return`, {
                 method: 'POST',
                 headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
+                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value // Thêm token bảo mật
                 },
                 body: data
             });
-            toast.success('Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.');
-            await fetchContracts();
+            toast.success('Yêu cầu trả phòng và hoàn tiền cọc đã được gửi.'); // Hiển thị thông báo thành công
+            await fetchContracts(); // Làm mới danh sách hợp đồng
         } catch (error) {
-            handleBackendError(error, toast);
+            handleBackendError(error, toast); // Xử lý lỗi nếu có
         } finally {
-            isLoading.value = false;
-        }
-    };
-
-    const earlyTermination = async id => {
-        isLoading.value = true;
-        try {
-            await $api(`/contracts/${id}/early-termination`, {
-                method: 'POST',
-                headers: {
-                    'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value
-                }
-            });
-            toast.success('Yêu cầu kết thúc hợp đồng sớm đã được gửi.');
-            await fetchContracts();
-        } catch (error) {
-            handleBackendError(error, toast);
-        } finally {
-            isLoading.value = false;
+            isLoading.value = false; // Tắt trạng thái loading
         }
     };
 
@@ -96,7 +84,6 @@ export function useContractActions({ isLoading, contracts }) {
         fetchContracts,
         cancelContract,
         extendContract,
-        returnContract,
-        earlyTermination
+        returnContract
     };
 }
