@@ -168,7 +168,7 @@ sudo chmod -R 755 /var/www/html/admin.sghood.com.vn
 
 ```bash
 cd /var/www/html/admin.sghood.com.vn
-sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduong/sghood.git .
+sudo -u www-data git clone https://phanquocduong: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@github.com/phanquocduong/sghood.git .
 rm -rf frontend/ .git/
 rm .gitignore DEPLOYMENT.md README.md
 mv /var/www/html/admin.sghood.com.vn/backend/* /var/www/html/admin.sghood.com.vn/
@@ -415,7 +415,7 @@ sudo chmod -R 755 /var/www/html/sghood.com.vn
 
 ```bash
 cd /var/www/html/sghood.com.vn
-sudo -u www-data git clone https://phanquocduong:<token>@github.com/phanquocduong/sghood.git .
+sudo -u www-data git clone https://phanquocduong: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@github.com/phanquocduong/sghood.git .
 rm -rf backend/ .git/
 rm .gitignore DEPLOYMENT.md README.md
 mv /var/www/html/sghood.com.vn/frontend/* /var/www/html/sghood.com.vn/

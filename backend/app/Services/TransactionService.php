@@ -6,6 +6,8 @@ use App\Models\Motel;
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use function Aws\filter;
+
 class TransactionService
 {
     // Lấy tất cả giao dịch với bộ lọc và phân trang
@@ -17,6 +19,7 @@ class TransactionService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('content', 'like', '%' . $filters['search'] . '%')
+                    ->orWhere('reference_code','like','%' . $filters['search']. '%')
                   ->orWhereHas('invoice', function ($invoiceQuery) use ($filters) {
                       $invoiceQuery->where('code', 'like', '%' . $filters['search'] . '%');
                   });
